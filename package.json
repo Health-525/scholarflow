@@ -11,7 +11,7 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "electron:dev": "concurrently \"next dev\" \"wait-on tcp:3000 && electron .\"",
+    "electron:dev": "concurrently \"next dev\" \"electron .\"",
     "electron:build": "next build && electron-builder --win",
     "electron:build:portable": "next build && electron-builder --win portable",
     "electron:build:installer": "next build && electron-builder --win nsis"
@@ -20,6 +20,9 @@
     "appId": "com.health525.scholarflow",
     "productName": "ScholarFlow",
     "copyright": "Copyright © 2026 Health-525",
+    "toolsets": {
+      "winCodeSign": null
+    },
     "directories": {
       "output": "dist"
     },
@@ -36,8 +39,18 @@
     "win": {
       "icon": "public/icons/icon-512.png",
       "target": [
-        { "target": "nsis",     "arch": ["x64"] },
-        { "target": "portable", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
       ]
     },
     "nsis": {
