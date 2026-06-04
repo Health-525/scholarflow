@@ -17,12 +17,18 @@ export default function ClientShell({ children }: ClientShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const setToken = useAuthStore((s) => s.setToken);
   const isOnline = useOnlineStatus();
 
-  // Apply theme on mount
+  // Apply theme on mount + auto-inject env token if not already authenticated
   useEffect(() => {
     applyTheme();
-  }, []);
+
+    const envToken = process.env.NEXT_PUBLIC_GH_TOKEN;
+    if (envToken && !useAuthStore.getState().isAuthenticated) {
+      setToken(envToken);
+    }
+  }, [setToken]);
 
   // Route guard
   useEffect(() => {
