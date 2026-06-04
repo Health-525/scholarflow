@@ -3,54 +3,81 @@
 import Link from "next/link";
 import { useRunning } from "@/hooks/useRunning";
 import { calculateRunStats } from "@/lib/running-utils";
-import { ProgressBar } from "@/components/ui/ProgressBar";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 
 export function RunningCard() {
   const { records, isLoading, error, reload } = useRunning();
   const stats = calculateRunStats(records);
+  const pct = stats.progressPercent;
 
   return (
-    <div
-      className="rounded-2xl p-4"
-      style={{
-        backgroundColor: "var(--surface-elevated)",
-        border: "1px solid var(--border)",
-        boxShadow: "var(--shadow-sm)",
-      }}
-    >
+    <div className="sf-card p-4">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-          🏃 阳光长跑
-        </h2>
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--status-success)" }} aria-hidden="true" />
+          <h2
+            className="text-[13px] font-semibold tracking-wide"
+            style={{ fontFamily: "'Noto Serif SC', Georgia, serif", color: "var(--text-primary)" }}
+          >
+            阳光长跑
+          </h2>
+        </div>
         <Link
           href="/running"
-          className="text-xs"
+          className="text-[11px] tracking-wide transition-colors hover:opacity-70"
           style={{ color: "var(--accent)" }}
-          aria-label="查看跑步记录"
+          aria-label="查看跑步详情"
         >
-          查看详情
+          查看详情 →
         </Link>
       </div>
 
-      {isLoading && <LoadingSpinner size="sm" />}
-      {error && <ErrorFallback message={error.message} onRetry={reload} />}
+      {isLoading && (
+        <div className="space-y-2">
+          <div className="skeleton h-8 w-20 rounded" />
+          <div className="skeleton h-2 rounded-full" />
+        </div>
+      )}
+
+      {error && !isLoading && <ErrorFallback message={error.message} onRetry={reload} />}
 
       {!isLoading && !error && (
-        <div className="space-y-2">
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
+        <div className="space-y-2.5">
+          {/* Big number */}
+          <div className="flex items-baseline gap-1.5">
+            <span
+              className="text-3xl font-bold tabular-nums"
+              style={{
+                fontFamily: "'Noto Serif SC', Georgia, serif",
+                color: "var(--text-primary)",
+                letterSpacing: "-0.02em",
+              }}
+            >
               {stats.total}
             </span>
-            <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+            <span className="text-[12px]" style={{ color: "var(--text-muted)" }}>
               / 50 次
             </span>
+            {pct >= 100 && (
+              <span className="sf-chip sf-chip-ok ml-1">达标 ✓</span>
+            )}
           </div>
-          <ProgressBar value={stats.progressPercent} height={6} />
-          <div className="flex justify-between text-xs" style={{ color: "var(--text-secondary)" }}>
-            <span>晨跑 {stats.morning} 次</span>
-            <span>自由跑 {stats.free} 次</span>
+
+          {/* Progress track */}
+          <div>
+            <div className="sf-progress-track" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`跑步进度 ${pct.toFixed(0)}%`}>
+              <div className="sf-progress-fill" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+
+          {/* Sub stats */}
+          <div className="flex items-center justify-between">
+            <span className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>
+              🌅 晨跑 <strong style={{ color: "var(--text-secondary)" }}>{stats.morning}</strong> 次
+            </span>
+            <span className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>
+              自由跑 <strong style={{ color: "var(--text-secondary)" }}>{stats.free}</strong> 次 🆓
+            </span>
           </div>
         </div>
       )}

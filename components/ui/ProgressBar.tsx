@@ -34,11 +34,8 @@ export function ProgressBar({
         </div>
       )}
       <div
-        className="w-full rounded-full overflow-hidden"
-        style={{
-          height,
-          backgroundColor: "var(--border)",
-        }}
+        className="sf-progress-track"
+        style={{ height }}
         role="progressbar"
         aria-valuenow={clamped}
         aria-valuemin={0}
@@ -46,10 +43,10 @@ export function ProgressBar({
         aria-label={label}
       >
         <div
-          className="h-full rounded-full transition-all duration-500"
+          className="sf-progress-fill"
           style={{
             width: `${clamped}%`,
-            backgroundColor: color || "var(--accent)",
+            ...(color ? { background: color } : {}),
           }}
         />
       </div>
