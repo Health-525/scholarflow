@@ -1,0 +1,43 @@
+{
+  "name": "scholarflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ScholarFlow — 统一学习管理前端",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zustand": "^5.0.0",
+    "unified": "^11.0.5",
+    "remark-parse": "^11.0.0",
+    "remark-gfm": "^4.0.0",
+    "remark-rehype": "^11.1.0",
+    "rehype-stringify": "^10.0.0",
+    "dompurify": "^3.1.6",
+    "next-pwa": "^5.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/dompurify": "^3.0.5",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8",
+    "eslint-config-next": "^15.0.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5",
+    "vitest": "^2.0.0",
+    "fast-check": "^3.22.0",
+    "msw": "^2.3.0",
+    "@vitejs/plugin-react": "^4.3.0"
+  }
+}
