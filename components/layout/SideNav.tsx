@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: "/schedule",        label: "课表",   icon: "⊞" },
   { href: "/assignments",     label: "作业",   icon: "◳" },
   { href: "/running",         label: "跑步",   icon: "◎" },
+  { href: "/notes",           label: "笔记",   icon: "◫" },
   { href: "/reports/daily",   label: "日报",   icon: "◨" },
 ];
 
