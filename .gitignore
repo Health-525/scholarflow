@@ -10,6 +10,9 @@ out/
 # production build
 build/
 
+# Electron build output
+dist/
+
 # env files
 .env
 .env.local

@@ -3,41 +3,85 @@
   "version": "1.0.0",
   "private": true,
   "description": "ScholarFlow — 统一学习管理前端",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "electron:dev": "concurrently \"next dev\" \"wait-on tcp:3000 && electron .\"",
+    "electron:build": "next build && electron-builder --win",
+    "electron:build:portable": "next build && electron-builder --win portable",
+    "electron:build:installer": "next build && electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.health525.scholarflow",
+    "productName": "ScholarFlow",
+    "copyright": "Copyright © 2026 Health-525",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      ".next/**/*",
+      "public/**/*",
+      "node_modules/**/*",
+      "package.json",
+      "next.config.ts",
+      "!node_modules/.cache",
+      "!**/*.map"
+    ],
+    "win": {
+      "icon": "public/icons/icon-512.png",
+      "target": [
+        { "target": "nsis",     "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ScholarFlow"
+    },
+    "portable": {
+      "artifactName": "ScholarFlow-${version}-portable.exe"
+    }
   },
   "dependencies": {
+    "dompurify": "^3.1.6",
     "next": "^15.0.0",
+    "next-pwa": "^5.6.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "zustand": "^5.0.0",
-    "unified": "^11.0.5",
-    "remark-parse": "^11.0.0",
-    "remark-gfm": "^4.0.0",
-    "remark-rehype": "^11.1.0",
     "rehype-stringify": "^10.0.0",
-    "dompurify": "^3.1.6",
-    "next-pwa": "^5.6.0"
+    "remark-gfm": "^4.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.0",
+    "unified": "^11.0.5",
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@types/dompurify": "^3.0.5",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/dompurify": "^3.0.5",
+    "@vitejs/plugin-react": "^4.3.0",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^10.0.3",
+    "electron": "^42.3.3",
+    "electron-builder": "^26.8.1",
     "eslint": "^8",
     "eslint-config-next": "^15.0.0",
+    "fast-check": "^3.22.0",
+    "msw": "^2.3.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.14",
     "typescript": "^5",
     "vitest": "^2.0.0",
-    "fast-check": "^3.22.0",
-    "msw": "^2.3.0",
-    "@vitejs/plugin-react": "^4.3.0"
+    "wait-on": "^9.0.10"
   }
 }
