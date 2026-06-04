@@ -25,7 +25,7 @@ export function AppShell({ children, isOnline = true }: AppShellProps) {
         <OfflineBanner isOnline={isOnline} />
 
         {/* Page content */}
-        <main className="flex-1 pb-20 md:pb-0">
+        <main className="flex-1 pb-20 md:pb-0 px-4 md:px-8 lg:px-10 py-0">
           {children}
         </main>
       </div>

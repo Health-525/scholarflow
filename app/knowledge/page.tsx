@@ -39,7 +39,7 @@ export default function KnowledgePage() {
   const portrait = rawContent ? parseKnowledgePortrait(rawContent) : null;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="max-w-5xl mx-auto py-6">
       <h1 className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
         知识画像
       </h1>

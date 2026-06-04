@@ -68,7 +68,7 @@ function DirectoryView({ repoPath, parts }: { repoPath: string; parts: string[] 
   const { entries, isLoading, error, reload } = useDirectory(repoPath);
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-6 pb-24 md:pb-8">
+    <div className="max-w-5xl mx-auto py-6 pb-24 md:pb-8">
       <Breadcrumb parts={parts} />
 
       <h1
@@ -137,7 +137,7 @@ function FileView({ repoPath, parts }: { repoPath: string; parts: string[] }) {
   const parentPath = parentParts.length ? "/notes/" + parentParts.join("/") : "/notes";
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 pb-24 md:pb-8">
+    <div className="max-w-4xl mx-auto py-6 pb-24 md:pb-8">
       <Breadcrumb parts={parts} />
 
       {/* File header */}

@@ -13,7 +13,7 @@ export default function AssignmentsPage() {
   const [showForm, setShowForm] = useState(false);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="max-w-5xl mx-auto py-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
           作业

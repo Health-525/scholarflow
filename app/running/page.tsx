@@ -16,7 +16,7 @@ export default function RunningPage() {
   const stats = calculateRunStats(records);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="max-w-5xl mx-auto py-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
           阳光长跑

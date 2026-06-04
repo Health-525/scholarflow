@@ -31,7 +31,7 @@ const SECTIONS = [
 
 export default function NotesPage() {
   return (
-    <div className="max-w-xl mx-auto px-4 py-7 pb-24 md:pb-8">
+    <div className="max-w-5xl mx-auto py-7 pb-24 md:pb-8">
       {/* Header */}
       <header className="mb-7 animate-fade-up">
         <h1
@@ -53,8 +53,8 @@ export default function NotesPage() {
         </div>
       </header>
 
-      {/* Sections */}
-      <div className="space-y-6 animate-fade-up stagger-1">
+      {/* Sections：桌面端并排两列 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-up stagger-1">
         {SECTIONS.map((section) => (
           <div key={section.group}>
             <p

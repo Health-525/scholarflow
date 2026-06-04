@@ -30,7 +30,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-7 pb-24 md:pb-8">
+    <div className="max-w-5xl mx-auto py-7 pb-24 md:pb-8">
 
       {/* ── Header ── */}
       <header className="mb-7 animate-fade-up">
@@ -68,8 +68,8 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* ── Cards ── */}
-      <div className="space-y-4">
+      {/* ── Cards：移动端单列，桌面端 2×2 网格 ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="animate-fade-up stagger-1">
           <ScheduleCard />
         </div>

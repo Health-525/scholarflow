@@ -21,7 +21,7 @@ export default function SchedulePage() {
   const { schedule, adjustments, isLoading, error, reload } = useSchedule();
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="max-w-5xl mx-auto py-6">
       <h1 className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
         课表
       </h1>
