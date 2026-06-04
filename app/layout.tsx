@@ -14,8 +14,10 @@ export const metadata: Metadata = {
   description: "统一学习管理中枢 — 课表、作业、跑步、日报",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/icons/icon-192.png",
+    icon: [
+      { url: "/icons/logo.png", type: "image/png" },
+    ],
+    apple: "/icons/logo.png",
   },
   appleWebApp: {
     capable: true,

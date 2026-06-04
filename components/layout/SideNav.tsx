@@ -28,23 +28,36 @@ export function SideNav() {
     >
       {/* Brand */}
       <div className="px-6 pt-7 pb-6">
-        <div className="flex items-baseline gap-2">
-          <span
-            className="font-display text-xl"
-            style={{ color: "var(--accent)", fontFamily: "'Noto Serif SC', Georgia, serif" }}
-          >
-            Scholar
-          </span>
-          <span
-            className="font-display text-xl"
-            style={{ color: "var(--text-primary)", fontFamily: "'Noto Serif SC', Georgia, serif" }}
-          >
-            Flow
-          </span>
+        <div className="flex items-center gap-3">
+          {/* Logo */}
+          <img
+            src="/icons/logo.png"
+            alt="ScholarFlow logo"
+            width={32}
+            height={32}
+            className="rounded-lg shrink-0"
+            style={{ objectFit: "cover" }}
+          />
+          <div>
+            <div className="flex items-baseline gap-1.5">
+              <span
+                className="font-display text-lg"
+                style={{ color: "var(--accent)", fontFamily: "'Noto Serif SC', Georgia, serif" }}
+              >
+                Scholar
+              </span>
+              <span
+                className="font-display text-lg"
+                style={{ color: "var(--text-primary)", fontFamily: "'Noto Serif SC', Georgia, serif" }}
+              >
+                Flow
+              </span>
+            </div>
+            <p className="text-[10px] tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>
+              学习管理中枢
+            </p>
+          </div>
         </div>
-        <p className="text-[11px] mt-1 tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>
-          学习管理中枢
-        </p>
       </div>
 
       {/* Divider with decoration */}

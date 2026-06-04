@@ -45,7 +45,7 @@ function createWindow() {
     minWidth: 800,
     minHeight: 600,
     title: 'ScholarFlow',
-    icon: path.join(__dirname, '../public/icons/icon-512.png'),
+    icon: path.join(__dirname, '../public/icons/logo.png'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
