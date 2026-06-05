@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGitHubClient } from "./useGitHubClient";
 import { getDB } from "@/lib/db";
@@ -78,6 +79,7 @@ export function useScheduleQuery() {
 export function useAssignmentsQuery() {
   const client = useGitHubClient();
   const queryClient = useQueryClient();
+  const undoBufferRef = useRef<{ assignment: Assignment; expiresAt: number } | null>(null);
 
   const query = useQuery({
     queryKey: queryKeys.assignments,
@@ -120,17 +122,49 @@ export function useAssignmentsQuery() {
     mutationFn: async (id: string) => {
       if (!client) throw new Error("Not authenticated");
       const current = queryClient.getQueryData<Assignment[]>(queryKeys.assignments) ?? [];
+      const target = current.find((a) => a.id === id);
       const updated = current.map((a) =>
         a.id === id ? { ...a, done: true, completedAt: new Date().toISOString() } : a
       );
       const content = JSON.stringify({ assignments: updated }, null, 2);
       await client.putFile("execution", "data/assignments.json", content, "完成作业");
-      return { updated, id };
+      return { updated, id, target };
     },
-    onSuccess: ({ updated }) => {
+    onSuccess: ({ updated, target }) => {
       queryClient.setQueryData(queryKeys.assignments, updated);
+      if (target) {
+        undoBufferRef.current = { assignment: target, expiresAt: Date.now() + 10_000 };
+      }
     },
   });
+
+  // Undo mutation
+  const undoMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!client) throw new Error("Not authenticated");
+      const current = queryClient.getQueryData<Assignment[]>(queryKeys.assignments) ?? [];
+      const updated = current.map((a) =>
+        a.id === id ? { ...a, done: false, completedAt: undefined } : a
+      );
+      const content = JSON.stringify({ assignments: updated }, null, 2);
+      await client.putFile("execution", "data/assignments.json", content, "撤销完成");
+      return updated;
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(queryKeys.assignments, updated);
+      undoBufferRef.current = null;
+    },
+  });
+
+  // 封装 undo 为无参函数（从 ref 读取 id）
+  const undo = useCallback(async () => {
+    const buf = undoBufferRef.current;
+    if (!buf || Date.now() > buf.expiresAt) {
+      undoBufferRef.current = null;
+      return;
+    }
+    await undoMutation.mutateAsync(buf.assignment.id);
+  }, [undoMutation.mutateAsync]);
 
   return {
     assignments: query.data ?? [],
@@ -139,6 +173,8 @@ export function useAssignmentsQuery() {
     reload: () => query.refetch(),
     add: addMutation.mutateAsync,
     markDone: markDoneMutation.mutateAsync,
+    undo,
+    undoBuffer: undoBufferRef.current,
     isAdding: addMutation.isPending,
     isMarking: markDoneMutation.isPending,
   };

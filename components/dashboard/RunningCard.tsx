@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRunning } from "@/hooks/useRunning";
+import { useRunningQuery } from "@/hooks/useQueries";
 import { calculateRunStats } from "@/lib/running-utils";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 
 export function RunningCard() {
-  const { records, isLoading, error, reload } = useRunning();
+  const { records, isLoading, error, reload } = useRunningQuery();
   const stats = calculateRunStats(records);
   const pct = stats.progressPercent;
 

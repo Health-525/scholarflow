@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSchedule } from "@/hooks/useSchedule";
+import { useScheduleQuery } from "@/hooks/useQueries";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { TodayView } from "@/components/schedule/TodayView";
@@ -18,7 +18,9 @@ const TABS: { id: Tab; label: string }[] = [
 
 export default function SchedulePage() {
   const [activeTab, setActiveTab] = useState<Tab>("today");
-  const { schedule, adjustments, isLoading, error, reload } = useSchedule();
+  const { data, isLoading, error, refetch } = useScheduleQuery();
+  const schedule = data?.schedule ?? null;
+  const adjustments = data?.adjustments ?? [];
 
   return (
     <div className="max-w-5xl mx-auto py-6">
@@ -62,7 +64,7 @@ export default function SchedulePage() {
       {error && !isLoading && (
         <ErrorFallback
           message={error.message}
-          onRetry={reload}
+          onRetry={() => refetch()}
         />
       )}
 

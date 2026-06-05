@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useAssignments } from "@/hooks/useAssignments";
+import { useAssignmentsQuery } from "@/hooks/useQueries";
 import { classifyUrgency } from "@/lib/assignment-utils";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 
@@ -13,7 +13,7 @@ const URGENCY_CONFIG = {
 };
 
 export function AssignmentsCard() {
-  const { assignments, isLoading, error, reload } = useAssignments();
+  const { assignments, isLoading, error, reload } = useAssignmentsQuery();
   const pending = assignments.filter((a) => !a.done).slice(0, 5);
 
   return (

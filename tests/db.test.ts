@@ -48,7 +48,8 @@ describe("ScholarFlowDB", () => {
 
   it("should clean expired cache", async () => {
     await db.cacheFile("execution", "data/old.json", "old content", "sha");
-    // 使用 0ms maxAge，所有缓存都应被视为过期
+    // 等1ms确保时间戳已过期
+    await new Promise((r) => setTimeout(r, 1));
     const count = await db.cleanExpiredCache(0);
     expect(count).toBe(1);
 

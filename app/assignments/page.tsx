@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useAssignments } from "@/hooks/useAssignments";
+import { useAssignmentsQuery } from "@/hooks/useQueries";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { AssignmentList } from "@/components/assignments/AssignmentList";
 import { AddAssignmentForm } from "@/components/assignments/AddAssignmentForm";
 
 export default function AssignmentsPage() {
-  const { assignments, isLoading, error, undoBuffer, add, markDone, undo, reload } =
-    useAssignments();
+  const { assignments, isLoading, error, add, markDone, undoBuffer, undo, reload } =
+    useAssignmentsQuery();
   const [showForm, setShowForm] = useState(false);
 
   return (

@@ -6,7 +6,7 @@ import { isDuplicateRun } from "@/lib/running-utils";
 
 interface AddRunningFormProps {
   records: RunRecord[];
-  onAdd: (date: string, type: RunType) => Promise<void>;
+  onAdd: (record: { date: string; type: RunType }) => Promise<RunRecord[]>;
   onCancel?: () => void;
 }
 
@@ -34,7 +34,7 @@ export function AddRunningForm({ records, onAdd, onCancel }: AddRunningFormProps
 
     setIsSubmitting(true);
     try {
-      await onAdd(date, type);
+      await onAdd({ date, type });
       onCancel?.();
     } catch {
       setError("记录失败，请重试");

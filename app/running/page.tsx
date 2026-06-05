@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRunning } from "@/hooks/useRunning";
+import { useRunningQuery } from "@/hooks/useQueries";
 import { calculateRunStats } from "@/lib/running-utils";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
@@ -10,7 +10,7 @@ import { RunningHeatmap } from "@/components/running/RunningHeatmap";
 import { AddRunningForm } from "@/components/running/AddRunningForm";
 
 export default function RunningPage() {
-  const { records, isLoading, error, addRecord, reload } = useRunning();
+  const { records, isLoading, error, addRecord, reload } = useRunningQuery();
   const [showForm, setShowForm] = useState(false);
 
   const stats = calculateRunStats(records);

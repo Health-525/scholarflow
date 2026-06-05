@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import type { AssignmentDraft } from "@/types";
+import type { AssignmentDraft, Assignment } from "@/types";
 
 interface AddAssignmentFormProps {
-  onAdd: (draft: AssignmentDraft) => Promise<void>;
+  onAdd: (draft: AssignmentDraft) => Promise<Assignment[] | void>;
   onCancel?: () => void;
 }
 

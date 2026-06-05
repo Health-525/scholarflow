@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSchedule } from "@/hooks/useSchedule";
+import { useScheduleQuery } from "@/hooks/useQueries";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
 import { getNowInTimeZone } from "@/lib/schedule/timezone";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
@@ -23,7 +23,9 @@ function getPalette(title: string) {
 }
 
 export function ScheduleCard() {
-  const { schedule, adjustments, isLoading, error, reload } = useSchedule();
+  const { data, isLoading, error, refetch } = useScheduleQuery();
+  const schedule = data?.schedule;
+  const adjustments = data?.adjustments ?? [];
 
   return (
     <div className="sf-card p-4">
@@ -59,7 +61,7 @@ export function ScheduleCard() {
 
       {/* Error */}
       {error && !isLoading && (
-        <ErrorFallback message={error.message} onRetry={reload} />
+        <ErrorFallback message={error.message} onRetry={() => refetch()} />
       )}
 
       {/* Content */}
