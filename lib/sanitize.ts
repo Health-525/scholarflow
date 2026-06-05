@@ -16,6 +16,7 @@ const ALLOWED_ATTR = [
   "href", "src", "alt", "title", "class", "id",
   "data-callout-type",
   "aria-hidden", "role",
+  "loading", "decoding",
 ];
 
 /**

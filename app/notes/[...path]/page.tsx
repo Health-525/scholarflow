@@ -136,6 +136,10 @@ function FileView({ repoPath, parts }: { repoPath: string; parts: string[] }) {
   const parentParts = parts.slice(0, -1);
   const parentPath = parentParts.length ? "/notes/" + parentParts.join("/") : "/notes";
 
+  // 计算笔记目录和名称（用于图片重写）
+  const noteName = fileName.replace(/\.(md|txt)$/, "");
+  const noteDir = parentParts.map(decodeURIComponent).join("/");
+
   return (
     <div className="max-w-4xl mx-auto py-6 pb-24 md:pb-8">
       <Breadcrumb parts={parts} />
@@ -172,7 +176,10 @@ function FileView({ repoPath, parts }: { repoPath: string; parts: string[] }) {
       {!isLoading && !error && content && (
         isMarkdown(fileName) ? (
           <div className="sf-card px-5 py-5 animate-fade-up">
-            <MarkdownRenderer content={content} />
+            <MarkdownRenderer
+              content={content}
+              markdownOptions={{ noteDir, noteName }}
+            />
           </div>
         ) : (
           <div

@@ -468,3 +468,11 @@ button,
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
+
+/* ─── Markdown inline images ─── */
+.markdown-image {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  margin: 12px 0;
+  box-shadow: var(--shadow-sm);
+}

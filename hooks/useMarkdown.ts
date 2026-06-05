@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { renderMarkdown } from "@/lib/markdown/processor";
+import { renderMarkdown, type MarkdownOptions } from "@/lib/markdown/processor";
 
 /**
  * 异步渲染 Markdown，返回 HTML 字符串和加载状态
  */
-export function useMarkdown(markdown: string | null | undefined): {
+export function useMarkdown(
+  markdown: string | null | undefined,
+  options?: MarkdownOptions
+): {
   html: string;
   isLoading: boolean;
 } {
@@ -22,7 +25,7 @@ export function useMarkdown(markdown: string | null | undefined): {
     let cancelled = false;
     setIsLoading(true);
 
-    renderMarkdown(markdown)
+    renderMarkdown(markdown, options)
       .then((result) => {
         if (!cancelled) {
           setHtml(result);
@@ -39,7 +42,7 @@ export function useMarkdown(markdown: string | null | undefined): {
     return () => {
       cancelled = true;
     };
-  }, [markdown]);
+  }, [markdown, options?.noteDir, options?.noteName]);
 
   return { html, isLoading };
 }
