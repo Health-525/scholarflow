@@ -12,59 +12,7 @@ export interface MarkdownOptions {
   noteName?: string;
 }
 
-/**
- * 构建图片资源基础URL
- */
-function getBaseUrl(options?: MarkdownOptions): string | null {
-  if (!options?.noteDir || !options?.noteName) return null;
-  return `https://raw.githubusercontent.com/Health-525/jiangshu-study/main/${options.noteDir}/assets/${options.noteName}`;
-}
-
-/**
- * 后处理：将 HTML 中所有相对路径的 <img> src 重写为 GitHub 绝对 URL
- * 作为安全兜底——即使 preprocessor 漏掉了某些图片，这里也会重写
- */
-function rewriteImageSrc(html: string, baseUrl: string): string {
-  return html.replace(
-    /<img\s+([^>]*?)src="([^"]+\.(?:png|jpg|jpeg|gif|webp|svg|bmp|ico))"([^>]*?)>/gi,
-    (match, before, filename, after) => {
-      if (/^https?:\/\//i.test(filename)) return match;
-      // 先解码再编码，避免双重编码（如 %20 → %2520）
-      const decoded = decodeURIComponent(filename.trim());
-      const encoded = decoded.split("/").map(encodeURIComponent).join("/");
-      return `<img ${before}src="${baseUrl}/${encoded}"${after} loading="lazy" class="markdown-image">`;
-    }
-  );
-}
-
-/**
- * 预处理：将 Obsidian 的 ![[图片名.png]] 直接替换为 <img> 标签
- */
-function preprocessObsidianImages(markdown: string, baseUrl: string): string {
-  return markdown.replace(
-    /!\[\[([^\]]+\.(?:png|jpg|jpeg|gif|webp|svg|bmp|ico))(?:\|([^\]]*))?\]\]/gi,
-    (_full, filename, _alt) => {
-      const encoded = filename.trim().split("/").map(encodeURIComponent).join("/");
-      return `<img src="${baseUrl}/${encoded}" loading="lazy" class="markdown-image" alt="${filename}" />`;
-    }
-  );
-}
-
-/**
- * 渲染 Markdown 为安全 HTML
- * 三层图片处理：
- *   1) 预处理：![[图片]] → <img src=完整URL>  (原始Markdown层面)
- *   2) unified管线：标准Markdown处理
- *   3) 后处理：兜底重写所有相对路径img的src (HTML层面)
- */
-export async function renderMarkdown(markdown: string, options?: MarkdownOptions): Promise<string> {
-  const baseUrl = getBaseUrl(options);
-
-  // 预处理
-  const processed = baseUrl
-    ? preprocessObsidianImages(markdown, baseUrl)
-    : markdown;
-
+export async function renderMarkdown(markdown: string, _options?: MarkdownOptions): Promise<string> {
   const result = await unified()
     .use(remarkParse)
     .use(remarkGfm)
@@ -72,14 +20,7 @@ export async function renderMarkdown(markdown: string, options?: MarkdownOptions
     .use(wikiLinkPlugin)
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeStringify, { allowDangerousHtml: true })
-    .process(processed);
+    .process(markdown);
 
-  let html = sanitizeHtml(String(result));
-
-  // 后处理兜底：重写任何剩余的相对路径图片
-  if (baseUrl) {
-    html = rewriteImageSrc(html, baseUrl);
-  }
-
-  return html;
+  return sanitizeHtml(String(result));
 }
