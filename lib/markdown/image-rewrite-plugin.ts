@@ -32,8 +32,8 @@ export function imageRewritePlugin(options: ImageRewriteOptions) {
         node.properties = {
           ...node.properties,
           src: `${baseUrl}/${match[0]}`,
+          class: "markdown-image",
           loading: "lazy",
-          className: "markdown-image",
         };
       }
     });
