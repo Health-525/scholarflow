@@ -5,6 +5,7 @@ import { AssignmentsCard } from "@/components/dashboard/AssignmentsCard";
 import { RunningCard } from "@/components/dashboard/RunningCard";
 import { RecentDailyCard } from "@/components/dashboard/RecentDailyCard";
 import { JwcNewsCard } from "@/components/dashboard/JwcNewsCard";
+import { StatsDashboard } from "@/components/dashboard/StatsDashboard";
 
 export default function DashboardPage() {
   const now = new Date();
@@ -83,9 +84,14 @@ export default function DashboardPage() {
         <div className="animate-fade-up stagger-4">
           <RecentDailyCard />
         </div>
-        <div className="animate-fade-up stagger-4 md:col-span-2">
-          <JwcNewsCard />
-        </div>
+      </div>
+
+      {/* ── 数据可视化 ── */}
+      <StatsDashboard />
+
+      {/* ── 教务新闻 ── */}
+      <div className="animate-fade-up stagger-5">
+        <JwcNewsCard />
       </div>
     </div>
   );

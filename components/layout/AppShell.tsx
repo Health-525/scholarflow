@@ -4,6 +4,10 @@ import { ReactNode } from "react";
 import { SideNav } from "./SideNav";
 import { BottomNav } from "./BottomNav";
 import { OfflineBanner } from "./OfflineBanner";
+import { AIChat } from "@/components/chat/AIChat";
+import { PomodoroTimer } from "@/components/pomodoro/PomodoroTimer";
+import { NotificationActivator } from "@/hooks/useNotifications";
+import { GlobalSearch } from "@/components/search/GlobalSearch";
 
 interface AppShellProps {
   children: ReactNode;
@@ -32,6 +36,18 @@ export function AppShell({ children, isOnline = true }: AppShellProps) {
 
       {/* Mobile bottom nav */}
       <BottomNav />
+
+      {/* Global search (Ctrl+K) */}
+      <GlobalSearch />
+
+      {/* AI Chat assistant */}
+      <AIChat />
+
+      {/* Pomodoro timer */}
+      <PomodoroTimer />
+
+      {/* Notification system */}
+      <NotificationActivator />
     </div>
   );
 }

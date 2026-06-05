@@ -57,7 +57,9 @@ export default function RootLayout({
         />
       </head>
       <body className={notoSansSC.variable}>
-        <ClientShell>{children}</ClientShell>
+        <QueryProvider>
+          <ClientShell>{children}</ClientShell>
+        </QueryProvider>
       </body>
     </html>
   );
@@ -65,3 +67,4 @@ export default function RootLayout({
 
 // Client shell is in a separate file to handle auth routing
 import ClientShell from "./ClientShell";
+import QueryProvider from "./QueryProvider";

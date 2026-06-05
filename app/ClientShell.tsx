@@ -6,6 +6,10 @@ import { AppShell } from "@/components/layout/AppShell";
 import { useAuthStore } from "@/store/auth";
 import { applyTheme } from "@/lib/theme";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import {
+  secureRetrieveToken,
+  migrateLegacyToken,
+} from "@/lib/secure-auth";
 
 const PUBLIC_PATHS = ["/setup"];
 
@@ -20,14 +24,39 @@ export default function ClientShell({ children }: ClientShellProps) {
   const setToken = useAuthStore((s) => s.setToken);
   const isOnline = useOnlineStatus();
 
-  // Apply theme on mount + auto-inject env token if not already authenticated
+  // Apply theme + restore secure token on mount
   useEffect(() => {
     applyTheme();
 
-    const envToken = process.env.NEXT_PUBLIC_GH_TOKEN;
-    if (envToken && !useAuthStore.getState().isAuthenticated) {
-      setToken(envToken);
+    async function restoreToken() {
+      // If already authenticated from Zustand persist, skip
+      if (useAuthStore.getState().isAuthenticated) return;
+
+      // 1) Try to retrieve from secure storage (Electron safeStorage or localStorage)
+      const secureToken = await secureRetrieveToken();
+      if (secureToken) {
+        setToken(secureToken);
+        return;
+      }
+
+      // 2) Try to migrate legacy localStorage token to secure storage
+      const migrated = await migrateLegacyToken();
+      if (migrated) {
+        const migratedToken = await secureRetrieveToken();
+        if (migratedToken) {
+          setToken(migratedToken);
+          return;
+        }
+      }
+
+      // 3) Fallback to env token (development convenience, NOT for production)
+      const envToken = process.env.NEXT_PUBLIC_GH_TOKEN;
+      if (envToken) {
+        setToken(envToken);
+      }
     }
+
+    restoreToken();
   }, [setToken]);
 
   // Route guard

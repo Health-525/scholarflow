@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { validateTokenFormat, verifyToken } from "@/lib/auth";
 import { useAuthStore } from "@/store/auth";
+import { secureStoreToken } from "@/lib/secure-auth";
 
 export default function SetupPage() {
   const router = useRouter();
@@ -28,7 +29,9 @@ export default function SetupPage() {
       const result = await verifyToken(trimmed);
 
       if (result.ok) {
+        // 保存到 Zustand store + 安全持久化存储
         setToken(trimmed);
+        await secureStoreToken(trimmed);
         router.replace("/");
         return;
       }

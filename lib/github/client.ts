@@ -82,16 +82,7 @@ export class GitHubClient {
         }
 
         const data = await resp.json();
-        // GitHub API 返回的是 UTF-8 文件内容的 Base64 编码
-        // atob 只能解码为 Latin-1 字节串，中文会乱码
-        // 需要先转为 Uint8Array，再用 TextDecoder 按 UTF-8 解码
-        const rawBase64 = data.content.replace(/\n/g, "");
-        const binaryStr = atob(rawBase64);
-        const bytes = new Uint8Array(binaryStr.length);
-        for (let i = 0; i < binaryStr.length; i++) {
-          bytes[i] = binaryStr.charCodeAt(i);
-        }
-        const content = new TextDecoder("utf-8").decode(bytes);
+        const content = base64ToUtf8(data.content.replace(/\n/g, ""));
         const result: FileContent = { content, sha: data.sha, path: data.path };
 
         githubCache.set(key, result);
@@ -150,7 +141,7 @@ export class GitHubClient {
         const message = `[ScholarFlow] ${action} · ${new Date().toISOString()}`;
         const body = {
           message,
-          content: btoa(unescape(encodeURIComponent(content))),
+          content: utf8ToBase64(content),
           sha,
         };
         const resp = await fetch(url, {
@@ -214,4 +205,29 @@ export class GitHubClient {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * UTF-8 字符串 → Base64（替代已废弃的 unescape(encodeURIComponent(...))）
+ */
+function utf8ToBase64(str: string): string {
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(str);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+/**
+ * Base64 → UTF-8 字符串
+ */
+function base64ToUtf8(base64: string): string {
+  const binaryStr = atob(base64);
+  const bytes = new Uint8Array(binaryStr.length);
+  for (let i = 0; i < binaryStr.length; i++) {
+    bytes[i] = binaryStr.charCodeAt(i);
+  }
+  return new TextDecoder("utf-8").decode(bytes);
 }

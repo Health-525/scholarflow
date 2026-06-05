@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, dialog } = require('electron');
+const { app, BrowserWindow, shell, dialog, ipcMain, safeStorage } = require('electron');
 const { fork } = require('child_process');
 const path = require('path');
 const net = require('net');
@@ -98,9 +98,48 @@ function launchServer() {
 }
 
 // ── 创建窗口 ────────────────────────────────────────────────
+// ── Token 存储路径 ──────────────────────────────────────────
+function getTokenStorePath() {
+  const userDataPath = app.getPath('userData');
+  return path.join(userDataPath, 'secure-token.enc');
+}
+
+// ── IPC: Token 加密存储与检索 ─────────────────────────────
+function setupSecureTokenIPC() {
+  ipcMain.handle('token:encrypt-store', async (_event, token) => {
+    if (!safeStorage.isEncryptionAvailable()) {
+      throw new Error('系统加密不可用');
+    }
+    const encrypted = safeStorage.encryptString(token);
+    const buf = Buffer.from(encrypted).toString('base64');
+    fs.writeFileSync(getTokenStorePath(), buf, 'utf-8');
+    return true;
+  });
+
+  ipcMain.handle('token:retrieve', async () => {
+    const encPath = getTokenStorePath();
+    if (!fs.existsSync(encPath)) return null;
+    if (!safeStorage.isEncryptionAvailable()) return null;
+    try {
+      const buf = fs.readFileSync(encPath, 'utf-8');
+      const encrypted = Buffer.from(buf, 'base64');
+      return safeStorage.decryptString(encrypted);
+    } catch {
+      return null;
+    }
+  });
+
+  ipcMain.handle('token:clear', async () => {
+    const encPath = getTokenStorePath();
+    if (fs.existsSync(encPath)) fs.unlinkSync(encPath);
+    return true;
+  });
+}
+
 function createWindow() {
   const appRoot = getAppRoot();
   const iconPath = path.join(appRoot, 'public', 'icons', 'logo.png');
+  const preloadPath = path.join(__dirname, 'preload.js');
 
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -112,6 +151,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      preload: preloadPath,
     },
     autoHideMenuBar: true,
     backgroundColor: '#faf7f2',
@@ -143,6 +183,7 @@ function createWindow() {
 
 // ── 主流程 ──────────────────────────────────────────────────
 app.whenReady().then(async () => {
+  setupSecureTokenIPC();
   try {
     console.log('[SF] Starting...');
     await launchServer();
