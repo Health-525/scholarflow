@@ -8,10 +8,16 @@ import { AIChat } from "@/components/chat/AIChat";
 import { PomodoroTimer } from "@/components/pomodoro/PomodoroTimer";
 import { NotificationActivator } from "@/hooks/useNotifications";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 interface AppShellProps {
   children: ReactNode;
   isOnline?: boolean;
+}
+
+function ShortcutActivator() {
+  useKeyboardShortcuts();
+  return null;
 }
 
 export function AppShell({ children, isOnline = true }: AppShellProps) {
@@ -48,6 +54,9 @@ export function AppShell({ children, isOnline = true }: AppShellProps) {
 
       {/* Notification system */}
       <NotificationActivator />
+
+      {/* Keyboard shortcuts */}
+      <ShortcutActivator />
     </div>
   );
 }
