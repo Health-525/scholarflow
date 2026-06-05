@@ -1,7 +1,8 @@
 "use client";
 
-import { useJwcNews } from "@/hooks/useJwcNews";
+import { useJwcNewsQuery } from "@/hooks/useQueries";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
+import type { GitHubError } from "@/lib/github/errors";
 
 // 分类颜色
 const CATEGORY_COLORS: Record<string, string> = {
@@ -10,7 +11,10 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export function JwcNewsCard() {
-  const { items, fetchedAt, isLoading, error, reload } = useJwcNews(8);
+  const { data, isLoading, error, refetch } = useJwcNewsQuery();
+  const items = (data?.items ?? []).slice(0, 8);
+  const fetchedAt = data?.fetchedAt ?? "";
+  const ghError = error as GitHubError | null;
 
   const fetchedLabel = fetchedAt
     ? new Date(fetchedAt).toLocaleDateString("zh-CN", { month: "numeric", day: "numeric" }) + " 更新"
@@ -46,27 +50,27 @@ export function JwcNewsCard() {
       )}
 
       {/* Error */}
-      {error && !isLoading && (
-        error.type === "not_found" ? (
+      {ghError && !isLoading && (
+        ghError.type === "not_found" ? (
           <div className="py-2">
             <p className="text-[12.5px]" style={{ color: "var(--text-tertiary)" }}>
               暂无数据，教务通知将在每天早上 8:30 自动更新。
             </p>
           </div>
         ) : (
-          <ErrorFallback message={error.message} onRetry={reload} />
+          <ErrorFallback message={ghError.message} onRetry={() => refetch()} />
         )
       )}
 
       {/* Content */}
-      {!isLoading && !error && (
+      {!isLoading && !ghError && (
         items.length === 0 ? (
           <p className="text-[12.5px] py-2" style={{ color: "var(--text-tertiary)" }}>
             暂无通知
           </p>
         ) : (
           <div className="divide-y" style={{ borderColor: "var(--border-subtle)" }}>
-            {items.map((item, idx) => (
+            {items.map((item: { title: string; url: string; date: string; category: string }, idx: number) => (
               <a
                 key={idx}
                 href={item.url}
