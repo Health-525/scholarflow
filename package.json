@@ -12,9 +12,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "electron:dev": "concurrently \"next dev\" \"electron .\"",
-    "electron:build": "next build && electron-builder --win",
-    "electron:build:portable": "next build && electron-builder --win portable",
-    "electron:build:installer": "next build && electron-builder --win nsis"
+    "electron:build": "next build && node electron/postbuild.js && electron-builder --win",
+    "electron:build:portable": "next build && node electron/postbuild.js && electron-builder --win portable",
+    "electron:build:installer": "next build && node electron/postbuild.js && electron-builder --win nsis"
   },
   "build": {
     "appId": "com.health525.scholarflow",
@@ -25,20 +25,14 @@
     },
     "asar": true,
     "asarUnpack": [
-      "node_modules/**/*",
-      ".next/**/*",
+      ".next/standalone/**/*",
       "public/**/*"
     ],
     "files": [
       "electron/**/*",
-      ".next/**/*",
+      ".next/standalone/**/*",
       "public/**/*",
-      "node_modules/**/*",
       "package.json",
-      "next.config.ts",
-      "tailwind.config.ts",
-      "postcss.config.js",
-      "!node_modules/.cache/**/*",
       "!**/*.map"
     ],
     "win": {
