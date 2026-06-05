@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans_SC } from "next/font/google";
+import { Noto_Sans_SC, Geist } from "next/font/google";
 import "./globals.css";
 
 const notoSansSC = Noto_Sans_SC({
@@ -38,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html lang="zh-CN" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
       <head>
         {/* Inline theme init to prevent flash */}
         <script
@@ -58,7 +58,9 @@ export default function RootLayout({
       </head>
       <body className={notoSansSC.variable}>
         <QueryProvider>
-          <ClientShell>{children}</ClientShell>
+          <TooltipProvider>
+            <ClientShell>{children}</ClientShell>
+          </TooltipProvider>
         </QueryProvider>
       </body>
     </html>
@@ -68,3 +70,8 @@ export default function RootLayout({
 // Client shell is in a separate file to handle auth routing
 import ClientShell from "./ClientShell";
 import QueryProvider from "./QueryProvider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+

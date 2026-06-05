@@ -2,19 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Google Fonts: Noto Serif SC (display) + Noto Sans SC (body) ─── */
+/* ─── Google Fonts ─── */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+
+/* ══════════════════════════════════════════════════════════
+   shadcn/ui CSS variable shim (Tailwind v3 compatible)
+   ══════════════════════════════════════════════════════════ */
+:root {
+  --background: #faf7f2;
+  --foreground: #1a1510;
+  --card: #fffdf9;
+  --card-foreground: #1a1510;
+  --popover: #fffdf9;
+  --popover-foreground: #1a1510;
+  --primary: #2a4494;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f0e8;
+  --secondary-foreground: #1a1510;
+  --muted: #f5f0e8;
+  --muted-foreground: rgba(26, 21, 16, 0.45);
+  --accent: #f5f0e8;
+  --accent-foreground: #1a1510;
+  --destructive: #c0392b;
+  --destructive-foreground: #ffffff;
+  --border: rgba(26, 21, 16, 0.10);
+  --input: rgba(26, 21, 16, 0.10);
+  --ring: #2a4494;
+  --radius: 0.625rem;
+  --sidebar: #faf7f2;
+  --sidebar-foreground: #1a1510;
+  --sidebar-primary: #2a4494;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f0e8;
+  --sidebar-accent-foreground: #1a1510;
+  --sidebar-border: rgba(26, 21, 16, 0.10);
+  --sidebar-ring: #2a4494;
+}
+
+.dark {
+  --background: #141210;
+  --foreground: #f0ebe3;
+  --card: #1c1916;
+  --card-foreground: #f0ebe3;
+  --popover: #1c1916;
+  --popover-foreground: #f0ebe3;
+  --primary: #6b8ed6;
+  --primary-foreground: #141210;
+  --secondary: #252019;
+  --secondary-foreground: #f0ebe3;
+  --muted: #252019;
+  --muted-foreground: rgba(240, 235, 227, 0.45);
+  --accent: #252019;
+  --accent-foreground: #f0ebe3;
+  --destructive: #e05a4e;
+  --destructive-foreground: #ffffff;
+  --border: rgba(240, 235, 227, 0.10);
+  --input: rgba(240, 235, 227, 0.10);
+  --ring: #6b8ed6;
+  --sidebar: #141210;
+  --sidebar-foreground: #f0ebe3;
+  --sidebar-primary: #6b8ed6;
+  --sidebar-primary-foreground: #141210;
+  --sidebar-accent: #252019;
+  --sidebar-accent-foreground: #f0ebe3;
+  --sidebar-border: rgba(240, 235, 227, 0.10);
+  --sidebar-ring: #6b8ed6;
+}
 
 :root {
   /* ── Paper palette ── */
-  --background:        #faf7f2;
   --surface:           #faf7f2;
   --surface-elevated:  rgba(255, 253, 248, 0.92);
   --surface-card:      #fffdf9;
   --surface-glass:     rgba(255, 253, 248, 0.75);
 
   /* ── Ink & text ── */
-  --foreground:        #1a1510;
   --text-primary:      #1a1510;
   --text-secondary:    rgba(26, 21, 16, 0.62);
   --text-tertiary:     rgba(26, 21, 16, 0.38);
@@ -67,12 +129,10 @@
 /* ─── Dark mode ─── */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background:        #141210;
     --surface:           #1c1916;
     --surface-elevated:  #252019;
     --surface-card:      #201d17;
     --surface-glass:     rgba(28, 25, 22, 0.85);
-    --foreground:        #f0ebe3;
     --text-primary:      #f0ebe3;
     --text-secondary:    rgba(240, 235, 227, 0.65);
     --text-tertiary:     rgba(240, 235, 227, 0.38);
@@ -135,7 +195,6 @@
 html { scroll-behavior: smooth; }
 
 body {
-  color: var(--foreground);
   background: var(--bg-gradient);
   background-color: var(--background);
   font-family: 'Noto Sans SC', var(--font-noto-sans-sc), ui-sans-serif,
