@@ -13,8 +13,11 @@ export interface MarkdownOptions {
 }
 
 /**
- * 预处理：将 Obsidian 的 ![[file-xxx.png]] 替换为标准 Markdown 图片语法
- * 直接在 markdown 字符串层面替换，不依赖 AST
+ * 预处理：将 Obsidian 的 ![[图片名.png]] 直接替换为 <img> 标签
+ * 支持所有 Obsidian 图片命名格式：
+ *   - file-20260525094550354.png   (PPT导出)
+ *   - Pasted image 20260330094106.png  (剪贴板粘贴)
+ *   - 截图.png, photo.jpg 等任意名称
  */
 function preprocessObsidianImages(markdown: string, options?: MarkdownOptions): string {
   if (!options?.noteDir || !options?.noteName) return markdown;
@@ -22,9 +25,10 @@ function preprocessObsidianImages(markdown: string, options?: MarkdownOptions): 
   const baseUrl = `https://raw.githubusercontent.com/Health-525/jiangshu-study/main/${options.noteDir}/assets/${options.noteName}`;
 
   return markdown.replace(
-    /!\[\[([^\]]+\.(?:png|jpg|jpeg|gif|webp|svg))(?:\|([^\]]*))?\]\]/gi,
+    /!\[\[([^\]]+\.(?:png|jpg|jpeg|gif|webp|svg|bmp|ico))(?:\|([^\]]*))?\]\]/gi,
     (_full, filename, _alt) => {
-      const url = `${baseUrl}/${filename}`;
+      const encoded = filename.trim().split("/").map(encodeURIComponent).join("/");
+      const url = `${baseUrl}/${encoded}`;
       return `<img src="${url}" loading="lazy" class="markdown-image" alt="${filename}" />`;
     }
   );
