@@ -5,39 +5,48 @@ import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
 import calloutPlugin from "./callout-plugin";
 import wikiLinkPlugin from "./wiki-link-plugin";
-import { imageRewritePlugin } from "./image-rewrite-plugin";
 import { sanitizeHtml } from "@/lib/sanitize";
 
 export interface MarkdownOptions {
-  /** 笔记文件夹路径，如 "01-大数据技术基础/笔记" */
   noteDir?: string;
-  /** 笔记名称（不含扩展名），如 "大数据技术基础期末复习" */
   noteName?: string;
 }
 
 /**
+ * 预处理：将 Obsidian 的 ![[file-xxx.png]] 替换为标准 Markdown 图片语法
+ * 直接在 markdown 字符串层面替换，不依赖 AST
+ */
+function preprocessObsidianImages(markdown: string, options?: MarkdownOptions): string {
+  if (!options?.noteDir || !options?.noteName) return markdown;
+
+  const baseUrl = `https://raw.githubusercontent.com/Health-525/jiangshu-study/main/${options.noteDir}/assets/${options.noteName}`;
+
+  return markdown.replace(
+    /!\[\[([^\]]+\.(?:png|jpg|jpeg|gif|webp|svg))(?:\|([^\]]*))?\]\]/gi,
+    (_full, filename, _alt) => {
+      const url = `${baseUrl}/${filename}`;
+      return `<img src="${url}" loading="lazy" class="markdown-image" alt="${filename}" />`;
+    }
+  );
+}
+
+/**
  * 渲染 Markdown 为安全 HTML
- * 管线：remark-parse → remark-gfm → callout → wikilink → remark-rehype → image-rewrite → rehype-stringify → DOMPurify
+ * 管线：预处理Obsidian图片 → remark-parse → remark-gfm → callout → wikilink → remark-rehype → rehype-stringify → DOMPurify
  */
 export async function renderMarkdown(markdown: string, options?: MarkdownOptions): Promise<string> {
-  const pipeline = unified()
+  // 第一步：预处理 Obsidian 图片嵌入
+  const processed = preprocessObsidianImages(markdown, options);
+
+  const result = await unified()
     .use(remarkParse)
     .use(remarkGfm)
     .use(calloutPlugin)
     .use(wikiLinkPlugin)
-    .use(remarkRehype, { allowDangerousHtml: true });
+    .use(remarkRehype, { allowDangerousHtml: true })
+    .use(rehypeStringify, { allowDangerousHtml: true })
+    .process(processed);
 
-  // 图片重写（如果提供了路径信息）
-  if (options?.noteDir && options?.noteName) {
-    pipeline.use(imageRewritePlugin, {
-      noteDir: options.noteDir,
-      noteName: options.noteName,
-    } as any);
-  }
-
-  pipeline.use(rehypeStringify, { allowDangerousHtml: true });
-
-  const result = await pipeline.process(markdown);
   const rawHtml = String(result);
   return sanitizeHtml(rawHtml);
 }
