@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LayoutDashboard, CalendarDays, ClipboardList, FileText, Newspaper } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/",              label: "主页",   icon: "◉" },
-  { href: "/schedule",      label: "课表",   icon: "⊞" },
-  { href: "/assignments",   label: "作业",   icon: "◳" },
-  { href: "/notes",         label: "笔记",   icon: "◫" },
-  { href: "/reports/daily", label: "日报",   icon: "◨" },
+  { href: "/",              label: "主页",   Icon: LayoutDashboard },
+  { href: "/schedule",      label: "课表",   Icon: CalendarDays },
+  { href: "/assignments",   label: "作业",   Icon: ClipboardList },
+  { href: "/notes",         label: "笔记",   Icon: FileText },
+  { href: "/reports/daily", label: "日报",   Icon: Newspaper },
 ];
 
 export function BottomNav() {
@@ -48,13 +49,12 @@ export function BottomNav() {
                   aria-hidden="true"
                 />
               )}
-              <span
-                className="text-base font-mono leading-none transition-transform duration-150"
+              <item.Icon
+                className="w-5 h-5 leading-none transition-transform duration-150"
                 style={{ transform: isActive ? "scale(1.15)" : "scale(1)" }}
                 aria-hidden="true"
-              >
-                {item.icon}
-              </span>
+                strokeWidth={isActive ? 2.5 : 2}
+              />
               <span
                 className="text-[10px] font-medium leading-none tracking-wide"
                 style={{ fontFamily: "'Noto Sans SC', sans-serif" }}

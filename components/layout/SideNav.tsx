@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard, CalendarDays, ClipboardList, Activity,
+  FileText, Newspaper, Settings,
+} from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/",                label: "仪表板", icon: "◉" },
-  { href: "/schedule",        label: "课表",   icon: "⊞" },
-  { href: "/assignments",     label: "作业",   icon: "◳" },
-  { href: "/running",         label: "跑步",   icon: "◎" },
-  { href: "/notes",           label: "笔记",   icon: "◫" },
-  { href: "/reports/daily",   label: "日报",   icon: "◨" },
+  { href: "/",                label: "仪表板", Icon: LayoutDashboard },
+  { href: "/schedule",        label: "课表",   Icon: CalendarDays },
+  { href: "/assignments",     label: "作业",   Icon: ClipboardList },
+  { href: "/running",         label: "跑步",   Icon: Activity },
+  { href: "/notes",           label: "笔记",   Icon: FileText },
+  { href: "/reports/daily",   label: "日报",   Icon: Newspaper },
 ];
 
 export function SideNav() {
@@ -99,13 +103,11 @@ export function SideNav() {
                 }}
                 aria-hidden="true"
               />
-              <span
-                className="shrink-0 text-sm font-mono transition-colors duration-150"
+              <item.Icon
+                className="shrink-0 w-4 h-4 transition-colors duration-150"
                 style={{ color: isActive ? "var(--accent)" : "var(--text-tertiary)" }}
                 aria-hidden="true"
-              >
-                {item.icon}
-              </span>
+              />
               <span className="tracking-wide">{item.label}</span>
               {/* Hover accent dot */}
               {!isActive && (
@@ -133,7 +135,11 @@ export function SideNav() {
           aria-current={pathname === "/settings" ? "page" : undefined}
         >
           <span className="shrink-0 w-1 h-5 rounded-full" style={{ background: pathname === "/settings" ? "var(--accent)" : "transparent" }} aria-hidden="true" />
-          <span className="shrink-0 text-sm font-mono" style={{ color: pathname === "/settings" ? "var(--accent)" : "var(--text-muted)" }} aria-hidden="true">⊛</span>
+          <Settings
+            className="shrink-0 w-4 h-4"
+            style={{ color: pathname === "/settings" ? "var(--accent)" : "var(--text-muted)" }}
+            aria-hidden="true"
+          />
           <span className="tracking-wide">设置</span>
         </Link>
       </div>
