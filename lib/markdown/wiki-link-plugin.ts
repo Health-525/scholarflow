@@ -5,9 +5,10 @@ import type { Root, Text, PhrasingContent, Parent } from "mdast";
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
- * remark 插件：识别 [[文件名]] 和 [[文件名|显示文本]] 语法
- * 日报格式（YYYY-MM-DD）→ 链接到 /reports/daily/YYYY-MM-DD
- * 其他 → .wiki-link-unresolved span
+ * remark 插件：识别 [[文件名]]、[[文件名|显示文本]]、![[图片.png]]
+ * - 日报格式（YYYY-MM-DD）→ 链接到 /reports/daily/YYYY-MM-DD
+ * - ![[file-xxx.png]] → 图片（URL暂用占位符，由image-rewrite-plugin重写）
+ * - 其他 → .wiki-link-unresolved span
  */
 const wikiLinkPlugin: Plugin<[], Root> = () => {
   return (tree: Root) => {
@@ -15,7 +16,7 @@ const wikiLinkPlugin: Plugin<[], Root> = () => {
       if (!parent || index === undefined) return;
 
       const text = node.value;
-      const wikiLinkRegex = /\[\[([^\]]+)\]\]/g;
+      const wikiLinkRegex = /!?\[\[([^\]]+)\]\]/g;
 
       // Check if there are any wiki links
       if (!wikiLinkRegex.test(text)) return;
@@ -30,6 +31,7 @@ const wikiLinkPlugin: Plugin<[], Root> = () => {
       while ((match = wikiLinkRegex.exec(text)) !== null) {
         const [fullMatch, inner] = match;
         const matchStart = match.index;
+        const isEmbed = fullMatch.startsWith("!");
 
         // Add text before this match
         if (matchStart > lastIndex) {
@@ -41,7 +43,15 @@ const wikiLinkPlugin: Plugin<[], Root> = () => {
         const fileName = pipeIndex >= 0 ? inner.slice(0, pipeIndex).trim() : inner.trim();
         const displayText = pipeIndex >= 0 ? inner.slice(pipeIndex + 1).trim() : fileName;
 
-        if (DATE_REGEX.test(fileName)) {
+        if (isEmbed) {
+          // Obsidian image embed: ![[file-xxx.png]] → image node
+          newNodes.push({
+            type: "image",
+            url: fileName, // 占位符，由 image-rewrite-plugin 重写
+            title: displayText,
+            alt: displayText,
+          } as unknown as PhrasingContent);
+        } else if (DATE_REGEX.test(fileName)) {
           // Date-based link → /reports/daily/YYYY-MM-DD
           newNodes.push({
             type: "link",
