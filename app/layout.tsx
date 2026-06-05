@@ -38,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
+    <html lang="zh-CN" suppressHydrationWarning className={cn("font-sans", geist.variable)} data-scroll-behavior="smooth">
       <head>
         {/* Inline theme init to prevent flash */}
         <script
