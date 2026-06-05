@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { useMarkdown } from "@/hooks/useMarkdown";
 import type { MarkdownOptions } from "@/lib/markdown/processor";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -23,7 +23,7 @@ export function MarkdownRenderer({ content, className = "", markdownOptions }: M
   const containerRef = useRef<HTMLDivElement>(null);
 
   // DOM层面兜底重写：渲染完成后，扫描所有img，将相对路径替换为GitHub绝对URL
-  useEffect(() => {
+  useLayoutEffect(() => {
     const baseUrl = buildBaseUrl(markdownOptions);
     if (!baseUrl || !containerRef.current) return;
 
