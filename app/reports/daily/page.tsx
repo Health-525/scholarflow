@@ -6,11 +6,13 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { ReportListItem } from "@/components/reports/ReportListItem";
 import { DateRangeFilter } from "@/components/reports/DateRangeFilter";
+import { DailyEditor } from "@/components/reports/DailyEditor";
 
 export default function DailyReportsPage() {
   const { entries, isLoading, error, reload } = useDailyReports();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [showEditor, setShowEditor] = useState(false);
 
   const filtered = useMemo(() => {
     if (!startDate && !endDate) return entries;
@@ -27,6 +29,25 @@ export default function DailyReportsPage() {
       <h1 className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
         日报
       </h1>
+
+      {/* New report button */}
+      {!showEditor && (
+        <button
+          onClick={() => setShowEditor(true)}
+          className="mb-4 px-4 py-2 rounded-xl text-sm font-medium"
+          style={{ backgroundColor: "var(--accent)", color: "#fff" }}
+        >
+          + 新建日报
+        </button>
+      )}
+
+      {/* Editor */}
+      {showEditor && (
+        <DailyEditor
+          onSaved={() => { setShowEditor(false); reload(); }}
+          onCancel={() => setShowEditor(false)}
+        />
+      )}
 
       <div className="mb-4">
         <DateRangeFilter
