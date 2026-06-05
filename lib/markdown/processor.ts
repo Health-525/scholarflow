@@ -28,9 +28,10 @@ function rewriteImageSrc(html: string, baseUrl: string): string {
   return html.replace(
     /<img\s+([^>]*?)src="([^"]+\.(?:png|jpg|jpeg|gif|webp|svg|bmp|ico))"([^>]*?)>/gi,
     (match, before, filename, after) => {
-      // 跳过已经是绝对 URL 的
       if (/^https?:\/\//i.test(filename)) return match;
-      const encoded = filename.trim().split("/").map(encodeURIComponent).join("/");
+      // 先解码再编码，避免双重编码（如 %20 → %2520）
+      const decoded = decodeURIComponent(filename.trim());
+      const encoded = decoded.split("/").map(encodeURIComponent).join("/");
       return `<img ${before}src="${baseUrl}/${encoded}"${after} loading="lazy" class="markdown-image">`;
     }
   );
