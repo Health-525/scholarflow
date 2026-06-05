@@ -1,51 +1,119 @@
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, dialog } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const net = require('net');
+const fs = require('fs');
 
-const PORT = 3000;
-const DEV_URL = `http://localhost:${PORT}`;
+const PORT = 3456;
+const APP_URL = `http://localhost:${PORT}`;
 
 let mainWindow = null;
-let nextServer = null;
+let nextProcess = null;
 
-// 原生 TCP 探测，不依赖任何第三方模块
-function waitForPort(port, timeout = 30000) {
+// ── 获取 app 根目录（兼容 asar 打包和开发模式）──────────────
+function getAppRoot() {
+  // __dirname = app.asar/electron/ 或 开发时的 electron/
+  // asarUnpack 后 node_modules 在 app.asar.unpacked/
+  const inAsar = __dirname.includes('app.asar');
+  if (inAsar) {
+    // app.asar.unpacked 与 app.asar 同级
+    return __dirname.replace('app.asar', 'app.asar.unpacked').replace(/[/\\]electron$/, '');
+  }
+  return path.join(__dirname, '..');
+}
+
+// ── 探测端口 ────────────────────────────────────────────────
+function waitForPort(port, timeoutMs = 50000) {
   return new Promise((resolve, reject) => {
-    const start = Date.now();
+    const deadline = Date.now() + timeoutMs;
 
-    function tryConnect() {
-      const socket = new net.Socket();
+    function attempt() {
+      const sock = new net.Socket();
+      sock.setTimeout(800);
 
-      socket.once('connect', () => {
-        socket.destroy();
-        resolve();
+      sock.once('connect', () => { sock.destroy(); resolve(); });
+
+      sock.once('error', () => {
+        sock.destroy();
+        if (Date.now() >= deadline) reject(new Error(`Port ${port} timeout`));
+        else setTimeout(attempt, 500);
       });
 
-      socket.once('error', () => {
-        socket.destroy();
-        if (Date.now() - start > timeout) {
-          reject(new Error(`Port ${port} did not open within ${timeout}ms`));
-        } else {
-          setTimeout(tryConnect, 300);
-        }
+      sock.once('timeout', () => {
+        sock.destroy();
+        if (Date.now() >= deadline) reject(new Error(`Port ${port} timeout`));
+        else setTimeout(attempt, 500);
       });
 
-      socket.connect(port, '127.0.0.1');
+      sock.connect(port, '127.0.0.1');
     }
 
-    tryConnect();
+    attempt();
   });
 }
 
+// ── 启动 Next.js ────────────────────────────────────────────
+function launchNext() {
+  return new Promise((resolve, reject) => {
+    const appRoot = getAppRoot();
+    console.log('[SF] App root:', appRoot);
+
+    // 查找 next 可执行文件
+    const candidates = [
+      path.join(appRoot, 'node_modules', '.bin', 'next.cmd'),
+      path.join(appRoot, 'node_modules', '.bin', 'next'),
+      path.join(appRoot, 'node_modules', 'next', 'dist', 'bin', 'next'),
+    ];
+
+    let nextBin = null;
+    for (const c of candidates) {
+      if (fs.existsSync(c)) { nextBin = c; break; }
+    }
+
+    if (!nextBin) {
+      return reject(new Error(`找不到 next 可执行文件。尝试路径:\n${candidates.join('\n')}`));
+    }
+
+    console.log('[SF] Using next bin:', nextBin);
+
+    nextProcess = spawn(nextBin, ['start', '--port', String(PORT)], {
+      cwd: appRoot,
+      shell: process.platform === 'win32',
+      env: {
+        ...process.env,
+        NODE_ENV: 'production',
+        PORT: String(PORT),
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    nextProcess.stdout.on('data', d => console.log('[Next]', d.toString().trim()));
+    nextProcess.stderr.on('data', d => console.error('[Next ERR]', d.toString().trim()));
+
+    nextProcess.on('error', err => {
+      console.error('[SF] spawn error:', err);
+      reject(err);
+    });
+
+    nextProcess.on('exit', code => {
+      if (code && code !== 0) console.warn('[SF] next exited with code', code);
+    });
+
+    setTimeout(resolve, 300);
+  });
+}
+
+// ── 创建窗口 ────────────────────────────────────────────────
 function createWindow() {
+  const iconPath = path.join(getAppRoot(), 'public', 'icons', 'logo.png');
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 840,
-    minWidth: 800,
+    minWidth: 900,
     minHeight: 600,
     title: 'ScholarFlow',
-    icon: path.join(__dirname, '../public/icons/logo.png'),
+    icon: fs.existsSync(iconPath) ? iconPath : undefined,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -55,81 +123,57 @@ function createWindow() {
     show: false,
   });
 
-  mainWindow.loadURL(DEV_URL);
+  mainWindow.loadURL(APP_URL);
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    mainWindow.focus();
   });
 
-  // 外部链接在系统浏览器打开
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (!url.startsWith('http://localhost')) {
+    if (!url.startsWith(`http://localhost:${PORT}`)) {
       shell.openExternal(url);
       return { action: 'deny' };
     }
     return { action: 'allow' };
   });
 
-  mainWindow.on('closed', () => {
-    mainWindow = null;
+  mainWindow.webContents.on('did-fail-load', (_, code, desc) => {
+    console.error('[SF] Load failed:', code, desc);
+    setTimeout(() => { if (mainWindow) mainWindow.loadURL(APP_URL); }, 2500);
   });
+
+  mainWindow.on('closed', () => { mainWindow = null; });
 }
 
-function startNextServer() {
-  return new Promise((resolve, reject) => {
-    const nextBin = path.join(
-      __dirname,
-      '../node_modules/.bin/next' + (process.platform === 'win32' ? '.cmd' : '')
-    );
-
-    nextServer = spawn(nextBin, ['start', '--port', String(PORT)], {
-      cwd: path.join(__dirname, '..'),
-      env: { ...process.env, PORT: String(PORT) },
-      shell: process.platform === 'win32',
-      stdio: 'pipe',
-    });
-
-    nextServer.stderr.on('data', (data) => {
-      console.error('[Next.js]', data.toString());
-    });
-
-    nextServer.on('error', reject);
-
-    // 不等 stdout，交给 waitForPort 探测
-    resolve();
-  });
-}
-
+// ── 主流程 ──────────────────────────────────────────────────
 app.whenReady().then(async () => {
   try {
-    await startNextServer();
-    await waitForPort(PORT, 40000);
+    console.log('[SF] Starting...');
+    await launchNext();
+    console.log('[SF] Waiting for port', PORT, '...');
+    await waitForPort(PORT, 50000);
+    console.log('[SF] Ready, opening window');
     createWindow();
   } catch (err) {
-    console.error('启动失败:', err);
+    console.error('[SF] Fatal:', err);
+    dialog.showErrorBox(
+      'ScholarFlow 启动失败',
+      `服务器无法启动。\n\n${err.message}\n\n请重新安装应用。`
+    );
     app.quit();
   }
 });
 
 app.on('window-all-closed', () => {
-  if (nextServer) {
-    nextServer.kill();
-    nextServer = null;
-  }
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  if (nextProcess) { nextProcess.kill(); nextProcess = null; }
+  if (process.platform !== 'darwin') app.quit();
 });
 
 app.on('activate', () => {
-  if (mainWindow === null) {
-    createWindow();
-  }
+  if (!mainWindow && nextProcess) createWindow();
 });
 
 app.on('before-quit', () => {
-  if (nextServer) {
-    nextServer.kill();
-    nextServer = null;
-  }
+  if (nextProcess) { nextProcess.kill('SIGTERM'); nextProcess = null; }
 });
