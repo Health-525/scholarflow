@@ -41,6 +41,7 @@ export async function GET(request: Request) {
         const schedule = safeRead(path.join(dataDir, "schedule.json")) || { courses: [] };
         const assignments = safeRead(path.join(dataDir, "assignments.json")) || [];
         const running = safeRead(path.join(dataDir, "running.json")) || { records: [] };
+        const grades = safeRead(path.join(outDir, "jwgl_grades_all.json")) || { gpa: "0.00" };
         const today = new Date().toISOString().slice(0, 10);
         summary = {
           updatedAt: new Date().toISOString(),
@@ -54,6 +55,7 @@ export async function GET(request: Request) {
               morning: Array.isArray(running.records) ? running.records.filter((r: any) => r.type === "morning").length : 0,
               completed: running.completed === true,
             },
+            gpa: grades.gpa || "0.00",
           },
           health: { agents: 0, total: 0, failing: 0 },
           knowledge: { gapsRemaining: 0, estimatedHours: 0 },

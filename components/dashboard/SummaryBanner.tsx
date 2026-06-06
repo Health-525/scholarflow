@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useGitHubClient } from "@/hooks/useGitHubClient";
-import { BookOpen, ClipboardList, Activity, HeartPulse } from "lucide-react";
+import { BookOpen, ClipboardList, Activity, HeartPulse, Calculator } from "lucide-react";
 
 interface DashboardSummary {
   overview: {
@@ -10,6 +10,7 @@ interface DashboardSummary {
     pendingAssignments: number;
     urgentAssignments: number;
     running: { total: number; morning: number; completed: boolean };
+    gpa?: string;
   };
   health: { agents: number; total: number; failing: number };
 }
@@ -58,6 +59,13 @@ export function SummaryBanner() {
         value={overview.running.total}
         suffix={`/50${overview.running.completed ? " 🎉" : ""}`}
       />
+      {overview.gpa && parseFloat(overview.gpa) > 0 && (
+        <StatBadge
+          icon={Calculator}
+          label="绩点"
+          value={overview.gpa}
+        />
+      )}
       {health.agents > 0 && (
         <StatBadge
           icon={HeartPulse}
