@@ -32,6 +32,16 @@ export const queryKeys = {
 // 本地数据 fallback
 // ═══════════════════════════════════════════════════════════════
 
+async function saveAssignmentsLocally(content: string) {
+  try {
+    await fetch("/api/local-save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ file: "data/assignments.json", content }),
+    });
+  } catch {}
+}
+
 async function tryLocalApi(type: string) {
   try {
     const res = await fetch(`/api/local-data?type=${type}`);
@@ -120,12 +130,12 @@ export function useAssignmentsQuery() {
   // Add assignment mutation
   const addMutation = useMutation({
     mutationFn: async (draft: AssignmentDraft) => {
-      if (!client) throw new Error("Not authenticated");
       const current = queryClient.getQueryData<Assignment[]>(queryKeys.assignments) ?? [];
       const newAssignment = buildAssignment(draft);
       const updated = sortAssignments([...current, newAssignment]);
       const content = JSON.stringify({ assignments: updated }, null, 2);
-      await client.putFile("execution", "data/assignments.json", content, "添加作业");
+      await saveAssignmentsLocally(content);
+      if (client) await client.putFile("execution", "data/assignments.json", content, "添加作业").catch(() => {});
       return updated;
     },
     onSuccess: (updated) => {
@@ -136,14 +146,15 @@ export function useAssignmentsQuery() {
   // Mark done mutation
   const markDoneMutation = useMutation({
     mutationFn: async (id: string) => {
-      if (!client) throw new Error("Not authenticated");
       const current = queryClient.getQueryData<Assignment[]>(queryKeys.assignments) ?? [];
       const target = current.find((a) => a.id === id);
       const updated = current.map((a) =>
         a.id === id ? { ...a, done: true, completedAt: new Date().toISOString() } : a
       );
       const content = JSON.stringify({ assignments: updated }, null, 2);
-      await client.putFile("execution", "data/assignments.json", content, "完成作业");
+
+      await saveAssignmentsLocally(content);
+      if (client) await client.putFile("execution", "data/assignments.json", content, "完成作业").catch(() => {});
       return { updated, id, target };
     },
     onSuccess: ({ updated, target }) => {
