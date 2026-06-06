@@ -67,6 +67,12 @@ export async function GET(request: Request) {
     case "jwc-news":
       return NextResponse.json(safeRead(path.join(outDir, "jwc_news.json")) || []);
 
+    case "exams":
+      return NextResponse.json(safeRead(path.join(outDir, "jwgl_exams.json")) || []);
+
+    case "grades":
+      return NextResponse.json(safeRead(path.join(outDir, "jwgl_grades.json")) || []);
+
     default:
       return NextResponse.json({ error: "unknown type" }, { status: 400 });
   }

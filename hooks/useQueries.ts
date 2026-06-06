@@ -28,6 +28,18 @@ export const queryKeys = {
   notes: ["notes"] as const,
 } as const;
 
+// ═══════════════════════════════════════════════════════════════
+// 本地数据 fallback
+// ═══════════════════════════════════════════════════════════════
+
+async function tryLocalApi(type: string) {
+  try {
+    const res = await fetch(`/api/local-data?type=${type}`);
+    if (res.ok) return await res.json();
+  } catch {}
+  return null;
+}
+
 // ── Schedule Hook ──────────────────────────────────────────
 export function useScheduleQuery() {
   const client = useGitHubClient();
@@ -35,6 +47,8 @@ export function useScheduleQuery() {
   return useQuery({
     queryKey: queryKeys.schedule,
     queryFn: async () => {
+      const local = await tryLocalApi("schedule");
+      if (local?.courses) return { schedule: parseSchedule(local), adjustments: [] };
       if (!client) throw new Error("Not authenticated");
 
       const [scheduleFile, adjustmentsFile] = await Promise.allSettled([
@@ -84,6 +98,8 @@ export function useAssignmentsQuery() {
   const query = useQuery({
     queryKey: queryKeys.assignments,
     queryFn: async () => {
+      const local = await tryLocalApi("assignments");
+      if (Array.isArray(local)) return sortAssignments(local);
       if (!client) throw new Error("Not authenticated");
       const file = await client.getFile("execution", "data/assignments.json");
       const data = JSON.parse(file.content) as AssignmentsFile;
@@ -188,6 +204,8 @@ export function useRunningQuery() {
   const query = useQuery({
     queryKey: queryKeys.running,
     queryFn: async () => {
+      const local = await tryLocalApi("running");
+      if (local?.records) return local.records as RunRecord[];
       if (!client) throw new Error("Not authenticated");
       const file = await client.getFile("execution", "data/running.json");
       const data = JSON.parse(file.content) as { records: RunRecord[] };
