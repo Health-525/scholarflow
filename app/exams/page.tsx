@@ -18,6 +18,27 @@ function load(): Exam[] {
   try { const raw = localStorage.getItem(LS_KEY); if (raw) return JSON.parse(raw); } catch { /* ignore */ }
   return [];
 }
+
+// Auto-import from JWGL exam data
+async function importJWGLExams(): Promise<Exam[]> {
+  try {
+    const res = await fetch("/api/local-data?type=exams");
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+    return data.map((e: any) => {
+      const dateMatch = (e.kssj || "").match(/\d{4}-\d{2}-\d{2}/);
+      const timeMatch = (e.kssj || "").match(/\((\d{2}:\d{2}-\d{2}:\d{2})\)/);
+      return {
+        id: "jwgl-" + (e.kch || Math.random()),
+        subject: e.kcmc || e.kch || "",
+        date: dateMatch ? dateMatch[0] : "",
+        time: timeMatch ? timeMatch[1] : "",
+        location: (e.jxdd || "").replace(/\(多\)/g, "").replace(/;/g, " / "),
+      };
+    });
+  } catch { return []; }
+}
 function save(exams: Exam[]) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(exams)); } catch { /* ignore */ }
 }
@@ -47,6 +68,18 @@ export default function ExamsPage() {
   const [location, setLocation] = useState("");
 
   useEffect(() => { setExams(load()); }, []);
+  useEffect(() => {
+    importJWGLExams().then(jwglExams => {
+      if (jwglExams.length === 0) return;
+      const existing = load();
+      const merged = [...existing];
+      for (const je of jwglExams) {
+        if (!existing.some(e => e.subject === je.subject)) merged.push(je);
+      }
+      save(merged);
+      setExams(merged);
+    });
+  }, []);
 
   const add = () => {
     if (!subject.trim() || !date) return;
