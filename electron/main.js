@@ -144,28 +144,23 @@ let lastActiveWindow = null;
 
 function startActiveWindowTracking() {
   if (activeWindowTimer) return;
-  console.log('[SF] Activity tracking started (poll every 3s)');
   const POLL_INTERVAL = 3000;
 
   activeWindowTimer = setInterval(async () => {
     try {
       const win = await activeWindow();
-      if (!win) { console.log('[SF] activeWindow returned null'); return; }
+      if (!win) return;
 
       const info = {
         title: win.title,
         app: win.owner?.name || 'Unknown',
         timestamp: Date.now(),
       };
-      console.log('[SF] active window:', info.app, '|', info.title.slice(0, 40));
 
       if (!lastActiveWindow || lastActiveWindow.app !== info.app || lastActiveWindow.title !== info.title) {
         lastActiveWindow = info;
         if (mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.webContents.send('active-window-changed', info);
-          console.log('[SF] → sent IPC to renderer');
-        } else {
-          console.log('[SF] → window not ready, skipped IPC');
         }
       }
     } catch (err) {
