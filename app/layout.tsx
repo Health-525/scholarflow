@@ -1,5 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_SC, Geist } from "next/font/google";
+import ClientShell from "./ClientShell";
+import QueryProvider from "./QueryProvider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { cn } from "@/lib/utils";
 import "./globals.css";
 
 const notoSansSC = Noto_Sans_SC({
@@ -9,14 +14,18 @@ const notoSansSC = Noto_Sans_SC({
   display: "swap",
 });
 
+const geistSans = Geist({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "ScholarFlow",
   description: "统一学习管理中枢 — 课表、作业、跑步、日报",
   manifest: "/manifest.json",
   icons: {
-    icon: [
-      { url: "/icons/logo.png", type: "image/png" },
-    ],
+    icon: [{ url: "/icons/logo.png", type: "image/png" }],
     apple: "/icons/logo.png",
   },
   appleWebApp: {
@@ -29,7 +38,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#2563eb",
+  themeColor: "#faf7f2",
 };
 
 export default function RootLayout({
@@ -38,9 +47,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning className={cn("font-sans", geist.variable)} data-scroll-behavior="smooth">
+    <html
+      lang="zh-CN"
+      suppressHydrationWarning
+      className={cn(geistSans.variable)}
+    >
       <head>
-        {/* Inline theme init to prevent flash */}
+        {/* iOS / PWA */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="ScholarFlow" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="format-detection" content="telephone=no" />
+
+        {/* Inline theme init to prevent flash of wrong theme */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -57,21 +77,14 @@ export default function RootLayout({
         />
       </head>
       <body className={notoSansSC.variable}>
-        <QueryProvider>
-          <TooltipProvider>
-            <ClientShell>{children}</ClientShell>
-          </TooltipProvider>
-        </QueryProvider>
+        <ErrorBoundary>
+          <QueryProvider>
+            <TooltipProvider>
+              <ClientShell>{children}</ClientShell>
+            </TooltipProvider>
+          </QueryProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
 }
-
-// Client shell is in a separate file to handle auth routing
-import ClientShell from "./ClientShell";
-import QueryProvider from "./QueryProvider";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-

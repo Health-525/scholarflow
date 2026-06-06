@@ -1,8 +1,15 @@
 # 📚 ScholarFlow — 统一学习管理中枢
 
+[![CI](https://github.com/Health-525/scholarflow/actions/workflows/ci.yml/badge.svg)](https://github.com/Health-525/scholarflow/actions/workflows/ci.yml)
+![License](https://img.shields.io/github/license/Health-525/scholarflow)
+![Node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)
+
 > Electron + Next.js 桌面应用 · PWA 离线支持 · AI 学习助手
 
 ScholarFlow 是一个面向大学生的一体化学习管理平台，提供课表、作业、跑步、日报、知识库管理，并内置本地 AI 助手（Ollama）。支持 Windows/macOS 桌面端和移动端 PWA。
+
+**核心仓库：[timetable](https://github.com/Health-525/timetable)（执行层） · [jiangshu-study](https://github.com/Health-525/jiangshu-study)（内容层） · [ScholarFlow](https://github.com/Health-525/scholarflow)（前端层）**
+
 
 ---
 
@@ -254,10 +261,16 @@ npm test
 npm run test:watch
 ```
 
+## 🤝 贡献
+
+欢迎贡献代码！请先阅读 [CONTRIBUTING.md](./CONTRIBUTING.md) 了解开发规范和提交流程。
+
+安全问题请参考 [SECURITY.md](./SECURITY.md)。
+
 ## 📄 许可证
 
-Copyright © 2026 Health-525
+MIT License · Copyright © 2026 Health-525
 
 ---
 
-*最后更新：2026-06-05 — Phase 1：TanStack Query + Ollama AI + 安全Token + IndexedDB 离线层*
+*最后更新：2026-06-05*

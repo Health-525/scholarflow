@@ -122,27 +122,18 @@ export function GlobalSearch() {
 
   return (
     <>
-      {/* 搜索按钮 */}
+      {/* 搜索按钮 - 固定在右下角AI和番茄之间 */}
       <button
         onClick={() => { setIsOpen(true); setTimeout(() => inputRef.current?.focus(), 50); }}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-colors hover:opacity-70"
+        className="fixed bottom-24 md:bottom-6 right-32 z-50 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105"
         style={{
-          backgroundColor: "var(--surface)",
+          backgroundColor: "var(--surface-elevated)",
           border: "1px solid var(--border)",
-          color: "var(--text-tertiary)",
+          color: "var(--text-secondary)",
         }}
+        aria-label="搜索 (Ctrl+K)"
       >
-        <span>🔍 搜索...</span>
-        <kbd
-          className="text-[10px] px-1 rounded"
-          style={{
-            backgroundColor: "var(--surface-elevated)",
-            border: "1px solid var(--border)",
-            color: "var(--text-muted)",
-          }}
-        >
-          Ctrl+K
-        </kbd>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
       </button>
 
       {/* 搜索弹窗 */}

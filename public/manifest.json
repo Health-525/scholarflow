@@ -1,24 +1,47 @@
 {
   "name": "ScholarFlow",
-  "short_name": "SF",
-  "description": "统一学习管理中枢 — 课表、作业、跑步、日报",
+  "short_name": "ScholarFlow",
+  "description": "AI学习伙伴 — 课表、作业、绩点、考试、屏幕时间",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#2563eb",
-  "background_color": "#fffaf2",
+  "theme_color": "#faf7f2",
+  "background_color": "#faf7f2",
+  "scope": "/",
+  "lang": "zh-CN",
+  "categories": ["education", "productivity"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "课表",
+      "short_name": "课表",
+      "url": "/schedule",
+      "icons": [{ "src": "/icons/logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "作业",
+      "short_name": "作业",
+      "url": "/assignments",
+      "icons": [{ "src": "/icons/logo.png", "sizes": "96x96" }]
     }
   ]
 }

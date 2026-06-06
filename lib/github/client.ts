@@ -208,20 +208,28 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
- * UTF-8 字符串 → Base64（替代已废弃的 unescape(encodeURIComponent(...))）
+ * UTF-8 字符串 → Base64（分块处理，避免大文件栈溢出）
+ *
+ * 之前使用 String.fromCharCode(...bytes) 在大文件（>120KB）时会导致
+ * "Maximum call stack size exceeded" 错误。
+ * 现在通过分块（每 8KB 一个 binary chunk）处理任意大小的文件。
  */
 function utf8ToBase64(str: string): string {
-  const encoder = new TextEncoder();
-  const bytes = encoder.encode(str);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  const bytes = new TextEncoder().encode(str);
+  const CHUNK_SIZE = 8192;
+  const chunks: string[] = [];
+
+  for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+    const chunk = bytes.subarray(i, i + CHUNK_SIZE);
+    // String.fromCharCode.apply 可接受任意长度的数组参数
+    chunks.push(String.fromCharCode.apply(null, chunk as unknown as number[]));
   }
-  return btoa(binary);
+
+  return btoa(chunks.join(""));
 }
 
 /**
- * Base64 → UTF-8 字符串
+ * Base64 → UTF-8 字符串（分块处理）
  */
 function base64ToUtf8(base64: string): string {
   const binaryStr = atob(base64);

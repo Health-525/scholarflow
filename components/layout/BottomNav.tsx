@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CalendarDays, ClipboardList, FileText, Newspaper } from "lucide-react";
+import { LayoutDashboard, CalendarDays, ClipboardList, Activity, Monitor } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/",              label: "主页",   Icon: LayoutDashboard },
   { href: "/schedule",      label: "课表",   Icon: CalendarDays },
   { href: "/assignments",   label: "作业",   Icon: ClipboardList },
-  { href: "/notes",         label: "笔记",   Icon: FileText },
-  { href: "/reports/daily", label: "日报",   Icon: Newspaper },
+  { href: "/activity",      label: "屏幕",   Icon: Monitor },
+  { href: "/notes",         label: "笔记",   Icon: Activity },
 ];
 
 export function BottomNav() {
@@ -17,7 +17,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-30 md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-30 md:hidden pb-safe"
       style={{
         background: "var(--surface-glass)",
         borderTop: "1px solid var(--border)",

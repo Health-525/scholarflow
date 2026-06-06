@@ -137,9 +137,20 @@ export default function SetupPage() {
         </form>
 
         {/* Help text */}
-        <p className="text-xs text-center mt-6" style={{ color: "var(--text-tertiary)" }}>
-          Token 仅存储在本地浏览器中，不会上传到任何服务器
-        </p>
+        <div className="mt-6 text-center space-y-2">
+          <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+            Token 仅存储在本地浏览器中，不会上传到任何服务器
+          </p>
+          <a
+            href="https://github.com/settings/tokens"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-xs transition-colors hover:underline"
+            style={{ color: "var(--accent)" }}
+          >
+            如何创建 Token？→
+          </a>
+        </div>
       </div>
     </div>
   );

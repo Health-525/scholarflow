@@ -4,10 +4,13 @@ import { ReactNode } from "react";
 import { SideNav } from "./SideNav";
 import { BottomNav } from "./BottomNav";
 import { OfflineBanner } from "./OfflineBanner";
-import { AIChat } from "@/components/chat/AIChat";
-import { PomodoroTimer } from "@/components/pomodoro/PomodoroTimer";
+import { ActivityMonitor } from "@/components/activity/ActivityMonitor";
 import { NotificationActivator } from "@/hooks/useNotifications";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
+import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
+import { AIAssistant } from "@/components/ai/AIAssistant";
+import { SmartReminders } from "@/components/reminders/SmartReminders";
+import { PerformanceMonitor } from "@/components/monitoring/PerformanceMonitor";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 interface AppShellProps {
@@ -46,11 +49,14 @@ export function AppShell({ children, isOnline = true }: AppShellProps) {
       {/* Global search (Ctrl+K) */}
       <GlobalSearch />
 
-      {/* AI Chat assistant */}
-      <AIChat />
+      {/* Onboarding */}
+      <OnboardingWizard />
 
-      {/* Pomodoro timer */}
-      <PomodoroTimer />
+      {/* AI Assistant */}
+      <AIAssistant />
+
+      {/* Activity monitor */}
+      <ActivityMonitor />
 
       {/* Notification system */}
       <NotificationActivator />

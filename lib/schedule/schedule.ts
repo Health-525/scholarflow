@@ -85,9 +85,12 @@ export function weekday1to7(d: Date): Weekday {
 
 /**
  * 计算给定日期是第几周
+ *
+ * 注意：week1MondayIso 是 "YYYY-MM-DD" 格式，解析为本地时间午夜（与 schedule.json 中的语义一致）。
  */
 export function getWeekNumber(d: Date, week1MondayIso: string): number {
-  const week1 = new Date(week1MondayIso);
+  const [y, m, day] = week1MondayIso.split("-").map(Number);
+  const week1 = new Date(y, m - 1, day); // 本地时间午夜，跨平台一致
   const dd = normalizeDate(d);
   const diffDays = Math.floor((dd.getTime() - week1.getTime()) / (1000 * 60 * 60 * 24));
   return Math.floor(diffDays / 7) + 1;

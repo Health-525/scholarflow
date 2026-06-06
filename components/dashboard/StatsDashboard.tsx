@@ -29,6 +29,7 @@ function AssignmentsChart() {
 
   if (isLoading) return <div className="skeleton h-48 rounded-xl" />;
   if (error) return <ErrorFallback message={error.message} />;
+  if (!data.length) return null;
 
   return (
     <div className="sf-card p-4">

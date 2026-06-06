@@ -28,6 +28,7 @@ export function useKeyboardShortcuts() {
       { key: "4", ctrl: true, action: () => router.push("/running"), description: "跑步" },
       { key: "5", ctrl: true, action: () => router.push("/notes"), description: "笔记" },
       { key: "6", ctrl: true, action: () => router.push("/reports/daily"), description: "日报" },
+      { key: "7", ctrl: true, action: () => router.push("/activity"), description: "屏幕时间" },
       { key: "7", ctrl: true, action: () => router.push("/stats"), description: "统计" },
     ];
 
