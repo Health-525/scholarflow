@@ -253,6 +253,18 @@ app.whenReady().then(async () => {
     console.log('[SF] Ready, opening window');
     createWindow();
     startActiveWindowTracking();
+
+    // Auto-refresh local data
+    try {
+      const { execSync } = require('child_process');
+      const timetableDir = path.join(__dirname, '..', '..', 'timetable');
+      if (require('fs').existsSync(timetableDir)) {
+        console.log('[SF] Auto-refreshing local data...');
+        setTimeout(() => {
+          try { execSync('node scripts/ci/dashboard-summary.js', { cwd: timetableDir, timeout: 15000, stdio: 'pipe' }); } catch {}
+        }, 3000);
+      }
+    } catch {}
   } catch (err) {
     console.error('[SF] Fatal:', err);
     dialog.showErrorBox('ScholarFlow 启动失败', `${err.message}`);
