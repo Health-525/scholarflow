@@ -255,3 +255,25 @@ export function useJwcNewsQuery() {
     retry: 2,
   });
 }
+
+// ── JWC News Hook ──────────────────────────────────────────
+export function useJwcNewsQuery() {
+  const client = useGitHubClient();
+
+  return useQuery({
+    queryKey: ["jwcNews"] as const,
+    queryFn: async () => {
+      if (!client) throw new Error("Not authenticated");
+      const file = await client.getFile("execution", "_out/jwc_news.json");
+      const data = JSON.parse(file.content);
+      return {
+        items: Array.isArray(data) ? data : (data.items || []),
+        fetchedAt: data[0]?.date || new Date().toISOString(),
+      };
+    },
+    enabled: !!client,
+    staleTime: 30 * 60 * 1000,
+    gcTime: 2 * 60 * 60 * 1000,
+    retry: 2,
+  });
+}
