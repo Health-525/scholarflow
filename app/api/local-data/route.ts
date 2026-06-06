@@ -2,7 +2,20 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-const TIMETABLE_DIR = "D:\\A\\timetable";
+// 自动探测 timetable 目录
+function findTimetableDir(): string {
+  const candidates = [
+    path.join(process.cwd(), "..", "timetable"),
+    path.join(process.cwd(), "..", "..", "timetable"),
+    "D:\\A\\timetable",
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(path.join(c, "data", "schedule.json"))) return c;
+  }
+  return candidates[0]; // fallback
+}
+
+const TIMETABLE_DIR = findTimetableDir();
 
 function safeRead(filePath: string) {
   try {
@@ -71,7 +84,7 @@ export async function GET(request: Request) {
       return NextResponse.json(safeRead(path.join(outDir, "jwgl_exams.json")) || []);
 
     case "grades":
-      return NextResponse.json(safeRead(path.join(outDir, "jwgl_grades.json")) || []);
+      return NextResponse.json(safeRead(path.join(outDir, "jwgl_grades_all.json")) || { gpa: 0, allCourses: [] });
 
     default:
       return NextResponse.json({ error: "unknown type" }, { status: 400 });
