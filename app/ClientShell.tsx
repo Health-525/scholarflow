@@ -32,6 +32,19 @@ export default function ClientShell({ children }: ClientShellProps) {
       // If already authenticated from Zustand persist, skip
       if (useAuthStore.getState().isAuthenticated) return;
 
+      // 0) 直接读localStorage — Zustand persist是异步的，可能还没恢复
+      try {
+        const raw = localStorage.getItem("sf_auth");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const stored = parsed?.state || parsed;
+          if (stored?.token && stored?.isAuthenticated) {
+            setToken(stored.token);
+            return;
+          }
+        }
+      } catch {}
+
       // 1) Try to retrieve from secure storage (Electron safeStorage or localStorage)
       const secureToken = await secureRetrieveToken();
       if (secureToken) {
@@ -56,10 +69,16 @@ export default function ClientShell({ children }: ClientShellProps) {
         return;
       }
 
-      // 4) E2E test mode — skip GitHub verification entirely
-      const e2eToken = process.env.NEXT_PUBLIC_E2E_TOKEN;
-      if (e2eToken) {
-        setToken(e2eToken);
+      // 4) Local mode — skip GitHub, use local API
+      if (!process.env.NEXT_PUBLIC_GH_TOKEN && !process.env.NEXT_PUBLIC_E2E_TOKEN) {
+        // Try local data API first
+        try {
+          const res = await fetch("/api/local-data?type=dashboard");
+          if (res.ok) {
+            setToken("local-mode"); // 虚拟token，标记为本地模式
+            return;
+          }
+        } catch {}
       }
     }
 

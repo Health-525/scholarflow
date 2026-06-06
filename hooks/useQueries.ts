@@ -239,30 +239,18 @@ export function useJwcNewsQuery() {
   return useQuery({
     queryKey: queryKeys.jwcNews,
     queryFn: async () => {
-      if (!client) throw new Error("Not authenticated");
-      const file = await client.getFile("content", "_data/jwc_news.json");
-      const data = JSON.parse(file.content);
-
+      // 优先：本地API（Electron直读本地文件）
       try {
-        await getDB().cacheFile("content", "_data/jwc_news.json", file.content, file.sha);
-      } catch { /* ignore */ }
+        const localRes = await fetch("/api/jwc-news");
+        if (localRes.ok) {
+          const localData = await localRes.json();
+          if (Array.isArray(localData) && localData.length > 0) {
+            return { items: localData, fetchedAt: localData[0]?.date || "" };
+          }
+        }
+      } catch { /* fall through to GitHub */ }
 
-      return data;
-    },
-    enabled: !!client,
-    staleTime: 10 * 60 * 1000, // 10分钟
-    gcTime: 60 * 60 * 1000,
-    retry: 2,
-  });
-}
-
-// ── JWC News Hook ──────────────────────────────────────────
-export function useJwcNewsQuery() {
-  const client = useGitHubClient();
-
-  return useQuery({
-    queryKey: ["jwcNews"] as const,
-    queryFn: async () => {
+      // 备用：GitHub API
       if (!client) throw new Error("Not authenticated");
       const file = await client.getFile("execution", "_out/jwc_news.json");
       const data = JSON.parse(file.content);
@@ -271,9 +259,9 @@ export function useJwcNewsQuery() {
         fetchedAt: data[0]?.date || new Date().toISOString(),
       };
     },
-    enabled: !!client,
-    staleTime: 30 * 60 * 1000,
-    gcTime: 2 * 60 * 60 * 1000,
-    retry: 2,
+    enabled: true, // 总是启用，本地API不需要token
+    staleTime: 10 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    retry: 1,
   });
 }

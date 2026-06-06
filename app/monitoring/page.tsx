@@ -115,25 +115,26 @@ export default function MonitoringPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!client) return;
-
     async function fetchHealth() {
       try {
-        const file = await client!.getFile("execution", "_out/health-status.json");
-        const data = JSON.parse(file.content);
-        setHealth(data);
-      } catch (err: any) {
-        if (err?.type === "not_found") {
-          setError("健康数据尚未生成，等待 Agent 首次运行");
-        } else {
-          setError(`获取失败：${err?.message || String(err)}`);
+        // 优先本地API
+        const res = await fetch("/api/local-data?type=health");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.agents?.length > 0) { setHealth(data); return; }
         }
-      } finally {
-        setLoading(false);
+      } catch {}
+      // 备用GitHub
+      if (!client) return;
+      try {
+        const file = await client.getFile("execution", "_out/health-status.json");
+        setHealth(JSON.parse(file.content));
+      } catch (err: any) {
+        if (err?.type === "not_found") setError("健康数据尚未生成");
+        else setError(`获取失败：${err?.message || String(err)}`);
       }
     }
-
-    fetchHealth();
+    fetchHealth().finally(() => setLoading(false));
   }, [client]);
 
   if (!client) {

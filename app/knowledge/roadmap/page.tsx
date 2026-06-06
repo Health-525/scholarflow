@@ -47,24 +47,26 @@ export default function KnowledgeRoadmapPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!client) return;
-
     async function fetchData() {
+      try {
+        // 优先本地API
+        const res = await fetch("/api/local-data?type=roadmap");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.phases?.length > 0) { setRoadmap(data); return; }
+        }
+      } catch {}
+      // 备用GitHub
+      if (!client) return;
       try {
         const file = await client!.getFile("execution", "_out/knowledge-roadmap.json");
         setRoadmap(JSON.parse(file.content));
       } catch (err: any) {
-        if (err?.type === "not_found") {
-          setError("知识路线图尚未生成，等待健康报告 workflow 首次运行");
-        } else {
-          setError(`获取失败：${err?.message || String(err)}`);
-        }
-      } finally {
-        setLoading(false);
+        if (err?.type === "not_found") setError("知识路线图尚未生成");
+        else setError(`获取失败：${err?.message || String(err)}`);
       }
     }
-
-    fetchData();
+    fetchData().finally(() => setLoading(false));
   }, [client]);
 
   if (!client) {

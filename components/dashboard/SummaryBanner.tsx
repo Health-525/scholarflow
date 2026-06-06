@@ -19,10 +19,17 @@ export function SummaryBanner() {
   const [data, setData] = useState<DashboardSummary | null>(null);
 
   useEffect(() => {
-    if (!client) return;
-    client.getFile("execution", "_out/dashboard-summary.json")
-      .then(f => setData(JSON.parse(f.content)))
-      .catch(() => {}); // 静默失败，不阻塞页面
+    // 优先本地API，备用GitHub
+    fetch("/api/local-data?type=dashboard")
+      .then(r => r.json())
+      .then(setData)
+      .catch(() => {
+        if (client) {
+          client.getFile("execution", "_out/dashboard-summary.json")
+            .then(f => setData(JSON.parse(f.content)))
+            .catch(() => {});
+        }
+      });
   }, [client]);
 
   if (!data) return null;
