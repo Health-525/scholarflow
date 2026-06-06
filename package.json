@@ -23,7 +23,8 @@
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "electron:dev": "concurrently \"next dev\" \"electron .\"",
-    "electron:hot": "set ELECTRON_DEV=1 && concurrently \"next dev\" \"electron .\"",
+    "electron:hot:win": "set ELECTRON_DEV=1 && concurrently \"next dev\" \"electron .\"",
+    "electron:hot:nix": "ELECTRON_DEV=1 concurrently \"next dev\" \"electron .\"",
     "electron:build": "next build && node electron/postbuild.js && electron-builder --win",
     "electron:build:portable": "next build && node electron/postbuild.js && electron-builder --win portable",
     "electron:build:installer": "next build && node electron/postbuild.js && electron-builder --win nsis"

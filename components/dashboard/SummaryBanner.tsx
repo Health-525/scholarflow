@@ -58,14 +58,16 @@ export function SummaryBanner() {
         value={overview.running.total}
         suffix={`/50${overview.running.completed ? " 🎉" : ""}`}
       />
-      <StatBadge
-        icon={HeartPulse}
-        label="Agent"
-        value={health.agents}
-        suffix={`/${health.total}`}
-        alert={health.failing > 0}
-        alertText={`${health.failing}异常`}
-      />
+      {health.agents > 0 && (
+        <StatBadge
+          icon={HeartPulse}
+          label="Agent"
+          value={health.agents}
+          suffix={`/${health.total}`}
+          alert={health.failing > 0}
+          alertText={`${health.failing}异常`}
+        />
+      )}
     </div>
   );
 }
