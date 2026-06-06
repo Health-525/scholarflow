@@ -1,19 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, CalendarDays, ClipboardList, Activity,
-  FileText, Newspaper, Settings,
+  LayoutDashboard, CalendarDays, ClipboardList, Activity, Target,
+  FileText, Newspaper, Monitor, Calculator, Clock, Settings, HeartPulse, Brain, BookOpen,
 } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NAV_ITEMS = [
   { href: "/",                label: "仪表板", Icon: LayoutDashboard },
   { href: "/schedule",        label: "课表",   Icon: CalendarDays },
   { href: "/assignments",     label: "作业",   Icon: ClipboardList },
+  { href: "/goals",          label: "目标",   Icon: Target },
   { href: "/running",         label: "跑步",   Icon: Activity },
   { href: "/notes",           label: "笔记",   Icon: FileText },
   { href: "/reports/daily",   label: "日报",   Icon: Newspaper },
+  { href: "/exams",          label: "考试",   Icon: Clock },
+  { href: "/gpa",            label: "绩点",   Icon: Calculator },
+  { href: "/activity",        label: "屏幕时间", Icon: Monitor },
+  { href: "/monitoring",     label: "Agent",   Icon: HeartPulse },
+  { href: "/knowledge",      label: "知识画像", Icon: Brain },
+  { href: "/knowledge/roadmap", label: "学习路线", Icon: BookOpen },
 ];
 
 export function SideNav() {
@@ -34,7 +43,7 @@ export function SideNav() {
       <div className="px-6 pt-7 pb-6">
         <div className="flex items-center gap-3">
           {/* Logo */}
-          <img
+          <Image
             src="/icons/logo.png"
             alt="ScholarFlow logo"
             width={32}
@@ -122,8 +131,9 @@ export function SideNav() {
         })}
       </nav>
 
-      {/* Settings */}
-      <div className="px-3 pb-5" style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "12px" }}>
+      {/* Theme + Settings */}
+      <div className="px-3 pb-5 space-y-0.5" style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "12px" }}>
+        <ThemeToggle />
         <Link
           href="/settings"
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150"

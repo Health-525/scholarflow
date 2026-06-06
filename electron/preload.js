@@ -2,20 +2,25 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 /**
  * 安全的 Electron IPC 桥接
- * 用于：Token 加密存储、原生通知、系统主题检测
+ * Token 加密存储 · 原生通知 · 系统主题 · 活动窗口追踪
  */
 contextBridge.exposeInMainWorld("electronAPI", {
+  isElectron: true,
+
   // ── Token 安全存储 ──
-  /** 加密 Token 并持久化到系统密钥链 */
   encryptAndStoreToken: (token) =>
     ipcRenderer.invoke("token:encrypt-store", token),
-
-  /** 从系统密钥链解密并返回 Token */
   retrieveToken: () => ipcRenderer.invoke("token:retrieve"),
-
-  /** 清除已存储的 Token */
   clearToken: () => ipcRenderer.invoke("token:clear"),
 
-  // ── 运行环境检测 ──
-  isElectron: true,
+  // ── 活动窗口追踪 ──
+  /** 获取当前活动窗口信息 */
+  getActiveWindow: () => ipcRenderer.invoke("activity:get-current-window"),
+
+  /** 监听活动窗口变化 (回调参数: { title, app, timestamp }) */
+  onActiveWindowChanged: (callback) => {
+    const handler = (_event, info) => callback(info);
+    ipcRenderer.on("active-window-changed", handler);
+    return () => ipcRenderer.removeListener("active-window-changed", handler);
+  },
 });

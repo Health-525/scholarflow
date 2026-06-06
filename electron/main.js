@@ -3,9 +3,11 @@ const { fork } = require('child_process');
 const path = require('path');
 const net = require('net');
 const fs = require('fs');
+const { activeWindow } = require('active-win');
 
-const PORT = 3456;
+const PORT = process.env.ELECTRON_DEV ? 3000 : 3456;
 const APP_URL = `http://localhost:${PORT}`;
+const IS_DEV = !!process.env.ELECTRON_DEV;
 
 let mainWindow = null;
 let serverProcess = null;
@@ -136,6 +138,64 @@ function setupSecureTokenIPC() {
   });
 }
 
+// ── 活动窗口追踪 ──────────────────────────────────────────
+let activeWindowTimer = null;
+let lastActiveWindow = null;
+
+function startActiveWindowTracking() {
+  if (activeWindowTimer) return;
+  console.log('[SF] Activity tracking started (poll every 3s)');
+  const POLL_INTERVAL = 3000;
+
+  activeWindowTimer = setInterval(async () => {
+    try {
+      const win = await activeWindow();
+      if (!win) { console.log('[SF] activeWindow returned null'); return; }
+
+      const info = {
+        title: win.title,
+        app: win.owner?.name || 'Unknown',
+        timestamp: Date.now(),
+      };
+      console.log('[SF] active window:', info.app, '|', info.title.slice(0, 40));
+
+      if (!lastActiveWindow || lastActiveWindow.app !== info.app || lastActiveWindow.title !== info.title) {
+        lastActiveWindow = info;
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('active-window-changed', info);
+          console.log('[SF] → sent IPC to renderer');
+        } else {
+          console.log('[SF] → window not ready, skipped IPC');
+        }
+      }
+    } catch (err) {
+      console.error('[SF] activeWindow error:', err.message);
+    }
+  }, POLL_INTERVAL);
+}
+
+function stopActiveWindowTracking() {
+  if (activeWindowTimer) {
+    clearInterval(activeWindowTimer);
+    activeWindowTimer = null;
+    lastActiveWindow = null;
+  }
+}
+
+ipcMain.handle('activity:get-current-window', async () => {
+  try {
+    const win = await activeWindow();
+    if (!win) return null;
+    return {
+      title: win.title,
+      app: win.owner?.name || 'Unknown',
+      timestamp: Date.now(),
+    };
+  } catch {
+    return null;
+  }
+});
+
 function createWindow() {
   const appRoot = getAppRoot();
   const iconPath = path.join(appRoot, 'public', 'icons', 'logo.png');
@@ -163,6 +223,7 @@ function createWindow() {
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     mainWindow.focus();
+    startActiveWindowTracking();
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -178,7 +239,7 @@ function createWindow() {
     setTimeout(() => { if (mainWindow) mainWindow.loadURL(APP_URL); }, 2500);
   });
 
-  mainWindow.on('closed', () => { mainWindow = null; });
+  mainWindow.on('closed', () => { mainWindow = null; stopActiveWindowTracking(); });
 }
 
 // ── 主流程 ──────────────────────────────────────────────────
@@ -186,11 +247,17 @@ app.whenReady().then(async () => {
   setupSecureTokenIPC();
   try {
     console.log('[SF] Starting...');
-    await launchServer();
-    console.log('[SF] Waiting for port', PORT);
-    await waitForPort(PORT, 60000);
+    if (!IS_DEV) {
+      await launchServer();
+      console.log('[SF] Waiting for port', PORT);
+      await waitForPort(PORT, 60000);
+    } else {
+      console.log('[SF] Dev mode — connecting to next dev on port 3000');
+      await waitForPort(PORT, 30000);
+    }
     console.log('[SF] Ready, opening window');
     createWindow();
+    startActiveWindowTracking();
   } catch (err) {
     console.error('[SF] Fatal:', err);
     dialog.showErrorBox('ScholarFlow 启动失败', `${err.message}`);
@@ -208,5 +275,6 @@ app.on('activate', () => {
 });
 
 app.on('before-quit', () => {
+  stopActiveWindowTracking();
   if (serverProcess) { serverProcess.kill('SIGTERM'); serverProcess = null; }
 });

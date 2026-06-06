@@ -6,6 +6,10 @@ import { RunningCard } from "@/components/dashboard/RunningCard";
 import { RecentDailyCard } from "@/components/dashboard/RecentDailyCard";
 import { JwcNewsCard } from "@/components/dashboard/JwcNewsCard";
 import { StatsDashboard } from "@/components/dashboard/StatsDashboard";
+import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
+import { GPACard } from "@/components/dashboard/GPACard";
+import { ExamCountdownCard } from "@/components/dashboard/ExamCountdownCard";
+import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
 
 export default function DashboardPage() {
   const now = new Date();
@@ -70,8 +74,11 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* ── Cards：移动端单列，桌面端 2×2 网格 ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* ── Summary Banner ── */}
+      <SummaryBanner />
+
+      {/* ── Cards：移动端单列，桌面端 2×2，大屏3列 ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         <div className="animate-fade-up stagger-1">
           <ScheduleCard />
         </div>
@@ -83,6 +90,15 @@ export default function DashboardPage() {
         </div>
         <div className="animate-fade-up stagger-4">
           <RecentDailyCard />
+        </div>
+        <div className="animate-fade-up stagger-5">
+          <ScreenTimeCard />
+        </div>
+        <div className="animate-fade-up stagger-6">
+          <GPACard />
+        </div>
+        <div className="animate-fade-up stagger-7">
+          <ExamCountdownCard />
         </div>
       </div>
 

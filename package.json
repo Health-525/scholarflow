@@ -1,17 +1,29 @@
 {
   "name": "scholarflow",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "ScholarFlow — 统一学习管理前端",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Health-525/scholarflow"
+  },
+  "bugs": {
+    "url": "https://github.com/Health-525/scholarflow/issues"
+  },
   "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "check": "npm run typecheck && npm run lint && npm test",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
     "electron:dev": "concurrently \"next dev\" \"electron .\"",
+    "electron:hot": "set ELECTRON_DEV=1 && concurrently \"next dev\" \"electron .\"",
     "electron:build": "next build && node electron/postbuild.js && electron-builder --win",
     "electron:build:portable": "next build && node electron/postbuild.js && electron-builder --win portable",
     "electron:build:installer": "next build && node electron/postbuild.js && electron-builder --win nsis"
@@ -66,10 +78,12 @@
   "dependencies": {
     "@base-ui/react": "^1.5.0",
     "@tanstack/react-query": "^5.101.0",
+    "active-win": "^9.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dexie": "^4.4.3",
     "dompurify": "^3.1.6",
+    "ffi-napi": "^4.0.3",
     "fuse.js": "^7.4.1",
     "hastscript": "^9.0.1",
     "lucide-react": "^1.17.0",
@@ -78,6 +92,9 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "recharts": "^3.8.1",
+    "ref-napi": "^3.0.3",
+    "ref-struct-di": "^1.1.1",
+    "ref-wchar-napi": "^1.0.3",
     "rehype-stringify": "^10.0.0",
     "remark-gfm": "^4.0.0",
     "remark-parse": "^11.0.0",
@@ -90,6 +107,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/dompurify": "^3.0.5",

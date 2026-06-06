@@ -53,6 +53,13 @@ export default function ClientShell({ children }: ClientShellProps) {
       const envToken = process.env.NEXT_PUBLIC_GH_TOKEN;
       if (envToken) {
         setToken(envToken);
+        return;
+      }
+
+      // 4) E2E test mode — skip GitHub verification entirely
+      const e2eToken = process.env.NEXT_PUBLIC_E2E_TOKEN;
+      if (e2eToken) {
+        setToken(e2eToken);
       }
     }
 
