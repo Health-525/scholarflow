@@ -67,18 +67,23 @@ export default function ExamsPage() {
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
 
-  useEffect(() => { setExams(load()); }, []);
   useEffect(() => {
-    importJWGLExams().then(jwglExams => {
-      if (jwglExams.length === 0) return;
-      const existing = load();
-      const merged = [...existing];
-      for (const je of jwglExams) {
-        if (!existing.some(e => e.subject === je.subject)) merged.push(je);
-      }
-      save(merged);
-      setExams(merged);
-    });
+    const init = async () => {
+      const stored = load();
+      setExams(stored);
+      try {
+        const jwglExams = await importJWGLExams();
+        if (jwglExams.length > 0) {
+          const merged = [...stored];
+          for (const je of jwglExams) {
+            if (!merged.some(e => e.subject === je.subject)) merged.push(je);
+          }
+          save(merged);
+          setExams(merged);
+        }
+      } catch {}
+    };
+    init();
   }, []);
 
   const add = () => {

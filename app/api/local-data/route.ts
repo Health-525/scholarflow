@@ -7,12 +7,12 @@ function findTimetableDir(): string {
   const candidates = [
     path.join(process.cwd(), "..", "timetable"),
     path.join(process.cwd(), "..", "..", "timetable"),
-    "D:\\A\\timetable",
-  ];
+    process.env.TIMETABLE_DIR,
+  ].filter(Boolean) as string[];
   for (const c of candidates) {
-    if (fs.existsSync(path.join(c, "data", "schedule.json"))) return c;
+    try { if (fs.existsSync(path.join(c, "data", "schedule.json"))) return c; } catch {}
   }
-  return candidates[0]; // fallback
+  throw new Error("Cannot find timetable directory. Set TIMETABLE_DIR env var.");
 }
 
 const TIMETABLE_DIR = findTimetableDir();

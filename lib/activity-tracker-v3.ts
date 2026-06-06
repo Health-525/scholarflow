@@ -40,7 +40,14 @@ function loadLog(): DayLog {
   if (typeof window === "undefined") return { date: todayKey(), segments: [], idleMs: 0, awayMs: 0 };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) { const p = JSON.parse(raw); if (!Array.isArray(p.segments)) p.segments = []; return p; }
+    if (raw) {
+      const store = JSON.parse(raw);
+      const today = todayKey();
+      // saveLog 存的是 { "日期": DayLog } 格式
+      if (store[today] && store[today].segments) return store[today];
+      // 兼容旧格式：顶层直接有 segments
+      if (store.segments) return store;
+    }
   } catch {}
   return { date: todayKey(), segments: [], idleMs: 0, awayMs: 0 };
 }
@@ -59,12 +66,13 @@ function saveLog(log: DayLog) {
 let _segs: AppSegment[] = [];
 let _curApp = "启动中";
 let _curTitle = "";
+let _curCategory: Category = "system";
 const _idle = 0; const _away = 0;
 let _subs: Array<() => void> = [];
 let _inited = false;
 let _latest: ActivityStateV3 | null = null;
 
-function notify() { _subs.forEach(f => f()); }
+function notify() { _latest = null; _subs.forEach(f => f()); }
 
 // ── Smart categorization ──
 function categorizeActivity(app: string, title: string): { normalized: string; meta: ActivityMeta } {
@@ -134,14 +142,14 @@ function init() {
   const api = (window as any).electronAPI!;
   api.getActiveWindow().then((win: WindowInfo|null) => {
     if (win) { pushSeg(win); notify(); }
-  });
+  }).catch(() => {});
   api.onActiveWindowChanged((win: WindowInfo) => {
     pushSeg(win); notify();
   });
   setInterval(() => {
     if (_segs.length>0 && _segs[_segs.length-1].end===0) _segs[_segs.length-1].end = nowMs();
     saveLog(buildLog());
-    _segs.push({ app: _curApp, title: _curTitle, category: "system", start: nowMs(), end: 0 });
+    _segs.push({ app: _curApp, title: _curTitle, category: _curCategory, start: nowMs(), end: 0 });
   }, 30000);
 }
 
@@ -150,7 +158,7 @@ function pushSeg(win: WindowInfo) {
   if (app !== _curApp) {
     if (_segs.length>0 && _segs[_segs.length-1].end===0) _segs[_segs.length-1].end = win.timestamp;
     _segs.push({ app, title: win.title, category: meta.category, domain: meta.domain, project: meta.project, start: win.timestamp, end: 0 });
-    _curApp = app; _curTitle = win.title;
+    _curApp = app; _curTitle = win.title; _curCategory = meta.category;
   }
 }
 
