@@ -239,7 +239,7 @@ export default function SettingsPage() {
       >
         <div className="p-4 text-center">
           <div className="text-[14px] font-semibold mb-1" style={{ color: "var(--accent)", fontFamily: "'Noto Serif SC', Georgia, serif" }}>ScholarFlow</div>
-          <div className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>v1.0.0 · Electron + Next.js</div>
+          <div className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>v1.2.0 · Electron + Next.js</div>
           <div className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>统一学习管理中枢</div>
         </div>
       </div>

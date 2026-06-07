@@ -124,6 +124,8 @@ function NoteContent({
   const [sha, setSha] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const fetchFile = useCallback(async () => {
     if (!client) return;
@@ -146,14 +148,20 @@ function NoteContent({
 
   const handleSave = async (newContent: string) => {
     if (!client) return;
+    setSaving(true);
+    setSaveSuccess(false);
     try {
       await client.putFile("content", path, newContent, "编辑笔记");
       setContent(newContent);
       // Refresh to get new SHA
       await fetchFile();
+      setSaveSuccess(true);
       onModeChange("view");
+      setTimeout(() => setSaveSuccess(false), 2000);
     } catch (err) {
       setError((err as Error).message || "保存失败");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -181,6 +189,14 @@ function NoteContent({
           <span className="text-[10px] shrink-0" style={{ color: "var(--text-muted)" }}>
             {path.replace(`/${fileName}`, "") || "/"}
           </span>
+          {saveSuccess && (
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded animate-fade-up" style={{ backgroundColor: "rgba(34,197,94,0.12)", color: "#22c55e" }}>
+              已保存 ✓
+            </span>
+          )}
+          {saving && (
+            <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>保存中...</span>
+          )}
         </div>
         {isMarkdown && (
           <div className="flex items-center gap-1 shrink-0">

@@ -131,6 +131,7 @@ export function PomodoroTimer() {
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
+  const isRunningRef = useRef(false);
   // Use ref for startTimer to avoid circular dependency
   const startTimerRef = useRef<(p: PomodoroPhase) => void>(() => {});
 
@@ -155,11 +156,13 @@ export function PomodoroTimer() {
     setRemaining(duration);
     startTimeRef.current = Date.now();
 
+    isRunningRef.current = true;
     timerRef.current = setInterval(() => {
       setRemaining(prev => {
         if (prev <= 1) {
           // Timer complete
           if (timerRef.current) clearInterval(timerRef.current);
+          isRunningRef.current = false;
 
           const elapsed = Math.round((Date.now() - startTimeRef.current) / 1000);
           const newSessions = [...sessions, {
@@ -208,17 +211,20 @@ export function PomodoroTimer() {
   const togglePause = () => {
     if (phase === "idle") {
       startTimer("focus");
-    } else if (timerRef.current) {
+    } else if (isRunningRef.current) {
       // Pausing
-      clearInterval(timerRef.current);
+      if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = null;
+      isRunningRef.current = false;
       setPhase(prev => prev as PomodoroPhase); // trigger re-render
     } else {
       // Resuming
+      isRunningRef.current = true;
       timerRef.current = setInterval(() => {
         setRemaining(prev => {
           if (prev <= 1) {
             if (timerRef.current) clearInterval(timerRef.current);
+            isRunningRef.current = false;
             return 0;
           }
           return prev - 1;
@@ -230,13 +236,14 @@ export function PomodoroTimer() {
   const reset = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = null;
+    isRunningRef.current = false;
     setPhase("idle");
     setRemaining(settings.focusMinutes * 60);
     setTotal(settings.focusMinutes * 60);
     setCompletedFocus(0);
   };
 
-  const isRunning = timerRef.current !== null;
+  const isRunning = isRunningRef.current;
   const isPaused = phase !== "idle" && !isRunning;
   const progress = phase === "idle" ? 0 : ((total - remaining) / total) * 100;
 

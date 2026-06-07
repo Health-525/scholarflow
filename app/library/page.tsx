@@ -82,6 +82,15 @@ export default function LibraryPage() {
           <RefreshCw className="w-3.5 h-3.5" />刷新
         </button>
       </div>
+      {/* 数据时效提示 */}
+      {data.updated && (
+        <div className="mb-4 text-[11px] flex items-center gap-1.5" style={{ color: "var(--text-muted)" }}>
+          <span>⏱ 上次更新：{new Date(data.updated).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}</span>
+          {Date.now() - new Date(data.updated).getTime() > 5 * 60 * 1000 && (
+            <span style={{ color: "#f59e0b" }}>· 数据可能已过期</span>
+          )}
+        </div>
+      )}
       <div className="rounded-2xl p-5 mb-6" style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-xs)" }}>
         <div className="flex items-center gap-6">
           <div className="text-center">

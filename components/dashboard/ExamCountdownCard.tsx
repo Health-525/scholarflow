@@ -6,24 +6,33 @@ import Link from "next/link";
 
 interface Exam { id: string; subject: string; date: string; time?: string; location?: string; }
 
+interface JWGLExamRaw {
+  kcmc?: string;   // 课程名
+  kssj?: string;   // 考试时间 "2026-06-15(09:00-11:00)"
+  jxdd?: string;   // 考试地点
+  date?: string;
+  subject?: string;
+  location?: string;
+}
+
 export function ExamCountdownCard() {
   const [nextExam, setNextExam] = useState<Exam | null>(null);
   const [countdown, setCountdown] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const check = async () => {
       try {
-        // 优先本地API（教务系统数据）
         const res = await fetch("/api/local-data?type=exams");
         if (res.ok) {
-          const apiExams = await res.json();
+          const apiExams: JWGLExamRaw[] = await res.json();
           if (Array.isArray(apiExams) && apiExams.length > 0) {
             const futureExams = apiExams
-              .filter((e: any) => {
-                const dateStr = (e.kssj || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] || e.date;
+              .filter((e) => {
+                const dateStr = (e.kssj || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] || e.date || "";
                 return new Date(dateStr + "T23:59:59").getTime() > Date.now();
               })
-              .sort((a: any, b: any) => {
+              .sort((a, b) => {
                 const da = (a.kssj || a.date || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] || "";
                 const db = (b.kssj || b.date || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] || "";
                 return da.localeCompare(db);
@@ -31,10 +40,11 @@ export function ExamCountdownCard() {
             if (futureExams.length > 0) {
               const e = futureExams[0];
               const dateStr = (e.kssj || e.date || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] || "";
-              setNextExam({ id: "0", subject: e.kcmc || e.subject, date: dateStr, time: e.kssj?.replace(dateStr, "").replace(/[()]/g, "") || "", location: e.jxdd || e.location });
+              setNextExam({ id: "0", subject: e.kcmc || e.subject || "未知科目", date: dateStr, time: e.kssj?.replace(dateStr, "").replace(/[()]/g, "") || "", location: e.jxdd || e.location });
               const diff = new Date(dateStr + "T23:59:59").getTime() - Date.now();
               const days = Math.floor(diff / 86400000);
               setCountdown(days === 0 ? "今天" : days === 1 ? "明天" : `${days} 天后`);
+              setLoading(false);
               return;
             }
           }
@@ -44,7 +54,7 @@ export function ExamCountdownCard() {
       // 备用localStorage
       try {
         const raw = localStorage.getItem("sf_exams");
-        if (!raw) return;
+        if (!raw) { setLoading(false); return; }
         const exams: Exam[] = JSON.parse(raw)
           .filter((e: Exam) => new Date(e.date + "T23:59:59").getTime() > Date.now())
           .sort((a: Exam, b: Exam) => a.date.localeCompare(b.date));
@@ -55,6 +65,7 @@ export function ExamCountdownCard() {
           setCountdown(days === 0 ? "今天" : days === 1 ? "明天" : `${days} 天后`);
         }
       } catch { /* ignore */ }
+      setLoading(false);
     };
     check();
     const t = setInterval(check, 60000);
@@ -73,7 +84,12 @@ export function ExamCountdownCard() {
         </div>
         <span className="text-[12px] font-semibold" style={{ color: "var(--text-primary)" }}>考试</span>
       </div>
-      {nextExam ? (
+      {loading ? (
+        <div className="space-y-2">
+          <div className="skeleton h-5 w-24 rounded" />
+          <div className="skeleton h-7 w-16 rounded" />
+        </div>
+      ) : nextExam ? (
         <>
           <div className="text-[14px] font-bold truncate" style={{ color: "var(--text-primary)" }}>{nextExam.subject}</div>
           <div className="flex items-center gap-2 mt-1">

@@ -27,7 +27,7 @@ export function GPACard() {
   const color = gpaColor(gpaNum);
 
   return (
-    <Link href="/gpa" className="block sf-card p-4" style={{ display: "block" }} aria-label={`绩点 ${gpa}，点击查看详情`}>
+    <Link href="/gpa" className="sf-card block p-4" aria-label={`绩点 ${gpa}，点击查看详情`}>
       <div className="flex items-center gap-4">
         {/* 迷你圆环 */}
         <div className="relative shrink-0">
