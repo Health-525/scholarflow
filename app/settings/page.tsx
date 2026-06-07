@@ -328,9 +328,46 @@ export default function SettingsPage() {
           </div>
           <div className="space-y-1.5 text-[11px] pt-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
             <InfoRow label="Token" value="安全加密存储" />
-            <InfoRow label="课表/作业/跑步" value="本地优先，GitHub 手动同步" />
+            <InfoRow label="课表/作业/跑步" value="本地优先，自动 Git 版本管理" />
             <InfoRow label="考试/主题/目标" value="localStorage" />
           </div>
+        </div>
+      </div>
+
+      {/* ── 数据版本历史 ── */}
+      <div
+        className="rounded-2xl overflow-hidden mb-4"
+        style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-xs)" }}
+      >
+        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+          <Database className="w-4 h-4" style={{ color: "var(--accent)" }} />
+          <span className="text-[13px] font-semibold" style={{ color: "var(--text-primary)" }}>版本历史</span>
+        </div>
+        <div className="px-4 pb-4">
+          <p className="text-[11px] mb-3" style={{ color: "var(--text-tertiary)" }}>
+            每次数据变更自动生成 Git 提交记录，可在 timetable 目录用 git log 回溯
+          </p>
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/local-save", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ action: "view-history" }),
+                });
+                const data = await res.json();
+                if (data.history) {
+                  setSyncMessage(data.history);
+                }
+              } catch {
+                setSyncMessage("获取历史失败");
+              }
+            }}
+            className="text-[11px] px-3 py-1.5 rounded-lg font-medium"
+            style={{ backgroundColor: "var(--accent-soft)", color: "var(--accent)" }}
+          >
+            查看最近记录
+          </button>
         </div>
       </div>
 

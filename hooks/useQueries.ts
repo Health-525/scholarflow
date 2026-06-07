@@ -35,11 +35,11 @@ export const queryKeys = {
 // 本地数据读写
 // ═══════════════════════════════════════════════════════════════
 
-async function saveLocally(file: string, content: string) {
+async function saveLocally(file: string, content: string, action = "更新") {
   await fetch("/api/local-save", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ file, content }),
+    body: JSON.stringify({ file, content, action }),
   });
 }
 
@@ -214,7 +214,7 @@ export function useAssignmentsQuery() {
       const newAssignment = buildAssignment(draft);
       const updated = sortAssignments([...current, newAssignment]);
       const content = JSON.stringify({ assignments: updated }, null, 2);
-      await saveLocally("data/assignments.json", content);
+      await saveLocally("data/assignments.json", content, "添加作业");
       try { await getDB().cacheFile("execution", "data/assignments.json", content, ""); } catch {}
       return updated;
     },
@@ -231,7 +231,7 @@ export function useAssignmentsQuery() {
         a.id === id ? { ...a, done: true, completedAt: new Date().toISOString() } : a
       );
       const content = JSON.stringify({ assignments: updated }, null, 2);
-      await saveLocally("data/assignments.json", content);
+      await saveLocally("data/assignments.json", content, "完成作业");
       try { await getDB().cacheFile("execution", "data/assignments.json", content, ""); } catch {}
       return { updated, id, target };
     },
@@ -250,7 +250,7 @@ export function useAssignmentsQuery() {
         a.id === id ? { ...a, done: false, completedAt: undefined } : a
       );
       const content = JSON.stringify({ assignments: updated }, null, 2);
-      await saveLocally("data/assignments.json", content);
+      await saveLocally("data/assignments.json", content, "撤销完成");
       try { await getDB().cacheFile("execution", "data/assignments.json", content, ""); } catch {}
       return updated;
     },
@@ -307,7 +307,7 @@ export function useRunningQuery() {
       const newRecord: RunRecord = { ...record, createdAt: new Date().toISOString() };
       const updated = [...current, newRecord];
       const content = JSON.stringify({ records: updated }, null, 2);
-      await saveLocally("data/running.json", content);
+      await saveLocally("data/running.json", content, "记录跑步");
       try { await getDB().cacheFile("execution", "data/running.json", content, ""); } catch {}
       return updated;
     },
@@ -388,7 +388,7 @@ export function useSyncFromGitHub() {
             case "schedule": {
               // 课表：远程覆盖本地
               const file = await client.getFile("execution", "data/schedule.json");
-              await saveLocally("data/schedule.json", file.content);
+              await saveLocally("data/schedule.json", file.content, "导入课表");
               try { await getDB().cacheFile("execution", "data/schedule.json", file.content, file.sha); } catch {}
               const remoteData = JSON.parse(file.content);
               const courseCount = remoteData?.courses?.length ?? 0;
@@ -405,7 +405,7 @@ export function useSyncFromGitHub() {
               const result = mergeAssignments(local, remote);
 
               const content = JSON.stringify({ assignments: result.merged }, null, 2);
-              await saveLocally("data/assignments.json", content);
+              await saveLocally("data/assignments.json", content, "合并作业");
               try { await getDB().cacheFile("execution", "data/assignments.json", content, ""); } catch {}
 
               imported.push("assignments");
@@ -421,7 +421,7 @@ export function useSyncFromGitHub() {
               const result = mergeRunRecords(local, remote);
 
               const content = JSON.stringify({ records: result.merged }, null, 2);
-              await saveLocally("data/running.json", content);
+              await saveLocally("data/running.json", content, "合并跑步");
               try { await getDB().cacheFile("execution", "data/running.json", content, ""); } catch {}
 
               imported.push("running");
