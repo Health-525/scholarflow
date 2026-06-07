@@ -11,7 +11,8 @@ out/
 build/
 
 # Electron build output
-dist/
+dist*/
+win-unpacked/
 
 # env files
 .env

@@ -4,6 +4,7 @@ const path = require('path');
 const net = require('net');
 const fs = require('fs');
 const { activeWindow } = require('active-win');
+const { autoUpdater } = require('electron-updater');
 
 const PORT = process.env.ELECTRON_DEV ? 3000 : 3456;
 const APP_URL = `http://localhost:${PORT}`;
@@ -57,7 +58,12 @@ function launchServer() {
     const appRoot = getAppRoot();
 
     // Next.js standalone 模式生成的独立服务器脚本
-    const serverScript = path.join(appRoot, '.next', 'standalone', 'server.js');
+    // Next.js 15 monorepo 检测可能把 server.js 放在子目录里
+    const candidates = [
+      path.join(appRoot, '.next', 'standalone', 'scholarflow', 'server.js'),
+      path.join(appRoot, '.next', 'standalone', 'server.js'),
+    ];
+    const serverScript = candidates.find(fs.existsSync) || candidates[0];
 
     console.log('[SF] App root:', appRoot);
     console.log('[SF] Server script:', serverScript);
@@ -69,8 +75,9 @@ function launchServer() {
     }
 
     // fork 比 spawn 更可靠，直接用 Node 运行，不需要 shell
+    const cwd = path.dirname(serverScript);
     serverProcess = fork(serverScript, [], {
-      cwd: path.join(appRoot, '.next', 'standalone'),
+      cwd,
       env: {
         ...process.env,
         NODE_ENV: 'production',
@@ -148,6 +155,9 @@ function startActiveWindowTracking() {
 
   activeWindowTimer = setInterval(async () => {
     try {
+      // 窗口最小化或不可见时跳过轮询，节省 CPU 和电量
+      if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isMinimized() || !mainWindow.isVisible()) return;
+
       const win = await activeWindow();
       if (!win) return;
 
@@ -237,9 +247,84 @@ function createWindow() {
   mainWindow.on('closed', () => { mainWindow = null; stopActiveWindowTracking(); });
 }
 
+// ── 自动更新 ────────────────────────────────────────────────
+function setupAutoUpdater() {
+  // 开发模式不检查更新
+  if (IS_DEV) return;
+
+  autoUpdater.autoDownload = false;  // 不自动下载，先提示用户
+  autoUpdater.autoRunAppAfterInstall = true;
+
+  autoUpdater.on('update-available', (info) => {
+    console.log('[SF] Update available:', info.version);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-available', {
+        version: info.version,
+        releaseNotes: info.releaseNotes || '',
+      });
+    }
+  });
+
+  autoUpdater.on('update-not-available', () => {
+    console.log('[SF] App is up-to-date');
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    console.log('[SF] Download:', Math.round(progress.percent) + '%');
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-download-progress', {
+        percent: Math.round(progress.percent),
+        bytesPerSecond: progress.bytesPerSecond,
+      });
+    }
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    console.log('[SF] Update downloaded:', info.version);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-downloaded', { version: info.version });
+    }
+  });
+
+  autoUpdater.on('error', (err) => {
+    console.error('[SF] Update error:', err.message);
+  });
+
+  // IPC: 手动检查更新
+  ipcMain.handle('update:check', async () => {
+    try {
+      const result = await autoUpdater.checkForUpdates();
+      return { currentVersion: app.getVersion(), latestVersion: result?.updateInfo?.version || null };
+    } catch (err) {
+      return { error: err.message };
+    }
+  });
+
+  // IPC: 下载更新
+  ipcMain.handle('update:download', async () => {
+    try {
+      await autoUpdater.downloadUpdate();
+      return true;
+    } catch (err) {
+      return { error: err.message };
+    }
+  });
+
+  // IPC: 安装更新（退出并安装）
+  ipcMain.handle('update:install', () => {
+    autoUpdater.quitAndInstall(false, true);
+  });
+
+  // 启动后延迟 5 秒检查更新（避免启动时卡顿）
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(() => {});
+  }, 5000);
+}
+
 // ── 主流程 ──────────────────────────────────────────────────
 app.whenReady().then(async () => {
   setupSecureTokenIPC();
+  setupAutoUpdater();
   try {
     console.log('[SF] Starting...');
     if (!IS_DEV) {
