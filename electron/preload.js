@@ -50,4 +50,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("update-downloaded", handler);
     return () => ipcRenderer.removeListener("update-downloaded", handler);
   },
+
+  // ── Vision-Model API ──
+  /** 检查 Vision-Model API 是否运行 */
+  visionModelStatus: () => ipcRenderer.invoke("vision-model:status"),
+  /** 启动 Vision-Model API */
+  visionModelStart: () => ipcRenderer.invoke("vision-model:start"),
 });

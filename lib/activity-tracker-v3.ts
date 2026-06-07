@@ -42,6 +42,8 @@ interface ElectronAPI {
   onUpdateAvailable: (callback: (info: unknown) => void) => () => void;
   onUpdateDownloadProgress: (callback: (progress: unknown) => void) => () => void;
   onUpdateDownloaded: (callback: (info: unknown) => void) => () => void;
+  visionModelStatus: () => Promise<boolean>;
+  visionModelStart: () => Promise<{ ok: boolean; message: string }>;
 }
 
 declare global {

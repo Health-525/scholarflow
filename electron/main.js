@@ -12,6 +12,7 @@ const IS_DEV = !!process.env.ELECTRON_DEV;
 
 let mainWindow = null;
 let serverProcess = null;
+let visionModelProcess = null;
 
 // ── 获取 app 根目录 ──────────────────────────────────────────
 function getAppRoot() {
@@ -107,6 +108,96 @@ function launchServer() {
 }
 
 // ── 创建窗口 ────────────────────────────────────────────────
+
+// ── 启动 Vision-Model API (FastAPI on :8000) ──────────────
+function findVisionModelDir() {
+  const candidates = [
+    path.join(__dirname, '..', '..', 'vision-model'),
+    path.join(__dirname, '..', '..', '..', 'vision-model'),
+    path.join(process.cwd(), '..', 'vision-model'),
+  ];
+  for (const dir of candidates) {
+    const serverPath = path.join(dir, 'src', 'api', 'server.py');
+    if (fs.existsSync(serverPath)) return dir;
+  }
+  return null;
+}
+
+function launchVisionModel() {
+  const vmDir = findVisionModelDir();
+  if (!vmDir) {
+    console.log('[SF] Vision-Model directory not found, skipping');
+    return false;
+  }
+
+  // 检查 8000 端口是否已占用
+  return new Promise((resolve) => {
+    const sock = new net.Socket();
+    sock.setTimeout(500);
+    sock.once('connect', () => {
+      sock.destroy();
+      console.log('[SF] Vision-Model already running on :8000');
+      resolve(true);
+    });
+    sock.once('error', () => {
+      sock.destroy();
+      // 端口空闲，启动服务
+      console.log('[SF] Launching Vision-Model from', vmDir);
+      const { spawn } = require('child_process');
+      const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+
+      visionModelProcess = spawn(pythonCmd, ['src/api/server.py'], {
+        cwd: vmDir,
+        env: { ...process.env },
+        stdio: 'pipe',
+        shell: true,
+      });
+
+      visionModelProcess.stdout && visionModelProcess.stdout.on('data', d => {
+        console.log('[VisionModel]', d.toString().trim());
+      });
+      visionModelProcess.stderr && visionModelProcess.stderr.on('data', d => {
+        console.error('[VisionModel ERR]', d.toString().trim());
+      });
+      visionModelProcess.on('error', (err) => {
+        console.error('[SF] Vision-Model launch error:', err.message);
+        resolve(false);
+      });
+      visionModelProcess.on('exit', (code) => {
+        console.log('[SF] Vision-Model exited with code', code);
+        visionModelProcess = null;
+      });
+
+      // 给 3 秒启动时间，不阻塞主流程
+      setTimeout(() => resolve(true), 3000);
+    });
+    sock.once('timeout', () => {
+      sock.destroy();
+      resolve(false);
+    });
+    sock.connect(8000, '127.0.0.1');
+  });
+}
+
+// ── IPC: 启动/检查 Vision-Model ───────────────────────────
+ipcMain.handle('vision-model:status', async () => {
+  return new Promise((resolve) => {
+    const sock = new net.Socket();
+    sock.setTimeout(1500);
+    sock.once('connect', () => { sock.destroy(); resolve(true); });
+    sock.once('error', () => { sock.destroy(); resolve(false); });
+    sock.once('timeout', () => { sock.destroy(); resolve(false); });
+    sock.connect(8000, '127.0.0.1');
+  });
+});
+
+ipcMain.handle('vision-model:start', async () => {
+  const running = await ipcMain.handle('vision-model:status');
+  if (running) return { ok: true, message: '已运行' };
+  const result = await launchVisionModel();
+  return { ok: result, message: result ? '启动成功' : '启动失败' };
+});
+
 // ── Token 存储路径 ──────────────────────────────────────────
 function getTokenStorePath() {
   const userDataPath = app.getPath('userData');
@@ -350,6 +441,16 @@ app.whenReady().then(async () => {
         }, 3000);
       }
     } catch {}
+
+    // Auto-launch Vision-Model API (non-blocking)
+    setTimeout(async () => {
+      try {
+        const launched = await launchVisionModel();
+        console.log('[SF] Vision-Model launch:', launched ? 'success' : 'skipped');
+      } catch (err) {
+        console.log('[SF] Vision-Model launch skipped:', err.message);
+      }
+    }, 5000);
   } catch (err) {
     console.error('[SF] Fatal:', err);
     dialog.showErrorBox('ScholarFlow 启动失败', `${err.message}`);
@@ -359,6 +460,7 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {
   if (serverProcess) { serverProcess.kill(); serverProcess = null; }
+  if (visionModelProcess) { visionModelProcess.kill(); visionModelProcess = null; }
   if (process.platform !== 'darwin') app.quit();
 });
 
@@ -369,4 +471,5 @@ app.on('activate', () => {
 app.on('before-quit', () => {
   stopActiveWindowTracking();
   if (serverProcess) { serverProcess.kill('SIGTERM'); serverProcess = null; }
+  if (visionModelProcess) { visionModelProcess.kill(); visionModelProcess = null; }
 });
