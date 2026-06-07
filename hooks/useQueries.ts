@@ -9,6 +9,7 @@ import type { Adjustment } from "@/lib/schedule/adjustments";
 import type { GitHubError } from "@/lib/github/errors";
 import type { Assignment, AssignmentDraft, AssignmentsFile, RunRecord, RunType } from "@/types";
 import { buildAssignment, sortAssignments } from "@/lib/assignment-utils";
+import { readData, writeData, isNative } from "@/lib/mobile-data";
 
 // ============================================================
 // TanStack Query 数据层 v2 — 本地优先架构
@@ -36,19 +37,11 @@ export const queryKeys = {
 // ═══════════════════════════════════════════════════════════════
 
 async function saveLocally(file: string, content: string, action = "更新") {
-  await fetch("/api/local-save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ file, content, action }),
-  });
+  await writeData(file, content, action);
 }
 
 async function tryLocalApi(type: string) {
-  try {
-    const res = await fetch(`/api/local-data?type=${type}`);
-    if (res.ok) return await res.json();
-  } catch {}
-  return null;
+  return await readData(type);
 }
 
 /** 解析本地作业数据，兼容 [...] 和 { assignments: [...] } 两种格式 */
@@ -178,7 +171,7 @@ export function useScheduleQuery() {
   return useQuery({
     queryKey: queryKeys.schedule,
     queryFn: async () => {
-      const local = await tryLocalApi("schedule");
+      const local = await tryLocalApi("schedule") as Record<string, unknown> | null;
       if (local?.courses) return { schedule: parseSchedule(local), adjustments: [] };
       return { schedule: null, adjustments: [] };
     },

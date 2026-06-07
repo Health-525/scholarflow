@@ -27,7 +27,11 @@
     "electron:hot:nix": "ELECTRON_DEV=1 concurrently \"next dev\" \"electron .\"",
     "electron:build": "next build && node electron/postbuild.js && electron-builder --win",
     "electron:build:portable": "next build && node electron/postbuild.js && electron-builder --win portable",
-    "electron:build:installer": "next build && node electron/postbuild.js && electron-builder --win nsis"
+    "electron:build:installer": "next build && node electron/postbuild.js && electron-builder --win nsis",
+    "mobile:build": "node scripts/mobile-build.js",
+    "mobile:sync": "npx cap sync android",
+    "mobile:open": "npx cap open android",
+    "mobile:dev": "set BUILD_TARGET=mobile&& next dev"
   },
   "build": {
     "appId": "com.health525.scholarflow",
@@ -84,6 +88,17 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/camera": "^8.2.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
+    "@capacitor/filesystem": "^8.1.2",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/local-notifications": "^8.2.0",
+    "@capacitor/network": "^8.0.1",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@tanstack/react-query": "^5.101.0",
     "active-win": "^9.0.0",
     "class-variance-authority": "^0.7.1",
@@ -117,6 +132,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.3.0",
+    "astral-regex": "^2.0.0",
     "autoprefixer": "^10.4.20",
     "concurrently": "^10.0.3",
     "electron": "^42.3.3",

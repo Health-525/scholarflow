@@ -1,0 +1,28 @@
+{
+  "appId": "com.health525.scholarflow",
+  "appName": "ScholarFlow",
+  "webDir": "out",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": true,
+      "androidScaleType": "CENTER_CROP",
+      "splashFullScreen": true,
+      "splashImmersive": true,
+      "backgroundColor": "#09090b"
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#09090b"
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#6366f1"
+    },
+    "Camera": {
+      "presentationStyle": "fullscreen"
+    }
+  }
+}
