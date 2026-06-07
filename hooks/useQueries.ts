@@ -109,8 +109,14 @@ export function useAssignmentsQuery() {
     queryKey: queryKeys.assignments,
     queryFn: async () => {
       const local = await tryLocalApi("assignments");
-      if (Array.isArray(local)) return sortAssignments(local);
-      if (!client) return [];
+      // local 可能是数组 [...] 或 { assignments: [...] } 格式
+      const localAssignments = Array.isArray(local)
+        ? local
+        : Array.isArray(local?.assignments)
+          ? local.assignments
+          : null;
+      if (localAssignments && localAssignments.length > 0) return sortAssignments(localAssignments);
+      if (!client) return localAssignments || [];
       const file = await client.getFile("execution", "data/assignments.json");
       const data = JSON.parse(file.content) as AssignmentsFile;
       const assignments = sortAssignments(data.assignments || []);
@@ -135,6 +141,10 @@ export function useAssignmentsQuery() {
       const updated = sortAssignments([...current, newAssignment]);
       const content = JSON.stringify({ assignments: updated }, null, 2);
       await saveAssignmentsLocally(content);
+
+      // 更新 IndexedDB 缓存
+      try { await getDB().cacheFile("execution", "data/assignments.json", content, ""); } catch {}
+
       if (client) await client.putFile("execution", "data/assignments.json", content, "添加作业").catch(() => {});
       return updated;
     },
@@ -154,6 +164,10 @@ export function useAssignmentsQuery() {
       const content = JSON.stringify({ assignments: updated }, null, 2);
 
       await saveAssignmentsLocally(content);
+
+      // 更新 IndexedDB 缓存，确保 refetch 时不会用旧数据覆盖
+      try { await getDB().cacheFile("execution", "data/assignments.json", content, ""); } catch {}
+
       if (client) await client.putFile("execution", "data/assignments.json", content, "完成作业").catch(() => {});
       return { updated, id, target };
     },
@@ -174,6 +188,10 @@ export function useAssignmentsQuery() {
       );
       const content = JSON.stringify({ assignments: updated }, null, 2);
       await saveAssignmentsLocally(content);
+
+      // 更新 IndexedDB 缓存
+      try { await getDB().cacheFile("execution", "data/assignments.json", content, ""); } catch {}
+
       if (client) await client.putFile("execution", "data/assignments.json", content, "撤销完成").catch(() => {});
       return updated;
     },
@@ -216,8 +234,14 @@ export function useRunningQuery() {
     queryKey: queryKeys.running,
     queryFn: async () => {
       const local = await tryLocalApi("running");
-      if (local?.records) return local.records as RunRecord[];
-      if (!client) return [];
+      // local 可能是 { records: [...] } 或数组格式
+      const localRecords = Array.isArray(local?.records)
+        ? local.records
+        : Array.isArray(local)
+          ? local
+          : null;
+      if (localRecords && localRecords.length > 0) return localRecords as RunRecord[];
+      if (!client) return localRecords || [];
       const file = await client.getFile("execution", "data/running.json");
       const data = JSON.parse(file.content) as { records: RunRecord[] };
 
@@ -241,6 +265,8 @@ export function useRunningQuery() {
       const content = JSON.stringify({ records: updated }, null, 2);
       // Save locally
       try { await fetch("/api/local-save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ file: "data/running.json", content }) }); } catch {}
+      // 更新 IndexedDB 缓存
+      try { await getDB().cacheFile("execution", "data/running.json", content, ""); } catch {}
       // Also try GitHub if available
       if (client) await client.putFile("execution", "data/running.json", content, "记录跑步").catch(() => {});
       return updated;
