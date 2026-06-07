@@ -81,6 +81,13 @@ export default function SchedulePage() {
           )}
         </>
       )}
+
+      {!schedule && !isLoading && !error && (
+        <div className="text-center py-12" style={{ color: "var(--text-muted)" }}>
+          <p className="text-sm">暂无课表数据</p>
+          <p className="text-xs mt-1">请在设置中导入课表</p>
+        </div>
+      )}
     </div>
   );
 }

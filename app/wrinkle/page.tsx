@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
 
 const API_URL = process.env.NEXT_PUBLIC_WRINKLE_API_URL || "http://localhost:8000";
+const WS_URL = API_URL.replace(/^http/, "ws") + "/ws/realtime";
 
 interface ZoneConcern {
   score: number;
@@ -27,6 +28,16 @@ interface SkinResult {
   wrinkle_label: string;
   zone_scores: ZoneScore[];
   message: string;
+}
+
+interface RealtimeData {
+  face_detected: boolean;
+  wrinkle_score: number;
+  brow_rising: boolean;
+  brow_eye_ratio: number;
+  severity: string;
+  forehead_rect: number[] | null;
+  heatmap: string | null;
 }
 
 const ZONE_NAMES: Record<string, string> = {
@@ -53,15 +64,26 @@ const SEVERITY_COLORS: Record<string, string> = {
   significant: "text-rose-400",
 };
 
+const SEVERITY_CN: Record<string, string> = {
+  no_face: "未检测到",
+  "无皱纹": "无皱纹",
+  "轻微": "轻微",
+  "中等": "中等",
+  "明显": "明显",
+  "严重": "严重",
+};
+
 const WRINKLE_CONFIG: Record<number, { icon: string; label: string; color: string }> = {
   0: { icon: "😊", label: "无明显皱纹", color: "text-emerald-500" },
   1: { icon: "😐", label: "轻微皱纹", color: "text-amber-500" },
   2: { icon: "😟", label: "明显皱纹", color: "text-rose-500" },
 };
 
+type Mode = "photo" | "realtime";
 type ApiStatus = "checking" | "online" | "offline" | "starting";
 
 export default function WrinklePage() {
+  const [mode, setMode] = useState<Mode>("photo");
   const [preview, setPreview] = useState<string | null>(null);
   const [result, setResult] = useState<SkinResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -69,7 +91,17 @@ export default function WrinklePage() {
   const [apiStatus, setApiStatus] = useState<ApiStatus>("checking");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // 检查 API 状态（支持 Electron IPC 自动启动）
+  // Realtime state
+  const [rtData, setRtData] = useState<RealtimeData | null>(null);
+  const [rtConnected, setRtConnected] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const sendIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [scoreHistory, setScoreHistory] = useState<number[]>([]);
+
+  // 检查 API 状态
   const checkApi = useCallback(async () => {
     setApiStatus("checking");
     try {
@@ -77,20 +109,18 @@ export default function WrinklePage() {
       const data = await res.json();
       setApiStatus(data.skin_analyzer_loaded ? "online" : "offline");
     } catch {
-      // HTTP 不可达，尝试通过 Electron IPC 启动
       const api = (window as unknown as { electronAPI?: { visionModelStart: () => Promise<{ ok: boolean; message: string }> } }).electronAPI;
       if (api?.visionModelStart) {
         setApiStatus("starting");
         try {
           const { ok } = await api.visionModelStart();
           if (ok) {
-            // 等待服务启动
             for (let i = 0; i < 10; i++) {
               await new Promise(r => setTimeout(r, 1000));
               try {
                 const retry = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(2000) });
                 if (retry.ok) { setApiStatus("online"); return; }
-              } catch { /* continue waiting */ }
+              } catch { /* continue */ }
             }
           }
         } catch {}
@@ -103,6 +133,79 @@ export default function WrinklePage() {
 
   useEffect(() => { checkApi(); }, [checkApi]);
 
+  // ─── Realtime mode ───
+  const startRealtime = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480, facingMode: "user" },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+
+      const ws = new WebSocket(WS_URL);
+      wsRef.current = ws;
+
+      ws.onopen = () => { setRtConnected(true); };
+
+      ws.onmessage = (ev) => {
+        try {
+          const data: RealtimeData = JSON.parse(ev.data);
+          setRtData(data);
+          if (data.face_detected) {
+            setScoreHistory(prev => {
+              const next = [...prev, data.wrinkle_score];
+              return next.length > 60 ? next.slice(-60) : next;
+            });
+          }
+        } catch {}
+      };
+
+      ws.onclose = () => { setRtConnected(false); };
+      ws.onerror = () => { setRtConnected(false); };
+
+      // Send frames at ~10 fps
+      const canvas = document.createElement("canvas");
+      canvas.width = 640;
+      canvas.height = 480;
+      const ctx = canvas.getContext("2d")!;
+
+      sendIntervalRef.current = setInterval(() => {
+        if (ws.readyState !== WebSocket.OPEN || !videoRef.current) return;
+        ctx.drawImage(videoRef.current, 0, 0, 640, 480);
+        canvas.toBlob(
+          (blob) => {
+            if (blob && ws.readyState === WebSocket.OPEN) {
+              blob.arrayBuffer().then((buf) => ws.send(buf));
+            }
+          },
+          "image/jpeg",
+          0.7
+        );
+      }, 100);
+
+    } catch (err) {
+      setError("无法打开摄像头: " + String(err));
+    }
+  }, []);
+
+  const stopRealtime = useCallback(() => {
+    if (sendIntervalRef.current) clearInterval(sendIntervalRef.current);
+    if (wsRef.current) wsRef.current.close();
+    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+    setRtConnected(false);
+    setRtData(null);
+    setScoreHistory([]);
+  }, []);
+
+  useEffect(() => {
+    if (mode !== "realtime") stopRealtime();
+    return () => { stopRealtime(); };
+  }, [mode, stopRealtime]);
+
+  // ─── Photo mode ───
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -145,24 +248,52 @@ export default function WrinklePage() {
 
   const wrinkleConfig = result ? WRINKLE_CONFIG[result.wrinkle_level] : null;
 
+  const severityColor = (sev: string) => {
+    if (sev === "严重") return "text-rose-500";
+    if (sev === "明显") return "text-orange-400";
+    if (sev === "中等") return "text-amber-400";
+    if (sev === "轻微") return "text-emerald-400";
+    return "text-green-400";
+  };
+
+  const scoreBarColor = (score: number) => {
+    if (score >= 80) return "bg-rose-500";
+    if (score >= 60) return "bg-orange-500";
+    if (score >= 40) return "bg-amber-500";
+    return "bg-emerald-500";
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
         <h1 className="text-lg font-bold">皮肤检测</h1>
         <div className="flex items-center gap-2">
+          {/* Mode toggle */}
+          <div className="flex bg-zinc-800 rounded-lg overflow-hidden text-xs">
+            <button
+              onClick={() => setMode("photo")}
+              className={`px-3 py-1.5 transition-colors ${mode === "photo" ? "bg-violet-600 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
+            >
+              拍照检测
+            </button>
+            <button
+              onClick={() => setMode("realtime")}
+              className={`px-3 py-1.5 transition-colors ${mode === "realtime" ? "bg-violet-600 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
+            >
+              实时监测
+            </button>
+          </div>
           <span className={"text-xs px-3 py-1 rounded-full " + (
             apiStatus === "online" ? "bg-emerald-500/15 text-emerald-400" :
             apiStatus === "starting" ? "bg-amber-500/15 text-amber-400" :
             apiStatus === "offline" ? "bg-rose-500/15 text-rose-400" :
             "bg-zinc-800 text-zinc-400")}>
-            {apiStatus === "online" ? "✅ 就绪" :
-             apiStatus === "starting" ? "⏳ 启动中..." :
-             apiStatus === "offline" ? "❌ 离线" :
+            {apiStatus === "online" ? "就绪" :
+             apiStatus === "starting" ? "启动中..." :
+             apiStatus === "offline" ? "离线" :
              "检测中..."}
           </span>
-          <button onClick={checkApi} className="text-xs px-2 py-1 rounded bg-zinc-800 text-zinc-400 hover:bg-zinc-700">
-            刷新
-          </button>
         </div>
       </div>
 
@@ -172,89 +303,201 @@ export default function WrinklePage() {
           <div className="bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl p-4 text-sm">
             <p className="font-medium mb-1">检测服务未启动</p>
             <p className="text-xs text-amber-400/70">
-              {(window as unknown as { electronAPI?: unknown }).electronAPI
-                ? "ScholarFlow 正在尝试自动启动检测服务，请稍后点击「刷新」"
-                : "请在终端运行: cd vision-model && python src/api/server.py"}
+              请在终端运行: cd vision-model && python src/api/server.py
             </p>
           </div>
         )}
 
-        {!preview ? (
-          <div onClick={() => fileRef.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}
-            className="border-2 border-dashed border-zinc-700 rounded-2xl p-12 text-center cursor-pointer hover:border-violet-500/50 hover:bg-violet-500/5 transition-all">
-            <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
-            <div className="text-4xl mb-3">📷</div>
-            <p className="text-zinc-400">点击或拖拽上传人脸照片</p>
-            <p className="text-xs text-zinc-600 mt-2">正脸拍摄效果最佳</p>
-          </div>
-        ) : (
+        {/* ═══════ PHOTO MODE ═══════ */}
+        {mode === "photo" && (
           <>
-            <div className="relative rounded-2xl overflow-hidden bg-zinc-900">
-              <Image src={preview} alt="preview" width={480} height={480} className="w-full object-contain max-h-[400px]" />
+            {!preview ? (
+              <div onClick={() => fileRef.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}
+                className="border-2 border-dashed border-zinc-700 rounded-2xl p-12 text-center cursor-pointer hover:border-violet-500/50 hover:bg-violet-500/5 transition-all">
+                <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+                <div className="text-4xl mb-3">📷</div>
+                <p className="text-zinc-400">点击或拖拽上传人脸照片</p>
+                <p className="text-xs text-zinc-600 mt-2">正脸拍摄效果最佳</p>
+              </div>
+            ) : (
+              <>
+                <div className="relative rounded-2xl overflow-hidden bg-zinc-900">
+                  <Image src={preview} alt="preview" width={480} height={480} className="w-full object-contain max-h-[400px]" />
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={detect} disabled={loading || apiStatus === "offline"}
+                    className="flex-1 py-3 bg-violet-600 hover:bg-violet-500 rounded-xl font-semibold disabled:opacity-50 transition-colors">
+                    {loading ? "分析中..." : "开始检测"}
+                  </button>
+                  <button onClick={reset}
+                    className="px-5 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl border border-zinc-700 transition-colors">重选</button>
+                </div>
+              </>
+            )}
+
+            {loading && (
+              <div className="text-center py-6 text-zinc-500">
+                <div className="w-8 h-8 border-2 border-zinc-700 border-t-violet-500 rounded-full animate-spin mx-auto mb-3" />
+                AI 正在分析皮肤...
+              </div>
+            )}
+
+            {result && wrinkleConfig && (
+              <div className="space-y-4">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+                  <div className="flex items-center gap-4 mb-3">
+                    <span className="text-4xl">{wrinkleConfig.icon}</span>
+                    <div>
+                      <h2 className={"text-xl font-bold " + wrinkleConfig.color}>{wrinkleConfig.label}</h2>
+                      <p className="text-sm text-zinc-400">综合评分: {result.overall_score.toFixed(1)}</p>
+                    </div>
+                  </div>
+                  {result.predicted_age > 0 && (
+                    <p className="text-sm text-zinc-500">预测皮肤年龄: {result.predicted_age.toFixed(0)}岁</p>
+                  )}
+                </div>
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-3">
+                  <h3 className="text-sm font-semibold text-zinc-400">各区域分析</h3>
+                  {result.zone_scores.map((zone) => (
+                    <div key={zone.zone} className="border-b border-zinc-800 pb-2 last:border-0 last:pb-0">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium">{ZONE_NAMES[zone.zone] || zone.zone}</span>
+                        <span className="text-xs text-zinc-500">{zone.composite_score.toFixed(1)}</span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-1">
+                        {Object.entries(zone.concerns).map(([key, val]) => (
+                          <div key={key} className="text-center">
+                            <p className="text-[10px] text-zinc-500">{CONCERN_NAMES[key] || key}</p>
+                            <p className={"text-xs font-medium " + (SEVERITY_COLORS[val.severity] || "")}>{val.score.toFixed(0)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ═══════ REALTIME MODE ═══════ */}
+        {mode === "realtime" && (
+          <>
+            {/* Video feed */}
+            <div className="relative rounded-2xl overflow-hidden bg-zinc-900 aspect-[4/3]">
+              <video ref={videoRef} className="w-full h-full object-cover" playsInline muted style={{ transform: "scaleX(-1)" }} />
+              <canvas ref={canvasRef} className="hidden" />
+
+              {/* Overlay: forehead rect + heatmap */}
+              {rtData?.face_detected && rtData.forehead_rect && (
+                <div
+                  className="absolute border-2 rounded pointer-events-none"
+                  style={{
+                    left: `${(1 - rtData.forehead_rect[2] / 640) * 100}%`,
+                    top: `${(rtData.forehead_rect[1] / 480) * 100}%`,
+                    width: `${((rtData.forehead_rect[2] - rtData.forehead_rect[0]) / 640) * 100}%`,
+                    height: `${((rtData.forehead_rect[3] - rtData.forehead_rect[1]) / 480) * 100}%`,
+                    borderColor: rtData.brow_rising ? "rgb(255, 165, 0)" : "rgb(0, 255, 255)",
+                  }}
+                >
+                  {rtData.heatmap && (
+                    <img src={rtData.heatmap} alt="" className="w-full h-full object-cover opacity-40" />
+                  )}
+                </div>
+              )}
+
+              {/* Overlay HUD */}
+              <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm rounded-xl p-3 min-w-[180px]">
+                {!rtConnected ? (
+                  <p className="text-xs text-zinc-400">未连接</p>
+                ) : !rtData?.face_detected ? (
+                  <p className="text-xs text-rose-400">未检测到人脸</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-zinc-400">皱纹评分</span>
+                      <span className={`text-lg font-bold ${severityColor(rtData.severity)}`}>
+                        {rtData.wrinkle_score.toFixed(0)}
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-zinc-700 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-150 ${scoreBarColor(rtData.wrinkle_score)}`}
+                        style={{ width: `${rtData.wrinkle_score}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-zinc-400">严重度</span>
+                      <span className={`text-xs font-medium ${severityColor(rtData.severity)}`}>
+                        {SEVERITY_CN[rtData.severity] || rtData.severity}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-zinc-400">抬眉</span>
+                      <span className={`text-xs font-bold ${rtData.brow_rising ? "text-orange-400" : "text-zinc-500"}`}>
+                        {rtData.brow_rising ? "是" : "否"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-zinc-400">眉眼比</span>
+                      <span className="text-xs text-zinc-300">{rtData.brow_eye_ratio.toFixed(2)}x</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Connection indicator */}
+              <div className="absolute top-3 right-3">
+                <span className={`text-xs px-2 py-1 rounded-full ${rtConnected ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
+                  {rtConnected ? "实时" : "离线"}
+                </span>
+              </div>
             </div>
+
+            {/* Score trend mini chart */}
+            {scoreHistory.length > 2 && (
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+                <p className="text-xs text-zinc-500 mb-2">皱纹趋势</p>
+                <div className="h-16 flex items-end gap-px">
+                  {scoreHistory.map((s, i) => (
+                    <div
+                      key={i}
+                      className={`flex-1 rounded-t transition-all duration-100 ${scoreBarColor(s)}`}
+                      style={{ height: `${Math.max(s, 3)}%`, opacity: 0.6 + (i / scoreHistory.length) * 0.4 }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Start/Stop button */}
             <div className="flex gap-3">
-              <button onClick={detect} disabled={loading || apiStatus === "offline"}
-                className="flex-1 py-3 bg-violet-600 hover:bg-violet-500 rounded-xl font-semibold disabled:opacity-50 transition-colors">
-                {loading ? "分析中..." : "开始检测"}
-              </button>
-              <button onClick={reset}
-                className="px-5 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl border border-zinc-700 transition-colors">重选</button>
+              {!rtConnected ? (
+                <button onClick={startRealtime} disabled={apiStatus === "offline"}
+                  className="flex-1 py-3 bg-violet-600 hover:bg-violet-500 rounded-xl font-semibold disabled:opacity-50 transition-colors">
+                  开始实时监测
+                </button>
+              ) : (
+                <button onClick={stopRealtime}
+                  className="flex-1 py-3 bg-rose-600 hover:bg-rose-500 rounded-xl font-semibold transition-colors">
+                  停止监测
+                </button>
+              )}
+            </div>
+
+            <div className="text-xs text-zinc-600 space-y-1">
+              <p>- 实时模式使用浏览器摄像头 + WebSocket 通信</p>
+              <p>- 抬眉时皱纹评分会自动放大</p>
+              <p>- 请保持正脸面对摄像头</p>
             </div>
           </>
         )}
 
-        {loading && (
-          <div className="text-center py-6 text-zinc-500">
-            <div className="w-8 h-8 border-2 border-zinc-700 border-t-violet-500 rounded-full animate-spin mx-auto mb-3" />
-            AI 正在分析皮肤...
-          </div>
-        )}
-
-        {result && wrinkleConfig && (
-          <div className="space-y-4">
-            {/* 总评 */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-              <div className="flex items-center gap-4 mb-3">
-                <span className="text-4xl">{wrinkleConfig.icon}</span>
-                <div>
-                  <h2 className={"text-xl font-bold " + wrinkleConfig.color}>{wrinkleConfig.label}</h2>
-                  <p className="text-sm text-zinc-400">综合评分: {result.overall_score.toFixed(1)}</p>
-                </div>
-              </div>
-              {result.predicted_age > 0 && (
-                <p className="text-sm text-zinc-500">预测皮肤年龄: {result.predicted_age.toFixed(0)}岁</p>
-              )}
-            </div>
-
-            {/* 各区域评分 */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-3">
-              <h3 className="text-sm font-semibold text-zinc-400">各区域分析</h3>
-              {result.zone_scores.map((zone) => (
-                <div key={zone.zone} className="border-b border-zinc-800 pb-2 last:border-0 last:pb-0">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium">{ZONE_NAMES[zone.zone] || zone.zone}</span>
-                    <span className="text-xs text-zinc-500">{zone.composite_score.toFixed(1)}</span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-1">
-                    {Object.entries(zone.concerns).map(([key, val]) => (
-                      <div key={key} className="text-center">
-                        <p className="text-[10px] text-zinc-500">{CONCERN_NAMES[key] || key}</p>
-                        <p className={"text-xs font-medium " + (SEVERITY_COLORS[val.severity] || "")}>{val.score.toFixed(0)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {error && <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl p-4 text-sm">{error}</div>}
+        {mode === "photo" && error && <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl p-4 text-sm">{error}</div>}
 
         <div className="text-xs text-zinc-600 space-y-1 pt-4">
-          <p>• 基于 SkinAge (EfficientNet-B2) 多任务模型</p>
-          <p>• 7区域 x 4维度: 皱纹/色素/红血丝/毛孔</p>
-          <p>• Electron 模式下自动启动检测服务</p>
+          <p>- SkinAge (EfficientNet-B2) + CV gradient analysis</p>
+          <p>- 7区域 x 4维度: 皱纹/色素/红血丝/毛孔</p>
         </div>
       </div>
     </div>

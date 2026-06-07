@@ -180,7 +180,7 @@ export function useScheduleQuery() {
     queryFn: async () => {
       const local = await tryLocalApi("schedule");
       if (local?.courses) return { schedule: parseSchedule(local), adjustments: [] };
-      return { schedule: { courses: [], periods: [] }, adjustments: [] };
+      return { schedule: null, adjustments: [] };
     },
     enabled: true,
     staleTime: 2 * 60 * 1000,
