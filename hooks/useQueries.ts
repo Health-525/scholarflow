@@ -59,7 +59,7 @@ export function useScheduleQuery() {
     queryFn: async () => {
       const local = await tryLocalApi("schedule");
       if (local?.courses) return { schedule: parseSchedule(local), adjustments: [] };
-      if (!client) throw new Error("Not authenticated");
+      if (!client) return { schedule: { courses: [], periods: [] }, adjustments: [] };
 
       const [scheduleFile, adjustmentsFile] = await Promise.allSettled([
         client.getFile("execution", "data/schedule.json"),
@@ -92,8 +92,8 @@ export function useScheduleQuery() {
 
       return { schedule, adjustments };
     },
-    enabled: !!client,
-    staleTime: 2 * 60 * 1000, // 2分钟 stale
+    enabled: true,
+    staleTime: 2 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: 2,
   });
@@ -110,7 +110,7 @@ export function useAssignmentsQuery() {
     queryFn: async () => {
       const local = await tryLocalApi("assignments");
       if (Array.isArray(local)) return sortAssignments(local);
-      if (!client) throw new Error("Not authenticated");
+      if (!client) return [];
       const file = await client.getFile("execution", "data/assignments.json");
       const data = JSON.parse(file.content) as AssignmentsFile;
       const assignments = sortAssignments(data.assignments || []);
@@ -121,7 +121,7 @@ export function useAssignmentsQuery() {
 
       return assignments;
     },
-    enabled: !!client,
+    enabled: true,
     staleTime: 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: 2,
@@ -168,13 +168,13 @@ export function useAssignmentsQuery() {
   // Undo mutation
   const undoMutation = useMutation({
     mutationFn: async (id: string) => {
-      if (!client) throw new Error("Not authenticated");
       const current = queryClient.getQueryData<Assignment[]>(queryKeys.assignments) ?? [];
       const updated = current.map((a) =>
         a.id === id ? { ...a, done: false, completedAt: undefined } : a
       );
       const content = JSON.stringify({ assignments: updated }, null, 2);
-      await client.putFile("execution", "data/assignments.json", content, "撤销完成");
+      await saveAssignmentsLocally(content);
+      if (client) await client.putFile("execution", "data/assignments.json", content, "撤销完成").catch(() => {});
       return updated;
     },
     onSuccess: (updated) => {
@@ -217,7 +217,7 @@ export function useRunningQuery() {
     queryFn: async () => {
       const local = await tryLocalApi("running");
       if (local?.records) return local.records as RunRecord[];
-      if (!client) throw new Error("Not authenticated");
+      if (!client) return [];
       const file = await client.getFile("execution", "data/running.json");
       const data = JSON.parse(file.content) as { records: RunRecord[] };
 
@@ -227,7 +227,7 @@ export function useRunningQuery() {
 
       return data.records || [];
     },
-    enabled: !!client,
+    enabled: true,
     staleTime: 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: 2,
@@ -235,15 +235,14 @@ export function useRunningQuery() {
 
   const addMutation = useMutation({
     mutationFn: async (record: { date: string; type: RunType }) => {
-      if (!client) throw new Error("Not authenticated");
       const current = queryClient.getQueryData<RunRecord[]>(queryKeys.running) ?? [];
-      const newRecord: RunRecord = {
-        ...record,
-        createdAt: new Date().toISOString(),
-      };
+      const newRecord: RunRecord = { ...record, createdAt: new Date().toISOString() };
       const updated = [...current, newRecord];
       const content = JSON.stringify({ records: updated }, null, 2);
-      await client.putFile("execution", "data/running.json", content, "记录跑步");
+      // Save locally
+      try { await fetch("/api/local-save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ file: "data/running.json", content }) }); } catch {}
+      // Also try GitHub if available
+      if (client) await client.putFile("execution", "data/running.json", content, "记录跑步").catch(() => {});
       return updated;
     },
     onSuccess: (updated) => {

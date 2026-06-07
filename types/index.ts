@@ -106,6 +106,57 @@ export interface ReminderStore {
   [courseKey: string]: ReminderEntry;
 }
 
+// ---- 图书馆座位类型 ----
+export interface LibrarySeat {
+  x: number;
+  y: number;
+  key: string;
+  type: number;
+  name: string;
+  seat_status: number;
+  status: boolean;
+}
+
+export interface LibraryLayout {
+  seats_total: number;
+  seats_used: number;
+  seats_booking: number;
+  max_x: number;
+  max_y: number;
+  seats: LibrarySeat[];
+}
+
+export interface LibraryRoom {
+  lib_id: number;
+  lib_name: string;
+  lib_floor: string;
+  is_open: boolean;
+  lib_type: number;
+  lib_group_id: number;
+  lib_rt: {
+    seats_total: number;
+    seats_used: number;
+    seats_booking: number;
+    seats_has: number;
+    reserve_ttl: number;
+    open_time_str: string;
+    close_time_str: string;
+    advance_booking: string;
+  };
+  lib_layout?: LibraryLayout;
+}
+
+export interface LibraryData {
+  updated: string;
+  summary: {
+    total: number;
+    used: number;
+    avail: number;
+    rate: number;
+  };
+  libs: LibraryRoom[];
+}
+
 // ---- 知识画像类型 ----
 export interface TechItem {
   name: string;

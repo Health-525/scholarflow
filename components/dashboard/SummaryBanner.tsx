@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useGitHubClient } from "@/hooks/useGitHubClient";
-import { BookOpen, ClipboardList, Activity, HeartPulse, Calculator } from "lucide-react";
+import { BookOpen, ClipboardList, Activity, Calculator } from "lucide-react";
+import { gpaColor } from "@/lib/gpa";
 
 interface DashboardSummary {
   overview: {
@@ -20,7 +21,6 @@ export function SummaryBanner() {
   const [data, setData] = useState<DashboardSummary | null>(null);
 
   useEffect(() => {
-    // 优先本地API，备用GitHub
     fetch("/api/local-data?type=dashboard")
       .then(r => r.json())
       .then(setData)
@@ -35,75 +35,86 @@ export function SummaryBanner() {
 
   if (!data) return null;
 
-  const { overview, health } = data;
+  const { overview } = data;
+
+  const items = [
+    {
+      icon: BookOpen,
+      label: "课程",
+      value: overview.courses,
+      color: "#2a4494",
+    },
+    {
+      icon: ClipboardList,
+      label: "待办",
+      value: overview.pendingAssignments,
+      color: overview.urgentAssignments > 0 ? "#c0392b" : "#b85c00",
+      badge: overview.urgentAssignments > 0 ? `${overview.urgentAssignments}紧急` : undefined,
+    },
+    {
+      icon: Activity,
+      label: "跑步",
+      value: `${overview.running.total}/50`,
+      color: overview.running.completed ? "#2d7a4f" : "#b85c00",
+      badge: overview.running.completed ? "达标" : undefined,
+    },
+    ...(overview.gpa && parseFloat(overview.gpa) > 0 ? [{
+      icon: Calculator,
+      label: "绩点",
+      value: overview.gpa,
+      color: gpaColor(parseFloat(overview.gpa)),
+    }] : []),
+  ];
 
   return (
     <div
-      className="flex flex-wrap gap-3 mb-6 p-3 rounded-xl text-sm"
-      style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border-subtle)",
-      }}
+      className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-6"
     >
-      <StatBadge icon={BookOpen} label="课程" value={overview.courses} />
-      <StatBadge
-        icon={ClipboardList}
-        label="作业"
-        value={overview.pendingAssignments}
-        alert={overview.urgentAssignments > 0}
-        alertText={`${overview.urgentAssignments}项紧急`}
-      />
-      <StatBadge
-        icon={Activity}
-        label="跑步"
-        value={overview.running.total}
-        suffix={`/50${overview.running.completed ? " 🎉" : ""}`}
-      />
-      {overview.gpa && parseFloat(overview.gpa) > 0 && (
-        <StatBadge
-          icon={Calculator}
-          label="绩点"
-          value={overview.gpa}
-        />
-      )}
-      {health.agents > 0 && (
-        <StatBadge
-          icon={HeartPulse}
-          label="Agent"
-          value={health.agents}
-          suffix={`/${health.total}`}
-          alert={health.failing > 0}
-          alertText={`${health.failing}异常`}
-        />
-      )}
-    </div>
-  );
-}
+      {items.map((item, i) => (
+        <div
+          key={i}
+          className="rounded-xl p-3.5 relative overflow-hidden"
+          style={{
+            background: "var(--surface-card)",
+            border: "1px solid var(--border)",
+            boxShadow: "var(--shadow-xs)",
+          }}
+        >
+          {/* 背景装饰 */}
+          <div
+            className="absolute -right-2 -top-2 w-16 h-16 rounded-full opacity-[0.06] pointer-events-none"
+            style={{ backgroundColor: item.color }}
+          />
 
-function StatBadge({
-  icon: Icon, label, value, suffix = "", alert = false, alertText = "",
-}: {
-  icon: React.ComponentType<{ size?: number }>;
-  label: string;
-  value: number | string;
-  suffix?: string;
-  alert?: boolean;
-  alertText?: string;
-}) {
-  return (
-    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: "var(--surface-elevated)" }}>
-      <div style={{ color: alert ? "var(--destructive, #ef4444)" : "var(--accent)", opacity: 0.7 }}>
-        <Icon size={15} />
-      </div>
-      <span style={{ color: "var(--text-secondary)" }}>{label}</span>
-      <span className="font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>
-        {value}{suffix}
-      </span>
-      {alert && alertText && (
-        <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "rgba(239,68,68,0.15)", color: "var(--destructive, #ef4444)" }}>
-          {alertText}
-        </span>
-      )}
+          <div className="relative flex items-start justify-between">
+            <div>
+              <div
+                className="w-7 h-7 rounded-lg flex items-center justify-center mb-2"
+                style={{ backgroundColor: `${item.color}12` }}
+              >
+                <item.icon size={14} style={{ color: item.color }} />
+              </div>
+              <div className="text-[10px] mb-0.5" style={{ color: "var(--text-tertiary)" }}>
+                {item.label}
+              </div>
+              <div className="text-[20px] font-bold tabular-nums leading-tight" style={{ color: item.color }}>
+                {item.value}
+              </div>
+            </div>
+            {item.badge && (
+              <span
+                className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md mt-0.5"
+                style={{
+                  backgroundColor: item.color === "#2d7a4f" ? "rgba(34,197,94,0.12)" : "rgba(192,57,43,0.10)",
+                  color: item.color,
+                }}
+              >
+                {item.badge}
+              </span>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

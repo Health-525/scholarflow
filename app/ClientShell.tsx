@@ -13,6 +13,9 @@ import {
 
 const PUBLIC_PATHS = ["/setup"];
 
+// Check if running without GitHub config (pure local mode)
+const isLocalOnly = !process.env.NEXT_PUBLIC_GH_TOKEN && !process.env.NEXT_PUBLIC_E2E_TOKEN;
+
 interface ClientShellProps {
   children: ReactNode;
 }
@@ -70,35 +73,29 @@ export default function ClientShell({ children }: ClientShellProps) {
       }
 
       // 4) Local mode — skip GitHub, use local API
-      if (!process.env.NEXT_PUBLIC_GH_TOKEN && !process.env.NEXT_PUBLIC_E2E_TOKEN) {
-        // Try local data API first
-        try {
-          const res = await fetch("/api/local-data?type=dashboard");
-          if (res.ok) {
-            setToken("local-mode"); // 虚拟token，标记为本地模式
-            return;
-          }
-        } catch {}
-      }
+      // Always fallback to local mode when no GitHub token configured
+      setToken("local-mode");
+      return;
     }
 
-    restoreToken();
+    restoreToken().catch(() => {});
   }, [setToken]);
 
-  // Route guard
+  // Route guard — skip in local-only mode
   useEffect(() => {
+    if (isLocalOnly) return;
     if (!isAuthenticated && !PUBLIC_PATHS.includes(pathname)) {
       router.replace("/setup");
     }
   }, [isAuthenticated, pathname, router]);
 
   // On /setup page, render without AppShell
-  if (PUBLIC_PATHS.includes(pathname)) {
+  if (isLocalOnly ? false : PUBLIC_PATHS.includes(pathname)) {
     return <>{children}</>;
   }
 
   // While not authenticated (and about to redirect), render nothing
-  if (!isAuthenticated) {
+  if (!isLocalOnly && !isAuthenticated) {
     return null;
   }
 

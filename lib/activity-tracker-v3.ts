@@ -29,8 +29,29 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   entertainment: "🎮 娱乐", communication: "💬 通讯", system: "⚙️ 系统", other: "📌 其他",
 };
 
+interface ElectronAPI {
+  isElectron: boolean;
+  getActiveWindow: () => Promise<WindowInfo | null>;
+  onActiveWindowChanged: (callback: (win: WindowInfo) => void) => () => void;
+  encryptAndStoreToken: (token: string) => Promise<boolean>;
+  retrieveToken: () => Promise<string | null>;
+  clearToken: () => Promise<boolean>;
+  updateCheck: () => Promise<unknown>;
+  updateDownload: () => Promise<unknown>;
+  updateInstall: () => void;
+  onUpdateAvailable: (callback: (info: unknown) => void) => () => void;
+  onUpdateDownloadProgress: (callback: (progress: unknown) => void) => () => void;
+  onUpdateDownloaded: (callback: (info: unknown) => void) => () => void;
+}
+
+declare global {
+  interface Window {
+    electronAPI?: ElectronAPI;
+  }
+}
+
 const STORAGE_KEY = "sf_activity_v3"; const MAX_DAYS = 7;
-const isElectron = typeof window !== "undefined" && !!(window as any).electronAPI?.isElectron;
+const isElectron = typeof window !== "undefined" && !!window.electronAPI?.isElectron;
 
 function todayKey(): string { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
 function nowMs() { return Date.now(); }
@@ -139,7 +160,7 @@ function init() {
   _segs = [...log.segments];
   if (_segs.length>0 && _segs[_segs.length-1].end===0) _segs[_segs.length-1].end = nowMs();
 
-  const api = (window as any).electronAPI!;
+  const api = window.electronAPI!;
   api.getActiveWindow().then((win: WindowInfo|null) => {
     if (win) { pushSeg(win); notify(); }
   }).catch(() => {});

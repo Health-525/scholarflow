@@ -1,5 +1,11 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
+
+const safeStorage = {
+  getItem: (name: string) => typeof window !== 'undefined' ? window.localStorage.getItem(name) : null,
+  setItem: (name: string, value: string) => { if (typeof window !== 'undefined') window.localStorage.setItem(name, value); },
+  removeItem: (name: string) => { if (typeof window !== 'undefined') window.localStorage.removeItem(name); },
+};
 
 interface AuthState {
   token: string | null;
@@ -24,6 +30,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "sf_auth",
+      storage: createJSONStorage(() => safeStorage),
       partialize: (state) => ({
         token: state.token,
         isAuthenticated: state.isAuthenticated,

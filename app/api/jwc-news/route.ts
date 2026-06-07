@@ -6,12 +6,11 @@ export async function GET() {
   try {
     const candidates = [
       path.join(process.cwd(), "..", "timetable", "_out", "jwc_news.json"),
-      "D:\\A\\timetable\\_out\\jwc_news.json",
+      path.join(process.cwd(), "..", "..", "timetable", "_out", "jwc_news.json"),
+      path.join(process.cwd(), "..", "..", "..", "timetable", "_out", "jwc_news.json"),
     ];
     for (const p of candidates) {
-      if (fs.existsSync(p)) {
-        return NextResponse.json(JSON.parse(fs.readFileSync(p, "utf8")));
-      }
+      try { if (fs.existsSync(p)) return NextResponse.json(JSON.parse(fs.readFileSync(p, "utf8"))); } catch {}
     }
     return NextResponse.json([], { status: 200 });
   } catch {

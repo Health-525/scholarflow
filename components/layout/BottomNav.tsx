@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CalendarDays, ClipboardList, Activity, Monitor } from "lucide-react";
+import { LayoutDashboard, CalendarDays, ClipboardList, Library, User } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/",              label: "主页",   Icon: LayoutDashboard },
   { href: "/schedule",      label: "课表",   Icon: CalendarDays },
   { href: "/assignments",   label: "作业",   Icon: ClipboardList },
-  { href: "/activity",      label: "屏幕",   Icon: Monitor },
-  { href: "/notes",         label: "笔记",   Icon: Activity },
+  { href: "/library",       label: "图书馆", Icon: Library },
+  { href: "/settings",       label: "我的",   Icon: User },
 ];
 
 export function BottomNav() {

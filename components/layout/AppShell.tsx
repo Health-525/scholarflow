@@ -8,7 +8,8 @@ import { ActivityMonitor } from "@/components/activity/ActivityMonitor";
 import { NotificationActivator } from "@/hooks/useNotifications";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
-import { AIAssistant } from "@/components/ai/AIAssistant";
+import { AIAssistant } from "@/components/chat/AIAssistant";
+import { UpdateNotification } from "@/components/ui/UpdateNotification";
 import { SmartReminders } from "@/components/reminders/SmartReminders";
 import { PerformanceMonitor } from "@/components/monitoring/PerformanceMonitor";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
@@ -63,6 +64,9 @@ export function AppShell({ children, isOnline = true }: AppShellProps) {
 
       {/* Keyboard shortcuts */}
       <ShortcutActivator />
+
+      {/* Update notification */}
+      <UpdateNotification />
     </div>
   );
 }

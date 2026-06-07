@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useScheduleQuery } from "@/hooks/useQueries";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
@@ -26,6 +27,9 @@ export function ScheduleCard() {
   const { data, isLoading, error, refetch } = useScheduleQuery();
   const schedule = data?.schedule;
   const adjustments = data?.adjustments ?? [];
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   return (
     <div className="sf-card p-4">
@@ -64,8 +68,8 @@ export function ScheduleCard() {
         <ErrorFallback message={error.message} onRetry={() => refetch()} />
       )}
 
-      {/* Content */}
-      {schedule && !isLoading && !error && (() => {
+      {/* Content — deferred to avoid hydration mismatch from client-side Date */}
+      {mounted && schedule && !isLoading && !error && (() => {
         const tz = schedule.meta.tz || "Asia/Shanghai";
         const today = getNowInTimeZone(tz);
         const { items } = getAdjustedItemsForDate(schedule, today, adjustments);

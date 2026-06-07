@@ -1,19 +1,19 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Sun, Moon, Monitor, LogOut, ChevronRight,
+  Calendar, ClipboardList, Activity, Database,
+  BarChart3, Trash2, Download,
+} from "lucide-react";
 import { useThemeStore } from "@/store/theme";
 import { useAuthStore } from "@/store/auth";
 import { downloadActivityCSV, clearActivityData } from "@/lib/activity-tracker-v3";
 import { useScheduleQuery, useAssignmentsQuery, useRunningQuery } from "@/hooks/useQueries";
 import { exportAssignmentsCSV, exportRunningCSV, buildWeekICS, downloadICS } from "@/lib/export";
-import type { ThemeValue } from "@/types";
 import { getDB } from "@/lib/db";
-import { useState } from "react";
-
-import {
-  Sun, Moon, Monitor, Calendar, ClipboardList, Activity,
-  Database, LogOut, BarChart3, Trash2,
-} from "lucide-react";
+import type { ThemeValue } from "@/types";
 
 const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = [
   { value: "light", label: "浅色", Icon: Sun },
@@ -21,41 +21,43 @@ const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = 
   { value: "system", label: "跟随系统", Icon: Monitor },
 ];
 
+interface StudentInfo {
+  studentId: string;
+  gpa: string;
+  totalCredits: number;
+  courseCount: number;
+}
+
 export default function SettingsPage() {
   const router = useRouter();
   const { theme, setTheme } = useThemeStore();
-  const clearToken = useAuthStore((s) => s.clearToken);
   const token = useAuthStore((s) => s.token);
+  const clearToken = useAuthStore((s) => s.clearToken);
   const { data: scheduleData } = useScheduleQuery();
   const { assignments } = useAssignmentsQuery();
   const { records } = useRunningQuery();
   const [cacheSize, setCacheSize] = useState<number | null>(null);
+  const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  async function handleClearToken() {
-    clearToken();
-    router.replace("/setup");
-  }
+  useEffect(() => { setMounted(true); }, []);
 
-  async function handleCheckCache() {
-    try {
-      const db = getDB();
-      const count = await db.cachedFiles.count();
-      setCacheSize(count);
-    } catch {
-      setCacheSize(-1);
+  useEffect(() => {
+    if (mounted) {
+      getDB().cachedFiles.count().then(n => setCacheSize(n)).catch(() => setCacheSize(0));
+      fetch("/api/local-data?type=student")
+        .then(r => r.json())
+        .then(d => { if (d?.studentId) setStudentInfo(d); })
+        .catch(() => {});
     }
-  }
+  }, [mounted]);
 
-  async function handleClearCache() {
-    try {
-      const db = getDB();
-      await db.cachedFiles.clear();
-      await db.mutationsQueue.clear();
-      setCacheSize(0);
-    } catch {
-      // ignore
+  const handleLogout = () => {
+    if (confirm("确定要退出登录吗？")) {
+      clearToken();
+      router.replace("/setup");
     }
-  }
+  };
 
   function handleExportICS() {
     if (!scheduleData?.schedule) return;
@@ -63,215 +65,225 @@ export default function SettingsPage() {
     downloadICS(ics, `schedule-${new Date().toISOString().slice(0, 10)}.ics`);
   }
 
-  function handleExportAssignments() {
-    exportAssignmentsCSV(assignments);
-  }
+  const currentThemeOption = THEME_OPTIONS.find(t => t.value === theme) || THEME_OPTIONS[2];
 
-  function handleExportRunning() {
-    exportRunningCSV(records);
-  }
+  // 用户名首字
+  const avatarLetter = studentInfo?.studentId ? studentInfo.studentId[0] : "?";
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 pb-24 md:pb-8">
-      <h1 className="text-xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>
-        设置
-      </h1>
+    <div className="pb-24 md:pb-8 max-w-lg mx-auto">
+      {/* ── Header ── */}
+      <div className="mb-6 py-4">
+        <h1 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>用户中心</h1>
+      </div>
 
-      {/* Theme section */}
-      <SettingSection title="主题">
-        <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface-elevated)" }}>
-          {THEME_OPTIONS.map((opt, idx) => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => setTheme(opt.value)}
-              className="w-full flex items-center justify-between px-4 py-3 transition-colors text-sm"
-              style={{
-                borderBottom: idx < THEME_OPTIONS.length - 1 ? "1px solid var(--border-subtle)" : "none",
-                color: "var(--text-primary)",
-                backgroundColor: theme === opt.value ? "var(--accent-soft)" : "transparent",
-              }}
-              aria-pressed={theme === opt.value}
-            >
-              <span className="flex items-center gap-3">
-                <opt.Icon className="w-4 h-4" aria-hidden="true" />
+      {/* ── 用户卡片 ── */}
+      <div
+        className="rounded-2xl p-5 mb-4 relative overflow-hidden"
+        style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)" }}
+      >
+        <div
+          className="absolute -right-8 -top-8 w-32 h-32 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, var(--accent) 0%, transparent 70%)", opacity: 0.06 }}
+        />
+
+        <div className="relative flex items-center gap-4">
+          {/* 头像 */}
+          <div
+            className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+            style={{ background: "var(--accent)", color: "#fff", fontFamily: "'Noto Serif SC', Georgia, serif", fontSize: "22px", fontWeight: 700 }}
+          >
+            {avatarLetter}
+          </div>
+          <div className="flex-1 min-w-0">
+            {studentInfo ? (
+              <>
+                <div className="text-[16px] font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>
+                  {studentInfo.studentId}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#22c55e" }} />
+                  <span className="text-[12px]" style={{ color: "var(--text-tertiary)" }}>已同步教务系统</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-[16px] font-semibold" style={{ color: "var(--text-primary)" }}>ScholarFlow 用户</div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "var(--text-muted)" }} />
+                  <span className="text-[12px]" style={{ color: "var(--text-tertiary)" }}>未同步教务系统</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* 统计 */}
+        <div className="grid grid-cols-4 gap-2 mt-4">
+          {studentInfo && (
+            <>
+              <div className="rounded-xl p-2.5 text-center" style={{ backgroundColor: "var(--surface)" }}>
+                <div className="text-[16px] font-semibold tabular-nums" style={{ color: "#2d7a4f" }}>{studentInfo.gpa}</div>
+                <div className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>GPA</div>
+              </div>
+              <div className="rounded-xl p-2.5 text-center" style={{ backgroundColor: "var(--surface)" }}>
+                <div className="text-[16px] font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>{studentInfo.totalCredits}</div>
+                <div className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>学分</div>
+              </div>
+              <div className="rounded-xl p-2.5 text-center" style={{ backgroundColor: "var(--surface)" }}>
+                <div className="text-[16px] font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>{studentInfo.courseCount}</div>
+                <div className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>课程</div>
+              </div>
+            </>
+          )}
+          {!studentInfo && (
+            <>
+              <div className="rounded-xl p-2.5 text-center" style={{ backgroundColor: "var(--surface)" }}>
+                <div className="text-[16px] font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>{scheduleData?.schedule?.courses?.length ?? 0}</div>
+                <div className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>课程</div>
+              </div>
+              <div className="rounded-xl p-2.5 text-center" style={{ backgroundColor: "var(--surface)" }}>
+                <div className="text-[16px] font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>{assignments.filter(a => !a.done).length}</div>
+                <div className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>待办</div>
+              </div>
+            </>
+          )}
+          <div className="rounded-xl p-2.5 text-center" style={{ backgroundColor: "var(--surface)" }}>
+            <div className="text-[16px] font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>{records.length}</div>
+            <div className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>跑步</div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 外观 ── */}
+      <div
+        className="rounded-2xl overflow-hidden mb-4"
+        style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-xs)" }}
+      >
+        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+          <currentThemeOption.Icon className="w-4 h-4" style={{ color: "var(--accent)" }} />
+          <span className="text-[13px] font-semibold" style={{ color: "var(--text-primary)" }}>外观</span>
+        </div>
+        <div className="px-4 pb-4">
+          <div className="flex gap-1.5 p-1 rounded-xl" style={{ backgroundColor: "var(--surface)" }}>
+            {THEME_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setTheme(opt.value)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-medium transition-all duration-200"
+                style={{
+                  backgroundColor: theme === opt.value ? "var(--surface-card)" : "transparent",
+                  color: theme === opt.value ? "var(--accent)" : "var(--text-tertiary)",
+                  boxShadow: theme === opt.value ? "var(--shadow-xs)" : "none",
+                }}
+                aria-pressed={theme === opt.value}
+              >
+                <opt.Icon className="w-3.5 h-3.5" />
                 <span>{opt.label}</span>
-              </span>
-              {theme === opt.value && <span style={{ color: "var(--accent)" }}>✓</span>}
-            </button>
-          ))}
-        </div>
-      </SettingSection>
-
-      {/* Data export */}
-      <SettingSection title="数据导出">
-        <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface-elevated)" }}>
-          <ActionRow Icon={Calendar} label="导出本周课表 (ICS)" onClick={handleExportICS} disabled={!scheduleData?.schedule} />
-          <ActionRow Icon={ClipboardList} label="导出作业 (CSV)" onClick={handleExportAssignments} disabled={!assignments.length} />
-          <ActionRow Icon={Activity} label="导出跑步记录 (CSV)" onClick={handleExportRunning} disabled={!records.length} />
-        </div>
-      </SettingSection>
-
-      {/* Screen time */}
-      <SettingSection title="屏幕使用">
-        <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface-elevated)" }}>
-          <ActionRow Icon={BarChart3} label="查看详细分析" onClick={() => router.push("/activity")} />
-          <button
-            type="button"
-            onClick={downloadActivityCSV}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm border-b transition-colors"
-            style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
-          >
-            <Database className="w-4 h-4" />
-            <span>导出屏幕时间 (CSV)</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => { if (confirm("确定清除？")) clearActivityData(); }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors"
-            style={{ color: "var(--text-danger, #ef4444)" }}
-          >
-            <Trash2 className="w-4 h-4" />
-            <span>清除所有数据</span>
-          </button>
-        </div>
-      </SettingSection>
-
-      {/* Cache */}
-      <SettingSection title="离线缓存">
-        <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface-elevated)" }}>
-          <div className="flex items-center justify-between px-4 py-3 text-sm" style={{ color: "var(--text-primary)" }}>
-              <span className="flex items-center gap-3">
-                <Database className="w-4 h-4" aria-hidden="true" />
-                <span>缓存文件数: {cacheSize === null ? "点击查看" : cacheSize}</span>
-            </span>
-            <span className="flex gap-2">
-              <button onClick={handleCheckCache} className="text-xs px-2 py-1 rounded-lg" style={{ backgroundColor: "var(--surface)", color: "var(--accent)" }}>
-                刷新
+                {theme === opt.value && <span className="w-1 h-1 rounded-full" style={{ backgroundColor: "var(--accent)" }} />}
               </button>
-              <button onClick={handleClearCache} className="text-xs px-2 py-1 rounded-lg" style={{ backgroundColor: "var(--surface)", color: "var(--status-error)" }}>
-                清除
-              </button>
-            </span>
+            ))}
           </div>
         </div>
-      </SettingSection>
+      </div>
 
-      {/* ── 用户中心 ── */}
-      <SettingSection title="用户中心">
-        <div className="rounded-2xl p-4 space-y-3" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface-elevated)" }}>
-          {/* Token 状态 */}
-          <div className="flex items-center justify-between">
-            <span className="text-[13px]" style={{ color: "var(--text-secondary)" }}>GitHub Token</span>
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-[13px] font-mono" style={{ color: "var(--text-primary)" }}>
-                {token ? `${token.slice(0,4)}...${token.slice(-4)}` : "未配置"}
-              </span>
+      {/* ── 数据导出 ── */}
+      <div
+        className="rounded-2xl overflow-hidden mb-4"
+        style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-xs)" }}
+      >
+        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+          <Download className="w-4 h-4" style={{ color: "var(--accent)" }} />
+          <span className="text-[13px] font-semibold" style={{ color: "var(--text-primary)" }}>数据导出</span>
+        </div>
+        <div className="pb-2">
+          <MenuItem icon={Calendar} label="导出课表 (ICS)" onClick={handleExportICS} disabled={!scheduleData?.schedule} />
+          <MenuItem icon={ClipboardList} label="导出作业 (CSV)" onClick={() => exportAssignmentsCSV(assignments)} disabled={!assignments.length} />
+          <MenuItem icon={Activity} label="导出跑步 (CSV)" onClick={() => exportRunningCSV(records)} disabled={!records.length} />
+          <MenuItem icon={BarChart3} label="导出屏幕时间 (CSV)" onClick={downloadActivityCSV} />
+          <MenuItem icon={Trash2} label="清除屏幕时间数据" onClick={() => { if (confirm("确定清除？")) clearActivityData(); }} danger last />
+        </div>
+      </div>
+
+      {/* ── 缓存与存储 ── */}
+      <div
+        className="rounded-2xl overflow-hidden mb-4"
+        style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-xs)" }}
+      >
+        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+          <Database className="w-4 h-4" style={{ color: "var(--accent)" }} />
+          <span className="text-[13px] font-semibold" style={{ color: "var(--text-primary)" }}>缓存与存储</span>
+        </div>
+        <div className="px-4 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[12px]" style={{ color: "var(--text-secondary)" }}>
+              IndexedDB: <span className="font-semibold tabular-nums">{cacheSize === null ? "--" : cacheSize}</span> 文件
             </span>
-          </div>
-
-          {/* 数据存储概览 */}
-          <div className="pt-3" style={{ borderTop: "1px solid var(--border)" }}>
-            <div className="text-[12px] font-semibold mb-2" style={{ color: "var(--text-tertiary)" }}>数据存储位置</div>
-            <div className="space-y-1.5 text-[11px]">
-              <StorageRow label="Token" value="Electron 安全加密 / localStorage" />
-              <StorageRow label="屏幕时间" value={`localStorage (${localStorage.getItem("sf_activity_v3") ? "有数据" : "空"})`} />
-              <StorageRow label="课表/作业/跑步" value={`GitHub → IndexedDB 缓存 (${cacheSize !== null ? cacheSize + "文件" : "?"})`} />
-              <StorageRow label="考试/目标/主题" value="localStorage" />
+            <div className="flex gap-1.5">
+              <button onClick={() => getDB().cachedFiles.count().then(n => setCacheSize(n)).catch(() => {})} className="text-[11px] px-2.5 py-1 rounded-lg font-medium" style={{ backgroundColor: "var(--accent-soft)", color: "var(--accent)" }}>刷新</button>
+              <button onClick={() => { getDB().cachedFiles.clear(); getDB().mutationsQueue.clear(); setCacheSize(0); }} className="text-[11px] px-2.5 py-1 rounded-lg font-medium" style={{ backgroundColor: "rgba(192,57,43,0.08)", color: "var(--status-error)" }}>清除</button>
             </div>
           </div>
-
-          {/* GitHub 联动 */}
-          <div className="pt-3" style={{ borderTop: "1px solid var(--border)" }}>
-            <div className="text-[12px] font-semibold mb-2" style={{ color: "var(--text-tertiary)" }}>GitHub 联动</div>
-            <div className="space-y-1.5 text-[11px]">
-              <StorageRow label="内容仓库" value="Health-525/jiangshu-study (笔记/日报/周报)" />
-              <StorageRow label="执行仓库" value="Health-525/timetable (课表/作业/跑步数据)" />
-              <StorageRow label="同步方式" value="GitHub API → 3层缓存 (内存/IndexedDB/API)" />
-            </div>
-          </div>
-
-          {/* 快捷操作 */}
-          <div className="flex gap-2 pt-2">
-            <button onClick={handleCheckCache} className="flex-1 py-2 rounded-lg text-[11px] font-medium" style={{ backgroundColor: "var(--surface)", color: "var(--accent)" }}>
-              刷新缓存
-            </button>
-            <button onClick={handleClearCache} className="flex-1 py-2 rounded-lg text-[11px] font-medium" style={{ backgroundColor: "var(--surface)", color: "var(--status-error)" }}>
-              清除缓存
-            </button>
+          <div className="space-y-1.5 text-[11px] pt-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+            <InfoRow label="Token" value="安全加密存储" />
+            <InfoRow label="课表/作业/跑步" value="GitHub → IndexedDB" />
+            <InfoRow label="考试/主题/目标" value="localStorage" />
           </div>
         </div>
-      </SettingSection>
+      </div>
 
-      {/* Account */}
-      <SettingSection title="账户">
-        <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface-elevated)" }}>
-          <button
-            type="button"
-            onClick={handleClearToken}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm"
-            style={{ color: "var(--status-error)" }}
-            aria-label="清除 Token 并退出"
-          >
-            <LogOut className="w-4 h-4" aria-hidden="true" />
-            <span>清除 Token 并退出</span>
-          </button>
+      {/* ── 关于 ── */}
+      <div
+        className="rounded-2xl overflow-hidden mb-4"
+        style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-xs)" }}
+      >
+        <div className="p-4 text-center">
+          <div className="text-[14px] font-semibold mb-1" style={{ color: "var(--accent)", fontFamily: "'Noto Serif SC', Georgia, serif" }}>ScholarFlow</div>
+          <div className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>v1.0.0 · Electron + Next.js</div>
+          <div className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>统一学习管理中枢</div>
         </div>
-      </SettingSection>
+      </div>
 
-      {/* Info */}
-      <p className="text-xs text-center mt-8 space-y-1" style={{ color: "var(--text-tertiary)" }}>
-        <span>ScholarFlow v1.0.0 · Phase 1-4</span><br />
-        <span>Electron + Next.js · TanStack Query · Ollama AI</span>
-      </p>
+      {/* ── 退出 ── */}
+      {token && (
+        <button
+          onClick={handleLogout}
+          className="w-full rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-medium transition-all mb-4"
+          style={{ background: "var(--surface-card)", border: "1px solid var(--border)", color: "var(--status-error)", boxShadow: "var(--shadow-xs)" }}
+        >
+          <LogOut className="w-4 h-4" />退出登录
+        </button>
+      )}
     </div>
   );
 }
 
-// ── Sub-components ─────────────────────────────────────────
+// ── 子组件 ──
 
-function SettingSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mb-4">
-      <h2 className="text-sm font-semibold mb-2" style={{ color: "var(--text-secondary)" }}>
-        {title}
-      </h2>
-      {children}
-    </section>
-  );
-}
-
-function ActionRow({
-  Icon,
-  label,
-  onClick,
-  disabled,
+function MenuItem({
+  icon: Icon, label, onClick, disabled, danger, last,
 }: {
-  Icon: typeof Sun;
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
+  icon: typeof Sun; label: string; onClick: () => void; disabled?: boolean; danger?: boolean; last?: boolean;
 }) {
   return (
     <button
-      type="button"
       onClick={onClick}
       disabled={disabled}
-      className="w-full flex items-center gap-3 px-4 py-3 text-sm border-b last:border-b-0 transition-colors"
+      className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
       style={{
-        borderColor: "var(--border-subtle)",
-        color: disabled ? "var(--text-muted)" : "var(--text-primary)",
+        borderBottom: last ? "none" : "1px solid var(--border-subtle)",
+        color: disabled ? "var(--text-muted)" : danger ? "var(--status-error)" : "var(--text-primary)",
         opacity: disabled ? 0.5 : 1,
       }}
     >
-      <Icon className="w-4 h-4" aria-hidden="true" />
-      <span>{label}</span>
+      <Icon className="w-4 h-4 shrink-0" />
+      <span className="text-[13px]">{label}</span>
+      {!disabled && <ChevronRight className="w-3.5 h-3.5 ml-auto shrink-0" style={{ color: "var(--text-muted)" }} />}
     </button>
   );
 }
 
-function StorageRow({ label, value }: { label: string; value: string }) {
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between">
       <span style={{ color: "var(--text-tertiary)" }}>{label}</span>

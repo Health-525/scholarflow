@@ -5,28 +5,43 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, CalendarDays, ClipboardList, Activity, Target,
-  FileText, Newspaper, Monitor, Calculator, Clock, Settings, HeartPulse, Brain, BookOpen,
+  FileText, Newspaper, Monitor, Calculator, Clock, HeartPulse, Brain, BookOpen, Library, Timer, User,
+  Sun, Moon,
 } from "lucide-react";
-import { ThemeToggle } from "./ThemeToggle";
+import { useThemeStore } from "@/store/theme";
+import type { ThemeValue } from "@/lib/theme";
 
 const NAV_ITEMS = [
   { href: "/",                label: "仪表板", Icon: LayoutDashboard },
   { href: "/schedule",        label: "课表",   Icon: CalendarDays },
   { href: "/assignments",     label: "作业",   Icon: ClipboardList },
-  { href: "/goals",          label: "目标",   Icon: Target },
+  { href: "/goals",           label: "目标",   Icon: Target },
+  { href: "/pomodoro",        label: "番茄钟", Icon: Timer },
   { href: "/running",         label: "跑步",   Icon: Activity },
   { href: "/notes",           label: "笔记",   Icon: FileText },
   { href: "/reports/daily",   label: "日报",   Icon: Newspaper },
-  { href: "/exams",          label: "考试",   Icon: Clock },
-  { href: "/gpa",            label: "绩点",   Icon: Calculator },
+  { href: "/exams",           label: "考试",   Icon: Clock },
+  { href: "/gpa",             label: "绩点",   Icon: Calculator },
   { href: "/activity",        label: "屏幕时间", Icon: Monitor },
-  { href: "/monitoring",     label: "Agent",   Icon: HeartPulse },
-  { href: "/knowledge",      label: "知识画像", Icon: Brain },
+  { href: "/monitoring",      label: "Agent",   Icon: HeartPulse },
+  { href: "/knowledge",       label: "知识画像", Icon: Brain },
   { href: "/knowledge/roadmap", label: "学习路线", Icon: BookOpen },
+  { href: "/library",         label: "图书馆", Icon: Library },
+];
+
+const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = [
+  { value: "light", label: "浅色", Icon: Sun },
+  { value: "dark",  label: "深色", Icon: Moon },
+  { value: "system", label: "系统", Icon: Monitor },
 ];
 
 export function SideNav() {
   const pathname = usePathname();
+  const theme = useThemeStore((s) => s.theme);
+  const setTheme = useThemeStore((s) => s.setTheme);
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
     <aside
@@ -42,7 +57,6 @@ export function SideNav() {
       {/* Brand */}
       <div className="px-6 pt-7 pb-6">
         <div className="flex items-center gap-3">
-          {/* Logo */}
           <Image
             src="/icons/logo.png"
             alt="ScholarFlow logo"
@@ -73,7 +87,7 @@ export function SideNav() {
         </div>
       </div>
 
-      {/* Divider with decoration */}
+      {/* Divider */}
       <div className="mx-6 mb-4 flex items-center gap-2">
         <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
         <div className="w-1 h-1 rounded-full" style={{ background: "var(--accent-soft)" }} />
@@ -81,45 +95,29 @@ export function SideNav() {
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 px-3 space-y-0.5" aria-label="主导航">
-        {NAV_ITEMS.map((item, i) => {
-          const isActive =
-            item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-
+      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto" aria-label="主导航">
+        {NAV_ITEMS.map((item) => {
+          const active = isActive(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
               className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150"
-              style={
-                isActive
-                  ? {
-                      background: "var(--accent-soft)",
-                      color: "var(--accent)",
-                    }
-                  : {
-                      color: "var(--text-secondary)",
-                    }
-              }
+              style={active ? { background: "var(--accent-soft)", color: "var(--accent)" } : { color: "var(--text-secondary)" }}
               aria-label={item.label}
-              aria-current={isActive ? "page" : undefined}
+              aria-current={active ? "page" : undefined}
             >
-              {/* Active indicator bar */}
               <span
                 className="shrink-0 w-1 h-5 rounded-full transition-all duration-150"
-                style={{
-                  background: isActive ? "var(--accent)" : "transparent",
-                }}
+                style={{ background: active ? "var(--accent)" : "transparent" }}
                 aria-hidden="true"
               />
               <item.Icon
                 className="shrink-0 w-4 h-4 transition-colors duration-150"
-                style={{ color: isActive ? "var(--accent)" : "var(--text-tertiary)" }}
-                aria-hidden="true"
+                style={{ color: active ? "var(--accent)" : "var(--text-tertiary)" }}
               />
               <span className="tracking-wide">{item.label}</span>
-              {/* Hover accent dot */}
-              {!isActive && (
+              {!active && (
                 <span
                   className="ml-auto w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                   style={{ background: "var(--text-tertiary)" }}
@@ -131,26 +129,68 @@ export function SideNav() {
         })}
       </nav>
 
-      {/* Theme + Settings */}
-      <div className="px-3 pb-5 space-y-0.5" style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "12px" }}>
-        <ThemeToggle />
+      {/* ── Bottom: Theme + User Center ── */}
+      <div
+        className="px-3 pb-5"
+        style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "10px" }}
+      >
+        {/* Theme quick toggle */}
+        <div className="px-3 py-2 mb-1">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-[10px] font-medium tracking-wide" style={{ color: "var(--text-muted)" }}>
+              外观
+            </span>
+          </div>
+          <div className="flex gap-1">
+            {THEME_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setTheme(opt.value)}
+                className="flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150"
+                style={{
+                  background: theme === opt.value ? "var(--accent-soft)" : "transparent",
+                  color: theme === opt.value ? "var(--accent)" : "var(--text-tertiary)",
+                  border: theme === opt.value ? "1px solid var(--accent-soft)" : "1px solid transparent",
+                }}
+                aria-label={`切换到${opt.label}模式`}
+                aria-pressed={theme === opt.value}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* User center link */}
         <Link
           href="/settings"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150"
+          className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150"
           style={{
-            color: pathname === "/settings" ? "var(--accent)" : "var(--text-tertiary)",
-            background: pathname === "/settings" ? "var(--accent-soft)" : "transparent",
+            color: isActive("/settings") ? "var(--accent)" : "var(--text-secondary)",
+            background: isActive("/settings") ? "var(--accent-soft)" : "transparent",
           }}
-          aria-label="设置"
-          aria-current={pathname === "/settings" ? "page" : undefined}
+          aria-label="用户中心"
+          aria-current={isActive("/settings") ? "page" : undefined}
         >
-          <span className="shrink-0 w-1 h-5 rounded-full" style={{ background: pathname === "/settings" ? "var(--accent)" : "transparent" }} aria-hidden="true" />
-          <Settings
-            className="shrink-0 w-4 h-4"
-            style={{ color: pathname === "/settings" ? "var(--accent)" : "var(--text-muted)" }}
+          <span
+            className="shrink-0 w-1 h-5 rounded-full transition-all duration-150"
+            style={{ background: isActive("/settings") ? "var(--accent)" : "transparent" }}
             aria-hidden="true"
           />
-          <span className="tracking-wide">设置</span>
+          <div
+            className="w-5 h-5 rounded-md flex items-center justify-center shrink-0"
+            style={{ backgroundColor: "var(--accent-soft)" }}
+          >
+            <User className="w-3 h-3" style={{ color: "var(--accent)" }} />
+          </div>
+          <span className="tracking-wide">用户中心</span>
+          {!isActive("/settings") && (
+            <span
+              className="ml-auto w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ background: "var(--text-tertiary)" }}
+              aria-hidden="true"
+            />
+          )}
         </Link>
       </div>
     </aside>

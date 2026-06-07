@@ -39,4 +39,12 @@ copyDir(
   path.join(standaloneDir, '.next', 'static')
 );
 
+// Next.js 15 monorepo detection: also copy to scholarflow subdir
+const sfDir = path.join(standaloneDir, 'scholarflow');
+if (fs.existsSync(sfDir)) {
+  console.log('[postbuild] 复制到 scholarflow/ 子目录...');
+  copyDir(path.join(root, 'public'), path.join(sfDir, 'public'));
+  copyDir(path.join(root, '.next', 'static'), path.join(sfDir, '.next', 'static'));
+}
+
 console.log('[postbuild] 完成！');

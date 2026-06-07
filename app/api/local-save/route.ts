@@ -4,11 +4,13 @@ import path from "path";
 
 // 复用 local-data 的时间表目录探测
 function findTimetableDir(): string {
+  const envDir = process.env.TIMETABLE_DIR;
+  if (envDir) try { if (fs.existsSync(path.join(envDir, "data"))) return envDir; } catch {}
   const candidates = [
     path.join(process.cwd(), "..", "timetable"),
     path.join(process.cwd(), "..", "..", "timetable"),
-    process.env.TIMETABLE_DIR,
-  ].filter(Boolean) as string[];
+    path.join(process.cwd(), "..", "..", "..", "timetable"),
+  ];
   for (const c of candidates) {
     try { if (fs.existsSync(path.join(c, "data"))) return c; } catch {}
   }

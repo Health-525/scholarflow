@@ -1,35 +1,65 @@
 "use client";
 
-import { Calculator } from "lucide-react";
 import { useState, useEffect } from "react";
-import { calculateGPA, type Course } from "@/lib/gpa";
 import Link from "next/link";
+import { gpaColor } from "@/lib/gpa";
+import { GPARing } from "@/components/ui/GPARing";
 
 export function GPACard() {
-  const [gpa, setGPA] = useState(0);
+  const [gpa, setGPA] = useState<string>("--");
+  const [totalCredits, setTotalCredits] = useState(0);
+  const [courseCount, setCourseCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("sf_gpa_courses");
-      if (raw) {
-        const courses: Course[] = JSON.parse(raw);
-        setGPA(calculateGPA(courses).semesterGPA);
-      }
-    } catch { /* ignore */ }
+    fetch("/api/local-data?type=grades")
+      .then(r => r.json())
+      .then(d => {
+        if (d?.gpa) setGPA(d.gpa);
+        if (d?.totalCredits) setTotalCredits(d.totalCredits);
+        if (d?.allCourses?.length) setCourseCount(d.allCourses.length);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  const color = gpa >= 3.5 ? "var(--status-success)" : gpa >= 2.5 ? "var(--accent)" : gpa >= 1.5 ? "#f59e0b" : "#ef4444";
+  const gpaNum = parseFloat(gpa) || 0;
+  const color = gpaColor(gpaNum);
 
   return (
-    <Link href="/gpa" className="block sf-card p-4 animate-fade-up" style={{ display: "block" }}>
-      <div className="flex items-center gap-3 mb-2">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--accent-soft)" }}>
-          <Calculator className="w-4 h-4" style={{ color: "var(--accent)" }} />
+    <Link href="/gpa" className="block sf-card p-4" style={{ display: "block" }} aria-label={`绩点 ${gpa}，点击查看详情`}>
+      <div className="flex items-center gap-4">
+        {/* 迷你圆环 */}
+        <div className="relative shrink-0">
+          <GPARing value={gpaNum} size={56} strokeWidth={5} label={`GPA ${gpa}`} />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-[11px] font-bold" style={{ color }}>
+              {gpaNum > 0 ? gpa : "--"}
+            </span>
+          </div>
         </div>
-        <span className="text-[12px] font-semibold" style={{ color: "var(--text-primary)" }}>绩点</span>
+
+        {/* 信息 */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[12px] font-semibold" style={{ fontFamily: "'Noto Serif SC', Georgia, serif", color: "var(--text-primary)" }}>
+              绩点
+            </span>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+          </div>
+          {loading ? (
+            <div className="h-7 w-16 rounded" style={{ backgroundColor: "var(--surface)" }} />
+          ) : (
+            <div className="text-[26px] font-bold tabular-nums leading-none" style={{ color }}>
+              {gpa}
+            </div>
+          )}
+          <div className="flex items-center gap-3 mt-1.5">
+            <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>{totalCredits}学分</span>
+            <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>{courseCount}门课</span>
+          </div>
+        </div>
       </div>
-      <div className="text-[28px] font-bold tabular-nums" style={{ color }}>{gpa > 0 ? gpa.toFixed(2) : "--"}</div>
-      <div className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>{gpa > 0 ? "点击管理课程" : "录入成绩开始计算"}</div>
     </Link>
   );
 }

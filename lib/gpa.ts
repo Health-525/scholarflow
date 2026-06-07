@@ -2,25 +2,33 @@
  * GPA 计算引擎
  *
  * 支持:
- * - 百分制 → 4.0 GPA (标准算法)
+ * - 百分制 → 4.0 GPA (NJTECH标准算法)
  * - 五级制 (优/良/中/及格/不及格)
  * - 不同学分权重
  * - 学期GPA + 累计GPA
- * - 目标预测
  */
+
 export interface Course {
   id: string;
   name: string;
-  credit: number;    // 学分
-  score?: number;     // 百分制分数 (0-100)
-  grade?: GradeLevel; // 五级制
-  semester: string;   // "2025-2026-2" 格式
+  credit: number;
+  score?: number;
+  grade?: GradeLevel;
+  semester: string;
 }
 
 export type GradeLevel = "A" | "B" | "C" | "D" | "F";
 
-// 南京工业大学 百分制 → 4.0 GPA 映射
-function scoreToGPA(score: number): number {
+// ── 统一 GPA 颜色方案 ──
+export function gpaColor(gpa: number): string {
+  if (gpa >= 3.5) return "#22c55e";
+  if (gpa >= 2.5) return "#2a4494";
+  if (gpa >= 1.5) return "#f59e0b";
+  return "#ef4444";
+}
+
+// ── 百分制 → 4.0 GPA (NJTECH标准) ──
+export function scoreToGPA(score: number): number {
   if (score >= 90) return 4.0;
   if (score >= 86) return 3.7;
   if (score >= 82) return 3.3;
@@ -84,8 +92,6 @@ export function predictTarget(
   const gradedCredits = graded.reduce((s, c) => s + c.credit, 0);
   const totalCredits = gradedCredits + remainingCredits;
 
-  // targetGPA = (currentPoints + neededPoints) / totalCredits
-  // neededPoints = targetGPA * totalCredits - currentPoints
   const currentPoints = currentGPA * gradedCredits;
   const neededPoints = targetGPA * totalCredits - currentPoints;
   const neededAvg = neededPoints / remainingCredits;
@@ -103,4 +109,26 @@ export function getSemesterLabel(semester: string): string {
   const [y1, y2, s] = semester.split("-");
   const half = s === "1" ? "上" : "下";
   return `${y1}-${y2} 第${s}学期`;
+}
+
+// ── 成绩样式工具 ──
+export function getScoreBadgeStyle(score: string): { bg: string; color: string } {
+  const s = parseFloat(score);
+  if (score === "优秀") return { bg: "rgba(34,197,94,0.12)", color: "#16a34a" };
+  if (isNaN(s)) return { bg: "rgba(42,68,148,0.10)", color: "#2a4494" };
+  if (s >= 95) return { bg: "rgba(34,197,94,0.12)", color: "#16a34a" };
+  if (s >= 90) return { bg: "rgba(34,197,94,0.10)", color: "#22c55e" };
+  if (s >= 80) return { bg: "rgba(42,68,148,0.10)", color: "#2a4494" };
+  if (s >= 70) return { bg: "rgba(245,158,11,0.12)", color: "#d97706" };
+  if (s >= 60) return { bg: "rgba(245,158,11,0.08)", color: "#b45309" };
+  return { bg: "rgba(239,68,68,0.10)", color: "#dc2626" };
+}
+
+export function getScoreDisplay(score: string): string {
+  if (score === "优秀") return "优";
+  if (score === "良好") return "良";
+  if (score === "中等") return "中";
+  if (score === "及格") return "及";
+  if (score === "不及格") return "不";
+  return score;
 }
