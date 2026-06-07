@@ -230,7 +230,7 @@ export default function SettingsPage() {
 
           {/* 同步状态消息 */}
           {syncMessage && (
-            <div className="mb-3 px-3 py-2 rounded-xl text-[11px] animate-fade-up" style={{
+            <div className="mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line" style={{
               backgroundColor: syncMessage.includes("失败") || syncMessage.includes("错误")
                 ? "rgba(239,68,68,0.08)"
                 : "rgba(34,197,94,0.08)",
@@ -250,7 +250,8 @@ export default function SettingsPage() {
                 try {
                   const result = await syncFromGitHub.mutateAsync(["schedule", "assignments", "running"]);
                   if (result.imported.length > 0) {
-                    setSyncMessage(`导入成功：${result.imported.join("、")}${result.errors.length ? `；失败：${result.errors.join("、")}` : ""}`);
+                    const lines = result.imported.map(t => result.details[t]).filter(Boolean);
+                    setSyncMessage(lines.length > 0 ? lines.join("\n") : `导入成功：${result.imported.join("、")}`);
                   } else {
                     setSyncMessage(result.errors.length ? `导入失败：${result.errors.join("、")}` : "无新数据");
                   }
