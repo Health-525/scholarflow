@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 
 let cachedJWT = "", jwtExpiry = 0;
 
@@ -12,6 +14,43 @@ declare global {
   // eslint-disable-next-line no-var
   var __libraryJWT: LibraryJWTCache | undefined;
 }
+
+// ── JWT 持久化（app 重启不丢失）──────────────────────────
+function getJWTStorePath(): string {
+  // Electron: userData 目录; Next.js dev: 项目根目录
+  const userData = process.env.ELECTRON_USER_DATA || path.join(process.cwd(), ".data");
+  return path.join(userData, "library-jwt.json");
+}
+
+function persistJWT(token: string, expiry: number) {
+  try {
+    const storePath = getJWTStorePath();
+    fs.mkdirSync(path.dirname(storePath), { recursive: true });
+    fs.writeFileSync(storePath, JSON.stringify({ token, expiry }), "utf-8");
+  } catch {}
+}
+
+function loadPersistedJWT(): { token: string; expiry: number } | null {
+  try {
+    const storePath = getJWTStorePath();
+    if (!fs.existsSync(storePath)) return null;
+    const data = JSON.parse(fs.readFileSync(storePath, "utf-8"));
+    if (data?.token && data?.expiry && data.expiry * 1000 > Date.now()) {
+      return data;
+    }
+  } catch {}
+  return null;
+}
+
+// 启动时恢复持久化的 JWT
+(function initFromPersistence() {
+  const saved = loadPersistedJWT();
+  if (saved) {
+    cachedJWT = saved.token;
+    jwtExpiry = saved.expiry;
+    globalThis.__libraryJWT = { token: saved.token, expiry: saved.expiry };
+  }
+})();
 
 function cors(body: Record<string, unknown>, status = 200) {
   return new NextResponse(JSON.stringify(body), {
@@ -27,6 +66,15 @@ function cors(body: Record<string, unknown>, status = 200) {
 }
 
 export async function GET() {
+  // 尝试从持久化恢复
+  if (!cachedJWT || jwtExpiry * 1000 <= Date.now()) {
+    const saved = loadPersistedJWT();
+    if (saved) {
+      cachedJWT = saved.token;
+      jwtExpiry = saved.expiry;
+      globalThis.__libraryJWT = { token: saved.token, expiry: saved.expiry };
+    }
+  }
   const valid = jwtExpiry * 1000 > Date.now();
   return cors({ valid, jwt: valid ? cachedJWT : null, expiry: valid ? new Date(jwtExpiry * 1000).toISOString() : null });
 }
@@ -40,6 +88,8 @@ export async function POST(request: Request) {
     try { const p = JSON.parse(Buffer.from(cachedJWT.split(".")[1], "base64").toString()); jwtExpiry = p.expireAt || 0; } catch {}
     // Share with vpn-proxy via globalThis
     globalThis.__libraryJWT = { token: cachedJWT, expiry: jwtExpiry };
+    // 持久化到磁盘
+    persistJWT(cachedJWT, jwtExpiry);
     return cors({ ok: true, expiry: new Date(jwtExpiry * 1000).toISOString() });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";

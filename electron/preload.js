@@ -56,4 +56,44 @@ contextBridge.exposeInMainWorld("electronAPI", {
   visionModelStatus: () => ipcRenderer.invoke("vision-model:status"),
   /** 启动 Vision-Model API */
   visionModelStart: () => ipcRenderer.invoke("vision-model:start"),
+
+  // ── 抬头纹后台监控 ──
+  /** 启动后台抬眉监控 */
+  browMonitorStart: () => ipcRenderer.invoke("brow-monitor:start"),
+  /** 停止后台抬眉监控 */
+  browMonitorStop: () => ipcRenderer.invoke("brow-monitor:stop"),
+  /** 查询监控状态 */
+  browMonitorStatus: () => ipcRenderer.invoke("brow-monitor:status"),
+
+  // ── 桌面宠物 ──
+  /** 显示桌面宠物 */
+  petShow: () => ipcRenderer.invoke("pet:show"),
+  /** 隐藏桌面宠物 */
+  petHide: () => ipcRenderer.invoke("pet:hide"),
+
+  // ── 抬头纹后台监控 ──
+  /** 启动后台抬头纹监控 */
+  browMonitorStart: () => ipcRenderer.invoke("brow-monitor:start"),
+  /** 停止后台抬头纹监控 */
+  browMonitorStop: () => ipcRenderer.invoke("brow-monitor:stop"),
+  /** 查询监控状态 */
+  browMonitorStatus: () => ipcRenderer.invoke("brow-monitor:status"),
+
+  // ── 图书馆 JWT ──
+  /** 刷新JWT（先检查是否有效，过期则弹登录窗口） */
+  libraryRefreshJWT: () => ipcRenderer.invoke("library:refresh-jwt"),
+  /** 打开图书馆登录窗口 */
+  libraryLogin: () => ipcRenderer.invoke("library:login"),
+  /** 监听：JWT已过期，需要重新登录 */
+  onLibraryJWTExpired: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on("library:jwt-expired", handler);
+    return () => ipcRenderer.removeListener("library:jwt-expired", handler);
+  },
+  /** 监听：JWT刷新成功 */
+  onLibraryJWTRefreshed: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on("library:jwt-refreshed", handler);
+    return () => ipcRenderer.removeListener("library:jwt-refreshed", handler);
+  },
 });

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, CalendarDays, ClipboardList, Activity, Target,
-  FileText, Newspaper, Monitor, Calculator, Clock, HeartPulse, Brain, BookOpen, Library, Timer, User,
+  FileText, Newspaper, Monitor, Calculator, Clock, HeartPulse, Brain, BookOpen, Library, Timer, Sparkles, User,
   Sun, Moon,
 } from "lucide-react";
 import { useThemeStore } from "@/store/theme";
@@ -27,6 +27,7 @@ const NAV_ITEMS = [
   { href: "/knowledge",       label: "知识画像", Icon: Brain },
   { href: "/knowledge/roadmap", label: "学习路线", Icon: BookOpen },
   { href: "/library",         label: "图书馆", Icon: Library },
+  { href: "/wrinkle",         label: "皮肤检测", Icon: Sparkles },
 ];
 
 const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = [

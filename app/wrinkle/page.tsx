@@ -79,7 +79,7 @@ const WRINKLE_CONFIG: Record<number, { icon: string; label: string; color: strin
   2: { icon: "😟", label: "明显皱纹", color: "text-rose-500" },
 };
 
-type Mode = "photo" | "realtime";
+type Mode = "photo" | "realtime" | "daemon";
 type ApiStatus = "checking" | "online" | "offline" | "starting";
 
 export default function WrinklePage() {
@@ -89,6 +89,8 @@ export default function WrinklePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [apiStatus, setApiStatus] = useState<ApiStatus>("checking");
+  const [daemonRunning, setDaemonRunning] = useState(false);
+  const [lastAlert, setLastAlert] = useState<{ score: number; time: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Realtime state
@@ -132,6 +134,55 @@ export default function WrinklePage() {
   }, []);
 
   useEffect(() => { checkApi(); }, [checkApi]);
+
+  // ─── Daemon mode ───
+  const isElectron = typeof window !== "undefined" && !!window.electronAPI?.isElectron;
+
+  // 检查监控状态
+  useEffect(() => {
+    if (!isElectron) return;
+    const check = async () => {
+      try {
+        const status = await window.electronAPI!.browMonitorStatus();
+        setDaemonRunning(status.running);
+      } catch {}
+    };
+    check();
+    const timer = setInterval(check, 5000);
+    return () => clearInterval(timer);
+  }, [isElectron]);
+
+  // 检查提醒
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const res = await fetch("/api/wrinkle-alert");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.rising) setLastAlert({ score: data.score, time: data.time });
+        }
+      } catch {}
+    };
+    const timer = setInterval(check, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const toggleDaemon = async () => {
+    if (!window.electronAPI) return;
+    if (daemonRunning) {
+      await window.electronAPI.browMonitorStop();
+      setDaemonRunning(false);
+      // 自动隐藏宠物
+      await window.electronAPI.petHide().catch(() => {});
+    } else {
+      const result = await window.electronAPI.browMonitorStart();
+      if (result.ok) {
+        setDaemonRunning(true);
+        // 自动弹出宠物
+        await window.electronAPI.petShow().catch(() => {});
+      }
+    }
+  };
 
   // ─── Realtime mode ───
   const startRealtime = useCallback(async () => {
@@ -283,6 +334,14 @@ export default function WrinklePage() {
             >
               实时监测
             </button>
+            {isElectron && (
+              <button
+                onClick={() => setMode("daemon")}
+                className={`px-3 py-1.5 transition-colors ${mode === "daemon" ? "bg-violet-600 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
+              >
+                后台监控
+              </button>
+            )}
           </div>
           <span className={"text-xs px-3 py-1 rounded-full " + (
             apiStatus === "online" ? "bg-emerald-500/15 text-emerald-400" :
@@ -493,7 +552,100 @@ export default function WrinklePage() {
           </>
         )}
 
+        {/* ═══════ DAEMON MODE ═══════ */}
+        {mode === "daemon" && (
+          <div className="space-y-5">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center">
+              <div className="text-5xl mb-4">{daemonRunning ? "👁️" : "💤"}</div>
+              <h2 className="text-lg font-bold mb-2">
+                {daemonRunning ? "监控运行中" : "监控未启动"}
+              </h2>
+              <p className="text-sm text-zinc-400 mb-4">
+                {daemonRunning
+                  ? "摄像头正在后台运行，检测到抬眉时将自动提醒"
+                  : "开启后，摄像头将在后台静默监控，抬眉时自动提醒你放松"}
+              </p>
+              <button onClick={toggleDaemon}
+                className={`px-6 py-3 rounded-xl font-semibold transition-colors ${
+                  daemonRunning
+                    ? "bg-rose-600 hover:bg-rose-500"
+                    : "bg-violet-600 hover:bg-violet-500"
+                }`}>
+                {daemonRunning ? "停止监控" : "启动后台监控"}
+              </button>
+            </div>
+
+            {/* 最近提醒 */}
+            {lastAlert && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-amber-400 text-lg">⚠️</span>
+                  <span className="text-sm font-medium text-amber-400">
+                    检测到抬眉
+                  </span>
+                </div>
+                <p className="text-xs text-amber-400/70">
+                  皱纹评分 {lastAlert.score.toFixed(0)} · 请放松额头肌肉
+                </p>
+              </div>
+            )}
+
+            <div className="text-xs text-zinc-600 space-y-1">
+              <p>- 后台监控无窗口，静默运行</p>
+              <p>- 检测到抬眉 + 皱纹评分 &gt;30 时自动提醒</p>
+              <p>- 前3次弹系统通知，之后仅应用内提醒</p>
+              <p>- 每次提醒间隔至少15秒，避免打扰</p>
+            </div>
+          </div>
+        )}
+
         {mode === "photo" && error && <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl p-4 text-sm">{error}</div>}
+
+        {/* ═══════ DAEMON MODE ═══════ */}
+        {mode === "daemon" && (
+          <div className="space-y-4">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-zinc-200">后台抬眉监控</h3>
+                  <p className="text-xs text-zinc-500 mt-1">在电脑前工作时自动检测抬眉，及时提醒放松</p>
+                </div>
+                <button onClick={toggleDaemon}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    daemonRunning
+                      ? "bg-rose-600 hover:bg-rose-500 text-white"
+                      : "bg-violet-600 hover:bg-violet-500 text-white"
+                  }`}>
+                  {daemonRunning ? "停止监控" : "开始监控"}
+                </button>
+              </div>
+
+              {daemonRunning && (
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-emerald-400">监控运行中 — 摄像头已启动</span>
+                </div>
+              )}
+
+              {lastAlert && daemonRunning && (
+                <div className="mt-3 bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
+                  <p className="text-amber-400 text-sm font-medium">检测到抬眉！</p>
+                  <p className="text-amber-400/70 text-xs">皱纹评分: {lastAlert.score.toFixed(0)} — 请放松额头肌肉</p>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 space-y-2">
+              <h4 className="text-xs font-semibold text-zinc-400">工作原理</h4>
+              <div className="text-xs text-zinc-500 space-y-1">
+                <p>1. 后台静默运行，使用摄像头检测面部</p>
+                <p>2. 检测到抬眉 + 皱纹评分较高时自动提醒</p>
+                <p>3. 每15秒最多提醒一次，避免频繁打扰</p>
+                <p>4. 前三次弹系统通知，之后仅应用内提醒</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="text-xs text-zinc-600 space-y-1 pt-4">
           <p>- SkinAge (EfficientNet-B2) + CV gradient analysis</p>

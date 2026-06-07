@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, dialog, ipcMain, safeStorage } = require('electron');
+const { app, BrowserWindow, shell, dialog, ipcMain, safeStorage, session } = require('electron');
 const { fork } = require('child_process');
 const path = require('path');
 const net = require('net');
@@ -198,6 +198,109 @@ ipcMain.handle('vision-model:start', async () => {
   return { ok: result, message: result ? '启动成功' : '启动失败' };
 });
 
+// ── IPC: 抬头纹后台监控 ──────────────────────────────────
+let browMonitorProcess = null;
+
+ipcMain.handle('brow-monitor:start', async () => {
+  if (browMonitorProcess && !browMonitorProcess.killed) {
+    return { ok: true, message: '监控已运行' };
+  }
+  const vmDir = findVisionModelDir();
+  if (!vmDir) return { ok: false, message: '未找到vision-model目录' };
+
+  const { spawn } = require('child_process');
+  const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+
+  browMonitorProcess = spawn(pythonCmd, ['src/brow_monitor_daemon.py'], {
+    cwd: vmDir,
+    env: { ...process.env },
+    stdio: 'pipe',
+    shell: true,
+  });
+
+  browMonitorProcess.stdout?.on('data', d => {
+    const line = d.toString().trim();
+    if (line) console.log('[BrowMonitor]', line);
+  });
+  browMonitorProcess.stderr?.on('data', d => {
+    const line = d.toString().trim();
+    if (line) console.error('[BrowMonitor ERR]', line);
+  });
+  browMonitorProcess.on('exit', code => {
+    console.log('[BrowMonitor] exited with code', code);
+    browMonitorProcess = null;
+  });
+
+  return { ok: true, message: '监控已启动' };
+});
+
+ipcMain.handle('brow-monitor:stop', async () => {
+  if (browMonitorProcess && !browMonitorProcess.killed) {
+    browMonitorProcess.kill();
+    browMonitorProcess = null;
+    return { ok: true, message: '监控已停止' };
+  }
+  return { ok: true, message: '监控未运行' };
+});
+
+ipcMain.handle('brow-monitor:status', async () => {
+  return { running: browMonitorProcess !== null && !browMonitorProcess.killed };
+});
+
+// ── IPC: 桌面宠物 ────────────────────────────────────────
+let petWindow = null;
+
+ipcMain.handle('pet:show', async () => {
+  if (petWindow && !petWindow.isDestroyed()) {
+    petWindow.show();
+    return { ok: true };
+  }
+
+  petWindow = new BrowserWindow({
+    width: 160,
+    height: 180,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    hasShadow: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+  });
+
+  petWindow.setVisibleOnAllWorkspaces(true);
+  petWindow.setAlwaysOnTop(true, 'floating');
+
+  // 加载宠物页面
+  const petPath = path.join(__dirname, 'pet.html');
+  petWindow.loadFile(petPath);
+
+  // 右下角位置
+  const { width: screenW, height: screenH } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+  petWindow.setPosition(screenW - 180, screenH - 200);
+
+  petWindow.on('closed', () => { petWindow = null; });
+
+  // 右键关闭
+  ipcMain.once('pet:close', () => {
+    if (petWindow && !petWindow.isDestroyed()) petWindow.close();
+  });
+
+  return { ok: true };
+});
+
+ipcMain.handle('pet:hide', async () => {
+  if (petWindow && !petWindow.isDestroyed()) petWindow.close();
+  return { ok: true };
+});
+
+ipcMain.handle('pet:status', async () => {
+  return { visible: petWindow !== null && !petWindow.isDestroyed() };
+});
+
 // ── Token 存储路径 ──────────────────────────────────────────
 function getTokenStorePath() {
   const userDataPath = app.getPath('userData');
@@ -234,6 +337,283 @@ function setupSecureTokenIPC() {
     if (fs.existsSync(encPath)) fs.unlinkSync(encPath);
     return true;
   });
+}
+
+// ── 图书馆座位数据获取（VPN代理模式）──────────────────────────
+const http = require('http');
+const SSO_LOGIN_URL = 'https://vpnlib.njtech.edu.cn/enlink/sso/login';
+const LIB_URL_VPN = 'https://vpnlib.njtech.edu.cn/https/webvpn0c5f34c56af636878cf47cc94ad9e75558ae631157ae3a788556cf416867bf92/web/index.html';
+const LIB_GRAPHQL_VPN = 'https://vpnlib.njtech.edu.cn/https/7765772e7a65612e6e6a746563682e6564752e636e/index.php/graphql/';
+let libraryLoginWindow = null;
+let loginNavigatedToLib = false;
+
+// 同步 JWT 到 scholarflow API
+function syncJWTToApp(jwtValue) {
+  const body = JSON.stringify({ cookie: `Authorization=${jwtValue}` });
+  return new Promise(resolve => {
+    const req = http.request({
+      hostname: '127.0.0.1', port: PORT, path: '/api/auth/jwt',
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+    }, r => { let d = ''; r.on('data', c => d += c); r.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve({ ok: false }); } }); });
+    req.on('error', () => resolve({ ok: false }));
+    req.write(body); req.end();
+  });
+}
+
+// 从 JWT 解析过期时间
+function parseJWTExpiry(token) {
+  try {
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+    return payload.expireAt || 0;
+  } catch { return 0; }
+}
+
+// 检查当前 JWT 是否有效
+async function checkCurrentJWT() {
+  try {
+    const r = await new Promise(resolve => {
+      const req = http.request({
+        hostname: '127.0.0.1', port: PORT, path: '/api/auth/jwt',
+        method: 'GET',
+      }, r => { let d = ''; r.on('data', c => d += c); r.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve({ valid: false }); } }); });
+      req.on('error', () => resolve({ valid: false }));
+      req.setTimeout(3000, () => { req.destroy(); resolve({ valid: false }); });
+      req.end();
+    });
+    return r.valid === true;
+  } catch { return false; }
+}
+
+// 弹出登录窗口
+async function openLibraryLoginWindow() {
+  if (libraryLoginWindow && !libraryLoginWindow.isDestroyed()) {
+    libraryLoginWindow.focus();
+    return { ok: true, message: '登录窗口已打开' };
+  }
+
+  // 使用独立session + 持久化，避免跟主窗口session冲突
+  const loginSession = session.fromPartition('persist:library-login');
+
+  // 清除可能损坏的缓存，防止白屏
+  try {
+    await loginSession.clearCache();
+    await loginSession.clearStorageData({ storages: ['shadercache', 'serviceworkers'] });
+    console.log('[SF] Library login session cache cleared');
+  } catch (e) {
+    console.log('[SF] Library login session cache clear failed:', e.message);
+  }
+
+  libraryLoginWindow = new BrowserWindow({
+    width: 900, height: 700,
+    title: '图书馆登录 · ScholarFlow',
+    autoHideMenuBar: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      partition: 'persist:library-login',
+    },
+  });
+
+  // 忽略VPN证书错误（VPN代理可能有自签名证书）
+  loginSession.setCertificateVerifyProc((request, callback) => {
+    const { hostname } = request;
+    if (hostname.includes('njtech.edu.cn')) {
+      callback(0); // 信任
+    } else {
+      callback(-2); // 使用默认验证
+    }
+  });
+
+  // 设置Chrome UA，防止网站拒绝Electron
+  libraryLoginWindow.webContents.setUserAgent(
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
+  );
+
+  // 用 onHeadersReceived 拦截 Set-Cookie 捕获 JWT（即使httpOnly也能拿到）
+  let jwtCaptured = false;
+  loginSession.webRequest.onHeadersReceived((details, callback) => {
+    const setCookie = details.responseHeaders?.['set-cookie'] || details.responseHeaders?.['Set-Cookie'];
+    if (setCookie && !jwtCaptured) {
+      for (const cookieStr of setCookie) {
+        if (cookieStr.startsWith('Authorization=')) {
+          const jwtValue = cookieStr.split(';')[0].split('=')[1];
+          if (jwtValue) {
+            jwtCaptured = true;
+            const expireAt = parseJWTExpiry(jwtValue);
+            if (expireAt * 1000 > Date.now()) {
+              syncJWTToApp(jwtValue).then(result => {
+                if (result.ok) {
+                  console.log('[SF] Library JWT captured from Set-Cookie header, expires:', new Date(expireAt * 1000).toISOString());
+                  if (libraryLoginWindow && !libraryLoginWindow.isDestroyed()) libraryLoginWindow.close();
+                  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('library:jwt-refreshed', { ok: true, expiry: new Date(expireAt * 1000).toISOString() });
+                }
+              });
+            }
+          }
+        }
+      }
+    }
+    callback({ cancel: false, responseHeaders: details.responseHeaders });
+  });
+
+  loginNavigatedToLib = false;
+  libraryLoginWindow.loadURL(LIB_URL_VPN);
+
+  // 白屏检测：如果多次加载后仍无内容，用devtools检查
+  let whiteScreenRetries = 0;
+  const whiteScreenCheck = setInterval(async () => {
+    if (!libraryLoginWindow || libraryLoginWindow.isDestroyed()) {
+      clearInterval(whiteScreenCheck);
+      return;
+    }
+    try {
+      // 用 webContents.getTitle() 和 getURL() 判断页面是否正常加载
+      const title = libraryLoginWindow.webContents.getTitle();
+      const url = libraryLoginWindow.webContents.getURL();
+      // 如果URL是about:blank或空，说明没加载成功
+      if ((!url || url === 'about:blank') && whiteScreenRetries < 3) {
+        whiteScreenRetries++;
+        console.log('[SF] Library login: blank page detected, reloading...', whiteScreenRetries);
+        libraryLoginWindow.loadURL(LIB_URL_VPN);
+      } else if (url && url !== 'about:blank') {
+        // 页面已加载，停止检测
+        clearInterval(whiteScreenCheck);
+      }
+    } catch {
+      clearInterval(whiteScreenCheck);
+    }
+  }, 3000);
+
+  // 登录完成后检查cookie和localStorage提取JWT
+  libraryLoginWindow.webContents.on('did-finish-load', async () => {
+    if (!libraryLoginWindow || libraryLoginWindow.isDestroyed()) return;
+    const url = libraryLoginWindow.webContents.getURL();
+    // 只在图书馆页面检查
+    if (!url.includes('vpnlib.njtech.edu.cn/https/')) return;
+
+    try {
+      // 方法1: 检查session cookies
+      const allCookies = await loginSession.cookies.get({});
+      const authCookie = allCookies.find(c => c.name === 'Authorization');
+      if (authCookie?.value) {
+        const expireAt = parseJWTExpiry(authCookie.value);
+        if (expireAt * 1000 > Date.now()) {
+          const result = await syncJWTToApp(authCookie.value);
+          if (result.ok) {
+            console.log('[SF] Library JWT from session cookie, expires:', new Date(expireAt * 1000).toISOString());
+            if (libraryLoginWindow && !libraryLoginWindow.isDestroyed()) libraryLoginWindow.close();
+            if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('library:jwt-refreshed', { ok: true, expiry: new Date(expireAt * 1000).toISOString() });
+            return;
+          }
+        }
+      }
+
+      // 方法2: 检查localStorage里的user对象（VPN代理下JWT可能在这里）
+      const userStr = await libraryLoginWindow.webContents.executeJavaScript(`localStorage.getItem('user')`);
+      if (userStr) {
+        const userObj = JSON.parse(userStr);
+        if (userObj.token || userObj.jwt || userObj.access_token) {
+          const token = userObj.token || userObj.jwt || userObj.access_token;
+          const expireAt = parseJWTExpiry(token);
+          if (expireAt * 1000 > Date.now()) {
+            const result = await syncJWTToApp(token);
+            if (result.ok) {
+              console.log('[SF] Library JWT from localStorage.user, expires:', new Date(expireAt * 1000).toISOString());
+              if (libraryLoginWindow && !libraryLoginWindow.isDestroyed()) libraryLoginWindow.close();
+              if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('library:jwt-refreshed', { ok: true, expiry: new Date(expireAt * 1000).toISOString() });
+              return;
+            }
+          }
+        }
+      }
+
+      // 方法3: 用 document.cookie 检查（非httpOnly的cookie）
+      const docCookies = await libraryLoginWindow.webContents.executeJavaScript(`document.cookie`);
+      const authMatch = docCookies.match(/Authorization=([^;]+)/);
+      if (authMatch) {
+        const jwtValue = authMatch[1];
+        const expireAt = parseJWTExpiry(jwtValue);
+        if (expireAt * 1000 > Date.now()) {
+          const result = await syncJWTToApp(jwtValue);
+          if (result.ok) {
+            console.log('[SF] Library JWT from document.cookie, expires:', new Date(expireAt * 1000).toISOString());
+            if (libraryLoginWindow && !libraryLoginWindow.isDestroyed()) libraryLoginWindow.close();
+            if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('library:jwt-refreshed', { ok: true, expiry: new Date(expireAt * 1000).toISOString() });
+            return;
+          }
+        }
+      }
+
+      // 记录调试信息
+      const cookieNames = allCookies.map(c => `${c.name}(${c.domain})`).join(', ');
+      console.log('[SF] Library login: no JWT found. cookies:', cookieNames, 'hasUser:', !!userStr);
+    } catch (e) {
+      console.error('[SF] Library JWT extraction error:', e.message);
+    }
+  });
+
+  libraryLoginWindow.on('closed', () => {
+    loginSession.webRequest.onHeadersReceived(null);
+    libraryLoginWindow = null;
+  });
+
+  return { ok: true, message: '登录窗口已打开' };
+}
+
+// IPC: 刷新 JWT（先尝试自动，失败则弹窗）
+ipcMain.handle('library:refresh-jwt', async () => {
+  // 先检查现有JWT是否还有效
+  if (await checkCurrentJWT()) {
+    return { ok: true, message: 'JWT仍然有效' };
+  }
+  // 无效则弹登录窗口
+  return await openLibraryLoginWindow();
+});
+
+// IPC: 打开登录窗口
+ipcMain.handle('library:login', async () => {
+  return await openLibraryLoginWindow();
+});
+
+// 启动时自动尝试续期 + 定时自动续期
+const JWT_REFRESH_INTERVAL = 30 * 60 * 1000; // 30分钟
+let jwtRefreshTimer = null;
+
+function autoRefreshLibraryJWT() {
+  // 启动8秒后检查JWT，过期则通知前端
+  setTimeout(async () => {
+    const valid = await checkCurrentJWT();
+    if (valid) {
+      console.log('[SF] Library JWT still valid');
+    } else {
+      console.log('[SF] Library JWT expired, user needs to login');
+      // 通知前端
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('library:jwt-expired');
+      }
+    }
+  }, 8000);
+}
+
+function startJWTAutoRefresh() {
+  if (jwtRefreshTimer) return;
+  jwtRefreshTimer = setInterval(async () => {
+    const valid = await checkCurrentJWT();
+    if (!valid) {
+      console.log('[SF] Library JWT expired during periodic check');
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('library:jwt-expired');
+      }
+    }
+  }, JWT_REFRESH_INTERVAL);
+  console.log('[SF] Library JWT auto-refresh check every', JWT_REFRESH_INTERVAL / 60000, 'min');
+}
+
+function stopJWTAutoRefresh() {
+  if (jwtRefreshTimer) {
+    clearInterval(jwtRefreshTimer);
+    jwtRefreshTimer = null;
+  }
 }
 
 // ── 活动窗口追踪 ──────────────────────────────────────────
@@ -451,6 +831,10 @@ app.whenReady().then(async () => {
         console.log('[SF] Vision-Model launch skipped:', err.message);
       }
     }, 5000);
+
+    // Auto-refresh library JWT (non-blocking)
+    autoRefreshLibraryJWT();
+    startJWTAutoRefresh();
   } catch (err) {
     console.error('[SF] Fatal:', err);
     dialog.showErrorBox('ScholarFlow 启动失败', `${err.message}`);
@@ -470,6 +854,7 @@ app.on('activate', () => {
 
 app.on('before-quit', () => {
   stopActiveWindowTracking();
+  stopJWTAutoRefresh();
   if (serverProcess) { serverProcess.kill('SIGTERM'); serverProcess = null; }
   if (visionModelProcess) { visionModelProcess.kill(); visionModelProcess = null; }
 });

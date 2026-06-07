@@ -44,12 +44,28 @@ async function tryLocalApi(type: string) {
   return await readData(type);
 }
 
-/** 解析本地作业数据，兼容 [...] 和 { assignments: [...] } 两种格式 */
+/** 将老格式字段映射到新格式：course→subject, submittedAt→completedAt */
+function normalizeAssignment(a: Record<string, unknown>): Assignment {
+  return {
+    id: (a.id as string) || crypto.randomUUID(),
+    subject: (a.subject as string) || (a.course as string) || "",
+    title: (a.title as string) || "",
+    deadline: (a.deadline as string) || new Date().toISOString(),
+    note: (a.note as string) || undefined,
+    done: !!a.done,
+    createdAt: (a.createdAt as string) || new Date().toISOString(),
+    completedAt: (a.completedAt as string) || (a.submittedAt as string) || undefined,
+  };
+}
+
+/** 解析本地作业数据，兼容 [...] 和 { assignments: [...] } 两种格式，自动映射老字段 */
 function parseLocalAssignments(local: unknown): Assignment[] | null {
-  if (Array.isArray(local)) return local as Assignment[];
-  if (local && typeof local === "object" && Array.isArray((local as Record<string, unknown>).assignments))
-    return (local as { assignments: Assignment[] }).assignments;
-  return null;
+  let raw: unknown[] | null = null;
+  if (Array.isArray(local)) raw = local as unknown[];
+  else if (local && typeof local === "object" && Array.isArray((local as Record<string, unknown>).assignments))
+    raw = (local as { assignments: unknown[] }).assignments;
+  if (!raw) return null;
+  return raw.map(a => normalizeAssignment(a as Record<string, unknown>));
 }
 
 /** 解析本地跑步数据，兼容 { records: [...] } 和 [...] 格式 */
@@ -206,7 +222,7 @@ export function useAssignmentsQuery() {
       const current = queryClient.getQueryData<Assignment[]>(queryKeys.assignments) ?? [];
       const newAssignment = buildAssignment(draft);
       const updated = sortAssignments([...current, newAssignment]);
-      const content = JSON.stringify({ assignments: updated }, null, 2);
+      const content = JSON.stringify(updated, null, 2);
       await saveLocally("data/assignments.json", content, "添加作业");
       try { await getDB().cacheFile("execution", "data/assignments.json", content, ""); } catch {}
       return updated;
@@ -223,7 +239,7 @@ export function useAssignmentsQuery() {
       const updated = current.map((a) =>
         a.id === id ? { ...a, done: true, completedAt: new Date().toISOString() } : a
       );
-      const content = JSON.stringify({ assignments: updated }, null, 2);
+      const content = JSON.stringify(updated, null, 2);
       await saveLocally("data/assignments.json", content, "完成作业");
       try { await getDB().cacheFile("execution", "data/assignments.json", content, ""); } catch {}
       return { updated, id, target };
@@ -242,7 +258,7 @@ export function useAssignmentsQuery() {
       const updated = current.map((a) =>
         a.id === id ? { ...a, done: false, completedAt: undefined } : a
       );
-      const content = JSON.stringify({ assignments: updated }, null, 2);
+      const content = JSON.stringify(updated, null, 2);
       await saveLocally("data/assignments.json", content, "撤销完成");
       try { await getDB().cacheFile("execution", "data/assignments.json", content, ""); } catch {}
       return updated;

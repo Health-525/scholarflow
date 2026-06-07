@@ -29,22 +29,7 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   entertainment: "🎮 娱乐", communication: "💬 通讯", system: "⚙️ 系统", other: "📌 其他",
 };
 
-interface ElectronAPI {
-  isElectron: boolean;
-  getActiveWindow: () => Promise<WindowInfo | null>;
-  onActiveWindowChanged: (callback: (win: WindowInfo) => void) => () => void;
-  encryptAndStoreToken: (token: string) => Promise<boolean>;
-  retrieveToken: () => Promise<string | null>;
-  clearToken: () => Promise<boolean>;
-  updateCheck: () => Promise<unknown>;
-  updateDownload: () => Promise<unknown>;
-  updateInstall: () => void;
-  onUpdateAvailable: (callback: (info: unknown) => void) => () => void;
-  onUpdateDownloadProgress: (callback: (progress: unknown) => void) => () => void;
-  onUpdateDownloaded: (callback: (info: unknown) => void) => () => void;
-  visionModelStatus: () => Promise<boolean>;
-  visionModelStart: () => Promise<{ ok: boolean; message: string }>;
-}
+// ElectronAPI 类型已移至 types/globals.d.ts 统一声明
 
 declare global {
   interface Window {

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Desktop Pet</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  width: 140px;
+  height: 150px;
+}
+.pet-wrap {
+  width: 140px;
+  height: 150px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  -webkit-app-region: drag;
+}
+
+/* Speech bubble */
+.bubble {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  color: #333;
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: "Noto Sans SC", sans-serif;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 10;
+}
+.bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #fff;
+}
+.bubble.show { opacity: 1; }
+.bubble.angry { background: #ffe0e0; color: #c0392b; }
+.bubble.angry::after { border-top-color: #ffe0e0; }
+
+/* Pet image */
+.pet-img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  image-rendering: auto;
+  transition: transform 0.2s;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+/* Animations */
+@keyframes shake {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  20% { transform: translateX(-4px) rotate(-3deg); }
+  40% { transform: translateX(4px) rotate(3deg); }
+  60% { transform: translateX(-3px) rotate(-2deg); }
+  80% { transform: translateX(3px) rotate(2deg); }
+}
+@keyframes bounce {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-15px); }
+  50% { transform: translateY(-5px); }
+  70% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+@keyframes breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.03); }
+}
+
+.shake { animation: shake 0.4s ease-in-out infinite; }
+.bounce { animation: bounce 0.5s ease-in-out; }
+.breathe { animation: breathe 3s ease-in-out infinite; transform-origin: bottom center; }
+</style>
+</head>
+<body>
+<div class="pet-wrap">
+  <div class="bubble" id="bubble"></div>
+  <img class="pet-img breathe" id="petImg" src="/pet/normal.png" alt="pet" />
+</div>
+
+<script>
+const { ipcRenderer } = require('electron');
+const path = require('path');
+
+// 图片路径：从 electron/ 目录往上找 public/pet/
+const petDir = path.join(__dirname, '..', 'public', 'pet');
+const NORMAL = path.join(petDir, 'normal.png');
+const ANGRY = path.join(petDir, 'angry.png');
+const SLEEPING = path.join(petDir, 'sleeping.png');
+
+const petImg = document.getElementById('petImg');
+const bubble = document.getElementById('bubble');
+
+// 设置初始图片
+petImg.src = NORMAL;
+
+const ANGRY_MESSAGES = [
+  "别皱眉！放松额头！",
+  "又抬眉了！住手！",
+  "皱纹要来了！快松开！",
+  "额头肌肉放松！",
+  "别皱别皱别皱！",
+  "抬头纹警告！",
+  "放松放松放松！",
+  "眉头松开！！",
+];
+
+let isAngry = false;
+let angryTimeout = null;
+
+function setAngry(score) {
+  if (isAngry) return;
+  isAngry = true;
+
+  petImg.src = ANGRY;
+  petImg.className = 'pet-img shake bounce';
+
+  bubble.textContent = ANGRY_MESSAGES[Math.floor(Math.random() * ANGRY_MESSAGES.length)] + ` (${Math.round(score)})`;
+  bubble.classList.add('show', 'angry');
+
+  if (angryTimeout) clearTimeout(angryTimeout);
+  angryTimeout = setTimeout(setNormal, 4000);
+}
+
+function setNormal() {
+  isAngry = false;
+  petImg.src = NORMAL;
+  petImg.className = 'pet-img breathe';
+  bubble.classList.remove('show', 'angry');
+}
+
+function setSleeping() {
+  isAngry = false;
+  petImg.src = SLEEPING;
+  petImg.className = 'pet-img breathe';
+  bubble.textContent = 'zzZ';
+  bubble.classList.add('show');
+  bubble.classList.remove('angry');
+}
+
+// Listen for brow alerts from main process
+ipcRenderer.on('brow-alert', (_event, data) => {
+  setAngry(data.score || 50);
+});
+
+// Poll alerts via HTTP (fallback)
+async function checkAlert() {
+  try {
+    const res = await fetch('http://localhost:3000/api/wrinkle-alert');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.rising) setAngry(data.score || 50);
+    }
+  } catch {}
+}
+setInterval(checkAlert, 3000);
+
+// Right-click to close
+document.addEventListener('contextmenu', () => {
+  ipcRenderer.send('pet:close');
+});
+</script>
+</body>
+</html>

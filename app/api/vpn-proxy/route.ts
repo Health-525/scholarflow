@@ -23,7 +23,17 @@ function getCachedJWT(): string | null {
     } catch {}
   }
 
-  // 3. timetable/.env file
+  // 3. JWT 持久化文件（auth/jwt route 写入的）
+  const userData = process.env.ELECTRON_USER_DATA || path.join(process.cwd(), ".data");
+  const jwtStore = path.join(userData, "library-jwt.json");
+  try {
+    if (fs.existsSync(jwtStore)) {
+      const data = JSON.parse(fs.readFileSync(jwtStore, "utf-8"));
+      if (data?.token && data?.expiry && data.expiry * 1000 > Date.now()) return data.token;
+    }
+  } catch {}
+
+  // 4. timetable/.env file
   const candidates = [
     path.join(process.cwd(), "..", "timetable", ".env"),
     path.join(process.cwd(), ".env"),
