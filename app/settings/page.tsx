@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import {
   Sun, Moon, Monitor, LogOut, ChevronRight,
   Calendar, ClipboardList, Activity, Database,
-  BarChart3, Trash2, Download,
+  BarChart3, Trash2, Download, CloudDown, CloudUp, Github,
 } from "lucide-react";
 import { useThemeStore } from "@/store/theme";
 import { useAuthStore } from "@/store/auth";
 import { downloadActivityCSV, clearActivityData } from "@/lib/activity-tracker-v3";
-import { useScheduleQuery, useAssignmentsQuery, useRunningQuery } from "@/hooks/useQueries";
+import { useScheduleQuery, useAssignmentsQuery, useRunningQuery, useSyncFromGitHub, useSyncToGitHub } from "@/hooks/useQueries";
 import { exportAssignmentsCSV, exportRunningCSV, buildWeekICS, downloadICS } from "@/lib/export";
 import { getDB } from "@/lib/db";
 import type { ThemeValue } from "@/types";
@@ -39,6 +39,10 @@ export default function SettingsPage() {
   const [cacheSize, setCacheSize] = useState<number | null>(null);
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+
+  const syncFromGitHub = useSyncFromGitHub();
+  const syncToGitHub = useSyncToGitHub();
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -205,6 +209,103 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* ── GitHub 同步 ── */}
+      <div
+        className="rounded-2xl overflow-hidden mb-4"
+        style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-xs)" }}
+      >
+        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+          <Github className="w-4 h-4" style={{ color: "var(--accent)" }} />
+          <span className="text-[13px] font-semibold" style={{ color: "var(--text-primary)" }}>GitHub 同步</span>
+          {token && (
+            <span className="text-[10px] ml-auto px-1.5 py-0.5 rounded" style={{ backgroundColor: "rgba(34,197,94,0.12)", color: "#22c55e" }}>已连接</span>
+          )}
+        </div>
+        <div className="px-4 pb-2">
+          <p className="text-[11px] mb-3" style={{ color: "var(--text-tertiary)" }}>
+            {token
+              ? "数据默认保存本地，可手动从 GitHub 导入或同步到 GitHub"
+              : "配置 GitHub Token 后可使用云端同步功能"}
+          </p>
+
+          {/* 同步状态消息 */}
+          {syncMessage && (
+            <div className="mb-3 px-3 py-2 rounded-xl text-[11px] animate-fade-up" style={{
+              backgroundColor: syncMessage.includes("失败") || syncMessage.includes("错误")
+                ? "rgba(239,68,68,0.08)"
+                : "rgba(34,197,94,0.08)",
+              color: syncMessage.includes("失败") || syncMessage.includes("错误")
+                ? "#ef4444"
+                : "#22c55e",
+            }}>
+              {syncMessage}
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <button
+              onClick={async () => {
+                if (!token) { setSyncMessage("请先在登录页配置 GitHub Token"); return; }
+                setSyncMessage(null);
+                try {
+                  const result = await syncFromGitHub.mutateAsync(["schedule", "assignments", "running"]);
+                  if (result.imported.length > 0) {
+                    setSyncMessage(`导入成功：${result.imported.join("、")}${result.errors.length ? `；失败：${result.errors.join("、")}` : ""}`);
+                  } else {
+                    setSyncMessage(result.errors.length ? `导入失败：${result.errors.join("、")}` : "无新数据");
+                  }
+                } catch (e) {
+                  setSyncMessage(`导入失败：${e instanceof Error ? e.message : "未知错误"}`);
+                }
+              }}
+              disabled={!token || syncFromGitHub.isPending}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors"
+              style={{
+                backgroundColor: token ? "var(--accent-soft)" : "var(--surface)",
+                color: token ? "var(--accent)" : "var(--text-muted)",
+                opacity: syncFromGitHub.isPending ? 0.6 : 1,
+              }}
+            >
+              <CloudDown className="w-4 h-4 shrink-0" />
+              <span className="text-[13px] font-medium">
+                {syncFromGitHub.isPending ? "导入中..." : "从 GitHub 导入数据"}
+              </span>
+              <span className="text-[10px] ml-auto" style={{ color: "var(--text-tertiary)" }}>课表 · 作业 · 跑步</span>
+            </button>
+
+            <button
+              onClick={async () => {
+                if (!token) { setSyncMessage("请先在登录页配置 GitHub Token"); return; }
+                setSyncMessage(null);
+                try {
+                  const result = await syncToGitHub.mutateAsync(["schedule", "assignments", "running"]);
+                  if (result.pushed.length > 0) {
+                    setSyncMessage(`同步成功：${result.pushed.join("、")}${result.errors.length ? `；失败：${result.errors.join("、")}` : ""}`);
+                  } else {
+                    setSyncMessage(result.errors.length ? `同步失败：${result.errors.join("、")}` : "无数据可同步");
+                  }
+                } catch (e) {
+                  setSyncMessage(`同步失败：${e instanceof Error ? e.message : "未知错误"}`);
+                }
+              }}
+              disabled={!token || syncToGitHub.isPending}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors"
+              style={{
+                backgroundColor: token ? "var(--accent-soft)" : "var(--surface)",
+                color: token ? "var(--accent)" : "var(--text-muted)",
+                opacity: syncToGitHub.isPending ? 0.6 : 1,
+              }}
+            >
+              <CloudUp className="w-4 h-4 shrink-0" />
+              <span className="text-[13px] font-medium">
+                {syncToGitHub.isPending ? "同步中..." : "同步到 GitHub"}
+              </span>
+              <span className="text-[10px] ml-auto" style={{ color: "var(--text-tertiary)" }}>课表 · 作业 · 跑步</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* ── 缓存与存储 ── */}
       <div
         className="rounded-2xl overflow-hidden mb-4"
@@ -226,7 +327,7 @@ export default function SettingsPage() {
           </div>
           <div className="space-y-1.5 text-[11px] pt-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
             <InfoRow label="Token" value="安全加密存储" />
-            <InfoRow label="课表/作业/跑步" value="GitHub → IndexedDB" />
+            <InfoRow label="课表/作业/跑步" value="本地优先，GitHub 手动同步" />
             <InfoRow label="考试/主题/目标" value="localStorage" />
           </div>
         </div>
