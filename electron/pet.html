@@ -163,15 +163,21 @@ ipcRenderer.on('brow-alert', (_event, data) => {
   setAngry(data.score || 50);
 });
 
-// Poll alerts via HTTP (fallback)
-async function checkAlert() {
-  try {
-    const res = await fetch('http://localhost:3000/api/wrinkle-alert');
-    if (res.ok) {
-      const data = await res.json();
-      if (data.rising) setAngry(data.score || 50);
-    }
-  } catch {}
+// Poll alerts via Node.js http (file:// 协议下 fetch 不可靠)
+const http = require('http');
+function checkAlert() {
+  const req = http.get('http://localhost:3000/api/wrinkle-alert', (res) => {
+    let data = '';
+    res.on('data', chunk => data += chunk);
+    res.on('end', () => {
+      try {
+        const obj = JSON.parse(data);
+        if (obj.rising) setAngry(obj.score || 50);
+      } catch {}
+    });
+  });
+  req.on('error', () => {});
+  req.setTimeout(2000, () => req.destroy());
 }
 setInterval(checkAlert, 3000);
 

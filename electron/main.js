@@ -111,14 +111,24 @@ function launchServer() {
 
 // ── 启动 Vision-Model API (FastAPI on :8000) ──────────────
 function findVisionModelDir() {
+  const exeDir = path.dirname(app.getPath('exe'));
   const candidates = [
+    // 1. D:\A\vision-model（开发模式：项目根目录）
     path.join(__dirname, '..', '..', 'vision-model'),
-    path.join(__dirname, '..', '..', '..', 'vision-model'),
-    path.join(process.cwd(), '..', 'vision-model'),
+    // 2. exe 同级目录（部署模式：ScholarFlow.exe 旁边放 vision-model/）
+    path.join(exeDir, 'vision-model'),
   ];
   for (const dir of candidates) {
     const serverPath = path.join(dir, 'src', 'api', 'server.py');
     if (fs.existsSync(serverPath)) return dir;
+  }
+  // 3. 读取 exe 同级的 vision-model-path.txt（一行，写入 vision-model 的绝对路径）
+  const pathFile = path.join(exeDir, 'vision-model-path.txt');
+  if (fs.existsSync(pathFile)) {
+    const customDir = fs.readFileSync(pathFile, 'utf-8').trim();
+    if (customDir && fs.existsSync(path.join(customDir, 'src', 'api', 'server.py'))) {
+      return customDir;
+    }
   }
   return null;
 }
@@ -198,55 +208,6 @@ ipcMain.handle('vision-model:start', async () => {
   return { ok: result, message: result ? '启动成功' : '启动失败' };
 });
 
-// ── IPC: 抬头纹后台监控 ──────────────────────────────────
-let browMonitorProcess = null;
-
-ipcMain.handle('brow-monitor:start', async () => {
-  if (browMonitorProcess && !browMonitorProcess.killed) {
-    return { ok: true, message: '监控已运行' };
-  }
-  const vmDir = findVisionModelDir();
-  if (!vmDir) return { ok: false, message: '未找到vision-model目录' };
-
-  const { spawn } = require('child_process');
-  const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-
-  browMonitorProcess = spawn(pythonCmd, ['src/brow_monitor_daemon.py'], {
-    cwd: vmDir,
-    env: { ...process.env },
-    stdio: 'pipe',
-    shell: true,
-  });
-
-  browMonitorProcess.stdout?.on('data', d => {
-    const line = d.toString().trim();
-    if (line) console.log('[BrowMonitor]', line);
-  });
-  browMonitorProcess.stderr?.on('data', d => {
-    const line = d.toString().trim();
-    if (line) console.error('[BrowMonitor ERR]', line);
-  });
-  browMonitorProcess.on('exit', code => {
-    console.log('[BrowMonitor] exited with code', code);
-    browMonitorProcess = null;
-  });
-
-  return { ok: true, message: '监控已启动' };
-});
-
-ipcMain.handle('brow-monitor:stop', async () => {
-  if (browMonitorProcess && !browMonitorProcess.killed) {
-    browMonitorProcess.kill();
-    browMonitorProcess = null;
-    return { ok: true, message: '监控已停止' };
-  }
-  return { ok: true, message: '监控未运行' };
-});
-
-ipcMain.handle('brow-monitor:status', async () => {
-  return { running: browMonitorProcess !== null && !browMonitorProcess.killed };
-});
-
 // ── IPC: 桌面宠物 ────────────────────────────────────────
 let petWindow = null;
 
@@ -299,6 +260,55 @@ ipcMain.handle('pet:hide', async () => {
 
 ipcMain.handle('pet:status', async () => {
   return { visible: petWindow !== null && !petWindow.isDestroyed() };
+});
+
+// ── IPC: 抬头纹后台监控 ──────────────────────────────────
+let browMonitorProcess = null;
+
+ipcMain.handle('brow-monitor:start', async () => {
+  if (browMonitorProcess && !browMonitorProcess.killed) {
+    return { ok: true, message: '监控已运行' };
+  }
+  const vmDir = findVisionModelDir();
+  if (!vmDir) return { ok: false, message: '未找到vision-model目录' };
+
+  const { spawn } = require('child_process');
+  const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+
+  browMonitorProcess = spawn(pythonCmd, ['src/brow_monitor_daemon.py'], {
+    cwd: vmDir,
+    env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
+    stdio: 'pipe',
+    shell: true,
+  });
+
+  browMonitorProcess.stdout?.on('data', d => {
+    const line = d.toString().trim();
+    if (line) console.log('[BrowMonitor]', line);
+  });
+  browMonitorProcess.stderr?.on('data', d => {
+    const line = d.toString().trim();
+    if (line) console.error('[BrowMonitor ERR]', line);
+  });
+  browMonitorProcess.on('exit', code => {
+    console.log('[BrowMonitor] exited with code', code);
+    browMonitorProcess = null;
+  });
+
+  return { ok: true, message: '监控已启动' };
+});
+
+ipcMain.handle('brow-monitor:stop', async () => {
+  if (browMonitorProcess && !browMonitorProcess.killed) {
+    browMonitorProcess.kill();
+    browMonitorProcess = null;
+    return { ok: true, message: '监控已停止' };
+  }
+  return { ok: true, message: '监控未运行' };
+});
+
+ipcMain.handle('brow-monitor:status', async () => {
+  return { running: browMonitorProcess !== null && !browMonitorProcess.killed };
 });
 
 // ── Token 存储路径 ──────────────────────────────────────────

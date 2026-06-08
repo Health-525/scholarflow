@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAssignmentsQuery } from "@/hooks/useQueries";
 import { classifyUrgency } from "@/lib/assignment-utils";
@@ -15,6 +16,9 @@ const URGENCY_CONFIG = {
 export function AssignmentsCard() {
   const { assignments, isLoading, error, reload } = useAssignmentsQuery();
   const pending = assignments.filter((a) => !a.done).slice(0, 5);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   return (
     <div className="sf-card p-4">
@@ -27,7 +31,7 @@ export function AssignmentsCard() {
           >
             待办作业
           </h2>
-          {!isLoading && pending.length > 0 && (
+          {mounted && !isLoading && pending.length > 0 && (
             <span
               className="sf-chip sf-chip-warn text-[10px]"
               aria-label={`${pending.length} 项待办`}
@@ -54,7 +58,7 @@ export function AssignmentsCard() {
 
       {error && !isLoading && <ErrorFallback message={error.message} onRetry={reload} />}
 
-      {!isLoading && !error && (
+      {mounted && !isLoading && !error && (
         pending.length === 0 ? (
           <div className="py-2 flex items-center gap-2">
             <span className="text-base" aria-hidden="true">✨</span>

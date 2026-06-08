@@ -57,14 +57,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   /** 启动 Vision-Model API */
   visionModelStart: () => ipcRenderer.invoke("vision-model:start"),
 
-  // ── 抬头纹后台监控 ──
-  /** 启动后台抬眉监控 */
-  browMonitorStart: () => ipcRenderer.invoke("brow-monitor:start"),
-  /** 停止后台抬眉监控 */
-  browMonitorStop: () => ipcRenderer.invoke("brow-monitor:stop"),
-  /** 查询监控状态 */
-  browMonitorStatus: () => ipcRenderer.invoke("brow-monitor:status"),
-
   // ── 桌面宠物 ──
   /** 显示桌面宠物 */
   petShow: () => ipcRenderer.invoke("pet:show"),
@@ -72,9 +64,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   petHide: () => ipcRenderer.invoke("pet:hide"),
 
   // ── 抬头纹后台监控 ──
-  /** 启动后台抬头纹监控 */
+  /** 启动后台抬眉监控 */
   browMonitorStart: () => ipcRenderer.invoke("brow-monitor:start"),
-  /** 停止后台抬头纹监控 */
+  /** 停止后台抬眉监控 */
   browMonitorStop: () => ipcRenderer.invoke("brow-monitor:stop"),
   /** 查询监控状态 */
   browMonitorStatus: () => ipcRenderer.invoke("brow-monitor:status"),
