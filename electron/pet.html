@@ -165,12 +165,30 @@ ipcRenderer.on('brow-alert', (_event, data) => {
 
 // Poll alerts via Node.js http (file:// 协议下 fetch 不可靠)
 const http = require('http');
+// 动态检测端口：优先3456(生产), 备用3000(开发)
+let SF_PORT = 3456;
 let pollInterval = 3000;
 let failCount = 0;
 let pollTimer = null;
 
+function detectPort(callback) {
+  // 先试3456，不通再试3000
+  const tryPort = (port) => {
+    const req = http.get(`http://localhost:${port}/api/wrinkle-alert`, (res) => {
+      res.resume(); // consume body
+      callback(port);
+    });
+    req.on('error', () => {
+      if (port === 3456) tryPort(3000);
+      else callback(3456); // default
+    });
+    req.setTimeout(1500, () => { req.destroy(); if (port === 3456) tryPort(3000); else callback(3456); });
+  };
+  tryPort(3456);
+}
+
 function checkAlert() {
-  const req = http.get('http://localhost:3000/api/wrinkle-alert', (res) => {
+  const req = http.get(`http://localhost:${SF_PORT}/api/wrinkle-alert`, (res) => {
     let data = '';
     res.on('data', chunk => data += chunk);
     res.on('end', () => {
@@ -197,7 +215,10 @@ function scheduleNext() {
   pollTimer = setTimeout(checkAlert, pollInterval);
 }
 
-checkAlert();
+detectPort((port) => {
+  SF_PORT = port;
+  checkAlert();
+});
 
 // Right-click to close
 document.addEventListener('contextmenu', () => {
