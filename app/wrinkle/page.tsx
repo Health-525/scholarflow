@@ -113,7 +113,7 @@ export default function WrinklePage() {
     try {
       const res = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(3000) });
       const d = await res.json();
-      setApiStatus(d.detector_loaded || d.skinage_loaded || d.skin_analyzer_loaded ? "online" : "offline");
+      setApiStatus(d.detector_loaded || d.skinage_loaded || d.segmenter_loaded || d.skin_analyzer_loaded ? "online" : "offline");
     } catch { setApiStatus("offline"); }
   }, []);
 
