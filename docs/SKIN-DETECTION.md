@@ -47,10 +47,12 @@
 │           │                      │                      │
 │           ▼                      ▼                      │
 │  ┌─────────────────────────────────────────────────┐   │
-│  │ 额头纹理分析                                     │   │
-│  │ SkinAge (EfficientNet-B2) → wrinkle_ratio_percent│   │
-│  │ Fallback: Laplacian方差 + Sobel梯度 → 0-100分   │   │
-│  │ 热力图生成 (Laplacian → colormap)               │   │
+│  │ 额头纹理分析 (优先级由高到低)                    │   │
+│  │ 1. SegFormer ONNX → wrinkle_ratio_percent      │   │
+│  │ 2. SegFormer PyTorch → wrinkle_ratio_percent   │   │
+│  │ 3. SkinAge (EfficientNet-B2) → wrinkle_ratio   │   │
+│  │ 4. Fallback: Laplacian方差 + Sobel梯度 → 0-100  │   │
+│  │ 热力图生成 (Laplacian → colormap)              │   │
 │  └─────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -112,10 +114,13 @@
 **提醒链路**：
 ```
 brow_monitor_daemon.py 检测到抬眉
-→ HTTP POST http://localhost:3000/api/wrinkle-alert {type: "brow_alert", ...}
-→ Next.js route.ts 内存存储 (10秒过期)
+→ HTTP POST http://localhost:{3456|3000}/api/wrinkle-alert {type: "brow_alert", ...}
+→ Next.js route.ts 内存存储 (30秒过期)
 → pet.html 每3秒轮询 GET /api/wrinkle-alert
 → data.rising === true → 宠物生气动画 + 警告文字
+
+同时: main.js 检测 [BrowMonitor] ALERT 日志
+→ pet: brow-alert IPC → 即时提醒（比HTTP轮询更快）
 ```
 
 ## 桌面宠物
@@ -127,6 +132,7 @@ brow_monitor_daemon.py 检测到抬眉
 | **状态** | normal.png (呼吸动画) / angry.png (摇晃+弹跳) / sleeping.png |
 | **图片** | `public/pet/normal.png`, `angry.png`, `sleeping.png` |
 | **触发** | `brow-alert` IPC 事件 或 `/api/wrinkle-alert` 轮询 |
+| **端口** | 动态检测: 3456(生产) → 3000(开发) |
 | **关闭** | 右键宠物窗口 → `pet:close` IPC → 窗口关闭 |
 
 **宠物提醒消息池**：
@@ -202,10 +208,23 @@ SkinAge EfficientNet-B2 (~300ms) ← 第三选
 ```json
 { "score": 55, "rising": true, "time": 1717843200 }
 ```
-> 10秒后自动过期清除
+> 30秒后自动过期清除
 
 ## 皱纹评分算法
 
+### SegFormer 模式 (默认)
+```
+1. MediaPipe FaceLandmarker 478点 → 定位面部关键点
+2. 提取额头 ROI (eyebrow_top ~ forehead_top, 两侧扩展15%)
+3. SegFormer 像素级分割 → 二值mask (1=皱纹, 0=非皱纹)
+4. 计算额头区域皱纹像素占比 → wrinkle_ratio_percent
+5. 分级: <3% 无明显皱纹 / <8% 轻微皱纹 / ≥8% 明显皱纹
+6. 抬眉放大: brow_rising 时 × (1 + (peak_ratio - 1) × 0.4)
+7. 非抬眉衰减: × 0.8
+8. 自适应帧率: SegFormer 每2秒分析一次 (非每帧)
+```
+
+### 传统 CV 模式 (fallback)
 ```
 1. MediaPipe FaceLandmarker 478点 → 定位面部关键点
 2. 提取额头 ROI (eyebrow_top ~ forehead_top, 两侧扩展15%)
@@ -213,9 +232,9 @@ SkinAge EfficientNet-B2 (~300ms) ← 第三选
    - Laplacian 方差 → 纹理复杂度
    - Sobel 梯度幅值 → 边缘强度
    - 加权组合 → raw_score (0-100)
-4. 5帧滑动平均平滑
-5. 抬眉放大: brow_rising 时 × (1 + (peak_ratio - 1) × 0.5)
-6. 非抬眉衰减: × 0.7
+4. 3帧滑动平均平滑
+5. 抬眉放大: brow_rising 时 × (1 + (peak_ratio - 1) × 0.4)
+6. 非抬眉衰减: × 0.8
 7. 严重度标签: <20无皱纹 / <40轻微 / <60中等 / <80明显 / ≥80严重
 ```
 
@@ -271,7 +290,11 @@ npx concurrently "next dev" "electron ."
 | `src/detection/face_detector.py` | MediaPipe 478点面部检测 + 额头ROI提取 |
 | `src/realtime_monitor.py` | BrowRiseDetector + 纹理分析 + 热力图 |
 | `src/brow_monitor_daemon.py` | 后台监控守护进程 (无窗口) |
+| `src/segmentation/wrinkle_segmenter.py` | SegFormer PyTorch 皱纹分割 |
+| `src/segmentation/wrinkle_segmenter_onnx.py` | SegFormer ONNX 皱纹分割 (最快) |
+| `src/skinage/inference.py` | SkinAge EfficientNet-B2 推理 (fallback) |
 | `models/face_landmarker.task` | MediaPipe 面部关键点模型 |
+| `models/wrinkle_segformer.onnx` | SegFormer ONNX 量化模型 |
 
 ---
 
