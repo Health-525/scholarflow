@@ -11,8 +11,8 @@ export async function POST(req: NextRequest) {
       rising: body.brow_rising,
       time: body.timestamp || Date.now() / 1000,
     };
-    // 10秒后自动清除
-    setTimeout(() => { if (latestAlert && latestAlert.time === body.timestamp) latestAlert = null; }, 10000);
+    // 30秒后自动清除（比最大冷却时间60s短，但足够宠物轮询到）
+    setTimeout(() => { if (latestAlert && latestAlert.time === body.timestamp) latestAlert = null; }, 30000);
   }
   return NextResponse.json({ ok: true });
 }

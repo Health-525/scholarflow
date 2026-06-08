@@ -160,11 +160,22 @@ Step 4: "校准完成！小猴子会帮你盯着"
 ## 时间线
 
 ```
-Week 1: Phase 1 (非人脸过滤) + Phase 2 方案A (FFHQ-Wrinkle预训练权重)
-Week 2: Phase 3 (蒸馏+量化+帧率策略)
-Week 3: Phase 4 (安装包+校准+设置)
+Week 1: Phase 1 ✅ (非人脸过滤) + Phase 2 ✅ (SegFormer集成+动态阈值)
+Week 1: Phase 3 ✅ (ONNX推理器+ROI优化+自适应帧率) + Phase 4 ✅ (校准+设置面板)
+Week 2: Phase 3 续 (SegFormer ONNX导出 - 当前crash, 需修复transformers兼容性)
+Week 3: Phase 4 续 (安装包+完整校准+隐私)
 Week 4: 测试+修bug+文档
 ```
+
+## 已完成
+
+| Phase | 内容 | 状态 |
+|-------|------|------|
+| Phase1 | 非人脸过滤(_validate_face+连续帧验证+置信度0.7) | ✅ |
+| Phase2 | SegFormer皱纹分割模型集成(优先级> SkinAge > CV) | ✅ |
+| Phase3 | 自适应帧率(idle/face/rising) + SegFormer ROI优化 | ✅ |
+| Phase3 | ONNX推理器脚本(导出crash待修) | 🟡 |
+| Phase4 | 首次校准流程 + 设置面板(灵敏度/冷却/数据清除) | ✅ |
 
 ## 技术栈
 
