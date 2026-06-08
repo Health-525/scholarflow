@@ -113,6 +113,40 @@ const SEVERITY: Record<string, { label: string; color: string; ring: string }> =
 
 type ViewState = "monitor" | "preview";
 
+// ── 校准采集步骤组件 ──
+function CalibCapturingStep({ onComplete }: { onComplete: () => void }) {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const start = Date.now();
+    const duration = 3000;
+    const timer = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const pct = Math.min(100, (elapsed / duration) * 100);
+      setProgress(pct);
+      if (elapsed >= duration) {
+        clearInterval(timer);
+        onComplete();
+      }
+    }, 50);
+    return () => clearInterval(timer);
+  }, [onComplete]);
+
+  return (
+    <>
+      <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 flex items-center justify-center">
+        <span className="text-2xl">😌</span>
+      </div>
+      <h2 className="text-base font-semibold">保持自然表情</h2>
+      <p className="text-xs text-muted-foreground">请正对摄像头，保持放松，不要抬眉</p>
+      <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+        <div className="bg-primary rounded-full h-2 transition-all duration-100" style={{ width: `${progress}%` }} />
+      </div>
+      <p className="text-[10px] text-muted-foreground">正在采集基线... {Math.round(progress)}%</p>
+    </>
+  );
+}
+
 export default function WrinklePage() {
   const [viewState, setViewState] = useState<ViewState>("monitor");
   const [apiStatus, setApiStatus] = useState<"checking" | "online" | "offline">("checking");
@@ -585,26 +619,12 @@ export default function WrinklePage() {
               </>
             )}
             {calibStep === 1 && (
-              <>
-                <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 flex items-center justify-center">
-                  <span className="text-2xl">😌</span>
-                </div>
-                <h2 className="text-base font-semibold">保持自然表情</h2>
-                <p className="text-xs text-muted-foreground">请正对摄像头，保持放松，不要抬眉</p>
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div className="bg-primary rounded-full h-2 animate-pulse" style={{ width: "100%", animation: "pulse 1s infinite" }} />
-                </div>
-                <p className="text-[10px] text-muted-foreground">正在采集基线...</p>
-                {/* 自动5秒后完成 */}
-                {setTimeout(() => {
-                  if (calibStep === 1) {
-                    const cal: Calibration = { ...calibration, baseline: 0, calibratedAt: Date.now(), sensitivity: "medium" };
-                    saveCalibration(cal);
-                    setCalibration(cal);
-                    setCalibStep(2);
-                  }
-                }, 3000) && null}
-              </>
+              <CalibCapturingStep onComplete={() => {
+                const cal: Calibration = { ...calibration, baseline: 0, calibratedAt: Date.now(), sensitivity: "medium" };
+                saveCalibration(cal);
+                setCalibration(cal);
+                setCalibStep(2);
+              }} />
             )}
             {calibStep === 2 && (
               <>
