@@ -36,18 +36,14 @@ export function ScheduleCard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--accent)" }} aria-hidden="true" />
-          <h2
-            className="text-[13px] font-semibold tracking-wide"
-            style={{ fontFamily: "'Noto Serif SC', Georgia, serif", color: "var(--text-primary)" }}
-          >
+          <span className="w-1.5 h-1.5 rounded-full bg-primary" aria-hidden="true" />
+          <h2 className="text-[13px] font-semibold tracking-wide font-display text-foreground">
             今日课表
           </h2>
         </div>
         <Link
           href="/schedule"
-          className="text-[11px] tracking-wide transition-colors hover:opacity-70"
-          style={{ color: "var(--accent)" }}
+          className="text-[11px] tracking-wide text-primary hover:opacity-70 transition-opacity"
           aria-label="查看完整课表"
         >
           查看全部 →
@@ -68,7 +64,7 @@ export function ScheduleCard() {
         <ErrorFallback message={error.message} onRetry={() => refetch()} />
       )}
 
-      {/* Content — deferred to avoid hydration mismatch from client-side Date */}
+      {/* Content */}
       {mounted && schedule && !isLoading && !error && (() => {
         const tz = schedule.meta.tz || "Asia/Shanghai";
         const today = getNowInTimeZone(tz);
@@ -78,7 +74,7 @@ export function ScheduleCard() {
           return (
             <div className="py-2 flex items-center gap-2">
               <span className="text-base" aria-hidden="true">🎉</span>
-              <p className="text-[13px]" style={{ color: "var(--text-tertiary)" }}>今天没有课，好好休息</p>
+              <p className="text-[13px] text-muted-foreground">今天没有课，好好休息</p>
             </div>
           );
         }
@@ -101,7 +97,7 @@ export function ScheduleCard() {
                     {item.title}
                   </span>
                   {item.timeText && (
-                    <span className="text-[11px] shrink-0 tabular-nums" style={{ color: "var(--text-muted)" }}>
+                    <span className="text-[11px] shrink-0 tabular-nums text-muted-foreground">
                       {item.timeText}
                     </span>
                   )}
@@ -109,7 +105,7 @@ export function ScheduleCard() {
               );
             })}
             {items.length > 4 && (
-              <p className="text-[11px] text-center pt-0.5" style={{ color: "var(--text-muted)" }}>
+              <p className="text-[11px] text-center pt-0.5 text-muted-foreground">
                 还有 {items.length - 4} 门课 …
               </p>
             )}
