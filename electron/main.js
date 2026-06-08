@@ -285,6 +285,14 @@ ipcMain.handle('brow-monitor:start', async () => {
   browMonitorProcess.stdout?.on('data', d => {
     const line = d.toString().trim();
     if (line) console.log('[BrowMonitor]', line);
+    // 检测ALERT行，转发到宠物窗口（IPC比HTTP轮询更快）
+    if (line.includes('[BrowMonitor] ALERT:')) {
+      const match = line.match(/评分\s+(\d+)/);
+      const score = match ? parseInt(match[1]) : 50;
+      if (petWindow && !petWindow.isDestroyed()) {
+        petWindow.webContents.send('brow-alert', { score });
+      }
+    }
   });
   browMonitorProcess.stderr?.on('data', d => {
     const line = d.toString().trim();
