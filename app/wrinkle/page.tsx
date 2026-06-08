@@ -452,6 +452,11 @@ export default function WrinklePage() {
               )}
             </div>
 
+            {/* ── 隐私说明 ── */}
+            <p className="text-[9px] text-muted-foreground text-center leading-relaxed">
+              所有数据本地处理，不上传云端 · 历史仅存本机 · 可随时清除
+            </p>
+
             {/* ── 离线提示 ── */}
             {apiStatus === "offline" && (
               <div className="px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-center">
