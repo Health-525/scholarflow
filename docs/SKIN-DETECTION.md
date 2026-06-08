@@ -153,8 +153,26 @@ brow_monitor_daemon.py 检测到抬眉
 ### GET /health
 
 ```json
-{ "status": "ok", "detector_loaded": true }
+{ "status": "ok", "detector_loaded": true, "segmenter_loaded": true, "skinage_loaded": false }
 ```
+
+### 模型优先级链
+
+```
+SegFormer ONNX (最快，~50ms)     ← 首选
+  ↓ 不可用时
+SegFormer PyTorch (~200ms)       ← 次选
+  ↓ 不可用时
+SkinAge EfficientNet-B2 (~300ms) ← 第三选
+  ↓ 不可用时
+传统 CV Laplacian+Sobel (~10ms)  ← 兜底
+```
+
+| 模型 | 评分含义 | 典型范围 | 数据来源 |
+|------|---------|---------|---------|
+| SegFormer | 额头皱纹像素占比×100 | 0~15% | HuggingFace真标注训练 |
+| SkinAge | 伪标签皱纹分数(取反) | 30~70 | UTKFace+伪标签 |
+| CV | Laplacian方差+Sobel梯度 | 0~100 | 无训练 |
 
 ### WebSocket /ws/realtime
 
