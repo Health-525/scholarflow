@@ -304,7 +304,10 @@ export default function WrinklePage() {
 
   // ── 衍生数据 ──
   const score = rtData?.face_detected ? rtData.wrinkle_score : 0;
-  const R = 26, C = 2 * Math.PI * R, dashOff = C - (score / 100) * C;
+  // 根据模型调整显示比例: SegFormer(0~15%)需要放大, 其他(0~100)正常
+  const displayMax = apiMethodInfo.includes("SegFormer") ? 15 : 100;
+  const normalizedScore = Math.min(100, (score / displayMax) * 100);
+  const R = 26, C = 2 * Math.PI * R, dashOff = C - (normalizedScore / 100) * C;
   const sev = rtData ? (SEVERITY[rtData.severity] || { label: rtData.severity, color: "text-muted-foreground", ring: "#a1a1aa" }) : SEVERITY.no_face;
   const avgScore = scoreHistory.length > 0 ? scoreHistory.reduce((a, b) => a + b, 0) / scoreHistory.length : 0;
 
@@ -505,7 +508,7 @@ export default function WrinklePage() {
                 <circle cx="30" cy="30" r={R} fill="none" stroke={sev.ring} strokeWidth="3.5" strokeLinecap="round"
                   strokeDasharray={C} strokeDashoffset={dashOff} style={{ transition: "stroke-dashoffset 0.3s, stroke 0.3s" }} />
               </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-[13px] font-bold text-white tabular-nums">{score.toFixed(0)}</span>
+              <span className="absolute inset-0 flex items-center justify-center text-[13px] font-bold text-white tabular-nums">{normalizedScore.toFixed(0)}</span>
             </div>
             <div>
               <p className={`text-[12px] font-semibold ${sev.color}`}>{sev.label}</p>
