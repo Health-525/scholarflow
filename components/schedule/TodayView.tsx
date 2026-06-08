@@ -90,7 +90,7 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
                 key={idx}
                 type="button"
                 onClick={() => setSelectedItem(item)}
-                className="w-full text-left rounded-xl p-4 transition-all active:scale-[0.98] hover:shadow-sm"
+                className={`w-full text-left rounded-xl p-4 transition-all active:scale-[0.98] hover:shadow-sm animate-fade-up stagger-${Math.min(idx + 1, 7)}`}
                 style={{
                   backgroundColor: colors.bg,
                   border: `1px solid ${colors.border}`,
