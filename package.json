@@ -136,7 +136,7 @@
     "autoprefixer": "^10.4.20",
     "concurrently": "^10.0.3",
     "electron": "^42.3.3",
-    "electron-builder": "^26.8.1",
+    "electron-builder": "^26.15.2",
     "eslint": "^8",
     "eslint-config-next": "^15.0.0",
     "fake-indexeddb": "^6.2.5",
