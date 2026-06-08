@@ -165,21 +165,39 @@ ipcRenderer.on('brow-alert', (_event, data) => {
 
 // Poll alerts via Node.js http (file:// 协议下 fetch 不可靠)
 const http = require('http');
+let pollInterval = 3000;
+let failCount = 0;
+let pollTimer = null;
+
 function checkAlert() {
   const req = http.get('http://localhost:3000/api/wrinkle-alert', (res) => {
     let data = '';
     res.on('data', chunk => data += chunk);
     res.on('end', () => {
+      failCount = 0;
+      pollInterval = 3000;
       try {
         const obj = JSON.parse(data);
         if (obj.rising) setAngry(obj.score || 50);
       } catch {}
+      scheduleNext();
     });
   });
-  req.on('error', () => {});
+  req.on('error', () => {
+    failCount++;
+    // 连续失败时逐步降低频率：3s → 6s → 10s → 30s
+    pollInterval = Math.min(30000, 3000 * Math.pow(2, Math.min(failCount, 3)));
+    scheduleNext();
+  });
   req.setTimeout(2000, () => req.destroy());
 }
-setInterval(checkAlert, 3000);
+
+function scheduleNext() {
+  if (pollTimer) clearTimeout(pollTimer);
+  pollTimer = setTimeout(checkAlert, pollInterval);
+}
+
+checkAlert();
 
 // Right-click to close
 document.addEventListener('contextmenu', () => {

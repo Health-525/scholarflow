@@ -150,6 +150,7 @@ function CalibCapturingStep({ onComplete }: { onComplete: () => void }) {
 export default function WrinklePage() {
   const [viewState, setViewState] = useState<ViewState>("monitor");
   const [apiStatus, setApiStatus] = useState<"checking" | "online" | "offline">("checking");
+  const [apiMethodInfo, setApiMethodInfo] = useState<string>("");
   const [daemonRunning, setDaemonRunning] = useState(false);
   const [lastAlert, setLastAlert] = useState<BrowEvent | null>(null);
   const [history, setHistory] = useState<DayRecord[]>([]);
@@ -185,7 +186,11 @@ export default function WrinklePage() {
     try {
       const res = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(3000) });
       const d = await res.json();
+      const d = await res.json();
       setApiStatus(d.detector_loaded || d.skinage_loaded || d.segmenter_loaded || d.skin_analyzer_loaded ? "online" : "offline");
+      if (d.segmenter_loaded) setApiMethodInfo("SegFormer 像素分割");
+      else if (d.skinage_loaded) setApiMethodInfo("SkinAge 深度学习");
+      else setApiMethodInfo("传统CV");
     } catch { setApiStatus("offline"); }
   }, []);
 
@@ -324,6 +329,7 @@ export default function WrinklePage() {
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${daemonRunning ? "bg-emerald-500/15 text-emerald-500" : "bg-rose-500/15 text-rose-500"}`}>
                 {daemonRunning ? "运行中" : "未启动"}
               </span>
+              {apiMethodInfo && <span className="text-[9px] text-muted-foreground">{apiMethodInfo}</span>}
             </div>
             <button onClick={startDaemon} disabled={daemonRunning}
               className="text-[11px] font-medium px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground transition-all">
