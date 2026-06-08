@@ -39,47 +39,46 @@ export function QueryView({ schedule, adjustments }: QueryViewProps) {
 
   return (
     <div className="space-y-4">
-      <div>
+      {/* Date input */}
+      <div className="rounded-2xl p-4 bg-card border border-border">
         <label
           htmlFor="query-date"
-          className="block text-sm font-medium mb-1.5"
-          style={{ color: "var(--text-secondary)" }}
+          className="block text-xs font-medium text-muted-foreground mb-2"
         >
-          查询日期
+          选择日期
         </label>
         <input
           id="query-date"
           type="date"
           value={inputDate}
           onChange={(e) => handleChange(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-          style={{
-            backgroundColor: "var(--surface-elevated)",
-            border: "1px solid var(--border)",
-            color: "var(--text-primary)",
-          }}
+          className="w-full px-4 py-2.5 rounded-xl text-sm outline-none bg-secondary border border-border text-foreground focus:border-primary/30 focus:ring-1 focus:ring-primary/20 transition-all"
           aria-label="选择查询日期"
         />
       </div>
 
+      {/* Results */}
       {result && (
         <div>
-          <div className="text-xs mb-3" style={{ color: "var(--text-tertiary)" }}>
-            {result.date.toLocaleDateString("zh-CN", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              weekday: "long",
-            })}
-            （第 {result.weekNum} 周）
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xs font-medium text-foreground">
+              {result.date.toLocaleDateString("zh-CN", {
+                month: "long",
+                day: "numeric",
+                weekday: "short",
+              })}
+            </span>
+            <span className="sf-chip sf-chip-accent">
+              第 {result.weekNum} 周
+            </span>
           </div>
 
           {result.items.length === 0 ? (
-            <div
-              className="rounded-2xl p-5 text-center"
-              style={{ backgroundColor: "var(--surface-elevated)", border: "1px solid var(--border)" }}
-            >
-              <p style={{ color: "var(--text-tertiary)" }}>该日无课程</p>
+            <div className="rounded-2xl p-6 text-center bg-card border border-border">
+              <div className="w-12 h-12 mx-auto rounded-xl bg-muted flex items-center justify-center mb-3">
+                <span className="text-xl">📭</span>
+              </div>
+              <p className="text-sm text-foreground font-medium">该日无课程</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -90,19 +89,29 @@ export function QueryView({ schedule, adjustments }: QueryViewProps) {
                     key={idx}
                     type="button"
                     onClick={() => setSelectedItem(item)}
-                    className="w-full text-left rounded-2xl p-4"
+                    className="w-full text-left rounded-xl p-4 transition-all active:scale-[0.98] hover:shadow-sm"
                     style={{ backgroundColor: colors.bg, border: `1px solid ${colors.border}` }}
                     aria-label={`查看 ${item.title} 详情`}
                   >
-                    <div className="font-semibold text-sm" style={{ color: colors.accent }}>
-                      {item.title}
-                    </div>
-                    {item.timeText && (
-                      <div className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                        {item.timeText}
-                        {item.location && ` · ${item.location}`}
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="w-1 h-8 rounded-full flex-shrink-0 mt-0.5"
+                        style={{ backgroundColor: colors.accent }}
+                      />
+                      <div>
+                        <div className="font-semibold text-sm" style={{ color: colors.accent }}>
+                          {item.title}
+                        </div>
+                        {item.timeText && (
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {item.timeText}
+                            {item.location && (
+                              <span className="ml-1.5 opacity-70">· {item.location}</span>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </button>
                 );
               })}

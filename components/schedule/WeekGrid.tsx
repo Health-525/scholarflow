@@ -38,63 +38,70 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
 
   return (
     <div>
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-1.5">
         {weekDays.map((day, idx) => {
           const { items } = getAdjustedItemsForDate(schedule, day, adjustments);
           const isToday = normalizeDate(day).getTime() === today.getTime();
+          const isWeekend = idx >= 5;
           const dateNum = day.getDate();
 
           return (
-            <div key={idx} className="flex flex-col gap-1">
+            <div key={idx} className="flex flex-col gap-1.5">
               {/* Day header */}
-              <div className="text-center pb-1" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                <div className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>
+              <div className="text-center pb-2 border-b border-border">
+                <div className={`text-[10px] font-medium ${isWeekend ? "text-amber-500/60" : "text-muted-foreground"}`}>
                   {WEEKDAY_LABELS[idx]}
                 </div>
                 <div
-                  className={`text-xs font-medium mx-auto w-5 h-5 flex items-center justify-center rounded-full`}
-                  style={{
-                    backgroundColor: isToday ? "var(--accent)" : "transparent",
-                    color: isToday ? "#fff" : "var(--text-primary)",
-                  }}
+                  className={`text-xs font-semibold mx-auto w-6 h-6 flex items-center justify-center rounded-full transition-all ${
+                    isToday
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-foreground"
+                  }`}
                 >
                   {dateNum}
                 </div>
               </div>
 
               {/* Course blocks */}
-              <div className="space-y-1 min-h-[60px]">
-                {items.map((item, i) => {
-                  const colors = courseColor(item.title);
-                  return (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => {
-                        setSelectedItem(item);
-                        setSelectedDate(day);
-                      }}
-                      className="w-full rounded-lg p-1 text-left"
-                      style={{
-                        backgroundColor: colors.bg,
-                        border: `1px solid ${colors.border}`,
-                      }}
-                      aria-label={`${item.title} ${item.timeText || ""}`}
-                    >
-                      <div
-                        className="text-[9px] font-medium line-clamp-2 leading-tight"
-                        style={{ color: colors.accent }}
+              <div className="space-y-1 min-h-[80px]">
+                {items.length === 0 ? (
+                  <div className="h-full flex items-center justify-center">
+                    <span className="text-[10px] text-muted-foreground/40">—</span>
+                  </div>
+                ) : (
+                  items.map((item, i) => {
+                    const colors = courseColor(item.title);
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          setSelectedItem(item);
+                          setSelectedDate(day);
+                        }}
+                        className="w-full rounded-lg px-1.5 py-1.5 text-left transition-all active:scale-[0.96]"
+                        style={{
+                          backgroundColor: colors.bg,
+                          border: `1px solid ${colors.border}`,
+                        }}
+                        aria-label={`${item.title} ${item.timeText || ""}`}
                       >
-                        {item.title}
-                      </div>
-                      {item.timeText && (
-                        <div className="text-[8px] mt-0.5" style={{ color: "var(--text-tertiary)" }}>
-                          {item.timeText.split("-")[0]}
+                        <div
+                          className="text-[9px] font-semibold line-clamp-2 leading-tight"
+                          style={{ color: colors.accent }}
+                        >
+                          {item.title}
                         </div>
-                      )}
-                    </button>
-                  );
-                })}
+                        {item.timeText && (
+                          <div className="text-[8px] text-muted-foreground mt-0.5">
+                            {item.timeText.split("-")[0]}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })
+                )}
               </div>
             </div>
           );
