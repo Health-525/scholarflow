@@ -138,7 +138,7 @@
     "electron": "^42.3.3",
     "electron-builder": "^26.8.1",
     "eslint": "^8",
-    "eslint-config-next": "^15.0.0",
+    "eslint-config-next": "^16.2.7",
     "fake-indexeddb": "^6.2.5",
     "fast-check": "^3.22.0",
     "jsdom": "^29.1.1",
