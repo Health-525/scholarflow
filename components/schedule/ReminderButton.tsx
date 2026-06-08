@@ -55,7 +55,7 @@ export function ReminderButton({ courseKey, courseTitle, location, startAt }: Re
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
+      <span className="text-xs text-muted-foreground">
         提前提醒：
       </span>
       {options.map((m) => (
@@ -63,12 +63,11 @@ export function ReminderButton({ courseKey, courseTitle, location, startAt }: Re
           key={m}
           type="button"
           onClick={() => handleSelect(m)}
-          className="px-3 py-1 rounded-full text-xs font-medium transition-all"
-          style={{
-            backgroundColor:
-              activeMinutes === m ? "var(--accent)" : "var(--border)",
-            color: activeMinutes === m ? "#fff" : "var(--text-secondary)",
-          }}
+          className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+            activeMinutes === m
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "bg-secondary text-muted-foreground hover:text-foreground"
+          }`}
           aria-pressed={activeMinutes === m}
           aria-label={`提前 ${m} 分钟提醒`}
         >
