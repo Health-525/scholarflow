@@ -99,51 +99,53 @@ export default function ExamsPage() {
   const upcoming = exams.filter(e => new Date(e.date + "T23:59:59").getTime() > Date.now());
 
   return (
-    <div className="pb-24 md:pb-0 max-w-2xl mx-auto">
-      <div className="mb-6 py-4">
-        <h1 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>考试倒计时</h1>
-        <p className="text-[12px]" style={{ color: "var(--text-tertiary)" }}>{upcoming.length} 场考试待考</p>
+    <div className="min-h-screen bg-background text-foreground -mx-4 md:-mx-8 lg:-mx-10">
+      <div className="px-5 pt-5 pb-3">
+        <h1 className="text-lg font-bold font-display">考试倒计时</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">{upcoming.length} 场考试待考</p>
       </div>
 
-      {/* Add */}
-      <div className="rounded-2xl p-4 mb-4" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface-card)" }}>
-        <div className="flex items-center gap-2 flex-wrap">
-          <input value={subject} onChange={e => setSubject(e.target.value)} onKeyDown={e => e.key === "Enter" && add()} placeholder="科目" className="flex-1 min-w-[100px] px-3 py-2.5 rounded-xl text-[13px] outline-none" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
-          <input value={date} onChange={e => setDate(e.target.value)} type="date" className="px-3 py-2.5 rounded-xl text-[13px] outline-none" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
-          <input value={time} onChange={e => setTime(e.target.value)} type="time" className="w-20 px-3 py-2.5 rounded-xl text-[13px] outline-none" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
-          <button onClick={add} className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: "var(--accent)", color: "#fff" }}>
-            <Plus className="w-5 h-5" />
-          </button>
+      <div className="px-5 pb-6">
+        {/* Add form */}
+        <div className="rounded-2xl p-4 mb-4 bg-card border border-border">
+          <div className="flex items-center gap-2 flex-wrap">
+            <input value={subject} onChange={e => setSubject(e.target.value)} onKeyDown={e => e.key === "Enter" && add()} placeholder="科目" className="flex-1 min-w-[100px] px-3 py-2.5 rounded-xl text-[13px] outline-none bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:border-primary/30" />
+            <input value={date} onChange={e => setDate(e.target.value)} type="date" className="px-3 py-2.5 rounded-xl text-[13px] outline-none bg-secondary border border-border text-foreground focus:border-primary/30" />
+            <input value={time} onChange={e => setTime(e.target.value)} type="time" className="w-20 px-3 py-2.5 rounded-xl text-[13px] outline-none bg-secondary border border-border text-foreground focus:border-primary/30" />
+            <button onClick={add} className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-primary text-primary-foreground">
+              <Plus className="w-5 h-5" />
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Exam list */}
-      <div className="space-y-2">
-        {exams.map(e => {
-          const cd = formatCountdown(e.date);
-          return (
-            <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ border: "1px solid var(--border-subtle)", backgroundColor: "var(--surface-card)" }}>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0`} style={{ backgroundColor: cd.urgent ? "rgba(239,68,68,0.1)" : "var(--accent-soft)" }}>
-                <Clock className="w-4 h-4" style={{ color: cd.urgent ? "#ef4444" : "var(--accent)" }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[13px] font-medium" style={{ color: "var(--text-primary)" }}>{e.subject}</div>
-                <div className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>
-                  {e.date} {e.time || ""} {e.location || ""}
+        {/* Exam list */}
+        <div className="space-y-2">
+          {exams.map(e => {
+            const cd = formatCountdown(e.date);
+            return (
+              <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cd.urgent ? "bg-rose-500/10" : "bg-primary/10"}`}>
+                  <Clock className={`w-4 h-4 ${cd.urgent ? "text-rose-500" : "text-primary"}`} />
                 </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-medium text-foreground">{e.subject}</div>
+                  <div className="text-[10px] text-muted-foreground">
+                    {e.date} {e.time || ""} {e.location || ""}
+                  </div>
+                </div>
+                <div className={`text-[12px] font-bold tabular-nums shrink-0 ${cd.urgent ? "text-rose-500" : "text-muted-foreground"}`}>
+                  {cd.text}
+                </div>
+                <button onClick={() => del(e.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 transition-colors">
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
-              <div className={`text-[12px] font-bold tabular-nums shrink-0`} style={{ color: cd.urgent ? "#ef4444" : "var(--text-secondary)" }}>
-                {cd.text}
-              </div>
-              <button onClick={() => del(e.id)} className="p-1.5 rounded-lg" style={{ color: "var(--text-muted)" }}>
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          );
-        })}
-        {exams.length === 0 && (
-          <p className="text-center text-[12px] py-8" style={{ color: "var(--text-tertiary)" }}>添加考试日期，自动倒计时</p>
-        )}
+            );
+          })}
+          {exams.length === 0 && (
+            <p className="text-center text-xs text-muted-foreground py-8">添加考试日期，自动倒计时</p>
+          )}
+        </div>
       </div>
     </div>
   );
