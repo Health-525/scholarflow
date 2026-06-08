@@ -31,6 +31,34 @@ interface DayRecord {
 }
 
 const STORAGE_KEY = "sf-wrinkle-history";
+const CALIB_KEY = "sf-wrinkle-calibration";
+
+interface Calibration {
+  baseline: number;       // 静息皱纹基线
+  riseThreshold: number;  // 抬眉阈值
+  sensitivity: "low" | "medium" | "high";
+  cooldown: number;       // 冷却秒数
+  calibratedAt: number;   // 校准时间戳
+}
+
+const DEFAULT_CALIBRATION: Calibration = {
+  baseline: 0,
+  riseThreshold: 1.25,
+  sensitivity: "medium",
+  cooldown: 20,
+  calibratedAt: 0,
+};
+
+function loadCalibration(): Calibration {
+  try {
+    const raw = localStorage.getItem(CALIB_KEY);
+    return raw ? { ...DEFAULT_CALIBRATION, ...JSON.parse(raw) } : DEFAULT_CALIBRATION;
+  } catch { return DEFAULT_CALIBRATION; }
+}
+
+function saveCalibration(cal: Calibration) {
+  localStorage.setItem(CALIB_KEY, JSON.stringify(cal));
+}
 
 function loadHistory(): DayRecord[] {
   try {
@@ -91,6 +119,10 @@ export default function WrinklePage() {
   const [daemonRunning, setDaemonRunning] = useState(false);
   const [lastAlert, setLastAlert] = useState<BrowEvent | null>(null);
   const [history, setHistory] = useState<DayRecord[]>([]);
+  const [calibration, setCalibration] = useState<Calibration>(DEFAULT_CALIBRATION);
+  const [showCalibration, setShowCalibration] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [calibStep, setCalibStep] = useState(0); // 0=idle, 1=capturing, 2=done
 
   // Preview state
   const [rtData, setRtData] = useState<RealtimeData | null>(null);
@@ -105,8 +137,14 @@ export default function WrinklePage() {
   const isElectron = typeof window !== "undefined" && !!window.electronAPI?.isElectron;
   const ea = isElectron ? window.electronAPI : null;
 
-  // ── 加载历史 ──
-  useEffect(() => { setHistory(loadHistory()); }, []);
+  // ── 加载历史 + 校准 ──
+  useEffect(() => {
+    setHistory(loadHistory());
+    const cal = loadCalibration();
+    setCalibration(cal);
+    // 首次使用（未校准过）自动弹出校准引导
+    if (cal.calibratedAt === 0) setShowCalibration(true);
+  }, []);
 
   // ── API ──
   const checkApi = useCallback(async () => {
@@ -256,6 +294,13 @@ export default function WrinklePage() {
             <button onClick={startDaemon} disabled={daemonRunning}
               className="text-[11px] font-medium px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground transition-all">
               {daemonRunning ? "已启动" : "启动监控"}
+            </button>
+            <button onClick={() => setShowSettings(true)}
+              className="ml-1 p-1.5 rounded-lg hover:bg-secondary transition-colors" title="设置">
+              <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
             </button>
           </div>
 
@@ -452,6 +497,131 @@ export default function WrinklePage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ══════ 设置面板 ══════ */}
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setShowSettings(false)}>
+          <div className="bg-card rounded-2xl border border-border shadow-lg w-80 p-5 space-y-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold">监控设置</h2>
+              <button onClick={() => setShowSettings(false)} className="text-muted-foreground hover:text-foreground">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            {/* 灵敏度 */}
+            <div>
+              <label className="text-xs text-muted-foreground">灵敏度</label>
+              <div className="flex gap-2 mt-1">
+                {(["low", "medium", "high"] as const).map(s => (
+                  <button key={s} onClick={() => { const c = { ...calibration, sensitivity: s }; setCalibration(c); saveCalibration(c); }}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all ${calibration.sensitivity === s ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}>
+                    {{ low: "低", medium: "中", high: "高" }[s]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 冷却时间 */}
+            <div>
+              <label className="text-xs text-muted-foreground">提醒冷却</label>
+              <div className="flex gap-2 mt-1">
+                {[15, 20, 30, 60].map(t => (
+                  <button key={t} onClick={() => { const c = { ...calibration, cooldown: t }; setCalibration(c); saveCalibration(c); }}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all ${calibration.cooldown === t ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}>
+                    {t}s
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 校准 */}
+            <div>
+              <label className="text-xs text-muted-foreground">基线校准</label>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {calibration.calibratedAt > 0
+                  ? `上次校准: ${new Date(calibration.calibratedAt).toLocaleDateString("zh-CN")}`
+                  : "未校准 — 建议首次使用前校准"}
+              </p>
+              <button onClick={() => { setShowSettings(false); setShowCalibration(true); setCalibStep(0); }}
+                className="w-full mt-2 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-medium text-secondary-foreground transition-all">
+                重新校准
+              </button>
+            </div>
+
+            {/* 清除数据 */}
+            <button onClick={() => { if (confirm("清除所有检测历史？")) { localStorage.removeItem(STORAGE_KEY); setHistory([]); } }}
+              className="w-full py-2 text-xs text-muted-foreground hover:text-rose-500 transition-colors">
+              清除历史数据
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ══════ 校准引导 ══════ */}
+      {showCalibration && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-card rounded-2xl border border-border shadow-lg w-80 p-6 text-center space-y-4">
+            {calibStep === 0 && (
+              <>
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <span className="text-2xl">🐒</span>
+                </div>
+                <h2 className="text-base font-semibold">首次校准</h2>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  校准帮助小猴子了解你的表情基线，<br/>
+                  减少误报。整个过程只需5秒。
+                </p>
+                <button onClick={() => setCalibStep(1)}
+                  className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all">
+                  开始校准
+                </button>
+                <button onClick={() => { setShowCalibration(false); saveCalibration({ ...calibration, calibratedAt: Date.now() }); }}
+                  className="w-full py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  跳过
+                </button>
+              </>
+            )}
+            {calibStep === 1 && (
+              <>
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 flex items-center justify-center">
+                  <span className="text-2xl">😌</span>
+                </div>
+                <h2 className="text-base font-semibold">保持自然表情</h2>
+                <p className="text-xs text-muted-foreground">请正对摄像头，保持放松，不要抬眉</p>
+                <div className="w-full bg-secondary rounded-full h-2">
+                  <div className="bg-primary rounded-full h-2 animate-pulse" style={{ width: "100%", animation: "pulse 1s infinite" }} />
+                </div>
+                <p className="text-[10px] text-muted-foreground">正在采集基线...</p>
+                {/* 自动5秒后完成 */}
+                {setTimeout(() => {
+                  if (calibStep === 1) {
+                    const cal: Calibration = { ...calibration, baseline: 0, calibratedAt: Date.now(), sensitivity: "medium" };
+                    saveCalibration(cal);
+                    setCalibration(cal);
+                    setCalibStep(2);
+                  }
+                }, 3000) && null}
+              </>
+            )}
+            {calibStep === 2 && (
+              <>
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+                  <span className="text-2xl">✅</span>
+                </div>
+                <h2 className="text-base font-semibold">校准完成！</h2>
+                <p className="text-xs text-muted-foreground">
+                  小猴子已了解你的表情基线，<br/>会减少误报，更精准提醒。
+                </p>
+                <button onClick={() => { setShowCalibration(false); startDaemon(); }}
+                  className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all">
+                  开始监控
+                </button>
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>
