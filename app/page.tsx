@@ -52,20 +52,10 @@ export default function DashboardPage() {
       <header className="mb-6 animate-fade-up">
         <div className="flex items-center gap-3">
           <div>
-            <h1
-              className="text-[22px] font-semibold leading-tight"
-              style={{
-                fontFamily: "'Noto Serif SC', Georgia, serif",
-                color: "var(--text-primary)",
-                letterSpacing: "-0.01em",
-              }}
-            >
+            <h1 className="text-[22px] font-semibold leading-tight font-display text-foreground">
               {greeting}
             </h1>
-            <p
-              className="text-[12px] mt-1 tracking-wide"
-              style={{ color: "var(--text-tertiary)" }}
-            >
+            <p className="text-xs mt-1 tracking-wide text-muted-foreground">
               {dateStr}
             </p>
           </div>
@@ -74,15 +64,14 @@ export default function DashboardPage() {
           </span>
         </div>
         {/* Decorative line */}
-        <div className="mt-4 h-px" style={{ background: "linear-gradient(90deg, var(--accent) 0%, var(--border) 40%, transparent 100%)", opacity: 0.5 }} />
+        <div className="mt-4 h-px bg-gradient-to-r from-primary/40 via-border to-transparent" />
       </header>
 
-      {/* ── Summary Stats (2×2 on mobile, 4-col on sm+) ── */}
+      {/* ── Summary Stats ── */}
       <SummaryBanner />
 
       {/* ── Main Cards ── */}
       <div className="space-y-4 mb-6">
-        {/* 今日课表 + 待办作业：并排 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="animate-fade-up stagger-1">
             <ScheduleCard />
@@ -92,7 +81,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* 绩点 + 跑步 + 考试：三列 */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="animate-fade-up stagger-3">
             <GPACard />
@@ -105,7 +93,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* 日报 + 屏幕时间：并排 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="animate-fade-up stagger-6">
             <RecentDailyCard />
@@ -116,10 +103,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── 数据可视化 ── */}
+      {/* ── Data Visualization ── */}
       <StatsDashboard />
 
-      {/* ── 教务新闻 ── */}
+      {/* ── News ── */}
       <div className="animate-fade-up">
         <JwcNewsCard />
       </div>
