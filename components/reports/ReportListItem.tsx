@@ -9,7 +9,6 @@ interface ReportListItemProps {
 }
 
 function formatDailyLabel(filename: string): string {
-  // filename: "YYYY-MM-DD.md"
   const date = filename.replace(".md", "");
   try {
     return new Date(date).toLocaleDateString("zh-CN", {
@@ -24,7 +23,6 @@ function formatDailyLabel(filename: string): string {
 }
 
 function formatWeeklyLabel(filename: string): string {
-  // filename: "YYYY-MM-DD_YYYY-MM-DD.md" or similar
   const slug = filename.replace(".md", "");
   const parts = slug.split("_");
   if (parts.length >= 2) {
@@ -47,22 +45,18 @@ export function ReportListItem({ entry, type }: ReportListItemProps) {
   return (
     <Link
       href={href}
-      className="flex items-center justify-between px-4 py-3 rounded-2xl transition-opacity active:opacity-70"
-      style={{
-        backgroundColor: "var(--surface-elevated)",
-        border: "1px solid var(--border)",
-      }}
+      className="flex items-center justify-between px-4 py-3 rounded-2xl transition-opacity active:opacity-70 bg-card border border-border"
       aria-label={`查看${type === "daily" ? "日报" : "周报"}：${label}`}
     >
       <div>
-        <div className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+        <div className="text-sm font-medium text-foreground">
           {label}
         </div>
-        <div className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
+        <div className="text-xs mt-0.5 text-muted-foreground">
           {type === "daily" ? "📄 日报" : "📋 周报"}
         </div>
       </div>
-      <span style={{ color: "var(--text-tertiary)" }} aria-hidden="true">
+      <span className="text-muted-foreground" aria-hidden="true">
         ›
       </span>
     </Link>

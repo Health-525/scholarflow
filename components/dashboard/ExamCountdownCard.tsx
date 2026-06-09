@@ -7,9 +7,9 @@ import Link from "next/link";
 interface Exam { id: string; subject: string; date: string; time?: string; location?: string; }
 
 interface JWGLExamRaw {
-  kcmc?: string;   // 课程名
-  kssj?: string;   // 考试时间 "2026-06-15(09:00-11:00)"
-  jxdd?: string;   // 考试地点
+  kcmc?: string;
+  kssj?: string;
+  jxdd?: string;
   date?: string;
   subject?: string;
   location?: string;
@@ -51,7 +51,7 @@ export function ExamCountdownCard() {
         }
       } catch {}
 
-      // 备用localStorage
+      // Fallback: localStorage
       try {
         const raw = localStorage.getItem("sf_exams");
         if (!raw) { setLoading(false); return; }
@@ -77,12 +77,12 @@ export function ExamCountdownCard() {
   );
 
   return (
-    <Link href="/exams" className="block sf-card p-4 animate-fade-up" style={{ display: "block" }}>
+    <Link href="/exams" className="block sf-card p-4 animate-fade-up">
       <div className="flex items-center gap-3 mb-2">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: urgent ? "rgba(239,68,68,0.1)" : "var(--accent-soft)" }}>
-          <Clock className="w-4 h-4" style={{ color: urgent ? "#ef4444" : "var(--accent)" }} />
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${urgent ? "bg-red-500/10" : "bg-primary/10"}`}>
+          <Clock className={`w-4 h-4 ${urgent ? "text-red-500" : "text-primary"}`} />
         </div>
-        <span className="text-[12px] font-semibold" style={{ color: "var(--text-primary)" }}>考试</span>
+        <span className="text-[12px] font-semibold text-foreground">考试</span>
       </div>
       {loading ? (
         <div className="space-y-2">
@@ -91,14 +91,14 @@ export function ExamCountdownCard() {
         </div>
       ) : nextExam ? (
         <>
-          <div className="text-[14px] font-bold truncate" style={{ color: "var(--text-primary)" }}>{nextExam.subject}</div>
+          <div className="text-[14px] font-bold truncate text-foreground">{nextExam.subject}</div>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-[20px] font-bold tabular-nums" style={{ color: urgent ? "#ef4444" : "var(--accent)" }}>{countdown}</span>
-            <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>{nextExam.date}</span>
+            <span className={`text-[20px] font-bold tabular-nums ${urgent ? "text-red-500" : "text-primary"}`}>{countdown}</span>
+            <span className="text-[10px] text-muted-foreground">{nextExam.date}</span>
           </div>
         </>
       ) : (
-        <div className="text-[13px]" style={{ color: "var(--text-tertiary)" }}>暂无考试</div>
+        <div className="text-[13px] text-muted-foreground">暂无考试</div>
       )}
     </Link>
   );

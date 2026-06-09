@@ -36,10 +36,7 @@ export function NoteViewer({ content, isMarkdown }: NoteViewerProps) {
   if (!isMarkdown) {
     return (
       <div className="px-5 py-4">
-        <pre
-          className="text-[12px] leading-relaxed whitespace-pre-wrap break-words"
-          style={{ color: "var(--text-secondary)", fontFamily: "ui-monospace, 'Cascadia Mono', monospace" }}
-        >
+        <pre className="text-[12px] leading-relaxed whitespace-pre-wrap break-words text-muted-foreground font-mono">
           {content}
         </pre>
       </div>
@@ -50,7 +47,7 @@ export function NoteViewer({ content, isMarkdown }: NoteViewerProps) {
     <div className="px-5 py-4">
       {rendering && (
         <div className="text-center py-8">
-          <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>渲染中...</p>
+          <p className="text-[11px] text-muted-foreground">渲染中...</p>
         </div>
       )}
       <div

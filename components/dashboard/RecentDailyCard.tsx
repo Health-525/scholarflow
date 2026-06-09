@@ -15,7 +15,6 @@ function formatDateLabel(dateStr: string): { main: string; sub: string } {
   }
 }
 
-// Is today or yesterday
 function recencyLabel(dateStr: string): string {
   try {
     const d = new Date(dateStr);
@@ -36,20 +35,10 @@ export function RecentDailyCard() {
     <div className="sf-card p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--text-tertiary)" }} aria-hidden="true" />
-          <h2
-            className="text-[13px] font-semibold tracking-wide"
-            style={{ fontFamily: "'Noto Serif SC', Georgia, serif", color: "var(--text-primary)" }}
-          >
-            最近日报
-          </h2>
+          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" aria-hidden="true" />
+          <h2 className="text-[13px] font-semibold tracking-wide font-display text-foreground">最近日报</h2>
         </div>
-        <Link
-          href="/reports/daily"
-          className="text-[11px] tracking-wide transition-colors hover:opacity-70"
-          style={{ color: "var(--accent)" }}
-          aria-label="查看全部日报"
-        >
+        <Link href="/reports/daily" className="text-[11px] tracking-wide transition-colors hover:opacity-70 text-primary" aria-label="查看全部日报">
           查看全部 →
         </Link>
       </div>
@@ -64,39 +53,23 @@ export function RecentDailyCard() {
 
       {!isLoading && !error && (
         recent.length === 0 ? (
-          <p className="text-[13px]" style={{ color: "var(--text-tertiary)" }}>暂无日报</p>
+          <p className="text-[13px] text-muted-foreground">暂无日报</p>
         ) : (
-          <div className="divide-y" style={{ borderColor: "var(--border-subtle)" }}>
+          <div className="divide-y divide-border">
             {recent.map((entry) => {
               const date = entry.name.replace(".md", "");
               const { main, sub } = formatDateLabel(date);
               const recency = recencyLabel(date);
 
               return (
-                <Link
-                  key={entry.path}
-                  href={`/reports/daily/${date}`}
-                  className="flex items-center justify-between gap-3 py-2 group"
-                  aria-label={`日报：${main} ${sub}`}
-                >
+                <Link key={entry.path} href={`/reports/daily/${date}`} className="flex items-center justify-between gap-3 py-2 group" aria-label={`日报：${main} ${sub}`}>
                   <div className="flex items-center gap-2.5 min-w-0">
-                    {/* Dot */}
-                    <span
-                      className="w-1 h-1 rounded-full shrink-0 transition-transform group-hover:scale-150"
-                      style={{ background: "var(--border-strong)" }}
-                      aria-hidden="true"
-                    />
-                    <span className="text-[12.5px]" style={{ color: "var(--text-primary)" }}>
-                      {main}
-                    </span>
-                    <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
-                      {sub}
-                    </span>
+                    <span className="w-1 h-1 rounded-full shrink-0 transition-transform group-hover:scale-150 bg-border" aria-hidden="true" />
+                    <span className="text-[12.5px] text-foreground">{main}</span>
+                    <span className="text-[11px] text-muted-foreground">{sub}</span>
                   </div>
                   {recency && (
-                    <span className="sf-chip sf-chip-accent shrink-0" style={{ fontSize: "10px" }}>
-                      {recency}
-                    </span>
+                    <span className="sf-chip sf-chip-accent text-[10px]">{recency}</span>
                   )}
                 </Link>
               );

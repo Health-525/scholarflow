@@ -26,10 +26,7 @@ function DirectoryView({ repoPath, parts }: { repoPath: string; parts: string[] 
 
   return (
     <div className="max-w-4xl mx-auto py-6 px-6 pb-24 md:pb-8">
-      <h1
-        className="text-xl font-semibold mb-5"
-        style={{ fontFamily: "'Noto Serif SC', Georgia, serif", color: "var(--text-primary)" }}
-      >
+      <h1 className="text-xl font-semibold mb-5 font-[serif] text-foreground">
         {dirName}
       </h1>
 
@@ -42,29 +39,27 @@ function DirectoryView({ repoPath, parts }: { repoPath: string; parts: string[] 
       {error && <ErrorFallback message={error.message} onRetry={reload} />}
 
       {!isLoading && !error && entries.length === 0 && (
-        <p className="text-[13px]" style={{ color: "var(--text-tertiary)" }}>此目录为空</p>
+        <p className="text-[13px] text-muted-foreground">此目录为空</p>
       )}
 
       {!isLoading && !error && entries.length > 0 && (
-        <div className="sf-card divide-y animate-fade-up" style={{ borderColor: "var(--border-subtle)" }}>
+        <div className="sf-card divide-y divide-border animate-fade-up">
           {entries.map((entry) => {
             const entryPath = [...parts, encodeURIComponent(entry.name)].join("/");
             return (
               <Link
                 key={entry.path}
                 href={`/notes/${entryPath}`}
-                className="flex items-center gap-3 px-4 py-3 group transition-colors hover:bg-[var(--accent-softer)] first:rounded-t-[calc(var(--radius-lg)-1px)] last:rounded-b-[calc(var(--radius-lg)-1px)]"
+                className="flex items-center gap-3 px-4 py-3 group transition-colors hover:bg-accent/5 first:rounded-t-[calc(var(--radius-lg)-1px)] last:rounded-b-[calc(var(--radius-lg)-1px)]"
                 aria-label={entry.name}
               >
                 <span className="text-base w-5 text-center shrink-0" aria-hidden="true">
                   {entry.type === "dir" ? "📁" : "📄"}
                 </span>
                 <span
-                  className="flex-1 text-[13px] truncate"
-                  style={{
-                    color: entry.type === "dir" ? "var(--accent)" : "var(--text-primary)",
-                    fontWeight: entry.type === "dir" ? 500 : 400,
-                  }}
+                  className={`flex-1 text-[13px] truncate ${
+                    entry.type === "dir" ? "text-primary font-medium" : "text-foreground"
+                  }`}
                 >
                   {entry.name}
                 </span>
@@ -82,7 +77,6 @@ function FileView({ repoPath, parts }: { repoPath: string; parts: string[] }) {
   const { content, isLoading, error, reload } = useFileContent(repoPath);
   const fileName = decodeURIComponent(parts[parts.length - 1]);
 
-  // 计算笔记目录和名称（用于图片重写）
   const noteName = fileName.replace(/\.(md|txt)$/, "");
   const noteDir = parts.slice(0, -1).map(decodeURIComponent).join("/");
 
@@ -90,10 +84,7 @@ function FileView({ repoPath, parts }: { repoPath: string; parts: string[] }) {
     <div className="max-w-4xl mx-auto py-6 px-6 pb-24 md:pb-8">
       {/* File header */}
       <div className="mb-4">
-        <h1
-          className="text-lg font-semibold"
-          style={{ fontFamily: "'Noto Serif SC', Georgia, serif", color: "var(--text-primary)" }}
-        >
+        <h1 className="text-lg font-semibold font-[serif] text-foreground">
           {fileName}
         </h1>
       </div>
@@ -118,13 +109,7 @@ function FileView({ repoPath, parts }: { repoPath: string; parts: string[] }) {
           </div>
         ) : (
           <div className="sf-card px-5 py-5 animate-fade-up">
-            <pre
-              className="text-[13px] leading-relaxed overflow-x-auto whitespace-pre-wrap break-words"
-              style={{
-                fontFamily: "ui-monospace, 'Cascadia Mono', monospace",
-                color: "var(--text-secondary)",
-              }}
-            >
+            <pre className="text-[13px] leading-relaxed overflow-x-auto whitespace-pre-wrap break-words font-mono text-muted-foreground">
               {content}
             </pre>
           </div>

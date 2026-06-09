@@ -29,14 +29,13 @@ export default function WeeklyReportPage() {
       <button
         type="button"
         onClick={() => router.back()}
-        className="flex items-center gap-1 text-sm mb-4"
-        style={{ color: "var(--text-secondary)" }}
+        className="flex items-center gap-1 text-sm mb-4 text-muted-foreground"
         aria-label="返回周报列表"
       >
         ← 返回
       </button>
 
-      <h1 className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
+      <h1 className="text-xl font-bold mb-4 text-foreground">
         {weekLabel}
       </h1>
 

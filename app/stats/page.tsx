@@ -18,7 +18,7 @@ export default function StatsPage() {
 
   return (
     <div className="max-w-5xl mx-auto py-6 pb-24 md:pb-8">
-      <h1 className="text-xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>
+      <h1 className="text-xl font-bold mb-6 text-foreground">
         数据统计
       </h1>
 
@@ -49,17 +49,17 @@ function StatCard({
 }) {
   return (
     <div className="sf-card p-4 text-center">
-      <p className="text-[11px] mb-1.5" style={{ color: "var(--text-tertiary)" }}>
+      <p className="text-[11px] mb-1.5 text-muted-foreground">
         {label}
       </p>
       <div className="flex items-baseline justify-center gap-1">
         <span
-          className="text-2xl font-bold tabular-nums"
-          style={{ color, fontFamily: "'Noto Serif SC', Georgia, serif" }}
+          className="text-2xl font-bold tabular-nums font-[serif]"
+          style={{ color }}
         >
           {value}
         </span>
-        <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+        <span className="text-xs text-muted-foreground">
           {unit}
         </span>
       </div>

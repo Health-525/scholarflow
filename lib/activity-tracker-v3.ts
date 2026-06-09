@@ -38,7 +38,6 @@ declare global {
 }
 
 const STORAGE_KEY = "sf_activity_v3"; const MAX_DAYS = 7;
-const isElectron = typeof window !== "undefined" && !!window.electronAPI?.isElectron;
 
 function todayKey(): string { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
 function nowMs() { return Date.now(); }
@@ -139,9 +138,13 @@ function extractObsidianVault(title: string): string | undefined {
   return m?.[1];
 }
 
+let _flushTimer: ReturnType<typeof setInterval> | null = null;
+
 // ── Init (called once) ──
 function init() {
-  if (_inited || !isElectron) return;
+  if (_inited) return;
+  const isElectron = !!window.electronAPI?.isElectron;
+  if (!isElectron) return;
   _inited = true;
   const log = loadLog();
   _segs = [...log.segments];
@@ -154,7 +157,7 @@ function init() {
   api.onActiveWindowChanged((win: WindowInfo) => {
     pushSeg(win); notify();
   });
-  setInterval(() => {
+  _flushTimer = setInterval(() => {
     if (_segs.length>0 && _segs[_segs.length-1].end===0) _segs[_segs.length-1].end = nowMs();
     saveLog(buildLog());
     _segs.push({ app: _curApp, title: _curTitle, category: _curCategory, start: nowMs(), end: 0 });
@@ -175,6 +178,7 @@ function buildLog(): DayLog {
 }
 
 function computeState(): ActivityStateV3 {
+  const isElectron = typeof window !== "undefined" && !!window.electronAPI?.isElectron;
   const segs = _segs;
   const map: Record<string,number> = {};
   const catMap: Record<string,number> = {};
@@ -211,7 +215,12 @@ export function useActivityTrackerV3(): ActivityStateV3 {
     init();
     const fn = () => tick(n=>n+1);
     _subs.push(fn);
-    return () => { _subs = _subs.filter(f=>f!==fn); };
+    return () => {
+      _subs = _subs.filter(f=>f!==fn);
+      // Cleanup flush timer on unmount
+      if (_flushTimer) { clearInterval(_flushTimer); _flushTimer = null; }
+      _inited = false; // Allow re-init if component remounts
+    };
   }, []);
   return _latest || computeState();
 }

@@ -26,8 +26,8 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
   );
 
   const nextCourse = useMemo(
-    () => getNextCourse(schedule, today, tz),
-    [schedule, today, tz]
+    () => getNextCourse(schedule, today, tz, adjustments),
+    [schedule, today, tz, adjustments]
   );
 
   const weekdayLabel = today.toLocaleDateString("zh-CN", { weekday: "long" });

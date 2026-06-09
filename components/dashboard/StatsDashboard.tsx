@@ -6,12 +6,18 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line,
 } from "recharts";
 import { useScheduleQuery, useAssignmentsQuery, useRunningQuery } from "@/hooks/useQueries";
-import { getWeekNumber, weekday1to7, getItemsForDate } from "@/lib/schedule/schedule";
-import { getNowInTimeZone, normalizeDate } from "@/lib/schedule/timezone";
+import { getWeekNumber, getItemsForDate } from "@/lib/schedule/schedule";
+import { getNowInTimeZone } from "@/lib/schedule/timezone";
 import { classifyUrgency } from "@/lib/assignment-utils";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 
-const COLORS = ["#2a4494", "#2d7a4f", "#b85c00", "#6446a0", "#068ca0", "#c0392b", "#8b5cf6", "#059669"];
+const TOOLTIP_STYLE = {
+  backgroundColor: "hsl(var(--card))",
+  border: "1px solid hsl(var(--border))",
+  borderRadius: "12px",
+  fontSize: "12px",
+  color: "hsl(var(--foreground))",
+};
 
 // ── 作业完成统计 ──────────────────────────────────────────
 function AssignmentsChart() {
@@ -33,32 +39,13 @@ function AssignmentsChart() {
 
   return (
     <div className="sf-card p-4">
-      <h3 className="text-[13px] font-semibold mb-3" style={{ color: "var(--text-primary)" }}>作业完成率</h3>
+      <h3 className="text-[13px] font-semibold mb-3 text-foreground">作业完成率</h3>
       <ResponsiveContainer width="100%" height={180}>
         <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={45}
-            outerRadius={70}
-            paddingAngle={3}
-            dataKey="value"
-            label={({ name, value }) => `${name}: ${value}`}
-            labelLine={false}
-          >
-            {data.map((entry, idx) => (
-              <Cell key={idx} fill={entry.color} />
-            ))}
+          <Pie data={data} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3} dataKey="value" label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
+            {data.map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
           </Pie>
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "var(--surface-elevated)",
-              border: "1px solid var(--border)",
-              borderRadius: "12px",
-              fontSize: "12px",
-            }}
-          />
+          <Tooltip contentStyle={TOOLTIP_STYLE} />
         </PieChart>
       </ResponsiveContainer>
     </div>
@@ -75,7 +62,6 @@ function WeeklyScheduleChart() {
     const tz = schedule.meta.tz || "Asia/Shanghai";
     const today = getNowInTimeZone(tz);
     const weekNum = getWeekNumber(today, schedule.meta.week1_monday);
-    // 从周一开始日期
     const monday = new Date(schedule.meta.week1_monday);
     monday.setDate(monday.getDate() + (weekNum - 1) * 7);
 
@@ -93,21 +79,14 @@ function WeeklyScheduleChart() {
 
   return (
     <div className="sf-card p-4">
-      <h3 className="text-[13px] font-semibold mb-3" style={{ color: "var(--text-primary)" }}>本周课程分布</h3>
+      <h3 className="text-[13px] font-semibold mb-3 text-foreground">本周课程分布</h3>
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
-          <XAxis dataKey="day" tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
-          <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "var(--surface-elevated)",
-              border: "1px solid var(--border)",
-              borderRadius: "12px",
-              fontSize: "12px",
-            }}
-          />
-          <Bar dataKey="课程数" fill="var(--accent)" radius={[4, 4, 0, 0]} />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+          <XAxis dataKey="day" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+          <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+          <Tooltip contentStyle={TOOLTIP_STYLE} />
+          <Bar dataKey="课程数" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -120,20 +99,16 @@ function RunningTrendChart() {
 
   const data = useMemo(() => {
     if (!records.length) return [];
-    // 按周聚合
     const weeklyMap: Record<string, number> = {};
     records.forEach((r) => {
       const d = new Date(r.date);
-      // 计算该日期所在周的周一
       const day = d.getDay();
       const monday = new Date(d);
       monday.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
       const key = `${monday.getMonth() + 1}/${monday.getDate()}`;
       weeklyMap[key] = (weeklyMap[key] || 0) + 1;
     });
-    return Object.entries(weeklyMap)
-      .slice(-8)
-      .map(([week, count]) => ({ week, 跑步次数: count }));
+    return Object.entries(weeklyMap).slice(-8).map(([week, count]) => ({ week, 跑步次数: count }));
   }, [records]);
 
   if (isLoading) return <div className="skeleton h-48 rounded-xl" />;
@@ -141,20 +116,13 @@ function RunningTrendChart() {
 
   return (
     <div className="sf-card p-4 md:col-span-2">
-      <h3 className="text-[13px] font-semibold mb-3" style={{ color: "var(--text-primary)" }}>跑步趋势 (最近8周)</h3>
+      <h3 className="text-[13px] font-semibold mb-3 text-foreground">跑步趋势 (最近8周)</h3>
       <ResponsiveContainer width="100%" height={180}>
         <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
-          <XAxis dataKey="week" tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
-          <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "var(--surface-elevated)",
-              border: "1px solid var(--border)",
-              borderRadius: "12px",
-              fontSize: "12px",
-            }}
-          />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+          <XAxis dataKey="week" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+          <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+          <Tooltip contentStyle={TOOLTIP_STYLE} />
           <Line type="monotone" dataKey="跑步次数" stroke="#2d7a4f" strokeWidth={2} dot={{ fill: "#2d7a4f", r: 4 }} />
         </LineChart>
       </ResponsiveContainer>
@@ -170,10 +138,7 @@ function UrgencyChart() {
     if (!assignments.length) return [];
     const pending = assignments.filter((a) => !a.done);
     const counts = { overdue: 0, urgent: 0, reminder: 0, normal: 0 };
-    pending.forEach((a) => {
-      const urgency = classifyUrgency(a.deadline, new Date());
-      counts[urgency]++;
-    });
+    pending.forEach((a) => { counts[classifyUrgency(a.deadline, new Date())]++; });
     return [
       { name: "已逾期", value: counts.overdue, color: "#c0392b" },
       { name: "紧急(24h)", value: counts.urgent, color: "#e67e22" },
@@ -187,24 +152,15 @@ function UrgencyChart() {
 
   return (
     <div className="sf-card p-4">
-      <h3 className="text-[13px] font-semibold mb-3" style={{ color: "var(--text-primary)" }}>待办紧急程度</h3>
+      <h3 className="text-[13px] font-semibold mb-3 text-foreground">待办紧急程度</h3>
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={data} layout="vertical" margin={{ top: 5, right: 10, left: 40, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
-          <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
-          <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "var(--text-secondary)" }} width={80} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "var(--surface-elevated)",
-              border: "1px solid var(--border)",
-              borderRadius: "12px",
-              fontSize: "12px",
-            }}
-          />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+          <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+          <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} width={80} />
+          <Tooltip contentStyle={TOOLTIP_STYLE} />
           <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-            {data.map((entry, idx) => (
-              <Cell key={idx} fill={entry.color} />
-            ))}
+            {data.map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
           </Bar>
         </BarChart>
       </ResponsiveContainer>

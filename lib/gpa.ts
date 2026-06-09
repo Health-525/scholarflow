@@ -103,12 +103,23 @@ export function predictTarget(
   };
 }
 
-export const CURRENT_SEMESTER = "2025-2026-2";
+export const CURRENT_SEMESTER = "2025-20262";
 
 export function getSemesterLabel(semester: string): string {
-  const [y1, y2, s] = semester.split("-");
-  const half = s === "1" ? "上" : "下";
-  return `${y1}-${y2} 第${s}学期`;
+  // 兼容两种格式: "2024-2025-1" 和 "2024-20251"
+  const parts = semester.split("-");
+  if (parts.length === 3) {
+    const [y1, y2, s] = parts;
+    return `${y1}-${y2} 第${s}学期`;
+  }
+  // "2024-20251" → y1=2024, y2s="20251" → y2="2025", s="1"
+  const [y1, y2s] = parts;
+  if (y2s && y2s.length >= 5) {
+    const y2 = y2s.slice(0, 4);
+    const s = y2s.slice(4);
+    return `${y1}-${y2} 第${s}学期`;
+  }
+  return semester;
 }
 
 // ── 成绩样式工具 ──

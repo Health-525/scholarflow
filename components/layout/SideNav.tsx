@@ -46,53 +46,28 @@ export function SideNav() {
 
   return (
     <aside
-      className="hidden md:flex flex-col w-52 shrink-0 h-screen sticky top-0"
-      style={{
-        background: "var(--surface-elevated)",
-        borderRight: "1px solid var(--border-subtle)",
-        backdropFilter: "blur(24px) saturate(160%)",
-        WebkitBackdropFilter: "blur(24px) saturate(160%)",
-      }}
+      className="hidden md:flex flex-col w-52 shrink-0 h-screen sticky top-0 bg-card/80 border-r border-border backdrop-blur-2xl"
       aria-label="侧边导航"
     >
       {/* Brand */}
       <div className="px-6 pt-7 pb-6">
         <div className="flex items-center gap-3">
-          <Image
-            src="/icons/logo.png"
-            alt="ScholarFlow logo"
-            width={32}
-            height={32}
-            className="rounded-lg shrink-0"
-            style={{ objectFit: "cover" }}
-          />
+          <Image src="/icons/logo.png" alt="ScholarFlow logo" width={32} height={32} className="rounded-lg shrink-0" style={{ objectFit: "cover" }} />
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span
-                className="font-display text-lg"
-                style={{ color: "var(--accent)", fontFamily: "'Noto Serif SC', Georgia, serif" }}
-              >
-                Scholar
-              </span>
-              <span
-                className="font-display text-lg"
-                style={{ color: "var(--text-primary)", fontFamily: "'Noto Serif SC', Georgia, serif" }}
-              >
-                Flow
-              </span>
+              <span className="font-display text-lg text-primary">Scholar</span>
+              <span className="font-display text-lg text-foreground">Flow</span>
             </div>
-            <p className="text-[10px] tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>
-              学习管理中枢
-            </p>
+            <p className="text-[10px] tracking-widest uppercase text-muted-foreground">学习管理中枢</p>
           </div>
         </div>
       </div>
 
       {/* Divider */}
       <div className="mx-6 mb-4 flex items-center gap-2">
-        <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-        <div className="w-1 h-1 rounded-full" style={{ background: "var(--accent-soft)" }} />
-        <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+        <div className="flex-1 h-px bg-border" />
+        <div className="w-1 h-1 rounded-full bg-primary/10" />
+        <div className="flex-1 h-px bg-border" />
       </div>
 
       {/* Nav items */}
@@ -103,56 +78,35 @@ export function SideNav() {
             <Link
               key={item.href}
               href={item.href}
-              className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150"
-              style={active ? { background: "var(--accent-soft)", color: "var(--accent)" } : { color: "var(--text-secondary)" }}
+              className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
               aria-label={item.label}
               aria-current={active ? "page" : undefined}
             >
-              <span
-                className="shrink-0 w-1 h-5 rounded-full transition-all duration-150"
-                style={{ background: active ? "var(--accent)" : "transparent" }}
-                aria-hidden="true"
-              />
-              <item.Icon
-                className="shrink-0 w-4 h-4 transition-colors duration-150"
-                style={{ color: active ? "var(--accent)" : "var(--text-tertiary)" }}
-              />
+              <span className={`shrink-0 w-1 h-5 rounded-full transition-all duration-150 ${active ? "bg-primary" : "bg-transparent"}`} aria-hidden="true" />
+              <item.Icon className={`shrink-0 w-4 h-4 transition-colors duration-150 ${active ? "text-primary" : "text-muted-foreground"}`} />
               <span className="tracking-wide">{item.label}</span>
               {!active && (
-                <span
-                  className="ml-auto w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: "var(--text-tertiary)" }}
-                  aria-hidden="true"
-                />
+                <span className="ml-auto w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-muted-foreground" aria-hidden="true" />
               )}
             </Link>
           );
         })}
       </nav>
 
-      {/* ── Bottom: Theme + User Center ── */}
-      <div
-        className="px-3 pb-5"
-        style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "10px" }}
-      >
-        {/* Theme quick toggle */}
+      {/* Bottom: Theme + User Center */}
+      <div className="px-3 pb-5 border-t border-border pt-2.5">
         <div className="px-3 py-2 mb-1">
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-medium tracking-wide" style={{ color: "var(--text-muted)" }}>
-              外观
-            </span>
+            <span className="text-[10px] font-medium tracking-wide text-muted-foreground">外观</span>
           </div>
           <div className="flex gap-1">
             {THEME_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setTheme(opt.value)}
-                className="flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150"
-                style={{
-                  background: theme === opt.value ? "var(--accent-soft)" : "transparent",
-                  color: theme === opt.value ? "var(--accent)" : "var(--text-tertiary)",
-                  border: theme === opt.value ? "1px solid var(--accent-soft)" : "1px solid transparent",
-                }}
+                className={`flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
+                  theme === opt.value ? "bg-primary/10 text-primary border border-primary/10" : "text-muted-foreground border border-transparent hover:text-foreground"
+                }`}
                 aria-label={`切换到${opt.label}模式`}
                 aria-pressed={theme === opt.value}
               >
@@ -162,35 +116,19 @@ export function SideNav() {
           </div>
         </div>
 
-        {/* User center link */}
         <Link
           href="/settings"
-          className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150"
-          style={{
-            color: isActive("/settings") ? "var(--accent)" : "var(--text-secondary)",
-            background: isActive("/settings") ? "var(--accent-soft)" : "transparent",
-          }}
+          className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${isActive("/settings") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
           aria-label="用户中心"
           aria-current={isActive("/settings") ? "page" : undefined}
         >
-          <span
-            className="shrink-0 w-1 h-5 rounded-full transition-all duration-150"
-            style={{ background: isActive("/settings") ? "var(--accent)" : "transparent" }}
-            aria-hidden="true"
-          />
-          <div
-            className="w-5 h-5 rounded-md flex items-center justify-center shrink-0"
-            style={{ backgroundColor: "var(--accent-soft)" }}
-          >
-            <User className="w-3 h-3" style={{ color: "var(--accent)" }} />
+          <span className={`shrink-0 w-1 h-5 rounded-full transition-all duration-150 ${isActive("/settings") ? "bg-primary" : "bg-transparent"}`} aria-hidden="true" />
+          <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 bg-primary/10">
+            <User className="w-3 h-3 text-primary" />
           </div>
           <span className="tracking-wide">用户中心</span>
           {!isActive("/settings") && (
-            <span
-              className="ml-auto w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ background: "var(--text-tertiary)" }}
-              aria-hidden="true"
-            />
+            <span className="ml-auto w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-muted-foreground" aria-hidden="true" />
           )}
         </Link>
       </div>

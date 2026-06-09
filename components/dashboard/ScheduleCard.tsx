@@ -106,7 +106,7 @@ export function ScheduleCard() {
             })}
             {items.length > 4 && (
               <p className="text-[11px] text-center pt-0.5 text-muted-foreground">
-                还有 {items.length - 4} 门课 …
+                还有 {items.length - 4} 门课 · 共 {items.length} 门 →
               </p>
             )}
           </div>

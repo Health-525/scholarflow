@@ -32,6 +32,7 @@ interface DayRecord {
 
 const STORAGE_KEY = "sf-wrinkle-history";
 const CALIB_KEY = "sf-wrinkle-calibration";
+const METHOD_KEY = "sf-wrinkle-method";
 
 interface Calibration {
   baseline: number;       // 静息皱纹基线
@@ -73,6 +74,15 @@ function saveHistory(records: DayRecord[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
 }
 
+/** 检测方法变化时自动清除旧历史（避免不同评分尺度混在一起） */
+function checkMethodAndCleanHistory(currentMethod: string) {
+  const prev = localStorage.getItem(METHOD_KEY);
+  if (prev && prev !== currentMethod) {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+  localStorage.setItem(METHOD_KEY, currentMethod);
+}
+
 function todayKey(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -83,23 +93,22 @@ function upsertDay(records: DayRecord[], event: BrowEvent, scanMinDelta: number)
   if (idx >= 0) {
     const d = records[idx];
     const allScores = [...d.browEvents.map(e => e.score), event.score];
-    records[idx] = {
+    return records.map((r, i) => i === idx ? {
       ...d,
       avgScore: Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length),
       maxScore: Math.max(d.maxScore, event.score),
       browEvents: [...d.browEvents, event],
       scanMinutes: d.scanMinutes + scanMinDelta,
-    };
+    } : r);
   } else {
-    records.push({
+    return [...records, {
       date: key,
       avgScore: event.score,
       maxScore: event.score,
       browEvents: [event],
       scanMinutes: scanMinDelta,
-    });
+    }];
   }
-  return records;
 }
 
 const SEVERITY: Record<string, { label: string; color: string; ring: string }> = {
@@ -169,8 +178,13 @@ export default function WrinklePage() {
   const hasInit = useRef(false);
   const scanStartRef = useRef<number>(0);
 
-  const isElectron = typeof window !== "undefined" && !!window.electronAPI?.isElectron;
-  const ea = isElectron ? window.electronAPI : null;
+  const [ea, setEa] = useState<typeof window.electronAPI | null>(null);
+
+  // Hydration-safe Electron detection
+  useEffect(() => {
+    const detected = !!window.electronAPI?.isElectron;
+    setEa(detected ? window.electronAPI : null);
+  }, []);
 
   // ── 加载历史 + 校准 ──
   useEffect(() => {
@@ -187,9 +201,11 @@ export default function WrinklePage() {
       const res = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(3000) });
       const d = await res.json();
       setApiStatus(d.detector_loaded || d.skinage_loaded || d.segmenter_loaded || d.skin_analyzer_loaded ? "online" : "offline");
-      if (d.segmenter_loaded) setApiMethodInfo("SegFormer 像素分割");
-      else if (d.skinage_loaded) setApiMethodInfo("SkinAge 深度学习");
-      else setApiMethodInfo("传统CV");
+      let method = "cv";
+      if (d.segmenter_loaded) { setApiMethodInfo("SegFormer 像素分割"); method = "segmenter"; }
+      else if (d.skinage_loaded) { setApiMethodInfo("SkinAge 深度学习"); method = "skinage"; }
+      else { setApiMethodInfo("传统CV"); }
+      checkMethodAndCleanHistory(method);
     } catch { setApiStatus("offline"); }
   }, []);
 
@@ -305,8 +321,7 @@ export default function WrinklePage() {
   // ── 衍生数据 ──
   const score = rtData?.face_detected ? rtData.wrinkle_score : 0;
   // 根据模型调整显示比例: SegFormer(0~15%)需要放大, 其他(0~100)正常
-  const displayMax = apiMethodInfo.includes("SegFormer") ? 15 : 100;
-  const normalizedScore = Math.min(100, (score / displayMax) * 100);
+  const normalizedScore = Math.min(100, score);
   const R = 26, C = 2 * Math.PI * R, dashOff = C - (normalizedScore / 100) * C;
   const sev = rtData ? (SEVERITY[rtData.severity] || { label: rtData.severity, color: "text-muted-foreground", ring: "#a1a1aa" }) : SEVERITY.no_face;
   const avgScore = scoreHistory.length > 0 ? scoreHistory.reduce((a, b) => a + b, 0) / scoreHistory.length : 0;
@@ -372,7 +387,7 @@ export default function WrinklePage() {
                   <span className="text-[10px] text-muted-foreground">抬眉次数</span>
                 </div>
                 <div className="h-16 flex items-end gap-2">
-                  {recentDays.map((d, i) => (
+                  {recentDays.map((d) => (
                     <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
                       <div
                         className="w-full rounded-t bg-primary/70 transition-all"
@@ -490,7 +505,7 @@ export default function WrinklePage() {
           <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
           <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
 
-          {rtData?.face_detected && rtData.forehead_rect && (
+          {rtData?.face_detected && rtData.forehead_rect && rtData.forehead_rect.length >= 4 && (
             <div className="absolute pointer-events-none transition-all duration-150" style={{
               left: `${(1 - rtData.forehead_rect[2] / 640) * 100}%`, top: `${(rtData.forehead_rect[1] / 480) * 100}%`,
               width: `${((rtData.forehead_rect[2] - rtData.forehead_rect[0]) / 640) * 100}%`, height: `${((rtData.forehead_rect[3] - rtData.forehead_rect[1]) / 480) * 100}%`,

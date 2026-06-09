@@ -60,14 +60,12 @@ function AgentCard({ agent }: { agent: AgentStatus }) {
 
   return (
     <div
-      className="rounded-xl p-4 border"
-      style={{
-        background: "var(--surface)",
-        borderColor: agent.success ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)",
-      }}
+      className={`rounded-xl p-4 border bg-secondary ${
+        agent.success ? "border-green-500/20" : "border-red-500/20"
+      }`}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
+        <span className="font-semibold text-sm text-foreground">
           {label}
         </span>
         {agent.success ? (
@@ -77,7 +75,7 @@ function AgentCard({ agent }: { agent: AgentStatus }) {
         )}
       </div>
 
-      <div className="space-y-1.5 text-xs" style={{ color: "var(--text-secondary)" }}>
+      <div className="space-y-1.5 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
           <Clock size={12} />
           <span>{formatTime(agent.lastRun)}</span>
@@ -87,7 +85,7 @@ function AgentCard({ agent }: { agent: AgentStatus }) {
           <span>{formatElapsed(agent.elapsedMs)}</span>
         </div>
         {agent.summary && Object.keys(agent.summary).length > 0 && (
-          <div className="mt-2 pt-2 border-t" style={{ borderColor: "var(--border-subtle)" }}>
+          <div className="mt-2 pt-2 border-t border-border">
             {Object.entries(agent.summary).map(([k, v]) => (
               <div key={k} className="flex justify-between">
                 <span>{k}</span>
@@ -97,7 +95,7 @@ function AgentCard({ agent }: { agent: AgentStatus }) {
           </div>
         )}
         {agent.errors.length > 0 && (
-          <div className="mt-2 pt-2 border-t" style={{ borderColor: "var(--border-subtle)", color: "var(--destructive, #ef4444)" }}>
+          <div className="mt-2 pt-2 border-t border-border text-red-500">
             {agent.errors.map((e, i) => (
               <div key={i} className="truncate">{e}</div>
             ))}
@@ -117,14 +115,12 @@ export default function MonitoringPage() {
   useEffect(() => {
     async function fetchHealth() {
       try {
-        // 优先本地API
         const res = await fetch("/api/local-data?type=health");
         if (res.ok) {
           const data = await res.json();
           if (data.agents?.length > 0) { setHealth(data); return; }
         }
       } catch {}
-      // 备用GitHub
       if (!client) return;
       try {
         const file = await client.getFile("execution", "_out/health-status.json");
@@ -137,18 +133,9 @@ export default function MonitoringPage() {
     fetchHealth().finally(() => setLoading(false));
   }, [client]);
 
-  if (!client) {
-    return (
-      <div className="p-8 text-center" style={{ color: "var(--text-secondary)" }}>
-        <AlertTriangle size={48} className="mx-auto mb-4 opacity-40" />
-        <p>请先配置 GitHub Token 以查看 Agent 健康状态</p>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
-      <div className="p-8 text-center" style={{ color: "var(--text-secondary)" }}>
+      <div className="p-8 text-center text-muted-foreground">
         <div className="animate-pulse">加载中...</div>
       </div>
     );
@@ -156,16 +143,24 @@ export default function MonitoringPage() {
 
   if (error) {
     return (
-      <div className="p-8 text-center" style={{ color: "var(--text-secondary)" }}>
+      <div className="p-8 text-center text-muted-foreground">
         <AlertTriangle size={48} className="mx-auto mb-4 opacity-40" />
         <p>{error}</p>
       </div>
     );
   }
 
-  if (!health || health.agents.length === 0) {
+  if (!health || !health.summary || health.agents.length === 0) {
+    if (!client) {
+      return (
+        <div className="p-8 text-center text-muted-foreground">
+          <AlertTriangle size={48} className="mx-auto mb-4 opacity-40" />
+          <p>请先配置 GitHub Token 以查看 Agent 健康状态</p>
+        </div>
+      );
+    }
     return (
-      <div className="p-8 text-center" style={{ color: "var(--text-secondary)" }}>
+      <div className="p-8 text-center text-muted-foreground">
         <Activity size={48} className="mx-auto mb-4 opacity-40" />
         <p>暂无 Agent 运行记录</p>
       </div>
@@ -176,10 +171,10 @@ export default function MonitoringPage() {
     <div className="max-w-5xl mx-auto px-4 py-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
+        <h1 className="text-2xl font-bold mb-1 text-foreground">
           Agent 运行状态
         </h1>
-        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+        <p className="text-sm text-muted-foreground">
           更新于 {new Date(health.updatedAt).toLocaleString("zh-CN")}
           {" · "}
           <span className="text-green-500">{health.summary.healthy} 正常</span>
@@ -190,7 +185,7 @@ export default function MonitoringPage() {
       </div>
 
       {/* Health bar */}
-      <div className="mb-6 h-2 rounded-full overflow-hidden flex" style={{ background: "var(--surface-elevated)" }}>
+      <div className="mb-6 h-2 rounded-full overflow-hidden flex bg-secondary">
         {health.summary.healthy > 0 && (
           <div
             className="h-full bg-green-500 transition-all"

@@ -84,9 +84,9 @@ function AssignmentList({ assignments, onMarkDone, undoBuffer, onUndo }: {
             const isUrgent = a.deadline && new Date(a.deadline).getTime() - now < 86400000;
             const daysLeft = a.deadline ? Math.ceil((new Date(a.deadline).getTime() - now) / 86400000) : null;
             return (
-              <div key={a.id} className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-card ${isUrgent ? "border border-rose-500/30" : "border border-border"}`}>
+              <div key={a.id} className={`group flex items-center gap-3 px-4 py-3 rounded-xl bg-card ${isUrgent ? "border border-rose-500/30" : "border border-border"}`}>
                 <button onClick={() => onMarkDone(a.id)}
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isUrgent ? "border-rose-500" : "border-muted-foreground/40"}`}
+                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isUrgent ? "border-rose-500" : "border-muted-foreground/40 hover:border-primary"}`}
                   aria-label="标记完成">
                   <Check size={12} className="opacity-0 group-hover:opacity-50" />
                 </button>
@@ -97,8 +97,8 @@ function AssignmentList({ assignments, onMarkDone, undoBuffer, onUndo }: {
                       <BookOpen size={10} />{a.subject}
                     </span>
                     {a.deadline && (
-                      <span className={`text-[11px] flex items-center gap-1 ${isUrgent ? "text-rose-500" : "text-muted-foreground"}`}>
-                        <Calendar size={10} />{daysLeft !== null ? (daysLeft <= 0 ? "今天截止" : `${daysLeft}天`) : ""}
+                      <span className={`text-[11px] flex items-center gap-1 ${daysLeft !== null && daysLeft < 0 ? "text-red-500 font-medium" : isUrgent ? "text-rose-500" : "text-muted-foreground"}`}>
+                        <Calendar size={10} />{daysLeft !== null ? (daysLeft < 0 ? `逾期${Math.abs(daysLeft)}天` : daysLeft === 0 ? "今天截止" : `${daysLeft}天`) : ""}
                       </span>
                     )}
                   </div>

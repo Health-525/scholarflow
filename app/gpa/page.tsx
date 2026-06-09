@@ -118,9 +118,9 @@ export default function GPAPage() {
 
   if (loading) {
     return (
-      <div className="pb-24 md:pb-8 max-w-2xl mx-auto">
+      <div className="pb-24 md:pb-8">
         <div className="flex items-center justify-center py-20">
-          <div className="text-[13px]" style={{ color: "var(--text-tertiary)" }}>加载中...</div>
+          <div className="text-[13px] text-muted-foreground">加载中...</div>
         </div>
       </div>
     );
@@ -128,14 +128,14 @@ export default function GPAPage() {
 
   if (!grades) {
     return (
-      <div className="pb-24 md:pb-8 max-w-2xl mx-auto">
+      <div className="pb-24 md:pb-8">
         <div className="mb-6 py-4">
-          <h1 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>绩点</h1>
+          <h1 className="text-lg font-bold text-foreground">绩点</h1>
         </div>
-        <div className="rounded-2xl p-8 text-center" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface-card)" }}>
-          <BookOpen className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--text-muted)" }} />
-          <p className="text-[13px] mb-1" style={{ color: "var(--text-secondary)" }}>暂未同步教务系统成绩</p>
-          <p className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>运行 timetable/scripts/fetch_grades_all.js 导入成绩</p>
+        <div className="rounded-2xl p-8 text-center border border-border bg-card">
+          <BookOpen className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+          <p className="text-[13px] mb-1 text-muted-foreground">暂未同步教务系统成绩</p>
+          <p className="text-[11px] text-muted-foreground/60">运行 timetable/scripts/fetch_grades_all.js 导入成绩</p>
         </div>
       </div>
     );
@@ -144,28 +144,26 @@ export default function GPAPage() {
   const currentGPAColor = gpaColor(filteredGPA);
 
   return (
-    <div className="pb-24 md:pb-8 max-w-2xl mx-auto">
+    <div className="pb-24 md:pb-8">
       <div className="mb-4 py-4">
-        <h1 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>绩点</h1>
-        <p className="text-[12px]" style={{ color: "var(--text-tertiary)" }}>数据来自教务系统</p>
+        <h1 className="text-lg font-bold text-foreground">绩点</h1>
+        <p className="text-[12px] text-muted-foreground">数据来自教务系统</p>
       </div>
 
       {/* 学期筛选 */}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2.5">
-          <Filter className="w-3.5 h-3.5" style={{ color: "var(--text-muted)" }} />
-          <span className="text-[11px] font-medium" style={{ color: "var(--text-tertiary)" }}>学期筛选</span>
+          <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="text-[11px] font-medium text-muted-foreground">学期筛选</span>
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
           <button
             onClick={() => setActiveSemester("all")}
-            className="shrink-0 px-3.5 py-1.5 rounded-xl text-[12px] font-medium transition-all"
-            style={{
-              backgroundColor: activeSemester === "all" ? "var(--accent)" : "var(--surface)",
-              color: activeSemester === "all" ? "#fff" : "var(--text-secondary)",
-              border: activeSemester === "all" ? "1px solid var(--accent)" : "1px solid var(--border)",
-              boxShadow: activeSemester === "all" ? "0 2px 8px rgba(42,68,148,0.20)" : "none",
-            }}
+            className={`shrink-0 px-3.5 py-1.5 rounded-xl text-[12px] font-medium transition-all ${
+              activeSemester === "all"
+                ? "bg-primary text-primary-foreground border border-primary shadow-md"
+                : "bg-card text-muted-foreground border border-border"
+            }`}
             aria-pressed={activeSemester === "all"}
           >
             全部
@@ -177,18 +175,16 @@ export default function GPAPage() {
               <button
                 key={sem}
                 onClick={() => setActiveSemester(sem)}
-                className="shrink-0 px-3.5 py-1.5 rounded-xl text-[12px] font-medium transition-all"
-                style={{
-                  backgroundColor: isActive ? "var(--accent)" : "var(--surface)",
-                  color: isActive ? "#fff" : "var(--text-secondary)",
-                  border: isActive ? "1px solid var(--accent)" : "1px solid var(--border)",
-                  boxShadow: isActive ? "0 2px 8px rgba(42,68,148,0.20)" : "none",
-                }}
+                className={`shrink-0 px-3.5 py-1.5 rounded-xl text-[12px] font-medium transition-all ${
+                  isActive
+                    ? "bg-primary text-primary-foreground border border-primary shadow-md"
+                    : "bg-card text-muted-foreground border border-border"
+                }`}
                 aria-pressed={isActive}
               >
                 {getSemesterLabel(sem)}
                 {semGPA > 0 && (
-                  <span className="ml-1.5 text-[10px] font-semibold" style={{ color: isActive ? "rgba(255,255,255,0.75)" : gpaColor(semGPA) }}>
+                  <span className={`ml-1.5 text-[10px] font-semibold ${isActive ? "text-primary-foreground/75" : ""}`} style={!isActive ? { color: gpaColor(semGPA) } : undefined}>
                     {semGPA.toFixed(1)}
                   </span>
                 )}
@@ -199,7 +195,7 @@ export default function GPAPage() {
       </div>
 
       {/* GPA 主卡片 */}
-      <div className="rounded-2xl p-6 mb-4 text-center relative overflow-hidden" style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)" }}>
+      <div className="rounded-2xl p-6 mb-4 text-center relative overflow-hidden bg-card border border-border shadow-sm">
         <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 30%, ${currentGPAColor}15 0%, transparent 60%)` }} />
         <div className="relative flex flex-col items-center">
           <div className="relative">
@@ -208,7 +204,7 @@ export default function GPAPage() {
               <div className="text-[36px] font-bold tabular-nums leading-none" style={{ color: currentGPAColor }}>
                 {filteredGPA > 0 ? filteredGPA.toFixed(2) : "--"}
               </div>
-              <div className="text-[10px] mt-0.5" style={{ color: "var(--text-tertiary)" }}>GPA</div>
+              <div className="text-[10px] mt-0.5 text-muted-foreground">GPA</div>
             </div>
           </div>
           <div className="flex items-center gap-0 mt-4 w-full max-w-[280px]">
@@ -217,9 +213,9 @@ export default function GPAPage() {
               { value: filteredCourses.length, label: "课程" },
               { value: filteredRequired, label: "必修" },
             ].map((item, i) => (
-              <div key={i} className="flex-1 text-center" style={{ borderRight: i < 2 ? "1px solid var(--border)" : "none" }}>
-                <div className="text-[18px] font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>{item.value}</div>
-                <div className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>{item.label}</div>
+              <div key={i} className={`flex-1 text-center ${i < 2 ? "border-r border-border" : ""}`}>
+                <div className="text-[18px] font-semibold tabular-nums text-foreground">{item.value}</div>
+                <div className="text-[10px] text-muted-foreground">{item.label}</div>
               </div>
             ))}
           </div>
@@ -227,11 +223,11 @@ export default function GPAPage() {
       </div>
 
       {/* 成绩分布 */}
-      <div className="rounded-2xl p-4 mb-4" style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-xs)" }}>
+      <div className="rounded-2xl p-4 mb-4 bg-card border border-border shadow-sm">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-4 h-4" style={{ color: "var(--accent)" }} />
-          <span className="text-[13px] font-semibold" style={{ color: "var(--text-primary)" }}>成绩分布</span>
-          <span className="text-[10px] ml-auto" style={{ color: "var(--text-tertiary)" }}>{numeric.length}门有分数</span>
+          <TrendingUp className="w-4 h-4 text-primary" />
+          <span className="text-[13px] font-semibold text-foreground">成绩分布</span>
+          <span className="text-[10px] ml-auto text-muted-foreground">{numeric.length}门有分数</span>
         </div>
         <div className="space-y-3">
           {SCORE_RANGES.map((r, ri) => {
@@ -242,16 +238,25 @@ export default function GPAPage() {
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: r.color }} />
-                    <span className="text-[11px] font-medium" style={{ color: "var(--text-secondary)" }}>{r.label}</span>
-                    <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>{r.sub}</span>
+                    <span className="text-[11px] font-medium text-muted-foreground">{r.label}</span>
+                    <span className="text-[10px] text-muted-foreground/60">{r.sub}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[13px] font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>{count}</span>
-                    <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>门</span>
+                    <span className="text-[13px] font-semibold tabular-nums text-foreground">{count}</span>
+                    <span className="text-[10px] text-muted-foreground">门</span>
                   </div>
                 </div>
-                <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--surface)" }}>
-                  <div className="h-full rounded-full" style={{ width: `${barWidth}%`, backgroundColor: r.color, opacity: 0.85, transition: "width 0.6s ease", minWidth: count > 0 ? "6px" : "0" }} />
+                <div className="h-2 rounded-full overflow-hidden bg-secondary">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${barWidth}%`,
+                      backgroundColor: r.color,
+                      opacity: 0.85,
+                      transition: "width 0.6s ease",
+                      minWidth: count > 0 ? "6px" : "0",
+                    }}
+                  />
                 </div>
               </div>
             );
@@ -269,20 +274,23 @@ export default function GPAPage() {
               const expanded = expandedSemesters[sem] ?? false;
               const semCredits = calcCredits(courses);
               return (
-                <div key={sem} className="rounded-2xl overflow-hidden" style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: expanded ? "var(--shadow-sm)" : "var(--shadow-xs)", transition: "box-shadow 0.2s" }}>
+                <div key={sem} className="rounded-2xl overflow-hidden bg-card border border-border transition-shadow duration-200" style={{ boxShadow: expanded ? "0 4px 12px rgba(26,21,16,0.08)" : "0 1px 3px rgba(26,21,16,0.06)" }}>
                   <button onClick={() => toggleSemester(sem)} className="w-full flex items-center justify-between p-4 text-left">
                     <div className="flex-1 min-w-0">
-                      <div className="text-[14px] font-semibold" style={{ color: "var(--text-primary)" }}>{getSemesterLabel(sem)}</div>
+                      <div className="text-[14px] font-semibold text-foreground">{getSemesterLabel(sem)}</div>
                       <div className="flex items-center gap-3 mt-0.5">
-                        <span className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>{courses.length}门</span>
-                        <span className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>{semCredits}学分</span>
+                        <span className="text-[11px] text-muted-foreground">{courses.length}门</span>
+                        <span className="text-[11px] text-muted-foreground">{semCredits}学分</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="px-3 py-1.5 rounded-xl text-center" style={{ backgroundColor: `${semGPAColor}12` }}>
                         <div className="text-[18px] font-bold tabular-nums leading-none" style={{ color: semGPAColor }}>{semGPA > 0 ? semGPA.toFixed(2) : "--"}</div>
                       </div>
-                      <ChevronDown className="w-4 h-4 shrink-0 transition-transform duration-200" style={{ transform: expanded ? "rotate(180deg)" : "rotate(0)", color: "var(--text-muted)" }} />
+                      <ChevronDown
+                        className="w-4 h-4 shrink-0 transition-transform duration-200 text-muted-foreground"
+                        style={{ transform: expanded ? "rotate(180deg)" : "rotate(0)" }}
+                      />
                     </div>
                   </button>
                   {expanded && <div className="px-4 pb-3"><CourseList courses={courses} /></div>}
@@ -291,11 +299,11 @@ export default function GPAPage() {
             })}
           </div>
         ) : (
-          <div className="rounded-2xl overflow-hidden" style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-xs)" }}>
+          <div className="rounded-2xl overflow-hidden bg-card border border-border shadow-sm">
             <div className="p-4 pb-2">
               <div className="flex items-center justify-between mb-3">
-                <div className="text-[14px] font-semibold" style={{ color: "var(--text-primary)" }}>{getSemesterLabel(activeSemester)}</div>
-                <span className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>{filteredCourses.length}门 · {filteredCredits}学分</span>
+                <div className="text-[14px] font-semibold text-foreground">{getSemesterLabel(activeSemester)}</div>
+                <span className="text-[11px] text-muted-foreground">{filteredCourses.length}门 · {filteredCredits}学分</span>
               </div>
               <CourseList courses={filteredCourses} />
             </div>
@@ -304,15 +312,15 @@ export default function GPAPage() {
       </div>
 
       {/* GPA 参考 */}
-      <div className="rounded-2xl p-4 mb-4" style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-xs)" }}>
+      <div className="rounded-2xl p-4 mb-4 bg-card border border-border shadow-sm">
         <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-4 h-4" style={{ color: "var(--accent)" }} />
-          <span className="text-[12px] font-semibold" style={{ color: "var(--text-secondary)" }}>百分制 ↔ GPA</span>
+          <TrendingUp className="w-4 h-4 text-primary" />
+          <span className="text-[12px] font-semibold text-muted-foreground">百分制 ↔ GPA</span>
         </div>
         <div className="grid grid-cols-4 gap-2">
           {GPA_REF.map(r => (
-            <div key={r.range} className="p-2 rounded-xl text-center" style={{ backgroundColor: "var(--surface)" }}>
-              <div className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>{r.range}</div>
+            <div key={r.range} className="p-2 rounded-xl text-center bg-secondary">
+              <div className="text-[10px] text-muted-foreground">{r.range}</div>
               <div className="text-[16px] font-bold" style={{ color: r.color }}>{r.gpa}</div>
             </div>
           ))}
@@ -329,15 +337,15 @@ function CourseList({ courses }: { courses: JwglCourse[] }) {
       {courses.map((c, i) => {
         const badge = getScoreBadgeStyle(c.score);
         return (
-          <div key={`${c.course}-${c.semester}-${i}`} className="flex items-center gap-2.5 p-2.5 rounded-xl" style={{ backgroundColor: i % 2 === 0 ? "transparent" : "var(--surface)" }}>
+          <div key={`${c.course}-${c.semester}-${i}`} className={`flex items-center gap-2.5 p-2.5 rounded-xl ${i % 2 !== 0 ? "bg-secondary" : ""}`}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[12px] font-bold tabular-nums" style={{ backgroundColor: badge.bg, color: badge.color }}>
               {getScoreDisplay(c.score)}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[12px] font-medium truncate" style={{ color: "var(--text-primary)" }}>{c.course}</div>
+              <div className="text-[12px] font-medium truncate text-foreground">{c.course}</div>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: c.type === "必修" ? "var(--accent-soft)" : "var(--surface)", color: c.type === "必修" ? "var(--accent)" : "var(--text-tertiary)" }}>{c.type}</span>
-                <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>{c.credit}学分</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded ${c.type === "必修" ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"}`}>{c.type}</span>
+                <span className="text-[10px] text-muted-foreground">{c.credit}学分</span>
               </div>
             </div>
           </div>

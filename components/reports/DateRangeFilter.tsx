@@ -27,35 +27,24 @@ export function DateRangeFilter({
         type="date"
         value={startDate}
         onChange={(e) => onStartChange(e.target.value)}
-        className="px-3 py-1.5 rounded-xl text-xs outline-none"
-        style={{
-          backgroundColor: "var(--surface-elevated)",
-          border: "1px solid var(--border)",
-          color: "var(--text-primary)",
-        }}
+        className="px-3 py-1.5 rounded-xl text-xs outline-none bg-card border border-border text-foreground"
         aria-label="开始日期"
       />
-      <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+      <span className="text-xs text-muted-foreground">
         至
       </span>
       <input
         type="date"
         value={endDate}
         onChange={(e) => onEndChange(e.target.value)}
-        className="px-3 py-1.5 rounded-xl text-xs outline-none"
-        style={{
-          backgroundColor: "var(--surface-elevated)",
-          border: "1px solid var(--border)",
-          color: "var(--text-primary)",
-        }}
+        className="px-3 py-1.5 rounded-xl text-xs outline-none bg-card border border-border text-foreground"
         aria-label="结束日期"
       />
       {hasFilter && (
         <button
           type="button"
           onClick={onReset}
-          className="px-3 py-1.5 rounded-xl text-xs"
-          style={{ backgroundColor: "var(--border)", color: "var(--text-secondary)" }}
+          className="px-3 py-1.5 rounded-xl text-xs bg-border text-muted-foreground"
           aria-label="清除日期筛选"
         >
           清除

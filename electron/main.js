@@ -270,6 +270,7 @@ ipcMain.handle('brow-monitor:start', async () => {
     return { ok: true, message: '监控已运行' };
   }
   const vmDir = findVisionModelDir();
+  console.log('[SF] brow-monitor:start vmDir =', vmDir);
   if (!vmDir) return { ok: false, message: '未找到vision-model目录' };
 
   const { spawn } = require('child_process');
@@ -281,6 +282,8 @@ ipcMain.handle('brow-monitor:start', async () => {
     stdio: 'pipe',
     shell: true,
   });
+
+  console.log('[SF] brow-monitor spawned PID =', browMonitorProcess.pid, 'killed =', browMonitorProcess.killed);
 
   browMonitorProcess.stdout?.on('data', d => {
     const line = d.toString().trim();
@@ -316,7 +319,9 @@ ipcMain.handle('brow-monitor:stop', async () => {
 });
 
 ipcMain.handle('brow-monitor:status', async () => {
-  return { running: browMonitorProcess !== null && !browMonitorProcess.killed };
+  const running = browMonitorProcess !== null && !browMonitorProcess.killed;
+  console.log('[SF] brow-monitor:status =', running, 'process =', browMonitorProcess?.pid);
+  return { running };
 });
 
 // ── Token 存储路径 ──────────────────────────────────────────

@@ -10,10 +10,10 @@ import { QueryView } from "@/components/schedule/QueryView";
 
 type Tab = "today" | "week" | "query";
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "today", label: "今日", icon: "📅" },
-  { id: "week", label: "本周", icon: "📆" },
-  { id: "query", label: "查询", icon: "🔍" },
+const TABS: { id: Tab; label: string }[] = [
+  { id: "today", label: "今日" },
+  { id: "week", label: "本周" },
+  { id: "query", label: "查询" },
 ];
 
 export default function SchedulePage() {
@@ -25,11 +25,11 @@ export default function SchedulePage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col -mx-4 md:-mx-8 lg:-mx-10">
       {/* Header */}
-      <div className="px-5 pt-5 pb-3">
+      <div className="px-5 pt-5 pb-2">
         <h1 className="text-lg font-bold font-display">课表</h1>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs — segmented control style */}
       <div className="px-5 mb-4">
         <div
           className="flex rounded-xl p-1 bg-secondary border border-border"

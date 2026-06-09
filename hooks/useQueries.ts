@@ -5,11 +5,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGitHubClient } from "./useGitHubClient";
 import { getDB } from "@/lib/db";
 import { parseSchedule } from "@/lib/schedule/schedule";
-import type { Adjustment } from "@/lib/schedule/adjustments";
 import type { GitHubError } from "@/lib/github/errors";
 import type { Assignment, AssignmentDraft, AssignmentsFile, RunRecord, RunType } from "@/types";
 import { buildAssignment, sortAssignments } from "@/lib/assignment-utils";
-import { readData, writeData, isNative } from "@/lib/mobile-data";
+import { loadAdjustments } from "@/lib/schedule/adjustments";
+import { readData, writeData } from "@/lib/mobile-data";
 
 // ============================================================
 // TanStack Query 数据层 v2 — 本地优先架构
@@ -153,7 +153,7 @@ function isAssignmentNewer(a: Assignment, b: Assignment): boolean {
  */
 function mergeRunRecords(local: RunRecord[], remote: RunRecord[]): MergeResult<RunRecord> {
   const seen = new Map<string, RunRecord>();
-  let added = 0, localOnly = 0;
+  let added = 0;
 
   // 先放本地
   for (const r of local) {
@@ -170,9 +170,6 @@ function mergeRunRecords(local: RunRecord[], remote: RunRecord[]): MergeResult<R
     // 已存在则跳过（内容相同，无需覆盖）
   }
 
-  localOnly = seen.size - added - (seen.size - local.length - added > 0 ? 0 : 0);
-  localOnly = local.length; // 本地独有的 = 本地总数 - 被远程覆盖的
-
   return {
     merged: [...seen.values()].sort((a, b) => a.date.localeCompare(b.date)),
     added,
@@ -188,7 +185,11 @@ export function useScheduleQuery() {
     queryKey: queryKeys.schedule,
     queryFn: async () => {
       const local = await tryLocalApi("schedule") as Record<string, unknown> | null;
-      if (local?.courses) return { schedule: parseSchedule(local), adjustments: [] };
+      if (local?.courses) {
+        const schedule = parseSchedule(local);
+        const adjustments = loadAdjustments();
+        return { schedule, adjustments };
+      }
       return { schedule: null, adjustments: [] };
     },
     enabled: true,

@@ -22,12 +22,12 @@ export function ProgressBar({
       {(label || showPercent) && (
         <div className="flex justify-between items-center mb-1">
           {label && (
-            <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
+            <span className="text-xs text-muted-foreground">
               {label}
             </span>
           )}
           {showPercent && (
-            <span className="text-xs font-medium" style={{ color: "var(--text-primary)" }}>
+            <span className="text-xs font-medium text-foreground">
               {Math.round(clamped)}%
             </span>
           )}

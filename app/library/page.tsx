@@ -1,9 +1,33 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { RefreshCw, AlertCircle, KeyRound, MapPin } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { RefreshCw, AlertCircle, KeyRound, MapPin, BookmarkCheck, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { LibraryData, LibraryRoom } from "@/types";
+
+interface CurrentReserve {
+  lib_id: number;
+  seat_key: string;
+  seat_name: string;
+  lib_name: string;
+  status: number;
+  user_id: number;
+  date: string;
+  token: string;
+}
+
+const occupancyColor = (pct: number) =>
+  pct >= 90 ? "#ef4444" : pct >= 70 ? "#f59e0b" : "#22c55e";
+
+const DEFAULT_SUMMARY = { rate: 0, avail: 0, used: 0, total: 0, has: 0 };
+
+const RESERVE_STATUS_MAP: Record<number, { label: string; color: string }> = {
+  1: { label: "已预约", color: "#3b82f6" },
+  2: { label: "使用中", color: "#22c55e" },
+  3: { label: "已签退", color: "#94a3b8" },
+  4: { label: "已取消", color: "#ef4444" },
+  5: { label: "已超时", color: "#f59e0b" },
+};
 
 export default function LibraryPage() {
   const router = useRouter();
@@ -12,8 +36,17 @@ export default function LibraryPage() {
   const [error, setError] = useState<string | null>(null);
   const [jwtStatus, setJwtStatus] = useState<"unknown" | "expired" | "refreshing" | "ok" | "error">("unknown");
   const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [isElectron, setIsElectron] = useState(false);
+  const unsubTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [currentReserve, setCurrentReserve] = useState<CurrentReserve | null>(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [holdLoading, setHoldLoading] = useState(false);
+  const [countdown, setCountdown] = useState<string | null>(null);
 
-  const isElectron = typeof window !== "undefined" && window.electronAPI?.isElectron;
+  // Hydration-safe Electron detection
+  useEffect(() => {
+    setIsElectron(!!window.electronAPI?.isElectron);
+  }, []);
 
   const fetchData = useCallback(() => {
     setLoading(true); setError(null);
@@ -32,7 +65,90 @@ export default function LibraryPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const fetchReserve = useCallback(() => {
+    fetch("/api/library/reserve-status")
+      .then(r => r.json())
+      .then(json => {
+        if (json.reserve) setCurrentReserve(json.reserve);
+        else setCurrentReserve(null);
+      })
+      .catch(() => setCurrentReserve(null));
+  }, []);
+
+  const handleCancelReserve = useCallback(async () => {
+    if (!currentReserve?.token || cancelLoading) return;
+    if (!confirm("确定要取消当前预约吗？")) return;
+    setCancelLoading(true);
+    try {
+      const r = await fetch("/api/library/cancel-reserve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sToken: currentReserve.token }),
+      });
+      const json = await r.json();
+      if (json.ok) {
+        setCurrentReserve(null);
+        fetchData();
+      } else {
+        alert(json.error || "取消失败");
+      }
+    } catch {
+      alert("网络错误");
+    } finally {
+      setCancelLoading(false);
+    }
+  }, [currentReserve, cancelLoading, fetchData]);
+
+  const handleHoldSeat = useCallback(async () => {
+    if (holdLoading) return;
+    setHoldLoading(true);
+    try {
+      const r = await fetch("/api/library/hold-seat", { method: "POST" });
+      const json = await r.json();
+      if (json.ok) {
+        fetchReserve();
+      } else {
+        alert(json.error || "暂离失败");
+      }
+    } catch {
+      alert("网络错误");
+    } finally {
+      setHoldLoading(false);
+    }
+  }, [holdLoading, fetchReserve]);
+
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // 自动刷新座位数据（每60秒）
+  useEffect(() => {
+    if (jwtStatus !== "ok") return;
+    const timer = setInterval(() => { fetchData(); }, 60000);
+    return () => clearInterval(timer);
+  }, [jwtStatus, fetchData]);
+
+  // 自动刷新预约状态（每30秒）
+  useEffect(() => {
+    if (jwtStatus !== "ok") return;
+    fetchReserve();
+    const timer = setInterval(() => { fetchReserve(); }, 30000);
+    return () => clearInterval(timer);
+  }, [jwtStatus, fetchReserve]);
+
+  // 签到倒计时：reserve_ttl=1800秒（30分钟）
+  useEffect(() => {
+    if (!currentReserve || currentReserve.status !== 1) {
+      setCountdown(null);
+      return;
+    }
+    const timer = setInterval(() => {
+      fetchReserve(); // 刷新预约状态
+    }, 30000);
+    // 简单显示"需在30分钟内签到"
+    setCountdown("需在30分钟内签到");
+    return () => clearInterval(timer);
+  }, [currentReserve, fetchReserve]);
+
+  // 获取座位数据成功后查当前预约（由自动刷新useEffect处理）
 
   const handleRefreshJWT = useCallback(async () => {
     if (!isElectron) {
@@ -41,25 +157,25 @@ export default function LibraryPage() {
     }
     setJwtStatus("refreshing"); setRefreshError(null);
     try {
-      await window.electronAPI!.libraryLogin();
-      // 登录窗口关闭后，如果5秒内没收到 jwt-refreshed 事件，说明用户关了窗口没登录成功
-      // 重置为 expired 让用户可以再次点击
+      await window.electronAPI?.libraryLogin();
+      // If no jwt-refreshed event within 5s, reset to expired
       const timer = setTimeout(() => {
         setJwtStatus("expired");
       }, 5000);
-      // 如果 jwt-refreshed 事件先到达，清除定时器
-      const origUnsub = window.electronAPI!.onLibraryJWTRefreshed(() => {
+      const origUnsub = window.electronAPI?.onLibraryJWTRefreshed(() => {
         clearTimeout(timer);
       });
-      // 5秒后自动清理监听
-      setTimeout(() => origUnsub(), 6000);
+      // Clear previous timer before setting new one (prevent leak)
+      if (unsubTimerRef.current) clearTimeout(unsubTimerRef.current);
+      // Auto-cleanup listener after 6s
+      if (origUnsub) unsubTimerRef.current = setTimeout(() => origUnsub(), 6000);
     } catch (e) {
       setJwtStatus("expired");
       setRefreshError(e instanceof Error ? e.message : "打开登录窗口失败");
     }
   }, [isElectron]);
 
-  // 监听 JWT 刷新成功事件（登录窗口关闭后触发）
+  // Listen for JWT refresh events
   useEffect(() => {
     if (!isElectron || !window.electronAPI) return;
     const unsub = window.electronAPI.onLibraryJWTRefreshed(() => {
@@ -69,79 +185,71 @@ export default function LibraryPage() {
     const unsubExpired = window.electronAPI.onLibraryJWTExpired(() => {
       setJwtStatus("expired");
     });
-    return () => { unsub(); unsubExpired(); };
+    return () => {
+      unsub();
+      unsubExpired();
+      if (unsubTimerRef.current) clearTimeout(unsubTimerRef.current);
+    };
   }, [isElectron, fetchData]);
 
-  // 加载中
+  // Loading
   if (loading) {
     return (
-      <div className="pb-24 md:pb-8 max-w-5xl mx-auto py-16 text-center">
-        <div className="text-[13px]" style={{ color: "var(--text-tertiary)" }}>加载中...</div>
+      <div className="pb-24 md:pb-8 py-16 text-center">
+        <div className="text-[13px] text-muted-foreground">加载中...</div>
       </div>
     );
   }
 
-  // JWT 过期 — 显示一键刷新
+  // JWT expired
   if (jwtStatus === "expired" || jwtStatus === "refreshing") {
     const isRefreshing = jwtStatus === "refreshing";
     return (
       <div className="pb-24 md:pb-8 max-w-md mx-auto py-16 px-4 text-center">
-        <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{ backgroundColor: "rgba(239,68,68,0.10)" }}>
-          <KeyRound className="w-6 h-6" style={{ color: "#ef4444" }} />
+        <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
+          <KeyRound className="w-6 h-6 text-red-500" />
         </div>
-        <h1 className="text-[16px] font-bold mb-2" style={{ color: "var(--text-primary)" }}>凭证已过期</h1>
-        <p className="text-[12px] mb-1" style={{ color: "var(--text-tertiary)" }}>
-          {isElectron
-            ? "点击下方按钮登录智慧南工，自动同步凭证"
-            : "请在浏览器中重新登录图书馆系统"}
+        <h1 className="text-[16px] font-bold mb-2 text-foreground">凭证已过期</h1>
+        <p className="text-[12px] mb-1 text-muted-foreground">
+          {isElectron ? "点击下方按钮登录智慧南工，自动同步凭证" : "请在浏览器中重新登录图书馆系统"}
         </p>
-        {refreshError && (
-          <p className="text-[11px] mt-1 mb-3" style={{ color: "#ef4444" }}>{refreshError}</p>
-        )}
+        {refreshError && <p className="text-[11px] mt-1 mb-3 text-red-500">{refreshError}</p>}
         <button onClick={handleRefreshJWT}
-          className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5"
-          style={{ background: "var(--accent)", color: "#fff" }}>
+          className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground">
           <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
           {isRefreshing ? "登录中...（如窗口已关闭请重试）" : "登录刷新"}
         </button>
         {!isElectron && (
-          <p className="text-[11px] mt-3" style={{ color: "var(--text-tertiary)" }}>
-            提示：使用 ScholarFlow 桌面版可自动刷新凭证
-          </p>
+          <p className="text-[11px] mt-3 text-muted-foreground">提示：使用 ScholarFlow 桌面版可自动刷新凭证</p>
         )}
       </div>
     );
   }
 
-  // 其他错误
+  // Error
   if (error) {
     return (
       <div className="pb-24 md:pb-8 max-w-md mx-auto py-16 px-4 text-center">
-        <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{ backgroundColor: "rgba(239,68,68,0.10)" }}>
-          <AlertCircle className="w-6 h-6" style={{ color: "#ef4444" }} />
+        <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
+          <AlertCircle className="w-6 h-6 text-red-500" />
         </div>
-        <h1 className="text-[16px] font-bold mb-2" style={{ color: "var(--text-primary)" }}>加载失败</h1>
-        <p className="text-[12px] mb-4" style={{ color: "var(--text-tertiary)" }}>{error}</p>
-        <button onClick={fetchData} className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5"
-          style={{ background: "var(--accent)", color: "#fff" }}>
+        <h1 className="text-[16px] font-bold mb-2 text-foreground">加载失败</h1>
+        <p className="text-[12px] mb-4 text-muted-foreground">{error}</p>
+        <button onClick={fetchData} className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground">
           <RefreshCw className="w-3.5 h-3.5" />重试
         </button>
       </div>
     );
   }
 
-  // 未配置
+  // No data
   if (!data) {
     return (
       <div className="pb-24 md:pb-8 max-w-md mx-auto py-16 px-4 text-center">
         <div className="text-5xl mb-4">📚</div>
-        <h1 className="text-[16px] font-bold mb-2" style={{ color: "var(--text-primary)" }}>图书馆座位</h1>
-        <p className="text-[12px] mb-4" style={{ color: "var(--text-secondary)" }}>
-          需要先同步图书馆登录凭证
-        </p>
-        <button onClick={handleRefreshJWT}
-          className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5"
-          style={{ background: "var(--accent)", color: "#fff" }}>
+        <h1 className="text-[16px] font-bold mb-2 text-foreground">图书馆座位</h1>
+        <p className="text-[12px] mb-4 text-muted-foreground">需要先同步图书馆登录凭证</p>
+        <button onClick={handleRefreshJWT} className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground">
           <KeyRound className="w-3.5 h-3.5" />刷新凭证
         </button>
       </div>
@@ -151,91 +259,163 @@ export default function LibraryPage() {
   if (!data?.libs?.length) {
     return (
       <div className="pb-24 md:pb-8 py-8 text-center">
-        <p className="text-[13px]" style={{ color: "var(--text-tertiary)" }}>暂无数据</p>
+        <p className="text-[13px] text-muted-foreground">暂无数据</p>
       </div>
     );
   }
 
-  const { summary, libs } = data;
+  const summary = data.summary ?? DEFAULT_SUMMARY;
+  const { libs } = data;
   const openLibs = libs.filter((l: LibraryRoom) => l.is_open);
-  const c = (pct: number) => pct >= 90 ? "#ef4444" : pct >= 70 ? "#f59e0b" : "#22c55e";
+  const closedCount = libs.length - openLibs.length;
+  const c = occupancyColor;
 
   return (
-    <div className="pb-24 md:pb-8 max-w-5xl mx-auto py-6">
+    <div className="pb-24 md:pb-8 py-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>📚 图书馆座位</h1>
+        <h1 className="text-xl font-bold text-foreground">📚 图书馆座位</h1>
         <div className="flex items-center gap-2">
           {isElectron && (
             <button onClick={handleRefreshJWT} title="刷新登录凭证"
-              className="px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1"
-              style={{ backgroundColor: "var(--surface)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
+              className="px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1 bg-card text-muted-foreground border border-border">
               <KeyRound className="w-3.5 h-3.5" />
             </button>
           )}
-          <button onClick={fetchData} className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5"
-            style={{ backgroundColor: "var(--surface)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
+          <button onClick={fetchData} className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-card text-muted-foreground border border-border">
             <RefreshCw className="w-3.5 h-3.5" />刷新
           </button>
         </div>
       </div>
-      {/* 数据时效提示 */}
+
+      {/* Data freshness */}
       {data.updated && (
-        <div className="mb-4 text-[11px] flex items-center gap-1.5" style={{ color: "var(--text-muted)" }}>
-          <span>⏱ 上次更新：{new Date(data.updated).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}</span>
+        <div className="mb-4 text-[11px] flex items-center gap-1.5 text-muted-foreground">
+          <span>⏱ 上次更新：{new Date(data.updated).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })} · 自动刷新</span>
           {Date.now() - new Date(data.updated).getTime() > 5 * 60 * 1000 && (
-            <span style={{ color: "#f59e0b" }}>· 数据可能已过期</span>
+            <span className="text-amber-500">· 数据可能已过期</span>
           )}
         </div>
       )}
-      <div className="rounded-2xl p-5 mb-6" style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-xs)" }}>
+
+      {/* Summary */}
+      <div className="rounded-2xl p-5 mb-4 bg-card border border-border shadow-sm">
         <div className="flex items-center gap-6">
           <div className="text-center">
             <div className="text-3xl font-bold" style={{ color: c((1 - summary.rate) * 100) }}>{summary.avail}</div>
-            <div className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>可用座位</div>
+            <div className="text-xs mt-1 text-muted-foreground">可用座位</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>{summary.used}</div>
-            <div className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>已用</div>
+            <div className="text-3xl font-bold text-foreground">{summary.used}</div>
+            <div className="text-xs mt-1 text-muted-foreground">已用</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold" style={{ color: "var(--text-secondary)" }}>{summary.total}</div>
-            <div className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>总计</div>
+            <div className="text-3xl font-bold text-muted-foreground">{summary.total}</div>
+            <div className="text-xs mt-1 text-muted-foreground">总计</div>
           </div>
           <div className="flex-1">
-            <div className="h-3 rounded-full overflow-hidden" style={{ background: "var(--surface)" }}>
+            <div className="h-3 rounded-full overflow-hidden bg-secondary">
               <div className="h-full rounded-full transition-all" style={{ width: `${((1 - summary.rate) * 100).toFixed(0)}%`, backgroundColor: c((1 - summary.rate) * 100) }} />
             </div>
-            <div className="text-xs mt-2" style={{ color: "var(--text-tertiary)" }}>
-              空闲率 {(summary.rate * 100).toFixed(1)}% · {data.updated?.slice(11, 19) || ""}
+            <div className="text-xs mt-2 text-muted-foreground">
+              空闲率 {(summary.rate * 100).toFixed(1)}% · {String(data.updated ?? "").slice(11, 19)}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Current reservation + Messages row */}
+      <div className="grid gap-3 mb-6 sm:grid-cols-2">
+        {/* 当前预约 */}
+        <div className="rounded-xl p-4 bg-card border border-border shadow-sm">
+          <div className="flex items-center gap-1.5 mb-2">
+            <BookmarkCheck className="w-4 h-4 text-primary" />
+            <span className="font-medium text-sm text-foreground">当前预约</span>
+          </div>
+          {currentReserve ? (
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm font-medium text-foreground">{currentReserve.seat_name}</span>
+                <span className="text-[11px] px-1.5 py-0.5 rounded-md font-medium" style={{
+                  backgroundColor: (RESERVE_STATUS_MAP[currentReserve.status]?.color || "#94a3b8") + "20",
+                  color: RESERVE_STATUS_MAP[currentReserve.status]?.color || "#94a3b8",
+                }}>
+                  {RESERVE_STATUS_MAP[currentReserve.status]?.label || `状态${currentReserve.status}`}
+                </span>
+              </div>
+              <p className="text-[12px] text-muted-foreground mb-2">{currentReserve.lib_name} · {currentReserve.date}</p>
+              {countdown && currentReserve.status === 1 && (
+                <p className="text-[11px] mb-2 text-amber-500 font-medium">⏱ {countdown}</p>
+              )}
+              <div className="flex gap-2">
+                {(currentReserve.status === 1 || currentReserve.status === 2) && (
+                  <button onClick={handleCancelReserve} disabled={cancelLoading}
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50">
+                    {cancelLoading ? "取消中..." : "取消预约"}
+                  </button>
+                )}
+                {currentReserve.status === 2 && (
+                  <button onClick={handleHoldSeat} disabled={holdLoading}
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 disabled:opacity-50">
+                    {holdLoading ? "处理中..." : "暂离"}
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="text-[12px] text-muted-foreground">暂无预约</p>
+          )}
+        </div>
+
+        {/* 消息通知入口 */}
+        <div onClick={() => router.push("/library/messages")}
+          className="rounded-xl p-4 bg-card border border-border shadow-sm cursor-pointer hover:opacity-80 transition-opacity">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Bell className="w-4 h-4 text-primary" />
+              <span className="font-medium text-sm text-foreground">消息通知</span>
+            </div>
+            <span className="text-xs text-muted-foreground">查看 →</span>
+          </div>
+          <p className="text-[12px] text-muted-foreground mt-2">预约提醒、违规通知等</p>
+        </div>
+      </div>
+
+      {/* Room cards */}
       <div className="grid gap-3 sm:grid-cols-2">
         {openLibs.map((lib: LibraryRoom) => {
           const rt = lib.lib_rt, pct = rt.seats_total > 0 ? (rt.seats_used / rt.seats_total) * 100 : 0;
           return (
             <div key={lib.lib_id} onClick={() => router.push(`/library/layout?lib_id=${lib.lib_id}`)}
-              className="rounded-xl p-4 cursor-pointer hover:opacity-80 transition-opacity" style={{ background: "var(--surface-card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-xs)" }}>
+              className="rounded-xl p-4 cursor-pointer hover:opacity-80 transition-opacity bg-card border border-border shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" style={{ color: "var(--accent)" }} />
-                  <span className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>{lib.lib_name}</span>
+                  <MapPin className="w-3.5 h-3.5 text-primary" />
+                  <span className="font-medium text-sm text-foreground">{lib.lib_name}</span>
                 </div>
-                <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>{lib.lib_floor}</span>
+                <span className="text-xs text-muted-foreground">{lib.lib_floor}</span>
               </div>
-              <div className="h-2 rounded-full mb-2" style={{ background: "var(--surface)" }}>
+              <div className="h-2 rounded-full mb-2 bg-secondary">
                 <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: c(pct) }} />
               </div>
-              <div className="flex justify-between text-xs" style={{ color: "var(--text-tertiary)" }}>
+              <div className="flex justify-between text-xs text-muted-foreground">
                 <span style={{ color: c(pct), fontWeight: 600 }}>{rt.seats_has} 可用</span>
-                <span>{rt.seats_used}/{rt.seats_total}</span>
-                <span>{rt.open_time_str} - {rt.close_time_str}</span>
+                <span>{rt.seats_used}/{rt.seats_total}{rt.seats_booking > 0 ? ` · ${rt.seats_booking}预约中` : ""}</span>
+                <span>{rt.open_time_str}-{rt.close_time_str}</span>
               </div>
+              {rt.advance_booking && (
+                <p className="text-[10px] text-muted-foreground/60 mt-1">
+                  提前{rt.advance_booking}可约 · 签到限时{rt.reserve_ttl ? Math.floor(rt.reserve_ttl / 60) : 30}分钟
+                </p>
+              )}
             </div>
           );
         })}
       </div>
+      {closedCount > 0 && (
+        <p className="text-[11px] text-muted-foreground mt-3 text-center">
+          另有 {closedCount} 个阅览室未开放
+        </p>
+      )}
     </div>
   );
 }

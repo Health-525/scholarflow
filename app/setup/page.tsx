@@ -29,7 +29,6 @@ export default function SetupPage() {
       const result = await verifyToken(trimmed);
 
       if (result.ok) {
-        // 保存到 Zustand store + 安全持久化存储
         setToken(trimmed);
         await secureStoreToken(trimmed);
         router.replace("/");
@@ -51,27 +50,17 @@ export default function SetupPage() {
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: "var(--bg-gradient)", backgroundColor: "var(--background)" }}
-    >
-      <div
-        className="w-full max-w-md rounded-3xl p-8"
-        style={{
-          backgroundColor: "var(--surface-elevated)",
-          border: "1px solid var(--border)",
-          boxShadow: "var(--shadow-lg)",
-        }}
-      >
+    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
+      <div className="w-full max-w-md rounded-3xl p-8 bg-card border border-border shadow-lg">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-3" aria-hidden="true">
             📚
           </div>
-          <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
+          <h1 className="text-2xl font-bold mb-1 text-foreground">
             ScholarFlow
           </h1>
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+          <p className="text-sm text-muted-foreground">
             请输入 GitHub Personal Access Token 以开始使用
           </p>
         </div>
@@ -81,8 +70,7 @@ export default function SetupPage() {
           <div>
             <label
               htmlFor="token-input"
-              className="block text-sm font-medium mb-1.5"
-              style={{ color: "var(--text-secondary)" }}
+              className="block text-sm font-medium mb-1.5 text-muted-foreground"
             >
               GitHub PAT
             </label>
@@ -92,12 +80,7 @@ export default function SetupPage() {
               value={token}
               onChange={(e) => setTokenValue(e.target.value)}
               placeholder="ghp_ 或 github_pat_ 开头"
-              className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-              style={{
-                backgroundColor: "var(--surface)",
-                border: "1px solid var(--border)",
-                color: "var(--text-primary)",
-              }}
+              className="w-full px-4 py-3 rounded-xl text-sm outline-none bg-secondary border border-border text-foreground"
               aria-label="GitHub Personal Access Token"
               autoComplete="off"
               spellCheck={false}
@@ -108,12 +91,7 @@ export default function SetupPage() {
           {/* Error */}
           {error && (
             <div
-              className="rounded-xl px-4 py-3 text-sm"
-              style={{
-                backgroundColor: "rgba(255, 59, 48, 0.08)",
-                border: "1px solid rgba(255, 59, 48, 0.2)",
-                color: "var(--status-error)",
-              }}
+              className="rounded-xl px-4 py-3 text-sm bg-red-500/8 border border-red-500/20 text-red-500"
               role="alert"
             >
               {error}
@@ -124,12 +102,9 @@ export default function SetupPage() {
           <button
             type="submit"
             disabled={isLoading || !token.trim()}
-            className="w-full py-3 rounded-xl text-sm font-semibold transition-opacity"
-            style={{
-              backgroundColor: "var(--accent)",
-              color: "#fff",
-              opacity: isLoading || !token.trim() ? 0.5 : 1,
-            }}
+            className={`w-full py-3 rounded-xl text-sm font-semibold transition-opacity bg-primary text-primary-foreground ${
+              isLoading || !token.trim() ? "opacity-50" : ""
+            }`}
             aria-label={isLoading ? "验证中" : "开始使用"}
           >
             {isLoading ? "验证中..." : "开始使用"}
@@ -138,15 +113,14 @@ export default function SetupPage() {
 
         {/* Help text */}
         <div className="mt-6 text-center space-y-2">
-          <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+          <p className="text-xs text-muted-foreground">
             Token 仅存储在本地浏览器中，不会上传到任何服务器
           </p>
           <a
             href="https://github.com/settings/tokens"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block text-xs transition-colors hover:underline"
-            style={{ color: "var(--accent)" }}
+            className="inline-block text-xs transition-colors hover:underline text-primary"
           >
             如何创建 Token？→
           </a>

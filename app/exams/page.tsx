@@ -76,7 +76,8 @@ export default function ExamsPage() {
         if (jwglExams.length > 0) {
           const merged = [...stored];
           for (const je of jwglExams) {
-            if (!merged.some(e => e.subject === je.subject)) merged.push(je);
+            // Dedupe by subject+date (same subject on same day = same exam)
+            if (!merged.some(e => e.subject === je.subject && e.date === je.date)) merged.push(je);
           }
           save(merged);
           setExams(merged);
@@ -97,6 +98,7 @@ export default function ExamsPage() {
   const del = (id: string) => { const u = exams.filter(e => e.id !== id); setExams(u); save(u); };
 
   const upcoming = exams.filter(e => new Date(e.date + "T23:59:59").getTime() > Date.now());
+  const past = exams.filter(e => new Date(e.date + "T23:59:59").getTime() <= Date.now());
 
   return (
     <div className="min-h-screen bg-background text-foreground -mx-4 md:-mx-8 lg:-mx-10">
@@ -118,9 +120,9 @@ export default function ExamsPage() {
           </div>
         </div>
 
-        {/* Exam list */}
+        {/* Upcoming exams */}
         <div className="space-y-2">
-          {exams.map(e => {
+          {upcoming.map(e => {
             const cd = formatCountdown(e.date);
             return (
               <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
@@ -142,10 +144,39 @@ export default function ExamsPage() {
               </div>
             );
           })}
-          {exams.length === 0 && (
+          {upcoming.length === 0 && past.length === 0 && (
             <p className="text-center text-xs text-muted-foreground py-8">添加考试日期，自动倒计时</p>
           )}
+          {upcoming.length === 0 && past.length > 0 && (
+            <p className="text-center text-xs text-muted-foreground py-8">暂无待考科目</p>
+          )}
         </div>
+
+        {/* Past exams (collapsed) */}
+        {past.length > 0 && (
+          <details className="mt-4">
+            <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+              已结束 ({past.length})
+            </summary>
+            <div className="space-y-2 mt-2">
+              {past.map(e => (
+                <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border opacity-50">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-secondary">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-medium text-muted-foreground line-through">{e.subject}</div>
+                    <div className="text-[10px] text-muted-foreground">{e.date} {e.location || ""}</div>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">已结束</span>
+                  <button onClick={() => del(e.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 transition-colors">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </details>
+        )}
       </div>
     </div>
   );

@@ -26,7 +26,7 @@ export default function DailyReportsPage() {
 
   return (
     <div className="max-w-5xl mx-auto py-6">
-      <h1 className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
+      <h1 className="text-xl font-bold mb-4 text-foreground">
         日报
       </h1>
 
@@ -34,8 +34,7 @@ export default function DailyReportsPage() {
       {!showEditor && (
         <button
           onClick={() => setShowEditor(true)}
-          className="mb-4 px-4 py-2 rounded-xl text-sm font-medium"
-          style={{ backgroundColor: "var(--accent)", color: "#fff" }}
+          className="mb-4 px-4 py-2 rounded-xl text-sm font-medium bg-primary text-primary-foreground"
         >
           + 新建日报
         </button>
@@ -72,11 +71,8 @@ export default function DailyReportsPage() {
       {!isLoading && !error && (
         <div className="space-y-2">
           {filtered.length === 0 ? (
-            <div
-              className="rounded-2xl p-8 text-center"
-              style={{ backgroundColor: "var(--surface-elevated)", border: "1px solid var(--border)" }}
-            >
-              <p style={{ color: "var(--text-tertiary)" }}>暂无日报</p>
+            <div className="rounded-2xl p-8 text-center bg-card border border-border">
+              <p className="text-muted-foreground">暂无日报</p>
             </div>
           ) : (
             filtered.map((entry) => (

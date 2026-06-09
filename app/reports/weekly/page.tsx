@@ -25,7 +25,7 @@ export default function WeeklyReportsPage() {
 
   return (
     <div className="max-w-5xl mx-auto py-6">
-      <h1 className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
+      <h1 className="text-xl font-bold mb-4 text-foreground">
         周报
       </h1>
 
@@ -52,11 +52,8 @@ export default function WeeklyReportsPage() {
       {!isLoading && !error && (
         <div className="space-y-2">
           {filtered.length === 0 ? (
-            <div
-              className="rounded-2xl p-8 text-center"
-              style={{ backgroundColor: "var(--surface-elevated)", border: "1px solid var(--border)" }}
-            >
-              <p style={{ color: "var(--text-tertiary)" }}>暂无周报</p>
+            <div className="rounded-2xl p-8 text-center bg-card border border-border">
+              <p className="text-muted-foreground">暂无周报</p>
             </div>
           ) : (
             filtered.map((entry) => (

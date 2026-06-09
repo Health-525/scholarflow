@@ -28,7 +28,6 @@ describe("normalizeDate", () => {
 
   it("不修改原始 Date", () => {
     const d = new Date("2026-06-05T14:30:45");
-    const originalHours = d.getHours();
     normalizeDate(d);
     // 原始对象可能被修改（函数内部 setHours）——这是设计选择，暂不强制不可变
     // 但我们验证返回值正确即可

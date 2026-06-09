@@ -46,18 +46,14 @@ export function AddRunningForm({ records, onAdd, onCancel }: AddRunningFormProps
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl p-4 space-y-3"
-      style={{
-        backgroundColor: "var(--surface-elevated)",
-        border: "1px solid var(--border)",
-      }}
+      className="rounded-2xl p-4 space-y-3 bg-card border border-border"
     >
-      <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+      <h3 className="text-sm font-semibold text-foreground">
         记录跑步
       </h3>
 
       <div>
-        <label htmlFor="run-date" className="text-xs font-medium block mb-1" style={{ color: "var(--text-secondary)" }}>
+        <label htmlFor="run-date" className="text-xs font-medium block mb-1 text-muted-foreground">
           日期
         </label>
         <input
@@ -68,15 +64,14 @@ export function AddRunningForm({ records, onAdd, onCancel }: AddRunningFormProps
             setDate(e.target.value);
             setError(null);
           }}
-          className="w-full px-3 py-2 rounded-xl text-sm outline-none"
-          style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+          className="w-full px-3 py-2 rounded-xl text-sm outline-none bg-secondary border border-border text-foreground"
           required
           aria-required="true"
         />
       </div>
 
       <div>
-        <div className="text-xs font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+        <div className="text-xs font-medium mb-2 text-muted-foreground">
           类型
         </div>
         <div className="flex gap-2">
@@ -85,11 +80,9 @@ export function AddRunningForm({ records, onAdd, onCancel }: AddRunningFormProps
               key={t}
               type="button"
               onClick={() => { setType(t); setError(null); }}
-              className="flex-1 py-2 rounded-xl text-sm font-medium"
-              style={{
-                backgroundColor: type === t ? "var(--accent)" : "var(--border)",
-                color: type === t ? "#fff" : "var(--text-secondary)",
-              }}
+              className={`flex-1 py-2 rounded-xl text-sm font-medium ${
+                type === t ? "bg-primary text-primary-foreground" : "bg-border text-muted-foreground"
+              }`}
               aria-pressed={type === t}
               aria-label={t === "morning" ? "晨跑" : "自由跑"}
             >
@@ -100,13 +93,13 @@ export function AddRunningForm({ records, onAdd, onCancel }: AddRunningFormProps
       </div>
 
       {isDuplicate && !error && (
-        <p className="text-xs" style={{ color: "var(--status-warning)" }}>
+        <p className="text-xs text-amber-500">
           ⚠️ 该日期已有{type === "morning" ? "晨跑" : "自由跑"}记录
         </p>
       )}
 
       {error && (
-        <p className="text-xs" style={{ color: "var(--status-error)" }} role="alert">
+        <p className="text-xs text-red-500" role="alert">
           {error}
         </p>
       )}
@@ -115,12 +108,9 @@ export function AddRunningForm({ records, onAdd, onCancel }: AddRunningFormProps
         <button
           type="submit"
           disabled={isSubmitting || isDuplicate}
-          className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-          style={{
-            backgroundColor: "var(--accent)",
-            color: "#fff",
-            opacity: isSubmitting || isDuplicate ? 0.5 : 1,
-          }}
+          className={`flex-1 py-2.5 rounded-xl text-sm font-medium bg-primary text-primary-foreground ${
+            isSubmitting || isDuplicate ? "opacity-50" : ""
+          }`}
           aria-label={isSubmitting ? "记录中" : "记录跑步"}
         >
           {isSubmitting ? "记录中..." : "记录"}
@@ -129,8 +119,7 @@ export function AddRunningForm({ records, onAdd, onCancel }: AddRunningFormProps
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 rounded-xl text-sm font-medium"
-            style={{ backgroundColor: "var(--border)", color: "var(--text-secondary)" }}
+            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-border text-muted-foreground"
             aria-label="取消"
           >
             取消

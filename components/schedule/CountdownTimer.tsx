@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { formatCountdown } from "@/lib/schedule/timezone";
 
 interface CountdownTimerProps {
@@ -11,13 +11,25 @@ interface CountdownTimerProps {
 
 export function CountdownTimer({ targetTime, label, onExpire }: CountdownTimerProps) {
   const [now, setNow] = useState(() => new Date());
+  const expiredRef = useRef(false);
 
   useEffect(() => {
+    // Already expired at mount
+    if (new Date() >= targetTime) {
+      if (!expiredRef.current) {
+        expiredRef.current = true;
+        onExpire?.();
+      }
+      return;
+    }
+
     const id = setInterval(() => {
       const current = new Date();
       setNow(current);
-      if (current >= targetTime) {
+      if (current >= targetTime && !expiredRef.current) {
+        expiredRef.current = true;
         onExpire?.();
+        clearInterval(id);
       }
     }, 1000);
     return () => clearInterval(id);

@@ -15,14 +15,10 @@ export function LoadingSpinner({ size = "md", label = "加载中" }: LoadingSpin
   return (
     <div className="flex items-center justify-center gap-2" role="status" aria-label={label}>
       <div
-        className={`${sizeClass} rounded-full animate-spin`}
-        style={{
-          borderColor: "var(--border)",
-          borderTopColor: "var(--accent)",
-        }}
+        className={`${sizeClass} rounded-full animate-spin border-border border-t-primary`}
         aria-hidden="true"
       />
-      <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
+      <span className="text-sm text-muted-foreground">
         {label}
       </span>
     </div>

@@ -1,17 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { useCallback } from "react";
 import { FileTree } from "@/components/notes/FileTree";
 
 export default function NotesLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
 
-  function handleSelect(path: string) {
+  const handleSelect = useCallback((path: string) => {
     router.push(`/notes/${encodeURIComponent(path)}`);
-  }
+  }, [router]);
 
-  // Extract active path from URL
-  const pathname = typeof window !== "undefined" ? window.location.pathname : "";
   const activePath = pathname.startsWith("/notes/")
     ? decodeURIComponent(pathname.replace("/notes/", ""))
     : undefined;
@@ -19,18 +19,9 @@ export default function NotesLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex h-[calc(100vh-0px)]">
       {/* File tree sidebar */}
-      <aside
-        className="w-64 shrink-0 overflow-y-auto border-r hidden md:block"
-        style={{
-          backgroundColor: "var(--surface-elevated)",
-          borderColor: "var(--border-subtle)",
-        }}
-      >
+      <aside className="w-64 shrink-0 overflow-y-auto border-r border-border bg-card hidden md:block">
         {/* Header */}
-        <div
-          className="px-4 py-3 text-[11px] font-semibold uppercase tracking-widest"
-          style={{ color: "var(--text-muted)" }}
-        >
+        <div className="px-4 py-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
           资源管理器
         </div>
 

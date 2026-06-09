@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useGitHubClient } from "@/hooks/useGitHubClient";
-import type { DirectoryEntry } from "@/types";
 
 interface TreeNode {
   name: string;
@@ -51,13 +50,11 @@ export function FileTree({ onSelect, activePath }: FileTreeProps) {
     if (!client) return;
 
     if (node.loaded) {
-      // Toggle collapse: just remove children from display
       node.loaded = false;
       setRoots([...roots]);
       return;
     }
 
-    // Fetch children
     const entries = await client.listDirectory("content", node.path);
     node.children = entries
       .filter((e) => !e.name.startsWith("."))
@@ -69,7 +66,6 @@ export function FileTree({ onSelect, activePath }: FileTreeProps) {
         loaded: false,
       }))
       .sort((a, b) => {
-        // Dirs first, then files
         if (a.type !== b.type) return a.type === "dir" ? -1 : 1;
         return a.name.localeCompare(b.name);
       });
@@ -118,7 +114,6 @@ function TreeNodeView({
     }
   };
 
-  // File extension icon
   const getIcon = () => {
     if (isDir) return isExpanded ? "📂" : "📁";
     const ext = node.name.split(".").pop()?.toLowerCase();
@@ -133,37 +128,27 @@ function TreeNodeView({
     <div>
       <div
         onClick={handleClick}
-        className="flex items-center gap-1 px-2 py-[3px] cursor-pointer transition-colors hover:bg-[var(--accent-softer)]"
-        style={{
-          paddingLeft: `${depth * 16 + 8}px`,
-          backgroundColor: isActive ? "var(--accent-soft)" : "transparent",
-          color: isActive ? "var(--accent)" : "var(--text-secondary)",
-        }}
+        className={`flex items-center gap-1 px-2 py-[3px] cursor-pointer transition-colors hover:bg-accent/5 ${
+          isActive ? "bg-primary/10 text-primary" : "text-muted-foreground"
+        }`}
+        style={{ paddingLeft: `${depth * 16 + 8}px` }}
         title={node.path}
       >
-        {/* Chevron for dirs */}
         {isDir && (
           <span
-            className="w-4 text-center shrink-0 transition-transform"
-            style={{
-              transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
-              color: "var(--text-muted)",
-              fontSize: "10px",
-            }}
+            className="w-4 text-center shrink-0 transition-transform text-muted-foreground text-[10px]"
+            style={{ transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}
           >
             ▶
           </span>
         )}
         {!isDir && <span className="w-4 shrink-0" />}
 
-        {/* Icon */}
         <span className="shrink-0 text-xs">{getIcon()}</span>
 
-        {/* Name */}
         <span className="truncate">{node.name}</span>
       </div>
 
-      {/* Children */}
       {isExpanded &&
         node.children?.map((child) => (
           <TreeNodeView

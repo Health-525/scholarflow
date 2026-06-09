@@ -31,18 +31,14 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
     }
   };
 
-  // Keyboard shortcuts
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Ctrl/Cmd + S to save
     if ((e.ctrlKey || e.metaKey) && e.key === "s") {
       e.preventDefault();
       handleSave();
     }
-    // Escape to cancel
     if (e.key === "Escape") {
       onCancel();
     }
-    // Tab inserts spaces
     if (e.key === "Tab") {
       e.preventDefault();
       const textarea = textareaRef.current;
@@ -52,14 +48,12 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
       const newValue = value.substring(0, start) + "  " + value.substring(end);
       setValue(newValue);
       setDirty(true);
-      // Restore cursor position
       requestAnimationFrame(() => {
         textarea.selectionStart = textarea.selectionEnd = start + 2;
       });
     }
   };
 
-  // Insert markdown syntax at cursor
   const insertSyntax = (prefix: string, suffix: string = "") => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -71,7 +65,6 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
     setValue(newValue);
     setDirty(true);
 
-    // Set cursor position
     requestAnimationFrame(() => {
       const cursorPos = selected ? start + replacement.length : start + prefix.length;
       textarea.selectionStart = start + prefix.length;
@@ -93,16 +86,12 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
   return (
     <div className="flex flex-col" style={{ minHeight: "300px" }}>
       {/* Toolbar */}
-      <div
-        className="flex items-center gap-0.5 px-3 py-2 shrink-0"
-        style={{ borderBottom: "1px solid var(--border-subtle)" }}
-      >
+      <div className="flex items-center gap-0.5 px-3 py-2 shrink-0 border-b border-border">
         {toolbarButtons.map((btn) => (
           <button
             key={btn.label}
             onClick={btn.action}
-            className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
-            style={{ color: "var(--text-tertiary)" }}
+            className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors text-muted-foreground"
             title={btn.label}
           >
             <btn.icon className="w-3.5 h-3.5" />
@@ -111,17 +100,15 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
 
         <div className="flex-1" />
 
-        {/* Save status */}
         {dirty && (
-          <span className="text-[10px] mr-2" style={{ color: "var(--status-warning)" }}>
+          <span className="text-[10px] mr-2 text-amber-500">
             未保存
           </span>
         )}
 
         <button
           onClick={onCancel}
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] transition-colors"
-          style={{ color: "var(--text-muted)" }}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] transition-colors text-muted-foreground"
         >
           <X className="w-3 h-3" />
           取消
@@ -129,11 +116,9 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
         <button
           onClick={handleSave}
           disabled={!dirty || saving}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
-          style={{
-            backgroundColor: dirty ? "var(--accent)" : "var(--surface)",
-            color: dirty ? "#fff" : "var(--text-muted)",
-          }}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
+            dirty ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
+          }`}
         >
           <Save className="w-3 h-3" />
           {saving ? "保存中..." : "保存"}
@@ -146,22 +131,14 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        className="flex-1 w-full px-5 py-4 text-[13px] leading-[1.8] outline-none resize-none"
-        style={{
-          backgroundColor: "transparent",
-          color: "var(--text-primary)",
-          fontFamily: "ui-monospace, 'Cascadia Mono', 'Consolas', monospace",
-          minHeight: "calc(100vh - 340px)",
-        }}
+        className="flex-1 w-full px-5 py-4 text-[13px] leading-[1.8] outline-none resize-none bg-transparent text-foreground font-mono"
+        style={{ minHeight: "calc(100vh - 340px)" }}
         placeholder="开始写作..."
         spellCheck={false}
       />
 
       {/* Bottom bar */}
-      <div
-        className="flex items-center justify-between px-4 py-2 text-[10px] shrink-0"
-        style={{ borderTop: "1px solid var(--border-subtle)", color: "var(--text-muted)" }}
-      >
+      <div className="flex items-center justify-between px-4 py-2 text-[10px] shrink-0 border-t border-border text-muted-foreground">
         <span>{value.length} 字符 · {value.split("\n").length} 行</span>
         <span>Ctrl+S 保存 · Esc 取消</span>
       </div>

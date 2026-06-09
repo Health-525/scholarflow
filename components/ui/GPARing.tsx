@@ -29,7 +29,7 @@ export function GPARing({ value, size = 140, strokeWidth = 10, label }: GPARingP
         cy={size / 2}
         r={radius}
         fill="none"
-        stroke="var(--border)"
+        stroke="hsl(var(--border))"
         strokeWidth={strokeWidth}
       />
       {value > 0 && (

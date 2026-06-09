@@ -84,21 +84,24 @@ export function getAdjustedItemsForDate(
   const items: DayItem[] = [];
 
   for (const c of schedule.courses || []) {
+    // Check if this course should exist this week
+    const courseWeeks = parseWeekSpec(c.weeks);
+    const courseActiveThisWeek = courseWeeks.length === 0 || courseWeeks.includes(weekNum);
+
     const matchingAdj = activeAdjs.find(
       (adj) =>
         adj.sourceWeekday === c.weekday && arraysEqual(adj.sourcePeriods, c.periods)
     );
 
-    if (matchingAdj) {
-      // 应用调课：改为目标位置
+    if (matchingAdj && courseActiveThisWeek) {
+      // 应用调课：改为目标位置（只有本周有课才调课）
       if (matchingAdj.targetWeekday === wday) {
         items.push(buildCourseView(c, matchingAdj.targetPeriods, schedule));
       }
       // 原位置不显示此课程
     } else if (c.weekday === wday) {
       // 正常显示（需要检查周次是否在范围内）
-      const weeks = parseWeekSpec(c.weeks);
-      if (weeks.length && !weeks.includes(weekNum)) continue;
+      if (courseWeeks.length && !courseWeeks.includes(weekNum)) continue;
       items.push(buildCourseView(c, c.periods, schedule));
     }
   }
@@ -182,6 +185,10 @@ export function checkConflict(
   );
 
   for (const c of schedule.courses || []) {
+    // Skip courses that aren't active this week
+    const courseWeeks = parseWeekSpec(c.weeks);
+    if (courseWeeks.length && !courseWeeks.includes(weekNum)) continue;
+
     const adj = activeAdjs.find(
       (a) => a.sourceWeekday === c.weekday && arraysEqual(a.sourcePeriods, c.periods)
     );

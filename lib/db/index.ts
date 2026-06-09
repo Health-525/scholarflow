@@ -7,7 +7,6 @@
  */
 
 import Dexie, { type Table } from "dexie";
-import type { Assignment, RunRecord } from "@/types";
 
 export interface CachedFile {
   id?: number;

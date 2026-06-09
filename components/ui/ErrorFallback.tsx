@@ -11,25 +11,20 @@ export function ErrorFallback({
 }: ErrorFallbackProps) {
   return (
     <div
-      className="rounded-2xl p-4 flex flex-col items-center gap-3 text-center"
-      style={{
-        backgroundColor: "rgba(255, 59, 48, 0.06)",
-        border: "1px solid rgba(255, 59, 48, 0.18)",
-      }}
+      className="rounded-2xl p-4 flex flex-col items-center gap-3 text-center bg-red-500/6 border border-red-500/18"
       role="alert"
     >
       <span className="text-2xl" aria-hidden="true">
         ⚠️
       </span>
-      <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+      <p className="text-sm text-muted-foreground">
         {message}
       </p>
       {onRetry && (
         <button
           type="button"
           onClick={onRetry}
-          className="px-4 py-2 rounded-xl text-sm font-medium active:scale-95 transition-transform"
-          style={{ backgroundColor: "var(--accent)", color: "#fff" }}
+          className="px-4 py-2 rounded-xl text-sm font-medium active:scale-95 transition-transform bg-primary text-primary-foreground"
         >
           重试
         </button>
