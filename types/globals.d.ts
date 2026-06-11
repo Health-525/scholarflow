@@ -27,6 +27,7 @@ interface ElectronAPI {
   browMonitorStatus: () => Promise<{ running: boolean }>;
   petShow: () => Promise<{ ok: boolean }>;
   petHide: () => Promise<{ ok: boolean }>;
+  setTitleBarOverlay: (options: { color?: string; symbolColor?: string; height?: number }) => Promise<boolean>;
 }
 
 interface Window {

@@ -412,8 +412,20 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
       {/* Timer circle */}
       <div className="flex flex-col items-center mb-6 animate-fade-up">
         <div className="relative">
+          {/* Glow effect when running */}
+          {state.isRunning && (
+            <div
+              className="absolute inset-0 rounded-full animate-breathe opacity-30"
+              style={{
+                background: `radial-gradient(circle, ${phaseStrokeColor(state.phase)}20 0%, transparent 70%)`,
+                transform: "scale(1.1)",
+              }}
+            />
+          )}
           <svg width="260" height="260" viewBox="0 0 260 260">
+            {/* Background track */}
             <circle cx="130" cy="130" r={radius} fill="none" stroke="currentColor" strokeWidth="8" className="text-border" />
+            {/* Progress arc */}
             <circle
               cx="130" cy="130" r={radius}
               fill="none"
@@ -425,12 +437,19 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
               transform="rotate(-90 130 130)"
               style={{ transition: "stroke-dashoffset 1s linear" }}
             />
+            {/* Inner decorative ring */}
+            <circle cx="130" cy="130" r={radius - 16} fill="none" stroke="currentColor" strokeWidth="1" className="text-border/30" />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-[42px] font-bold tabular-nums font-display ${phaseColorClass(state.phase)}`}>
+            <span className={`text-[42px] font-bold tabular-nums font-display ${phaseColorClass(state.phase)} ${state.isRunning ? "animate-breathe" : ""}`}>
               {formatTime(state.remaining)}
             </span>
             <span className="text-[11px] mt-1 text-muted-foreground">{phaseLabel[state.phase]}</span>
+            {state.phase !== "idle" && (
+              <span className="text-[9px] mt-0.5 text-muted-foreground/60">
+                {state.phase === "focus" ? `${state.settings.focusMinutes}分钟` : state.phase === "break" ? `${state.settings.breakMinutes}分钟` : `${state.settings.longBreakMinutes}分钟`}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -478,21 +497,25 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
       )}
 
       {/* Today's stats */}
-      <div className="rounded-2xl p-4 border border-border bg-card">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[12px] font-semibold text-foreground">今日统计</h3>
+      <div className="rounded-2xl p-5 border border-border bg-card shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-[13px] font-semibold text-foreground">今日统计</h3>
           {state.stats.streak > 0 && (
             <span className="sf-chip sf-chip-accent">🔥 连续 {state.stats.streak} 天</span>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl p-3 text-center bg-primary/5">
-            <div className="text-xl font-bold tabular-nums font-display text-primary">{state.stats.todaySessions}</div>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-xl p-3 text-center bg-primary/5 border border-primary/10">
+            <div className="text-xl font-bold tabular-nums font-display text-primary animate-count">{state.stats.todaySessions}</div>
             <div className="text-[10px] mt-0.5 text-muted-foreground">专注次数</div>
           </div>
-          <div className="rounded-xl p-3 text-center bg-primary/5">
-            <div className="text-xl font-bold tabular-nums font-display text-primary">{formatMinutes(state.stats.todayFocus)}</div>
+          <div className="rounded-xl p-3 text-center bg-primary/5 border border-primary/10">
+            <div className="text-xl font-bold tabular-nums font-display text-primary animate-count">{formatMinutes(state.stats.todayFocus)}</div>
             <div className="text-[10px] mt-0.5 text-muted-foreground">专注时长</div>
+          </div>
+          <div className="rounded-xl p-3 text-center bg-secondary border border-border">
+            <div className="text-xl font-bold tabular-nums font-display text-foreground animate-count">{state.completedFocus}</div>
+            <div className="text-[10px] mt-0.5 text-muted-foreground">本轮完成</div>
           </div>
         </div>
       </div>

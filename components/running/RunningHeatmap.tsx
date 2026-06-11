@@ -37,9 +37,14 @@ export function RunningHeatmap({ records }: RunningHeatmapProps) {
   const offsetCells = jsFirst === 0 ? 6 : jsFirst - 1;
 
   return (
-    <div className="rounded-2xl p-4 bg-card border border-border">
-      <div className="text-xs font-medium mb-3 text-muted-foreground">
-        {now.getFullYear()} 年 {now.getMonth() + 1} 月跑步热力图
+    <div className="rounded-2xl p-5 bg-card border border-border shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span className="text-[13px] font-semibold text-foreground">
+          {now.getFullYear()} 年 {now.getMonth() + 1} 月跑步热力图
+        </span>
       </div>
 
       <div className="grid grid-cols-7 gap-1 mb-1">

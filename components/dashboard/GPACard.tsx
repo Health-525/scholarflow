@@ -27,24 +27,24 @@ export function GPACard() {
   const color = gpaColor(gpaNum);
 
   return (
-    <Link href="/gpa" className="sf-card block p-4" aria-label={`绩点 ${gpa}，点击查看详情`}>
-      <div className="flex items-center gap-4">
+    <Link href="/gpa" className="sf-card block p-4 group" aria-label={`绩点 ${gpa}，点击查看详情`}>
+      <div className="flex items-center gap-3.5">
         <div className="relative shrink-0">
-          <GPARing value={gpaNum} size={56} strokeWidth={5} label={`GPA ${gpa}`} />
+          <GPARing value={gpaNum} size={52} strokeWidth={4.5} label="" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-[11px] font-bold" style={{ color }}>{gpaNum > 0 ? gpa : "--"}</span>
+            <span className="text-[11px] font-bold transition-transform duration-200 group-hover:scale-110" style={{ color }}>{gpaNum > 0 ? gpa : "--"}</span>
           </div>
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-[12px] font-semibold font-display text-foreground">绩点</span>
-            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+            <span className="w-1.5 h-1.5 rounded-full transition-transform duration-200 group-hover:scale-150" style={{ backgroundColor: color }} />
           </div>
           {loading ? (
             <div className="h-7 w-16 rounded bg-secondary" />
           ) : (
-            <div className="text-[26px] font-bold tabular-nums leading-none" style={{ color }}>{gpa}</div>
+            <div className="text-[24px] font-bold tabular-nums leading-none transition-transform duration-200 group-hover:scale-105" style={{ color }}>{gpa}</div>
           )}
           <div className="flex items-center gap-3 mt-1.5">
             <span className="text-[10px] text-muted-foreground">{totalCredits}学分</span>

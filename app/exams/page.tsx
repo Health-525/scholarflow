@@ -101,13 +101,19 @@ export default function ExamsPage() {
   const past = exams.filter(e => new Date(e.date + "T23:59:59").getTime() <= Date.now());
 
   return (
-    <div className="min-h-screen bg-background text-foreground -mx-4 md:-mx-8 lg:-mx-10">
-      <div className="px-5 pt-5 pb-3">
-        <h1 className="text-lg font-bold font-display">考试倒计时</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">{upcoming.length} 场考试待考</p>
+    <div className="max-w-5xl mx-auto min-h-screen bg-background text-foreground animate-page">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6 py-4">
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
+          <Clock className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold font-display text-foreground">考试倒计时</h1>
+          <p className="text-[12px] text-muted-foreground">{upcoming.length} 场考试待考</p>
+        </div>
       </div>
 
-      <div className="px-5 pb-6">
+      <div className="pb-6">
         {/* Add form */}
         <div className="rounded-2xl p-4 mb-4 bg-card border border-border">
           <div className="flex items-center gap-2 flex-wrap">

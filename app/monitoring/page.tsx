@@ -168,20 +168,23 @@ export default function MonitoringPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="max-w-5xl mx-auto px-4 py-6 animate-page">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1 text-foreground">
-          Agent 运行状态
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          更新于 {new Date(health.updatedAt).toLocaleString("zh-CN")}
-          {" · "}
-          <span className="text-green-500">{health.summary.healthy} 正常</span>
-          {health.summary.failing > 0 && (
-            <span className="text-red-500"> · {health.summary.failing} 异常</span>
-          )}
-        </p>
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
+          <Activity className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold font-display text-foreground">Agent 运行状态</h1>
+          <p className="text-[12px] text-muted-foreground">
+            更新于 {new Date(health.updatedAt).toLocaleString("zh-CN")}
+            {" · "}
+            <span className="text-green-500">{health.summary.healthy} 正常</span>
+            {health.summary.failing > 0 && (
+              <span className="text-red-500"> · {health.summary.failing} 异常</span>
+            )}
+          </p>
+        </div>
       </div>
 
       {/* Health bar */}

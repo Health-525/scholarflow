@@ -25,19 +25,22 @@ export default function NotesPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-4">
+    <div className="max-w-6xl mx-auto py-4 animate-page">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
+          <FileText className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold font-display text-foreground">笔记</h1>
+          <p className="text-[12px] text-muted-foreground">jiangshu-study 知识库</p>
+        </div>
+      </div>
+
       {/* Mobile: toggle between tree and content */}
       <div className="md:hidden">
         {isMobileTreeOpen ? (
           <div>
-            <div className="mb-3 px-1">
-              <h1 className="text-lg font-bold font-[serif] text-foreground">
-                笔记
-              </h1>
-              <p className="text-[11px] text-muted-foreground">
-                jiangshu-study 知识库
-              </p>
-            </div>
             <div className="rounded-2xl overflow-hidden bg-card border border-border">
               <FileTree onSelect={handleSelect} activePath={selectedPath ?? undefined} />
             </div>

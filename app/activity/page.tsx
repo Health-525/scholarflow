@@ -27,8 +27,17 @@ export default function ActivityPage() {
   }
 
   return (
-    <div className="pb-24 md:pb-0">
-      <Header />
+    <div className="max-w-5xl mx-auto pb-24 md:pb-0 animate-page">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
+          <Monitor className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold font-display text-foreground">活动分析</h1>
+          <p className="text-[12px] text-muted-foreground">实时追踪桌面应用使用时间</p>
+        </div>
+      </div>
 
       {/* ── Big stats ── */}
       <div className="grid grid-cols-3 gap-3 mb-5">

@@ -11,23 +11,43 @@ import {
 import { useThemeStore } from "@/store/theme";
 import type { ThemeValue } from "@/lib/theme";
 
-const NAV_ITEMS = [
-  { href: "/",                label: "仪表板", Icon: LayoutDashboard },
-  { href: "/schedule",        label: "课表",   Icon: CalendarDays },
-  { href: "/assignments",     label: "作业",   Icon: ClipboardList },
-  { href: "/goals",           label: "目标",   Icon: Target },
-  { href: "/pomodoro",        label: "番茄钟", Icon: Timer },
-  { href: "/running",         label: "跑步",   Icon: Activity },
-  { href: "/notes",           label: "笔记",   Icon: FileText },
-  { href: "/reports/daily",   label: "日报",   Icon: Newspaper },
-  { href: "/exams",           label: "考试",   Icon: Clock },
-  { href: "/gpa",             label: "绩点",   Icon: Calculator },
-  { href: "/activity",        label: "屏幕时间", Icon: Monitor },
-  { href: "/monitoring",      label: "Agent",   Icon: HeartPulse },
-  { href: "/knowledge",       label: "知识画像", Icon: Brain },
-  { href: "/knowledge/roadmap", label: "学习路线", Icon: BookOpen },
-  { href: "/library",         label: "图书馆", Icon: Library },
-  { href: "/wrinkle",         label: "皮肤检测", Icon: Sparkles },
+const NAV_GROUPS = [
+  {
+    label: "日常",
+    items: [
+      { href: "/",                label: "仪表板", Icon: LayoutDashboard },
+      { href: "/schedule",        label: "课表",   Icon: CalendarDays },
+      { href: "/assignments",     label: "作业",   Icon: ClipboardList },
+      { href: "/exams",           label: "考试",   Icon: Clock },
+      { href: "/goals",           label: "目标",   Icon: Target },
+      { href: "/pomodoro",        label: "番茄钟", Icon: Timer },
+    ],
+  },
+  {
+    label: "运动",
+    items: [
+      { href: "/running",         label: "跑步",   Icon: Activity },
+      { href: "/activity",        label: "屏幕时间", Icon: Monitor },
+    ],
+  },
+  {
+    label: "学习",
+    items: [
+      { href: "/notes",           label: "笔记",   Icon: FileText },
+      { href: "/reports/daily",   label: "日报",   Icon: Newspaper },
+      { href: "/gpa",             label: "绩点",   Icon: Calculator },
+      { href: "/knowledge",       label: "知识画像", Icon: Brain },
+      { href: "/knowledge/roadmap", label: "学习路线", Icon: BookOpen },
+    ],
+  },
+  {
+    label: "工具",
+    items: [
+      { href: "/library",         label: "图书馆", Icon: Library },
+      { href: "/wrinkle",         label: "皮肤检测", Icon: Sparkles },
+      { href: "/monitoring",      label: "Agent",   Icon: HeartPulse },
+    ],
+  },
 ];
 
 const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = [
@@ -49,9 +69,9 @@ export function SideNav() {
       className="hidden md:flex flex-col w-52 shrink-0 h-screen sticky top-0 bg-card/80 border-r border-border backdrop-blur-2xl"
       aria-label="侧边导航"
     >
-      {/* Brand */}
-      <div className="px-6 pt-7 pb-6">
-        <div className="flex items-center gap-3">
+      {/* Brand — draggable region for window */}
+      <div className="px-6 pt-7 pb-6" style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
+        <div className="flex items-center gap-3" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
           <Image src="/icons/logo.png" alt="ScholarFlow logo" width={32} height={32} className="rounded-lg shrink-0" style={{ objectFit: "cover" }} />
           <div>
             <div className="flex items-baseline gap-1.5">
@@ -70,27 +90,38 @@ export function SideNav() {
         <div className="flex-1 h-px bg-border" />
       </div>
 
-      {/* Nav items */}
-      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto" aria-label="主导航">
-        {NAV_ITEMS.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-              aria-label={item.label}
-              aria-current={active ? "page" : undefined}
-            >
-              <span className={`shrink-0 w-1 h-5 rounded-full transition-all duration-150 ${active ? "bg-primary" : "bg-transparent"}`} aria-hidden="true" />
-              <item.Icon className={`shrink-0 w-4 h-4 transition-colors duration-150 ${active ? "text-primary" : "text-muted-foreground"}`} />
-              <span className="tracking-wide">{item.label}</span>
-              {!active && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-muted-foreground" aria-hidden="true" />
-              )}
-            </Link>
-          );
-        })}
+      {/* Nav items — grouped */}
+      <nav className="flex-1 px-3 overflow-y-auto" aria-label="主导航">
+        {NAV_GROUPS.map((group, gi) => (
+          <div key={group.label} className={gi > 0 ? "mt-3" : ""}>
+            <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 flex items-center gap-2">
+              <div className="w-2 h-px bg-muted-foreground/20" />
+              {group.label}
+              <div className="flex-1 h-px bg-muted-foreground/10" />
+            </div>
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`group flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 ${active ? "bg-primary/8 text-primary shadow-sm shadow-primary/5" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"}`}
+                    aria-label={item.label}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    <span className={`shrink-0 w-1 h-5 rounded-full transition-all duration-200 ${active ? "bg-primary scale-y-110" : "bg-transparent group-hover:bg-muted-foreground/30"}`} aria-hidden="true" />
+                    <item.Icon className={`shrink-0 w-4 h-4 transition-all duration-200 ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
+                    <span className={`tracking-wide transition-all duration-200 ${active ? "font-semibold" : ""}`}>{item.label}</span>
+                    {active && (
+                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary animate-pulse-subtle" aria-hidden="true" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Bottom: Theme + User Center */}
@@ -118,17 +149,17 @@ export function SideNav() {
 
         <Link
           href="/settings"
-          className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${isActive("/settings") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+          className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${isActive("/settings") ? "bg-primary/8 text-primary shadow-sm shadow-primary/5" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"}`}
           aria-label="用户中心"
           aria-current={isActive("/settings") ? "page" : undefined}
         >
-          <span className={`shrink-0 w-1 h-5 rounded-full transition-all duration-150 ${isActive("/settings") ? "bg-primary" : "bg-transparent"}`} aria-hidden="true" />
-          <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 bg-primary/10">
+          <span className={`shrink-0 w-1 h-5 rounded-full transition-all duration-200 ${isActive("/settings") ? "bg-primary scale-y-110" : "bg-transparent group-hover:bg-muted-foreground/30"}`} aria-hidden="true" />
+          <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 bg-primary/10 transition-transform duration-200 group-hover:scale-105">
             <User className="w-3 h-3 text-primary" />
           </div>
-          <span className="tracking-wide">用户中心</span>
-          {!isActive("/settings") && (
-            <span className="ml-auto w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-muted-foreground" aria-hidden="true" />
+          <span className={`tracking-wide transition-all duration-200 ${isActive("/settings") ? "font-semibold" : ""}`}>用户中心</span>
+          {isActive("/settings") && (
+            <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary animate-pulse-subtle" aria-hidden="true" />
           )}
         </Link>
       </div>

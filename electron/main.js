@@ -324,6 +324,15 @@ ipcMain.handle('brow-monitor:status', async () => {
   return { running };
 });
 
+// IPC: 动态更新 titleBarOverlay 颜色（跟随主题）
+ipcMain.handle('window:set-titlebar-overlay', async (_event, options) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.setTitleBarOverlay(options);
+    return true;
+  }
+  return false;
+});
+
 // ── Token 存储路径 ──────────────────────────────────────────
 function getTokenStorePath() {
   const userDataPath = app.getPath('userData');
@@ -707,6 +716,13 @@ function createWindow() {
     minHeight: 600,
     title: 'ScholarFlow',
     icon: fs.existsSync(iconPath) ? iconPath : undefined,
+    frame: false,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#faf7f2',
+      symbolColor: '#1a1510',
+      height: 36,
+    },
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

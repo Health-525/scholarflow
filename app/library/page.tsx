@@ -271,10 +271,19 @@ export default function LibraryPage() {
   const c = occupancyColor;
 
   return (
-    <div className="pb-24 md:pb-8 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-foreground">📚 图书馆座位</h1>
-        <div className="flex items-center gap-2">
+    <div className="max-w-5xl mx-auto pb-24 md:pb-8 py-6 animate-page">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
+          <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.092.14-3.126.39A12.025 12.025 0 003.75 6c0 1.052.14 2.092.39 3.126A8.967 8.967 0 0012 12.042a8.967 8.967 0 006 2.25c1.052 0 2.092-.14 3.126-.39A12.025 12.025 0 0018.75 12c0-1.052-.14-2.092-.39-3.126A8.967 8.967 0 0012 6.042z" />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl font-bold font-display text-foreground">图书馆座位</h1>
+          <p className="text-[12px] text-muted-foreground">实时座位查询与预约</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
           {isElectron && (
             <button onClick={handleRefreshJWT} title="刷新登录凭证"
               className="px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1 bg-card text-muted-foreground border border-border">

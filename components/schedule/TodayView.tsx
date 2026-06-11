@@ -31,15 +31,21 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
   );
 
   const weekdayLabel = today.toLocaleDateString("zh-CN", { weekday: "long" });
+  const dateLabel = today.toLocaleDateString("zh-CN", { month: "numeric", day: "numeric" });
 
   return (
     <div className="space-y-4">
       {/* Hero: next course countdown */}
-      <div className="rounded-2xl p-5 bg-card border border-border shadow-sm">
+      <div className="rounded-2xl p-5 bg-card border border-border shadow-sm relative overflow-hidden">
+        {/* Decorative gradient */}
+        {nextCourse && (
+          <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full opacity-[0.04] pointer-events-none" style={{ backgroundColor: courseColor(nextCourse.item.title).accent }} />
+        )}
+
         {nextCourse ? (
-          <div>
+          <div className="relative">
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-xs font-medium text-muted-foreground">{weekdayLabel}</span>
+              <span className="text-xs font-medium text-muted-foreground">{weekdayLabel} · {dateLabel}</span>
               <span className="sf-chip sf-chip-accent">下节课</span>
             </div>
             <div className="text-lg font-bold font-display text-foreground mb-1">
@@ -51,8 +57,12 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
                 <span className="ml-2">· {nextCourse.item.location}</span>
               )}
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-primary/5 border border-primary/10">
-              <span className="text-xl" aria-hidden="true">⏱</span>
+            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-primary/5 border border-primary/10">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/10 shrink-0">
+                <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
               <div className="text-2xl font-bold text-primary tabular-nums animate-breathe">
                 <CountdownTimer
                   targetTime={nextCourse.startTime}
@@ -63,7 +73,11 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
           </div>
         ) : (
           <div className="text-center py-4">
-            <div className="text-3xl mb-2" aria-hidden="true">✅</div>
+            <div className="w-12 h-12 mx-auto rounded-xl bg-green-600/10 flex items-center justify-center mb-3">
+              <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
             <div className="font-medium text-foreground">
               今天的课程已全部结束
             </div>
@@ -90,7 +104,7 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
                 key={idx}
                 type="button"
                 onClick={() => setSelectedItem(item)}
-                className={`w-full text-left rounded-xl p-4 transition-all active:scale-[0.98] hover:shadow-sm animate-fade-up stagger-${Math.min(idx + 1, 7)}`}
+                className={`w-full text-left rounded-xl p-4 transition-all duration-200 active:scale-[0.98] hover:shadow-md animate-fade-up stagger-${Math.min(idx + 1, 7)}`}
                 style={{
                   backgroundColor: colors.bg,
                   border: `1px solid ${colors.border}`,
@@ -101,7 +115,7 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
                   {/* Left color indicator + content */}
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <div
-                      className="w-1 h-8 rounded-full flex-shrink-0 mt-0.5"
+                      className="w-1.5 h-8 rounded-full flex-shrink-0 mt-0.5"
                       style={{ backgroundColor: colors.accent }}
                     />
                     <div className="min-w-0">
@@ -119,7 +133,7 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
                     </div>
                   </div>
                   {/* Chevron */}
-                  <svg className="w-4 h-4 text-muted-foreground/50 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="w-4 h-4 text-muted-foreground/40 flex-shrink-0 mt-1 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </div>

@@ -1,6 +1,5 @@
 "use client";
 
-import { Monitor } from "lucide-react";
 import { useActivityTrackerV3, CATEGORY_LABELS } from "@/lib/activity-tracker-v3";
 import type { Category } from "@/lib/activity-tracker-v3";
 import Link from "next/link";
@@ -13,10 +12,12 @@ export function ScreenTimeCard() {
   const rate = Math.round((activeMins / total) * 100);
 
   return (
-    <Link href="/activity" className="block sf-card p-5 animate-fade-up">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10">
-          <Monitor className="w-4 h-4 text-primary" />
+    <Link href="/activity" className="block sf-card p-4 group">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10 transition-transform duration-200 group-hover:scale-110">
+          <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
         </div>
         <div>
           <h3 className="text-[13px] font-semibold text-foreground">屏幕时间</h3>
@@ -26,11 +27,11 @@ export function ScreenTimeCard() {
 
       <div className="flex items-end justify-between mb-3">
         <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-bold tabular-nums text-foreground">{activeMins}</span>
+          <span className="text-[24px] font-bold tabular-nums text-foreground transition-transform duration-200 group-hover:scale-105">{activeMins}</span>
           <span className="text-[11px] text-muted-foreground">活跃 min</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-12 h-1.5 rounded-full overflow-hidden flex bg-secondary">
+          <div className="w-14 h-1.5 rounded-full overflow-hidden flex bg-secondary">
             <div className="h-full transition-all bg-primary" style={{ width: `${rate}%` }} />
           </div>
           <span className="text-[10px] font-medium tabular-nums text-primary">{rate}%</span>

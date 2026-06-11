@@ -1,6 +1,5 @@
 "use client";
 
-import { Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
@@ -77,12 +76,14 @@ export function ExamCountdownCard() {
   );
 
   return (
-    <Link href="/exams" className="block sf-card p-4 animate-fade-up">
-      <div className="flex items-center gap-3 mb-2">
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${urgent ? "bg-red-500/10" : "bg-primary/10"}`}>
-          <Clock className={`w-4 h-4 ${urgent ? "text-red-500" : "text-primary"}`} />
+    <Link href="/exams" className="block sf-card p-4 group">
+      <div className="flex items-center gap-2 mb-3">
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-transform duration-200 group-hover:scale-110 ${urgent ? "bg-red-500/10" : "bg-primary/10"}`}>
+          <svg className={`w-3.5 h-3.5 ${urgent ? "text-red-500" : "text-primary"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
         </div>
-        <span className="text-[12px] font-semibold text-foreground">考试</span>
+        <span className="text-[12px] font-semibold text-foreground">考试倒计时</span>
       </div>
       {loading ? (
         <div className="space-y-2">
@@ -90,15 +91,18 @@ export function ExamCountdownCard() {
           <div className="skeleton h-7 w-16 rounded" />
         </div>
       ) : nextExam ? (
-        <>
-          <div className="text-[14px] font-bold truncate text-foreground">{nextExam.subject}</div>
-          <div className="flex items-center gap-2 mt-1">
-            <span className={`text-[20px] font-bold tabular-nums ${urgent ? "text-red-500" : "text-primary"}`}>{countdown}</span>
+        <div>
+          <div className="text-[14px] font-bold truncate text-foreground mb-1">{nextExam.subject}</div>
+          <div className="flex items-center gap-2">
+            <span className={`text-[22px] font-bold tabular-nums transition-transform duration-200 group-hover:scale-105 ${urgent ? "text-red-500" : "text-primary"}`}>{countdown}</span>
             <span className="text-[10px] text-muted-foreground">{nextExam.date}</span>
           </div>
-        </>
+          {nextExam.location && (
+            <div className="text-[11px] text-muted-foreground mt-1">{nextExam.location}</div>
+          )}
+        </div>
       ) : (
-        <div className="text-[13px] text-muted-foreground">暂无考试</div>
+        <div className="text-[13px] text-muted-foreground py-2">暂无考试安排</div>
       )}
     </Link>
   );

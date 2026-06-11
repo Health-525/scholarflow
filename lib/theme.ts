@@ -46,15 +46,45 @@ export function getEffectiveTheme(theme?: ThemeValue): "light" | "dark" {
 
 /**
  * 根据当前主题偏好和系统偏好，将 data-theme 写入 <html> 元素
+ * 同时更新 Electron titleBarOverlay 颜色（跟随主题）
+ *
+ * Best practice: always set data-theme explicitly (light/dark),
+ * never rely on @media alone — single source of truth via attribute.
  */
 export function applyTheme(theme?: ThemeValue): void {
   if (typeof window === "undefined") return;
   const t = theme ?? getTheme();
   const html = document.documentElement;
 
-  if (t === "system") {
-    html.removeAttribute("data-theme");
-  } else {
-    html.setAttribute("data-theme", t);
+  // Always set data-theme explicitly — resolves "system" to actual value
+  const effective = getEffectiveTheme(t);
+  html.setAttribute("data-theme", effective);
+
+  // Update Electron titleBarOverlay to match theme
+  if (typeof window !== 'undefined' && window.electronAPI?.setTitleBarOverlay) {
+    window.electronAPI.setTitleBarOverlay(
+      effective === 'dark'
+        ? { color: '#1e1e22', symbolColor: '#e4e0d8', height: 36 }
+        : { color: '#faf7f2', symbolColor: '#1a1510', height: 36 }
+    );
   }
+}
+
+/**
+ * Listen for system theme changes (for "system" mode auto-switching)
+ * Returns a cleanup function to remove the listener.
+ */
+export function watchSystemTheme(onChange: (effective: "light" | "dark") => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const mql = window.matchMedia("(prefers-color-scheme: dark)");
+  const handler = (e: MediaQueryListEvent) => {
+    const current = getTheme();
+    if (current === "system") {
+      const effective = e.matches ? "dark" : "light";
+      applyTheme("system");
+      onChange(effective);
+    }
+  };
+  mql.addEventListener("change", handler);
+  return () => mql.removeEventListener("change", handler);
 }

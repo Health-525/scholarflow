@@ -83,10 +83,15 @@ export default function KnowledgeRoadmapPage() {
   }
 
   return (
-    <div className="py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2 text-foreground">知识学习路线图</h1>
-        <p className="text-sm text-muted-foreground">更新于 {new Date(roadmap.updatedAt).toLocaleString("zh-CN")}</p>
+    <div className="max-w-5xl mx-auto py-6 animate-page">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
+          <BookOpen className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold font-display text-foreground">知识学习路线图</h1>
+          <p className="text-[12px] text-muted-foreground">更新于 {new Date(roadmap.updatedAt).toLocaleString("zh-CN")}</p>
+        </div>
       </div>
 
       {/* Overview cards */}

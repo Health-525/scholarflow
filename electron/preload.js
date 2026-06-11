@@ -88,4 +88,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("library:jwt-refreshed", handler);
     return () => ipcRenderer.removeListener("library:jwt-refreshed", handler);
   },
+
+  // ── 窗口标题栏 ──
+  /** 动态更新 titleBarOverlay 颜色（跟随主题） */
+  setTitleBarOverlay: (options) => ipcRenderer.invoke("window:set-titlebar-overlay", options),
 });

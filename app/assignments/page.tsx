@@ -135,16 +135,23 @@ export default function AssignmentsPage() {
   const [showForm, setShowForm] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background text-foreground -mx-4 md:-mx-8 lg:-mx-10">
-      <div className="px-5 pt-5 pb-3 flex items-center justify-between">
-        <h1 className="text-lg font-bold font-display">作业</h1>
+    <div className="max-w-5xl mx-auto min-h-screen bg-background text-foreground animate-page">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6 py-4">
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-amber-500/10">
+          <ClipboardList className="w-5 h-5 text-amber-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl font-bold font-display text-foreground">作业</h1>
+          <p className="text-[12px] text-muted-foreground">作业管理与截止提醒</p>
+        </div>
         <button type="button" onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-1.5 bg-primary text-primary-foreground">
+          className="px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-1.5 bg-primary text-primary-foreground transition-opacity hover:opacity-90 active:scale-95 shrink-0">
           <Plus size={14} />{showForm ? "收起" : "新增"}
         </button>
       </div>
 
-      <div className="px-5 pb-6">
+      <div className="pb-6">
         {showForm && <div className="mb-4"><AddAssignmentForm onAdd={add} onCancel={() => setShowForm(false)} /></div>}
         {isLoading && <div className="py-12"><LoadingSpinner label="加载作业..." /></div>}
         {error && !isLoading && <ErrorFallback message={error.message} onRetry={reload} />}

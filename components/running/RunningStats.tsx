@@ -10,8 +10,14 @@ interface RunningStatsProps {
 export function RunningStats({ stats }: RunningStatsProps) {
   return (
     <div className="rounded-2xl p-5 bg-card border border-border shadow-sm">
-      <div className="text-xs font-medium mb-4 text-muted-foreground">
-        阳光长跑进度
+      <div className="flex items-center gap-2 mb-4">
+        <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        <span className="text-[13px] font-semibold text-foreground">阳光长跑进度</span>
+        {stats.progressPercent >= 100 && (
+          <span className="sf-chip sf-chip-ok">已达标</span>
+        )}
       </div>
 
       <div className="mb-4">

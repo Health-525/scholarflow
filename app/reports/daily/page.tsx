@@ -25,10 +25,19 @@ export default function DailyReportsPage() {
   }, [entries, startDate, endDate]);
 
   return (
-    <div className="max-w-5xl mx-auto py-6">
-      <h1 className="text-xl font-bold mb-4 text-foreground">
-        日报
-      </h1>
+    <div className="max-w-5xl mx-auto py-6 animate-page">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
+          <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div>
+          <h1 className="text-xl font-bold font-display text-foreground">日报</h1>
+          <p className="text-[12px] text-muted-foreground">每日学习总结与反思</p>
+        </div>
+      </div>
 
       {/* New report button */}
       {!showEditor && (

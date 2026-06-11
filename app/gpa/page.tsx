@@ -118,9 +118,18 @@ export default function GPAPage() {
 
   if (loading) {
     return (
-      <div className="pb-24 md:pb-8">
-        <div className="flex items-center justify-center py-20">
-          <div className="text-[13px] text-muted-foreground">加载中...</div>
+      <div className="max-w-5xl mx-auto pb-24 md:pb-8 animate-page">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10 animate-pulse">
+            <TrendingUp className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold font-display text-foreground">绩点</h1>
+            <p className="text-[12px] text-muted-foreground">加载中...</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="w-20 h-20 rounded-full bg-secondary animate-breathe" />
         </div>
       </div>
     );
@@ -128,9 +137,14 @@ export default function GPAPage() {
 
   if (!grades) {
     return (
-      <div className="pb-24 md:pb-8">
-        <div className="mb-6 py-4">
-          <h1 className="text-lg font-bold text-foreground">绩点</h1>
+      <div className="max-w-5xl mx-auto pb-24 md:pb-8 animate-page">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
+            <TrendingUp className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold font-display text-foreground">绩点</h1>
+          </div>
         </div>
         <div className="rounded-2xl p-8 text-center border border-border bg-card">
           <BookOpen className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
@@ -144,10 +158,16 @@ export default function GPAPage() {
   const currentGPAColor = gpaColor(filteredGPA);
 
   return (
-    <div className="pb-24 md:pb-8">
-      <div className="mb-4 py-4">
-        <h1 className="text-lg font-bold text-foreground">绩点</h1>
-        <p className="text-[12px] text-muted-foreground">数据来自教务系统</p>
+    <div className="max-w-5xl mx-auto pb-24 md:pb-8 animate-page">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
+          <TrendingUp className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold font-display text-foreground">绩点</h1>
+          <p className="text-[12px] text-muted-foreground">数据来自教务系统</p>
+        </div>
       </div>
 
       {/* 学期筛选 */}
