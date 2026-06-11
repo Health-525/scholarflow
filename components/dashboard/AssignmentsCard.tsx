@@ -70,7 +70,7 @@ export function AssignmentsCard() {
 
       {error && !isLoading && <ErrorFallback message={error.message} onRetry={reload} />}
 
-      {mounted && !isLoading && !error && (
+      {!isLoading && !error && (
         pending.length === 0 ? (
           <div className="py-4 flex items-center justify-center gap-2">
             <span className="text-lg" aria-hidden="true">✨</span>

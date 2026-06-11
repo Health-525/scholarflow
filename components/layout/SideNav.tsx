@@ -17,17 +17,13 @@ import {
   LayoutDashboard,
   Library,
   Monitor,
-  Moon,
   Newspaper,
   Sparkles,
-  Sun,
   Target,
   Timer,
   TrendingUp,
   User,
 } from "lucide-react";
-import { useThemeStore } from "@/store/theme";
-import type { ThemeValue } from "@/lib/theme";
 
 const NAV_GROUPS = [
   {
@@ -70,16 +66,8 @@ const NAV_GROUPS = [
   },
 ];
 
-const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = [
-  { value: "light", label: "浅色", Icon: Sun },
-  { value: "dark", label: "深色", Icon: Moon },
-  { value: "system", label: "系统", Icon: Monitor },
-];
-
 export function SideNav() {
   const pathname = usePathname();
-  const theme = useThemeStore((s) => s.theme);
-  const setTheme = useThemeStore((s) => s.setTheme);
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
@@ -165,32 +153,6 @@ export function SideNav() {
       </nav>
 
       <div className="px-3 pb-5 border-t border-border dark:border-t-transparent pt-3">
-        <div className="px-3 py-2 mb-1">
-          <div className="mb-2 text-[10px] font-medium tracking-[0.2em] uppercase text-muted-foreground">外观</div>
-          <div className="grid grid-cols-3 gap-1.5">
-            {THEME_OPTIONS.map((opt) => {
-              const active = theme === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  onClick={() => setTheme(opt.value)}
-                  className={[
-                    "rounded-xl px-2 py-2 text-[11px] font-medium transition-all duration-150",
-                    active
-                      ? "bg-primary/10 text-primary border border-primary/15 dark:border-transparent dark:bg-primary/[0.12] dark:text-white"
-                      : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-secondary/60 dark:hover:bg-primary/[0.06]",
-                  ].join(" ")}
-                  aria-label={`切换到${opt.label}模式`}
-                  aria-pressed={active}
-                >
-                  <opt.Icon className="mx-auto mb-1 h-3.5 w-3.5" />
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         <Link
           href="/settings"
           className={[

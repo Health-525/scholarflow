@@ -17,7 +17,6 @@ function useGreeting() {
     text: "你好",
     emoji: "👋",
     date: "",
-    time: "",
   });
 
   useEffect(() => {
@@ -47,12 +46,7 @@ function useGreeting() {
         weekday: "long",
       });
 
-      const time = now.toLocaleTimeString("zh-CN", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-
-      setGreeting({ text, emoji, date, time });
+      setGreeting({ text, emoji, date });
     };
 
     update();
@@ -64,36 +58,27 @@ function useGreeting() {
 }
 
 export default function DashboardPage() {
-  const { text: greeting, emoji: greetingEmoji, date: dateStr, time: timeStr } = useGreeting();
+  const { text: greeting, emoji: greetingEmoji, date: dateStr } = useGreeting();
 
   return (
     <div className="max-w-5xl mx-auto py-6 pb-24 md:pb-8 animate-page">
-      <header className="relative mb-5 overflow-hidden rounded-[28px] px-5 py-5 animate-fade-up dark:dark-panel">
+      <header className="relative mb-3 overflow-hidden rounded-[28px] px-5 py-4 animate-fade-up dark:dark-panel">
         <div className="pointer-events-none absolute inset-0 hidden dark:block" aria-hidden="true">
           <div className="absolute -left-10 top-0 h-24 w-24 rounded-full bg-primary/10 blur-3xl" />
         </div>
 
         <div className="relative flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-border/60 bg-secondary/80 px-2.5 py-1 text-[10px] font-medium tabular-nums text-muted-foreground dark:border-transparent dark:bg-primary/[0.06] dark:text-white/75">
-                {timeStr}
-              </span>
-              <span className="text-[10px] font-medium tracking-[0.18em] text-muted-foreground/70">
-                {dateStr}
-              </span>
-            </div>
+          <div className="min-w-0 flex-1" suppressHydrationWarning>
+            <span className="text-[10px] font-medium tracking-[0.18em] text-muted-foreground/70">
+              {dateStr}
+            </span>
 
             <h1 className="text-[28px] font-bold leading-tight font-display text-foreground tracking-tight">
               {greeting}
             </h1>
-
-            <p className="mt-2 text-sm text-muted-foreground">
-              今天的学习、课表和任务都在这里。
-            </p>
           </div>
 
-          <div className="relative shrink-0">
+          <div className="relative shrink-0" suppressHydrationWarning>
             <div className="absolute inset-0 rounded-full bg-primary/10 blur-2xl dark:bg-primary/12" aria-hidden="true" />
             <div className="relative flex h-16 w-16 items-center justify-center rounded-[22px] bg-card/75 text-[34px] backdrop-blur-xl dark:bg-primary/[0.06]">
               {greetingEmoji}
