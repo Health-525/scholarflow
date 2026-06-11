@@ -28,11 +28,31 @@ export function getCachedJWT(): string | null {
   return null;
 }
 
+// GraphQL response type
+interface GraphQLResponse {
+  data?: {
+    userAuth?: {
+      reserve?: {
+        reserve?: Record<string, unknown> | null;
+        reserveCancle?: { __typename?: string } | null;
+        reserveRelease?: number | null;
+        reserveHold?: unknown;
+        reserueSeat?: Record<string, unknown> | null;
+      };
+      user?: {
+        rank?: { rank: number } | null;
+      };
+    };
+  };
+  errors?: Array<{ msg?: string; message?: string }>;
+  error?: string;
+}
+
 export function graphql(jwt: string, query: string) {
   const body = JSON.stringify({ query });
   const hostname = process.env.LIBRARY_API_HOSTNAME || "seat.njtech.edu.cn";
   const allowInsecure = process.env.NODE_ENV === "development" || process.env.LIBRARY_ALLOW_INSECURE === "true";
-  return new Promise<{ ok: boolean; data: any }>(resolve => {
+  return new Promise<{ ok: boolean; data: GraphQLResponse }>(resolve => {
     const r = https.request({
       method: "POST", hostname, path: "/index.php/graphql/",
       headers: { "Content-Type": "application/json", Cookie: `Authorization=${jwt};v=5.5` },

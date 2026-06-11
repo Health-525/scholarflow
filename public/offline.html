@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScholarFlow - 离线模式</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #faf7f2;
+      color: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .container {
+      max-width: 400px;
+      text-align: center;
+    }
+    .icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 24px;
+      border-radius: 20px;
+      background: rgba(42, 68, 148, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon svg { width: 32px; height: 32px; color: #2a4494; }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    p {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .tip {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 16px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 12px;
+      background: #2a4494;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #1a2d6e; }
+    .btn svg { width: 16px; height: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L15.536 21.364M5.636 18.364a9 9 0 010-12.728m0 0l2.829 2.829m-2.829-2.829L2.808 5.808M12 12h.01" />
+      </svg>
+    </div>
+    <h1>暂时离线</h1>
+    <p>无法连接网络，部分功能可能受限。本地数据（课表、作业、跑步记录）仍可正常查看。</p>
+    <div class="tip">请检查网络连接后重试</div>
+    <button class="btn" onclick="location.reload()">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 5a8 8 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      重新连接
+    </button>
+  </div>
+</body>
+</html>

@@ -37,7 +37,6 @@ function AnimatedNumber({ value, duration = 800 }: { value: number | string; dur
     const animate = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // Ease out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
       setDisplay(Math.round(start + diff * eased));
       if (progress < 1) requestAnimationFrame(animate);
@@ -54,6 +53,20 @@ export function SummaryBanner() {
   const client = useGitHubClient();
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      const theme = document.documentElement.getAttribute("data-theme");
+      if (theme === "dark") setIsDark(true);
+      else if (theme === "light") setIsDark(false);
+      else setIsDark(window.matchMedia("(prefers-color-scheme: dark)").matches);
+    };
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -75,7 +88,7 @@ export function SummaryBanner() {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[1,2,3,4].map(i => (
-          <div key={i} className="rounded-2xl p-4 bg-card border border-border">
+          <div key={i} className="rounded-2xl p-4 bg-card border border-border dark:border-transparent">
             <div className="skeleton w-8 h-8 rounded-xl mb-2" />
             <div className="skeleton w-12 h-3 rounded mb-1.5" />
             <div className="skeleton w-16 h-7 rounded" />
@@ -95,7 +108,7 @@ export function SummaryBanner() {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {fallbackItems.map((item, i) => (
-          <div key={i} className="rounded-2xl p-4 bg-card border border-border shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+          <div key={i} className="rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
             <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 ${item.bgClass}`}>
               <item.icon size={15} className={item.colorClass} />
             </div>
@@ -109,12 +122,14 @@ export function SummaryBanner() {
 
   const { overview } = data;
 
+  // Light mode colors (original) + dark mode overrides via CSS variables
   const items = [
     {
       icon: BookOpen,
       label: "今日课程",
       value: overview.courses,
       color: "#2a4494",
+      darkColor: "#818CF8",
       sub: overview.courses > 0 ? `${overview.courses} 门课` : "无课程",
     },
     {
@@ -122,7 +137,10 @@ export function SummaryBanner() {
       label: "待办作业",
       value: overview.pendingAssignments,
       color: overview.urgentAssignments > 0 ? "#c0392b" : "#b85c00",
+      darkColor: overview.urgentAssignments > 0 ? "#EF4444" : "#F59E0B",
       badge: overview.urgentAssignments > 0 ? `${overview.urgentAssignments}紧急` : undefined,
+      badgeBgLight: overview.urgentAssignments > 0 ? "rgba(192,57,43,0.10)" : "rgba(184,92,0,0.10)",
+      badgeBgDark: overview.urgentAssignments > 0 ? "rgba(239,68,68,0.15)" : "rgba(245,158,11,0.15)",
       sub: overview.pendingAssignments > 0 ? `${overview.pendingAssignments} 项` : "全部完成",
     },
     {
@@ -130,7 +148,10 @@ export function SummaryBanner() {
       label: "阳光长跑",
       value: overview.running?.total ?? 0,
       color: overview.running?.completed ? "#2d7a4f" : "#b85c00",
+      darkColor: overview.running?.completed ? "#22C55E" : "#F59E0B",
       badge: overview.running?.completed ? "已达标" : undefined,
+      badgeBgLight: overview.running?.completed ? "rgba(34,197,94,0.12)" : "rgba(184,92,0,0.10)",
+      badgeBgDark: overview.running?.completed ? "rgba(34,197,94,0.15)" : "rgba(245,158,11,0.15)",
       sub: `${overview.running?.total ?? 0}/50 次`,
     },
     ...(overview.gpa && parseFloat(overview.gpa) > 0 ? [{
@@ -138,39 +159,45 @@ export function SummaryBanner() {
       label: "绩点",
       value: overview.gpa,
       color: gpaColor(parseFloat(overview.gpa)),
+      darkColor: gpaColor(parseFloat(overview.gpa)),
       sub: `GPA ${overview.gpa}`,
+      badge: undefined as string | undefined,
+      badgeBgLight: "" as string,
+      badgeBgDark: "" as string,
     }] : []),
   ];
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-      {items.map((item, i) => (
+      {items.map((item, i) => {
+        const c = isDark ? (item.darkColor || item.color) : item.color;
+        return (
         <div
           key={i}
-          className="rounded-2xl p-4 relative overflow-hidden bg-card border border-border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 group"
+        className="rounded-2xl p-4 relative overflow-hidden bg-card border border-border dark:border-transparent shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 group"
         >
           {/* Background accent blob */}
-          <div className="absolute -right-3 -top-3 w-20 h-20 rounded-full opacity-[0.04] pointer-events-none group-hover:opacity-[0.08] transition-opacity duration-300" style={{ backgroundColor: item.color }} />
+          <div className="absolute -right-3 -top-3 w-20 h-20 rounded-full opacity-[0.04] dark:opacity-[0.08] pointer-events-none group-hover:opacity-[0.08] dark:group-hover:opacity-[0.14] transition-opacity duration-300" style={{ backgroundColor: c }} />
 
           <div className="relative">
             {/* Icon */}
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 transition-transform duration-200 group-hover:scale-110" style={{ backgroundColor: `${item.color}12` }}>
-              <item.icon size={15} style={{ color: item.color }} />
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 transition-transform duration-200 group-hover:scale-110" style={{ backgroundColor: `${c}12` }}>
+              <item.icon size={15} style={{ color: c }} />
             </div>
 
             {/* Label */}
             <div className="text-[11px] mb-0.5 text-muted-foreground font-medium">{item.label}</div>
 
             {/* Value with animation */}
-            <div className="text-[22px] font-bold tabular-nums leading-none" style={{ color: item.color }}>
+            <div className="text-[22px] font-bold tabular-nums leading-none" style={{ color: c }}>
               <AnimatedNumber value={item.value} />
             </div>
 
             {/* Badge */}
             {item.badge && (
               <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md mt-1 inline-block" style={{
-                backgroundColor: item.color === "#2d7a4f" ? "rgba(34,197,94,0.12)" : "rgba(192,57,43,0.10)",
-                color: item.color,
+                backgroundColor: isDark ? item.badgeBgDark : item.badgeBgLight,
+                color: c,
               }}>
                 {item.badge}
               </span>
@@ -180,7 +207,8 @@ export function SummaryBanner() {
             <div className="text-[10px] text-muted-foreground mt-1">{item.sub}</div>
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

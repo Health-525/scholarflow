@@ -59,12 +59,14 @@ export function applyTheme(theme?: ThemeValue): void {
   // Always set data-theme explicitly — resolves "system" to actual value
   const effective = getEffectiveTheme(t);
   html.setAttribute("data-theme", effective);
+  // Also toggle .dark class for Tailwind dark: prefix support
+  html.classList.toggle("dark", effective === "dark");
 
   // Update Electron titleBarOverlay to match theme
   if (typeof window !== 'undefined' && window.electronAPI?.setTitleBarOverlay) {
     window.electronAPI.setTitleBarOverlay(
       effective === 'dark'
-        ? { color: '#1e1e22', symbolColor: '#e4e0d8', height: 36 }
+        ? { color: '#040816', symbolColor: '#f5f7ff', height: 36 }
         : { color: '#faf7f2', symbolColor: '#1a1510', height: 36 }
     );
   }

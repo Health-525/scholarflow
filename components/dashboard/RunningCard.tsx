@@ -11,7 +11,7 @@ export function RunningCard() {
   const pct = stats.progressPercent;
 
   return (
-    <div className="sf-card p-4">
+    <div className="rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-green-600/10">
@@ -42,12 +42,12 @@ export function RunningCard() {
               {stats.total}
             </span>
             <span className="text-[12px] text-muted-foreground">/ 50 次</span>
-            {pct >= 100 && <span className="sf-chip sf-chip-ok ml-1">达标 ✓</span>}
+            {pct >= 100 && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-green-600/10 text-green-600 ml-1">达标 ✓</span>}
           </div>
 
           {/* Progress bar with gradient */}
-          <div className="sf-progress-track" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`跑步进度 ${pct.toFixed(0)}%`}>
-            <div className="sf-progress-fill" style={{ width: `${Math.min(pct, 100)}%` }} />
+          <div className="h-2 rounded-full overflow-hidden bg-secondary" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`跑步进度 ${pct.toFixed(0)}%`}>
+            <div className="h-full rounded-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%` }} />
           </div>
 
           {/* Percentage label */}

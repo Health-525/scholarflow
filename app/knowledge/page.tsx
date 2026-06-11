@@ -32,19 +32,32 @@ const STATIC_SKILLS: SkillData[] = [
   { name: "数学建模", level: 70, category: "flask" },
 ];
 
-const CATEGORY_META: Record<string, { label: string; Icon: typeof Brain; color: string; bg: string }> = {
+const CATEGORY_META_LIGHT: Record<string, { label: string; Icon: typeof Brain; color: string; bg: string }> = {
   brain:     { label: "理论思维", Icon: Brain,       color: "#2a4494", bg: "rgba(42,68,148,0.08)" },
   code:      { label: "编程开发", Icon: Code2,       color: "#16a34a", bg: "rgba(22,163,74,0.08)" },
   flask:     { label: "实验建模", Icon: FlaskConical, color: "#f59e0b", bg: "rgba(245,158,11,0.08)" },
   languages: { label: "语言能力", Icon: Languages,   color: "#8b5cf6", bg: "rgba(139,92,246,0.08)" },
   wrench:    { label: "工程工具", Icon: Wrench,      color: "#06b6d4", bg: "rgba(6,182,212,0.08)" },
 };
+const CATEGORY_META_DARK: Record<string, { label: string; Icon: typeof Brain; color: string; bg: string }> = {
+  brain:     { label: "理论思维", Icon: Brain,       color: "#8b9cf7", bg: "rgba(139,156,247,0.14)" },
+  code:      { label: "编程开发", Icon: Code2,       color: "#3fb950", bg: "rgba(63,185,80,0.14)" },
+  flask:     { label: "实验建模", Icon: FlaskConical, color: "#d29922", bg: "rgba(210,153,34,0.14)" },
+  languages: { label: "语言能力", Icon: Languages,   color: "#a78bfa", bg: "rgba(167,139,250,0.14)" },
+  wrench:    { label: "工程工具", Icon: Wrench,      color: "#2dd4bf", bg: "rgba(45,212,191,0.14)" },
+};
 
-const GAP_TYPES = [
+const GAP_TYPES_LIGHT = [
   { type: "桥接型", desc: "已学A+B → 缺少A→B的连接推导", icon: "🔗", color: "#2a4494" },
   { type: "深度不足", desc: "会用工具 → 缺少从零实现的能力", icon: "🔬", color: "#f59e0b" },
   { type: "缺失模块", desc: "知识图谱中完全空白区域", icon: "🕳️", color: "#ef4444" },
   { type: "兴趣信号", desc: "频繁提及但未系统学习", icon: "💡", color: "#8b5cf6" },
+];
+const GAP_TYPES_DARK = [
+  { type: "桥接型", desc: "已学A+B → 缺少A→B的连接推导", icon: "🔗", color: "#8b9cf7" },
+  { type: "深度不足", desc: "会用工具 → 缺少从零实现的能力", icon: "🔬", color: "#d29922" },
+  { type: "缺失模块", desc: "知识图谱中完全空白区域", icon: "🕳️", color: "#e5534b" },
+  { type: "兴趣信号", desc: "频繁提及但未系统学习", icon: "💡", color: "#a78bfa" },
 ];
 
 // ── Helpers ────────────────────────────────────────────────
@@ -57,17 +70,17 @@ const CHART_COLORS_LIGHT = {
   foreground: "#1a1510",
 };
 const CHART_COLORS_DARK = {
-  primary: "#6b8ed6",
-  border: "rgba(240,235,227,0.10)",
-  mutedFg: "rgba(240,235,227,0.45)",
-  cardBg: "#1c1916",
-  foreground: "#f0ebe3",
+  primary: "#8b9cf7",
+  border: "rgba(234,232,227,0.10)",
+  mutedFg: "rgba(234,232,227,0.48)",
+  cardBg: "#1a1a22",
+  foreground: "#eae8e3",
 };
 
-const levelColor = (level: number) =>
-  level >= 80 ? "#22c55e" :
-  level >= 60 ? "#f59e0b" :
-  level >= 30 ? "#f97316" : "#ef4444";
+const levelColor = (level: number, isDark?: boolean) =>
+  level >= 80 ? (isDark ? "#3fb950" : "#22c55e") :
+  level >= 60 ? (isDark ? "#d29922" : "#f59e0b") :
+  level >= 30 ? (isDark ? "#e5534b" : "#f97316") : (isDark ? "#e5534b" : "#ef4444");
 
 const levelLabel = (level: number) =>
   level >= 80 ? "精通" :
@@ -90,6 +103,8 @@ export default function KnowledgeProfilePage() {
 
   const skills = STATIC_SKILLS;
   const colors = isDark ? CHART_COLORS_DARK : CHART_COLORS_LIGHT;
+  const CATEGORY_META = isDark ? CATEGORY_META_DARK : CATEGORY_META_LIGHT;
+  const GAP_TYPES = isDark ? GAP_TYPES_DARK : GAP_TYPES_LIGHT;
 
   const avgLevel = Math.round(skills.reduce((s, sk) => s + sk.level, 0) / skills.length);
   const strengths = skills.filter(s => s.level >= 75);
@@ -261,10 +276,10 @@ export default function KnowledgeProfilePage() {
                       <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-500"
-                          style={{ width: `${skill.level}%`, backgroundColor: levelColor(skill.level) }}
+                          style={{ width: `${skill.level}%`, backgroundColor: levelColor(skill.level, isDark) }}
                         />
                       </div>
-                      <span className="text-[10px] font-mono tabular-nums shrink-0" style={{ color: levelColor(skill.level) }}>
+                      <span className="text-[10px] font-mono tabular-nums shrink-0" style={{ color: levelColor(skill.level, isDark) }}>
                         {skill.level}%
                       </span>
                     </div>
@@ -298,7 +313,7 @@ export default function KnowledgeProfilePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {knowledgeGaps.map((gap, i) => {
             const gapMeta = GAP_TYPES.find(gt => gt.type === gap.type)!;
-            const priorityColor = gap.priority === 1 ? "#ef4444" : gap.priority === 2 ? "#f59e0b" : "#06b6d4";
+            const priorityColor = gap.priority === 1 ? (isDark ? "#e5534b" : "#ef4444") : gap.priority === 2 ? (isDark ? "#d29922" : "#f59e0b") : (isDark ? "#2dd4bf" : "#06b6d4");
             return (
               <div
                 key={i}
@@ -351,10 +366,10 @@ export default function KnowledgeProfilePage() {
                   <div className="flex justify-between text-[12px] mb-1">
                     <span className="truncate text-foreground font-medium">{skill.name}</span>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: `${levelColor(skill.level)}10`, color: levelColor(skill.level) }}>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: `${levelColor(skill.level, isDark)}10`, color: levelColor(skill.level, isDark) }}>
                         {levelLabel(skill.level)}
                       </span>
-                      <span className="font-mono text-[11px] tabular-nums" style={{ color: levelColor(skill.level) }}>
+                      <span className="font-mono text-[11px] tabular-nums" style={{ color: levelColor(skill.level, isDark) }}>
                         {skill.level}%
                       </span>
                     </div>
@@ -362,7 +377,7 @@ export default function KnowledgeProfilePage() {
                   <div className="h-2 rounded-full bg-secondary overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${skill.level}%`, backgroundColor: levelColor(skill.level) }}
+                      style={{ width: `${skill.level}%`, backgroundColor: levelColor(skill.level, isDark) }}
                     />
                   </div>
                 </div>

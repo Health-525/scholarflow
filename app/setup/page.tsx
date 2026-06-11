@@ -51,7 +51,7 @@ export default function SetupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-background">
-      <div className="w-full max-w-md rounded-3xl p-8 bg-card border border-border shadow-lg">
+      <div className="w-full max-w-md rounded-3xl p-8 bg-card border border-border dark:border-transparent shadow-lg">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-3" aria-hidden="true">
@@ -80,7 +80,7 @@ export default function SetupPage() {
               value={token}
               onChange={(e) => setTokenValue(e.target.value)}
               placeholder="ghp_ 或 github_pat_ 开头"
-              className="w-full px-4 py-3 rounded-xl text-sm outline-none bg-secondary border border-border text-foreground"
+              className="w-full px-4 py-3 rounded-xl text-sm outline-none bg-secondary border border-border dark:border-transparent text-foreground"
               aria-label="GitHub Personal Access Token"
               autoComplete="off"
               spellCheck={false}

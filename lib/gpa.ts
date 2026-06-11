@@ -19,12 +19,17 @@ export interface Course {
 
 export type GradeLevel = "A" | "B" | "C" | "D" | "F";
 
-// ── 统一 GPA 颜色方案 ──
+// ── 统一 GPA 颜色方案 — theme-aware ──
 export function gpaColor(gpa: number): string {
-  if (gpa >= 3.5) return "#22c55e";
-  if (gpa >= 2.5) return "#2a4494";
-  if (gpa >= 1.5) return "#f59e0b";
-  return "#ef4444";
+  const isDark = typeof window !== "undefined" && (
+    document.documentElement.getAttribute("data-theme") === "dark"
+    || (document.documentElement.getAttribute("data-theme") !== "light"
+        && window.matchMedia("(prefers-color-scheme: dark)").matches)
+  );
+  if (gpa >= 3.5) return isDark ? "#3fb950" : "#22c55e";
+  if (gpa >= 2.5) return isDark ? "#7c8edb" : "#2a4494";
+  if (gpa >= 1.5) return isDark ? "#d29922" : "#f59e0b";
+  return isDark ? "#f85149" : "#ef4444";
 }
 
 // ── 百分制 → 4.0 GPA (NJTECH标准) ──
@@ -122,17 +127,22 @@ export function getSemesterLabel(semester: string): string {
   return semester;
 }
 
-// ── 成绩样式工具 ──
+// ── 成绩样式工具 — theme-aware ──
 export function getScoreBadgeStyle(score: string): { bg: string; color: string } {
+  const isDark = typeof window !== "undefined" && (
+    document.documentElement.getAttribute("data-theme") === "dark"
+    || (document.documentElement.getAttribute("data-theme") !== "light"
+        && window.matchMedia("(prefers-color-scheme: dark)").matches)
+  );
   const s = parseFloat(score);
-  if (score === "优秀") return { bg: "rgba(34,197,94,0.12)", color: "#16a34a" };
-  if (isNaN(s)) return { bg: "rgba(42,68,148,0.10)", color: "#2a4494" };
-  if (s >= 95) return { bg: "rgba(34,197,94,0.12)", color: "#16a34a" };
-  if (s >= 90) return { bg: "rgba(34,197,94,0.10)", color: "#22c55e" };
-  if (s >= 80) return { bg: "rgba(42,68,148,0.10)", color: "#2a4494" };
-  if (s >= 70) return { bg: "rgba(245,158,11,0.12)", color: "#d97706" };
-  if (s >= 60) return { bg: "rgba(245,158,11,0.08)", color: "#b45309" };
-  return { bg: "rgba(239,68,68,0.10)", color: "#dc2626" };
+  if (score === "优秀") return isDark ? { bg: "rgba(63,185,80,0.14)", color: "#3fb950" } : { bg: "rgba(34,197,94,0.12)", color: "#16a34a" };
+  if (isNaN(s)) return isDark ? { bg: "rgba(124,142,219,0.14)", color: "#7c8edb" } : { bg: "rgba(42,68,148,0.10)", color: "#2a4494" };
+  if (s >= 95) return isDark ? { bg: "rgba(63,185,80,0.14)", color: "#3fb950" } : { bg: "rgba(34,197,94,0.12)", color: "#16a34a" };
+  if (s >= 90) return isDark ? { bg: "rgba(63,185,80,0.12)", color: "#3fb950" } : { bg: "rgba(34,197,94,0.10)", color: "#22c55e" };
+  if (s >= 80) return isDark ? { bg: "rgba(124,142,219,0.14)", color: "#7c8edb" } : { bg: "rgba(42,68,148,0.10)", color: "#2a4494" };
+  if (s >= 70) return isDark ? { bg: "rgba(210,153,34,0.16)", color: "#d29922" } : { bg: "rgba(245,158,11,0.12)", color: "#d97706" };
+  if (s >= 60) return isDark ? { bg: "rgba(210,153,34,0.12)", color: "#d29922" } : { bg: "rgba(245,158,11,0.08)", color: "#b45309" };
+  return isDark ? { bg: "rgba(229,83,75,0.16)", color: "#e5534b" } : { bg: "rgba(239,68,68,0.10)", color: "#dc2626" };
 }
 
 export function getScoreDisplay(score: string): string {

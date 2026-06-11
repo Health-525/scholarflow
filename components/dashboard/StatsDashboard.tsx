@@ -31,21 +31,21 @@ function getChartColors() {
     || (document.documentElement.getAttribute("data-theme") !== "light"
         && window.matchMedia("(prefers-color-scheme: dark)").matches);
   return {
-    primary: isDark ? "#7c93db" : "#2a4494",
-    primaryLight: isDark ? "rgba(124,147,219,0.14)" : "rgba(42,68,148,0.10)",
-    border: isDark ? "rgba(228,224,216,0.08)" : "rgba(26,21,16,0.06)",
-    mutedFg: isDark ? "rgba(228,224,216,0.50)" : "rgba(26,21,16,0.50)",
-    cardBg: isDark ? "#26262b" : "#fffdf9",
-    foreground: isDark ? "#e4e0d8" : "#1a1510",
-    success: isDark ? "#4caf7d" : "#2d7a4f",
-    warning: isDark ? "#d48a3a" : "#b85c00",
-    error: isDark ? "#d4504a" : "#c0392b",
+    primary: isDark ? "#818CF8" : "#2a4494",
+    primaryLight: isDark ? "rgba(129,140,248,0.14)" : "rgba(42,68,148,0.10)",
+    border: isDark ? "rgba(248,250,252,0.08)" : "rgba(26,21,16,0.06)",
+    mutedFg: isDark ? "rgba(248,250,252,0.50)" : "rgba(26,21,16,0.50)",
+    cardBg: isDark ? "#0F172A" : "#fffdf9",
+    foreground: isDark ? "#F8FAFC" : "#1a1510",
+    success: isDark ? "#22C55E" : "#2d7a4f",
+    warning: isDark ? "#F59E0B" : "#b85c00",
+    error: isDark ? "#EF4444" : "#c0392b",
   };
 }
 
 const TOOLTIP_STYLE = {
-  backgroundColor: "#fffdf9",
-  border: "1px solid rgba(26,21,16,0.10)",
+  backgroundColor: "#161b22",
+  border: "1px solid rgba(201,209,217,0.12)",
   borderRadius: "12px",
   fontSize: "12px",
   color: "#1a1510",
@@ -74,8 +74,15 @@ function AssignmentsChart() {
   const tooltipStyle = { ...TOOLTIP_STYLE, backgroundColor: colors.cardBg, color: colors.foreground, border: `1px solid ${colors.border}` };
 
   return (
-    <div className="sf-card p-4">
-      <h3 className="text-[13px] font-semibold mb-3 text-foreground font-display">作业完成率</h3>
+      <div className="rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-primary/10">
+          <svg className="w-3 h-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 00-2 2m6 0a2 2 0 002 2" />
+          </svg>
+        </div>
+        <h3 className="text-[13px] font-semibold text-foreground font-display">作业完成率</h3>
+      </div>
       <ResponsiveContainer width="100%" height={180}>
         <PieChart>
           <Pie data={data} cx="50%" cy="50%" innerRadius={48} outerRadius={72} paddingAngle={3} dataKey="value" label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
@@ -117,8 +124,15 @@ function WeeklyScheduleChart() {
   const tooltipStyle = { ...TOOLTIP_STYLE, backgroundColor: colors.cardBg, color: colors.foreground, border: `1px solid ${colors.border}` };
 
   return (
-    <div className="sf-card p-4">
-      <h3 className="text-[13px] font-semibold mb-3 text-foreground font-display">本周课程分布</h3>
+      <div className="rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-primary/10">
+          <svg className="w-3 h-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h3 className="text-[13px] font-semibold text-foreground font-display">本周课程分布</h3>
+      </div>
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={colors.border} vertical={false} />
@@ -157,8 +171,15 @@ function RunningTrendChart() {
   const tooltipStyle = { ...TOOLTIP_STYLE, backgroundColor: colors.cardBg, color: colors.foreground, border: `1px solid ${colors.border}` };
 
   return (
-    <div className="sf-card p-4 md:col-span-2">
-      <h3 className="text-[13px] font-semibold mb-3 text-foreground font-display">跑步趋势 (最近8周)</h3>
+      <div className="rounded-2xl p-4 md:col-span-2 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-green-600/10">
+          <svg className="w-3 h-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <h3 className="text-[13px] font-semibold text-foreground font-display">跑步趋势 (最近8周)</h3>
+      </div>
       <ResponsiveContainer width="100%" height={180}>
         <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={colors.border} vertical={false} />
@@ -196,8 +217,15 @@ function UrgencyChart() {
   const tooltipStyle = { ...TOOLTIP_STYLE, backgroundColor: colors.cardBg, color: colors.foreground, border: `1px solid ${colors.border}` };
 
   return (
-    <div className="sf-card p-4">
-      <h3 className="text-[13px] font-semibold mb-3 text-foreground font-display">待办紧急程度</h3>
+      <div className="rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-amber-500/10">
+          <svg className="w-3 h-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <h3 className="text-[13px] font-semibold text-foreground font-display">待办紧急程度</h3>
+      </div>
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={data} layout="vertical" margin={{ top: 5, right: 10, left: 50, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={colors.border} horizontal={false} />
@@ -216,14 +244,16 @@ function UrgencyChart() {
 // ── 主组件 ─────────────────────────────────────────────────
 export function StatsDashboard() {
   return (
-    <div className="rounded-2xl p-5 bg-card border border-border shadow-sm">
+      <div className="rounded-2xl p-5 bg-card border border-border dark:border-transparent shadow-sm">
       <div className="flex items-center gap-2 mb-4">
-        <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-        </svg>
-        <h2 className="text-[13px] font-semibold text-foreground">数据可视化</h2>
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">
+          <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+          </svg>
+        </div>
+        <h2 className="text-[13px] font-semibold text-foreground font-display">数据可视化</h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <AssignmentsChart />
         <WeeklyScheduleChart />
         <UrgencyChart />

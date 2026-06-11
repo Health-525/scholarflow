@@ -519,7 +519,7 @@ export default function WrinklePage() {
           <div className="absolute top-5 left-4 flex items-center gap-3">
             <div className="relative w-[56px] h-[56px]">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 60 60">
-                <circle cx="30" cy="30" r={R} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3.5" />
+                <circle cx="30" cy="30" r={R} fill="none" stroke="rgba(155,175,210,0.14)" strokeWidth="3.5" />
                 <circle cx="30" cy="30" r={R} fill="none" stroke={sev.ring} strokeWidth="3.5" strokeLinecap="round"
                   strokeDasharray={C} strokeDashoffset={dashOff} style={{ transition: "stroke-dashoffset 0.3s, stroke 0.3s" }} />
               </svg>
@@ -539,14 +539,14 @@ export default function WrinklePage() {
 
           <div className="absolute top-5 right-4">
             <button onClick={stopPreview}
-              className="flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-full backdrop-blur-xl bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-all">
+              className="flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-full backdrop-blur-xl bg-primary/[0.08] border border-primary/[0.08] text-muted-foreground hover:text-white transition-all">
               返回
             </button>
           </div>
 
           {scoreHistory.length > 5 && (
             <div className="absolute inset-x-0 bottom-0 px-4 pb-5">
-              <div className="rounded-2xl bg-white/[0.06] backdrop-blur-xl border border-white/[0.08] px-4 pt-3 pb-2">
+              <div className="rounded-2xl bg-primary/[0.06] backdrop-blur-xl border border-primary/[0.08] px-4 pt-3 pb-2">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] text-zinc-400 font-medium">Wrinkle Trend</span>
                   <span className="text-[10px] text-zinc-500 tabular-nums">avg {avgScore.toFixed(0)}</span>

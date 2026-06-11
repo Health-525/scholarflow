@@ -9,14 +9,15 @@ import { getNextCourse } from "@/lib/schedule/next-course";
 import { CountdownTimer } from "@/components/schedule/CountdownTimer";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 
-// Course color palette — warm, ink-like tones
+// Course color palette — warm, ink-like tones (light mode)
+// Dark mode uses desaturated variants for eye comfort
 const COURSE_PALETTE = [
-  { bg: "rgba(42,68,148,0.07)",  accent: "#2a4494", dot: "#2a4494" },
-  { bg: "rgba(45,122,79,0.07)",  accent: "#2d7a4f", dot: "#2d7a4f" },
-  { bg: "rgba(184,92,0,0.07)",   accent: "#b85c00", dot: "#b85c00" },
-  { bg: "rgba(100,70,150,0.07)", accent: "#6446a0", dot: "#6446a0" },
-  { bg: "rgba(6,140,160,0.07)",  accent: "#068ca0", dot: "#068ca0" },
-  { bg: "rgba(192,57,43,0.07)",  accent: "#c0392b", dot: "#c0392b" },
+  { bg: "rgba(42,68,148,0.07)",  accent: "#2a4494", dot: "#2a4494", darkBg: "rgba(129,140,248,0.10)", darkAccent: "#818CF8", darkDot: "#818CF8" },
+  { bg: "rgba(45,122,79,0.07)",  accent: "#2d7a4f", dot: "#2d7a4f", darkBg: "rgba(34,197,94,0.10)", darkAccent: "#22C55E", darkDot: "#22C55E" },
+  { bg: "rgba(184,92,0,0.07)",   accent: "#b85c00", dot: "#b85c00", darkBg: "rgba(245,158,11,0.10)", darkAccent: "#F59E0B", darkDot: "#F59E0B" },
+  { bg: "rgba(100,70,150,0.07)", accent: "#6446a0", dot: "#6446a0", darkBg: "rgba(139,92,246,0.10)", darkAccent: "#A78BFA", darkDot: "#A78BFA" },
+  { bg: "rgba(6,140,160,0.07)",  accent: "#068ca0", dot: "#068ca0", darkBg: "rgba(6,182,212,0.10)", darkAccent: "#22D3EE", darkDot: "#22D3EE" },
+  { bg: "rgba(192,57,43,0.07)",  accent: "#c0392b", dot: "#c0392b", darkBg: "rgba(239,68,68,0.10)", darkAccent: "#EF4444", darkDot: "#EF4444" },
 ];
 
 function getPalette(title: string) {
@@ -30,11 +31,25 @@ export function ScheduleCard() {
   const schedule = data?.schedule;
   const adjustments = data?.adjustments ?? [];
   const [mounted, setMounted] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
+  useEffect(() => {
+    const check = () => {
+      const theme = document.documentElement.getAttribute("data-theme");
+      if (theme === "dark") setIsDark(true);
+      else if (theme === "light") setIsDark(false);
+      else setIsDark(window.matchMedia("(prefers-color-scheme: dark)").matches);
+    };
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="sf-card p-4">
+    <div className="rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -90,10 +105,10 @@ export function ScheduleCard() {
           <div className="space-y-2">
             {/* Next course countdown */}
             {nextCourse && (
-              <div className="rounded-xl p-3 bg-primary/5 border border-primary/10 mb-2">
+              <div className="rounded-xl p-3 bg-primary/5 dark:bg-primary/10 border border-primary/10 dark:border-transparent mb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary">下节课</span>
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-primary/10 dark:bg-primary/15 text-primary">下节课</span>
                     <span className="text-[13px] font-semibold truncate text-foreground">{nextCourse.item.title}</span>
                   </div>
                   <div className="text-[13px] font-bold tabular-nums text-primary animate-breathe">
@@ -111,16 +126,19 @@ export function ScheduleCard() {
             {/* Course list */}
             {items.slice(0, 4).map((item, idx) => {
               const pal = getPalette(item.title);
+              const bg = isDark ? pal.darkBg : pal.bg;
+              const accent = isDark ? pal.darkAccent : pal.accent;
+              const dot = isDark ? pal.darkDot : pal.dot;
               return (
                 <div
                   key={idx}
                   className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all duration-200 hover:shadow-sm"
-                  style={{ background: pal.bg, border: `1px solid ${pal.accent}18` }}
+                  style={{ background: bg, border: `1px solid ${accent}18` }}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: pal.dot }} aria-hidden="true" />
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dot }} aria-hidden="true" />
                   <span
                     className="text-[12.5px] font-medium flex-1 truncate"
-                    style={{ color: pal.accent }}
+                    style={{ color: accent }}
                   >
                     {item.title}
                   </span>

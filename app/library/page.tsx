@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { RefreshCw, AlertCircle, KeyRound, MapPin, BookmarkCheck, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { statusColor, statusColorBg, getReserveStatusMap } from "@/lib/theme-colors";
 import type { LibraryData, LibraryRoom } from "@/types";
 
 interface CurrentReserve {
@@ -16,18 +17,7 @@ interface CurrentReserve {
   token: string;
 }
 
-const occupancyColor = (pct: number) =>
-  pct >= 90 ? "#ef4444" : pct >= 70 ? "#f59e0b" : "#22c55e";
-
 const DEFAULT_SUMMARY = { rate: 0, avail: 0, used: 0, total: 0, has: 0 };
-
-const RESERVE_STATUS_MAP: Record<number, { label: string; color: string }> = {
-  1: { label: "已预约", color: "#3b82f6" },
-  2: { label: "使用中", color: "#22c55e" },
-  3: { label: "已签退", color: "#94a3b8" },
-  4: { label: "已取消", color: "#ef4444" },
-  5: { label: "已超时", color: "#f59e0b" },
-};
 
 export default function LibraryPage() {
   const router = useRouter();
@@ -42,10 +32,14 @@ export default function LibraryPage() {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [holdLoading, setHoldLoading] = useState(false);
   const [countdown, setCountdown] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [userStatus, setUserStatus] = useState<{ reserve: CurrentReserve | null; rank: number | null } | null>(null);
+  const [blacklisted, setBlacklisted] = useState(false);
 
   // Hydration-safe Electron detection
   useEffect(() => {
     setIsElectron(!!window.electronAPI?.isElectron);
+    setMounted(true);
   }, []);
 
   const fetchData = useCallback(() => {
@@ -63,6 +57,27 @@ export default function LibraryPage() {
         if (e.message !== "JWT_EXPIRED") { setError(e.message); setJwtStatus("error"); }
       })
       .finally(() => setLoading(false));
+  }, []);
+
+  const fetchUserStatus = useCallback(() => {
+    fetch("/api/library/user-status")
+      .then(r => {
+        if (r.status === 401) return;
+        return r.json();
+      })
+      .then(json => {
+        if (!json) return;
+        if (json.error) {
+          // If error mentions blacklist or forbidden, mark as blacklisted
+          if (json.error?.includes("黑名单") || json.error?.includes("forbidden") || json.error?.includes("禁止")) {
+            setBlacklisted(true);
+          }
+          return;
+        }
+        setUserStatus(json);
+        setBlacklisted(false);
+      })
+      .catch(() => {});
   }, []);
 
   const fetchReserve = useCallback(() => {
@@ -117,7 +132,7 @@ export default function LibraryPage() {
     }
   }, [holdLoading, fetchReserve]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { fetchData(); fetchUserStatus(); }, [fetchData, fetchUserStatus]);
 
   // 自动刷新座位数据（每60秒）
   useEffect(() => {
@@ -268,7 +283,8 @@ export default function LibraryPage() {
   const { libs } = data;
   const openLibs = libs.filter((l: LibraryRoom) => l.is_open);
   const closedCount = libs.length - openLibs.length;
-  const c = occupancyColor;
+  const reserveStatusMap = mounted ? getReserveStatusMap() : getReserveStatusMap();
+  const c = statusColor;
 
   return (
     <div className="max-w-5xl mx-auto pb-24 md:pb-8 py-6 animate-page">
@@ -282,15 +298,20 @@ export default function LibraryPage() {
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold font-display text-foreground">图书馆座位</h1>
           <p className="text-[12px] text-muted-foreground">实时座位查询与预约</p>
+          {userStatus?.rank && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary font-medium ml-1">
+              排名 #{userStatus.rank}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {isElectron && (
             <button onClick={handleRefreshJWT} title="刷新登录凭证"
-              className="px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1 bg-card text-muted-foreground border border-border">
+              className="px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1 bg-card text-muted-foreground border border-border dark:border-transparent">
               <KeyRound className="w-3.5 h-3.5" />
             </button>
           )}
-          <button onClick={fetchData} className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-card text-muted-foreground border border-border">
+          <button onClick={fetchData} className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-card text-muted-foreground border border-border dark:border-transparent">
             <RefreshCw className="w-3.5 h-3.5" />刷新
           </button>
         </div>
@@ -306,8 +327,19 @@ export default function LibraryPage() {
         </div>
       )}
 
+      {/* Blacklist warning */}
+      {blacklisted && (
+        <div className="rounded-2xl p-4 mb-4 bg-red-500/5 border border-red-500/20 shadow-sm animate-fade-up">
+          <div className="flex items-center gap-2 mb-1">
+            <AlertCircle className="w-4 h-4 text-red-500" />
+            <span className="text-[13px] font-semibold text-red-500">账号受限</span>
+          </div>
+          <p className="text-[12px] text-muted-foreground">当前账号处于黑名单状态，无法进行预约操作。请联系图书馆管理员解除限制。</p>
+        </div>
+      )}
+
       {/* Summary */}
-      <div className="rounded-2xl p-5 mb-4 bg-card border border-border shadow-sm">
+      <div className="rounded-2xl p-5 mb-4 bg-card border border-border dark:border-transparent shadow-sm">
         <div className="flex items-center gap-6">
           <div className="text-center">
             <div className="text-3xl font-bold" style={{ color: c((1 - summary.rate) * 100) }}>{summary.avail}</div>
@@ -335,7 +367,7 @@ export default function LibraryPage() {
       {/* Current reservation + Messages row */}
       <div className="grid gap-3 mb-6 sm:grid-cols-2">
         {/* 当前预约 */}
-        <div className="rounded-xl p-4 bg-card border border-border shadow-sm">
+        <div className="rounded-xl p-4 bg-card border border-border dark:border-transparent shadow-sm">
           <div className="flex items-center gap-1.5 mb-2">
             <BookmarkCheck className="w-4 h-4 text-primary" />
             <span className="font-medium text-sm text-foreground">当前预约</span>
@@ -345,10 +377,10 @@ export default function LibraryPage() {
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-sm font-medium text-foreground">{currentReserve.seat_name}</span>
                 <span className="text-[11px] px-1.5 py-0.5 rounded-md font-medium" style={{
-                  backgroundColor: (RESERVE_STATUS_MAP[currentReserve.status]?.color || "#94a3b8") + "20",
-                  color: RESERVE_STATUS_MAP[currentReserve.status]?.color || "#94a3b8",
+                  backgroundColor: (reserveStatusMap[currentReserve.status]?.color || "#94a3b8") + "20",
+                  color: reserveStatusMap[currentReserve.status]?.color || "#94a3b8",
                 }}>
-                  {RESERVE_STATUS_MAP[currentReserve.status]?.label || `状态${currentReserve.status}`}
+                  {reserveStatusMap[currentReserve.status]?.label || `状态${currentReserve.status}`}
                 </span>
               </div>
               <p className="text-[12px] text-muted-foreground mb-2">{currentReserve.lib_name} · {currentReserve.date}</p>
@@ -377,7 +409,7 @@ export default function LibraryPage() {
 
         {/* 消息通知入口 */}
         <div onClick={() => router.push("/library/messages")}
-          className="rounded-xl p-4 bg-card border border-border shadow-sm cursor-pointer hover:opacity-80 transition-opacity">
+          className="rounded-xl p-4 bg-card border border-border dark:border-transparent shadow-sm cursor-pointer hover:opacity-80 transition-opacity">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Bell className="w-4 h-4 text-primary" />
@@ -395,7 +427,7 @@ export default function LibraryPage() {
           const rt = lib.lib_rt, pct = rt.seats_total > 0 ? (rt.seats_used / rt.seats_total) * 100 : 0;
           return (
             <div key={lib.lib_id} onClick={() => router.push(`/library/layout?lib_id=${lib.lib_id}`)}
-              className="rounded-xl p-4 cursor-pointer hover:opacity-80 transition-opacity bg-card border border-border shadow-sm">
+              className="rounded-xl p-4 cursor-pointer hover:opacity-80 transition-opacity bg-card border border-border dark:border-transparent shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-primary" />

@@ -12,7 +12,7 @@ export function ScreenTimeCard() {
   const rate = Math.round((activeMins / total) * 100);
 
   return (
-    <Link href="/activity" className="block sf-card p-4 group">
+    <Link href="/activity" className="block rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10 transition-transform duration-200 group-hover:scale-110">
           <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -20,7 +20,7 @@ export function ScreenTimeCard() {
           </svg>
         </div>
         <div>
-          <h3 className="text-[13px] font-semibold text-foreground">屏幕时间</h3>
+          <h3 className="text-[13px] font-semibold text-foreground font-display">屏幕时间</h3>
           <p className="text-[10px] text-muted-foreground">{state.currentApp}</p>
         </div>
       </div>

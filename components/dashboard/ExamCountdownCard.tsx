@@ -50,7 +50,6 @@ export function ExamCountdownCard() {
         }
       } catch {}
 
-      // Fallback: localStorage
       try {
         const raw = localStorage.getItem("sf_exams");
         if (!raw) { setLoading(false); return; }
@@ -76,34 +75,36 @@ export function ExamCountdownCard() {
   );
 
   return (
-    <Link href="/exams" className="block sf-card p-4 group">
-      <div className="flex items-center gap-2 mb-3">
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-transform duration-200 group-hover:scale-110 ${urgent ? "bg-red-500/10" : "bg-primary/10"}`}>
-          <svg className={`w-3.5 h-3.5 ${urgent ? "text-red-500" : "text-primary"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <span className="text-[12px] font-semibold text-foreground">考试倒计时</span>
-      </div>
-      {loading ? (
-        <div className="space-y-2">
-          <div className="skeleton h-5 w-24 rounded" />
-          <div className="skeleton h-7 w-16 rounded" />
-        </div>
-      ) : nextExam ? (
-        <div>
-          <div className="text-[14px] font-bold truncate text-foreground mb-1">{nextExam.subject}</div>
-          <div className="flex items-center gap-2">
-            <span className={`text-[22px] font-bold tabular-nums transition-transform duration-200 group-hover:scale-105 ${urgent ? "text-red-500" : "text-primary"}`}>{countdown}</span>
-            <span className="text-[10px] text-muted-foreground">{nextExam.date}</span>
+    <Link href="/exams" className="block rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm group h-full transition-all duration-200 hover:shadow-md hover:-translate-y-0.5" aria-label="考试倒计时">
+      <div className="flex flex-col h-full">
+        <div className="flex items-center gap-2 mb-2">
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-transform duration-200 group-hover:scale-110 ${urgent ? "bg-red-500/10" : "bg-primary/10"}`}>
+            <svg className={`w-3.5 h-3.5 ${urgent ? "text-red-500" : "text-primary"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
-          {nextExam.location && (
-            <div className="text-[11px] text-muted-foreground mt-1">{nextExam.location}</div>
-          )}
+          <span className="text-[12px] font-semibold text-foreground font-display">考试倒计时</span>
         </div>
-      ) : (
-        <div className="text-[13px] text-muted-foreground py-2">暂无考试安排</div>
-      )}
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="skeleton h-12 w-24 rounded-xl" />
+          </div>
+        ) : nextExam ? (
+          <div className="flex-1 flex flex-col items-center justify-center relative">
+            {/* Background accent */}
+            <div className={`absolute -right-2 -bottom-2 w-16 h-16 rounded-full opacity-[0.06] pointer-events-none group-hover:opacity-[0.12] transition-opacity duration-300 ${urgent ? "bg-red-500" : "bg-primary"}`} />
+            <div className={`text-[28px] font-bold tabular-nums transition-transform duration-200 group-hover:scale-105 ${urgent ? "text-red-500" : "text-primary"}`}>
+              {countdown}
+            </div>
+            <div className="text-[12px] font-medium truncate text-foreground mt-1">{nextExam.subject}</div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">{nextExam.date}</div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <span className="text-[12px] text-muted-foreground">暂无考试</span>
+          </div>
+        )}
+      </div>
     </Link>
   );
 }

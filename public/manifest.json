@@ -42,6 +42,18 @@
       "short_name": "作业",
       "url": "/assignments",
       "icons": [{ "src": "/icons/logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "AI 助手",
+      "short_name": "AI",
+      "url": "/chat",
+      "icons": [{ "src": "/icons/logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "学习进度",
+      "short_name": "进度",
+      "url": "/progress",
+      "icons": [{ "src": "/icons/logo.png", "sizes": "96x96" }]
     }
   ]
 }

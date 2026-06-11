@@ -19,6 +19,13 @@ function load(): Exam[] {
   return [];
 }
 
+interface JWGLExam {
+  kch?: string;
+  kcmc?: string;
+  kssj?: string;
+  jxdd?: string;
+}
+
 // Auto-import from JWGL exam data
 async function importJWGLExams(): Promise<Exam[]> {
   try {
@@ -26,7 +33,7 @@ async function importJWGLExams(): Promise<Exam[]> {
     if (!res.ok) return [];
     const data = await res.json();
     if (!Array.isArray(data)) return [];
-    return data.map((e: any) => {
+    return data.map((e: JWGLExam) => {
       const dateMatch = (e.kssj || "").match(/\d{4}-\d{2}-\d{2}/);
       const timeMatch = (e.kssj || "").match(/\((\d{2}:\d{2}-\d{2}:\d{2})\)/);
       return {
@@ -111,15 +118,34 @@ export default function ExamsPage() {
           <h1 className="text-xl font-bold font-display text-foreground">考试倒计时</h1>
           <p className="text-[12px] text-muted-foreground">{upcoming.length} 场考试待考</p>
         </div>
+        <button
+          onClick={async () => {
+            const jwglExams = await importJWGLExams();
+            if (jwglExams.length > 0) {
+              const merged = [...exams];
+              for (const je of jwglExams) {
+                if (!merged.some(e => e.subject === je.subject && e.date === je.date)) merged.push(je);
+              }
+              save(merged);
+              setExams(merged);
+            }
+          }}
+          className="px-3 py-2 rounded-xl text-[11px] font-medium flex items-center gap-1.5 bg-primary/10 text-primary border border-primary/20 dark:border-transparent hover:bg-primary/20 transition-all"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1M1 12c0 9-4 0 0 8 0 0 16 0 0 4-4 0 0 4 0 0-8 0 0-4 0 0-4-4 0 0-4 0 0-8 0 0-4 0 0 4-4 0 0 4 0 0 8 0 0 4 0 0-4 0 0-4 0 0-8 0 0-4 0 0 4-4 0 0 4 0 0 8 0 0 4 0 0-4 0 0-4 0 0-8 0 0-4 0 0 4-4 0 0 4 0 0 8 0 0 4 0 0-4 0 0-4 0 0-8 0z" />
+          </svg>
+          导入教务数据
+        </button>
       </div>
 
       <div className="pb-6">
         {/* Add form */}
-        <div className="rounded-2xl p-4 mb-4 bg-card border border-border">
+        <div className="rounded-2xl p-4 mb-4 bg-card border border-border dark:border-transparent">
           <div className="flex items-center gap-2 flex-wrap">
-            <input value={subject} onChange={e => setSubject(e.target.value)} onKeyDown={e => e.key === "Enter" && add()} placeholder="科目" className="flex-1 min-w-[100px] px-3 py-2.5 rounded-xl text-[13px] outline-none bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:border-primary/30" />
-            <input value={date} onChange={e => setDate(e.target.value)} type="date" className="px-3 py-2.5 rounded-xl text-[13px] outline-none bg-secondary border border-border text-foreground focus:border-primary/30" />
-            <input value={time} onChange={e => setTime(e.target.value)} type="time" className="w-20 px-3 py-2.5 rounded-xl text-[13px] outline-none bg-secondary border border-border text-foreground focus:border-primary/30" />
+            <input value={subject} onChange={e => setSubject(e.target.value)} onKeyDown={e => e.key === "Enter" && add()} placeholder="科目" className="flex-1 min-w-[100px] px-3 py-2.5 rounded-xl text-[13px] outline-none bg-secondary border border-border dark:border-transparent text-foreground placeholder:text-muted-foreground focus:border-primary/30" />
+            <input value={date} onChange={e => setDate(e.target.value)} type="date" className="px-3 py-2.5 rounded-xl text-[13px] outline-none bg-secondary border border-border dark:border-transparent text-foreground focus:border-primary/30" />
+            <input value={time} onChange={e => setTime(e.target.value)} type="time" className="w-20 px-3 py-2.5 rounded-xl text-[13px] outline-none bg-secondary border border-border dark:border-transparent text-foreground focus:border-primary/30" />
             <button onClick={add} className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-primary text-primary-foreground">
               <Plus className="w-5 h-5" />
             </button>
@@ -131,7 +157,7 @@ export default function ExamsPage() {
           {upcoming.map(e => {
             const cd = formatCountdown(e.date);
             return (
-              <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+              <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border dark:border-transparent">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cd.urgent ? "bg-rose-500/10" : "bg-primary/10"}`}>
                   <Clock className={`w-4 h-4 ${cd.urgent ? "text-rose-500" : "text-primary"}`} />
                 </div>
@@ -166,7 +192,7 @@ export default function ExamsPage() {
             </summary>
             <div className="space-y-2 mt-2">
               {past.map(e => (
-                <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border opacity-50">
+                <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border dark:border-transparent opacity-50">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-secondary">
                     <Clock className="w-4 h-4 text-muted-foreground" />
                   </div>

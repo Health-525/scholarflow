@@ -91,7 +91,7 @@ export default function SettingsPage() {
       </div>
 
       {/* ── 用户卡片 ── */}
-      <div className="rounded-2xl p-5 mb-4 relative overflow-hidden bg-card border border-border shadow-sm">
+      <div className="rounded-2xl p-5 mb-4 relative overflow-hidden bg-card border border-border dark:border-transparent shadow-sm">
         <div
           className="absolute -right-8 -top-8 w-32 h-32 rounded-full pointer-events-none opacity-[0.06] bg-gradient-to-br from-primary to-transparent"
         />
@@ -162,7 +162,7 @@ export default function SettingsPage() {
       </div>
 
       {/* ── 外观 ── */}
-      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border shadow-sm">
+      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border dark:border-transparent shadow-sm">
         <div className="flex items-center gap-2 px-4 pt-4 pb-2">
           <currentThemeOption.Icon className="w-4 h-4 text-primary" />
           <span className="text-[13px] font-semibold text-foreground">外观</span>
@@ -190,7 +190,7 @@ export default function SettingsPage() {
       </div>
 
       {/* ── 数据导出 ── */}
-      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border shadow-sm">
+      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border dark:border-transparent shadow-sm">
         <div className="flex items-center gap-2 px-4 pt-4 pb-2">
           <Download className="w-4 h-4 text-primary" />
           <span className="text-[13px] font-semibold text-foreground">数据导出</span>
@@ -205,7 +205,7 @@ export default function SettingsPage() {
       </div>
 
       {/* ── GitHub 同步 ── */}
-      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border shadow-sm">
+      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border dark:border-transparent shadow-sm">
         <div className="flex items-center gap-2 px-4 pt-4 pb-2">
           <svg className="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
           <span className="text-[13px] font-semibold text-foreground">GitHub 同步</span>
@@ -291,7 +291,7 @@ export default function SettingsPage() {
       </div>
 
       {/* ── 缓存与存储 ── */}
-      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border shadow-sm">
+      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border dark:border-transparent shadow-sm">
         <div className="flex items-center gap-2 px-4 pt-4 pb-2">
           <Database className="w-4 h-4 text-primary" />
           <span className="text-[13px] font-semibold text-foreground">缓存与存储</span>
@@ -306,7 +306,7 @@ export default function SettingsPage() {
               <button onClick={() => { getDB().cachedFiles.clear(); getDB().mutationsQueue.clear(); setCacheSize(0); }} className="text-[11px] px-2.5 py-1 rounded-lg font-medium bg-red-500/8 text-red-500">清除</button>
             </div>
           </div>
-          <div className="space-y-1.5 text-[11px] pt-3 border-t border-border">
+          <div className="space-y-1.5 text-[11px] pt-3 border-t border-border dark:border-t-transparent">
             <InfoRow label="Token" value="安全加密存储" />
             <InfoRow label="课表/作业/跑步" value="本地优先，自动 Git 版本管理" />
             <InfoRow label="考试/主题/目标" value="localStorage" />
@@ -315,7 +315,7 @@ export default function SettingsPage() {
       </div>
 
       {/* ── 数据版本历史 ── */}
-      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border shadow-sm">
+      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border dark:border-transparent shadow-sm">
         <div className="flex items-center gap-2 px-4 pt-4 pb-2">
           <Database className="w-4 h-4 text-primary" />
           <span className="text-[13px] font-semibold text-foreground">版本历史</span>
@@ -353,11 +353,20 @@ export default function SettingsPage() {
       </div>
 
       {/* ── 关于 ── */}
-      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border shadow-sm">
+      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border dark:border-transparent shadow-sm">
         <div className="p-4 text-center">
           <div className="text-[14px] font-semibold mb-1 text-primary font-[serif]">ScholarFlow</div>
           <div className="text-[11px] text-muted-foreground">v1.3.0 · Electron + Next.js</div>
           <div className="text-[10px] mt-0.5 text-muted-foreground">统一学习管理中枢</div>
+          <div className="mt-3 flex flex-wrap gap-1.5 justify-center">
+            <span className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium">AI 助手</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-md bg-green-500/10 text-green-600 font-medium">PWA</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 font-medium">离线优先</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 font-medium">GitHub 同步</span>
+          </div>
+          <div className="mt-3 text-[10px] text-muted-foreground">
+            按 <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-secondary border border-border dark:border-transparent">?</kbd> 查看快捷键
+          </div>
         </div>
       </div>
 
@@ -365,7 +374,7 @@ export default function SettingsPage() {
       {token && (
         <button
           onClick={handleLogout}
-          className="w-full rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-medium transition-all mb-4 bg-card border border-border text-red-500 shadow-sm"
+          className="w-full rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-medium transition-all mb-4 bg-card border border-border dark:border-transparent text-red-500 shadow-sm"
         >
           <LogOut className="w-4 h-4" />退出登录
         </button>
@@ -386,7 +395,7 @@ function MenuItem({
       onClick={onClick}
       disabled={disabled}
       className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-        !last ? "border-b border-border" : ""
+        !last ? "border-b border-border dark:border-b-transparent" : ""
       } ${disabled ? "text-muted-foreground opacity-50" : danger ? "text-red-500" : "text-foreground"}`}
     >
       <Icon className="w-4 h-4 shrink-0" />

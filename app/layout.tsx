@@ -67,8 +67,17 @@ export default function RootLayout({
               (function() {
                 try {
                   var t = localStorage.getItem('sf_theme');
-                  if (t === 'dark' || t === 'light') {
-                    document.documentElement.setAttribute('data-theme', t);
+                  var effective = 'light';
+                  if (t === 'dark') effective = 'dark';
+                  else if (t === 'system' || !t) {
+                    effective = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  }
+                  document.documentElement.setAttribute('data-theme', effective);
+                  if (effective === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.backgroundColor = '#040816';
+                  } else {
+                    document.documentElement.style.backgroundColor = '#faf7f2';
                   }
                 } catch(e) {}
               })();

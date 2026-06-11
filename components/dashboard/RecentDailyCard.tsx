@@ -32,7 +32,7 @@ export function RecentDailyCard() {
   const recent = entries.slice(0, 5);
 
   return (
-    <div className="sf-card p-4">
+    <div className="rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">
@@ -73,7 +73,7 @@ export function RecentDailyCard() {
                     <span className="text-[11px] text-muted-foreground">{sub}</span>
                   </div>
                   {recency && (
-                    <span className="sf-chip sf-chip-accent text-[10px]">{recency}</span>
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-primary/10 text-primary">{recency}</span>
                   )}
                 </Link>
               );

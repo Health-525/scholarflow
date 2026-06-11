@@ -289,7 +289,7 @@ function LibraryLayoutInner() {
                   color: isSelected ? "#fff" : st.color,
                   border: isSelected ? "2px solid #16a34a" : `1px solid ${st.border}`,
                   cursor: isAvailable ? "pointer" : "default",
-                  boxShadow: isSelected ? "0 0 0 2px rgba(34,197,94,0.3)" : (hoverSeat?.key === seat.key ? "0 0 0 1px rgba(255,255,255,0.1)" : "none"),
+                  boxShadow: isSelected ? "0 0 0 2px rgba(34,197,94,0.24)" : (hoverSeat?.key === seat.key ? "0 0 0 1px rgba(138,164,255,0.12)" : "none"),
                   transform: hoverSeat?.key === seat.key && isAvailable ? "scale(1.15)" : "scale(1)",
                   zIndex: hoverSeat?.key === seat.key ? 10 : 1,
                 }}

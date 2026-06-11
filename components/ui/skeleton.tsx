@@ -13,7 +13,7 @@ export function Skeleton({ className = "" }: { className?: string }) {
 
 export function CardSkeleton() {
   return (
-    <div className="sf-card p-5 space-y-3">
+    <div className="rounded-2xl p-5 space-y-3 bg-card border border-border dark:border-transparent shadow-sm">
       <div className="flex items-center gap-3">
         <Skeleton className="w-9 h-9 rounded-xl" />
         <div className="flex-1 space-y-1.5">

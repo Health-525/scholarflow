@@ -290,14 +290,14 @@ function pomodoroReducer(state: PomodoroState, action: PomodoroAction): Pomodoro
 }
 
 // ── Phase helpers ──────────────────────────────────────────
-const phaseColorClass = (phase: PomodoroPhase) =>
-  phase === "break" || phase === "longBreak" ? "text-green-600" : "text-primary";
+const phaseColorClass = (phase: PomodoroPhase, isDark?: boolean) =>
+  phase === "break" || phase === "longBreak" ? (isDark ? "text-[#3fb950]" : "text-green-600") : "text-primary";
 
-const phaseBgClass = (phase: PomodoroPhase) =>
-  phase === "break" || phase === "longBreak" ? "bg-green-600" : "bg-primary";
+const phaseBgClass = (phase: PomodoroPhase, isDark?: boolean) =>
+  phase === "break" || phase === "longBreak" ? (isDark ? "bg-[#3fb950]" : "bg-green-600") : "bg-primary";
 
-const phaseStrokeColor = (phase: PomodoroPhase) =>
-  phase === "break" || phase === "longBreak" ? "#16a34a" : "hsl(var(--primary))";
+const phaseStrokeColor = (phase: PomodoroPhase, isDark?: boolean) =>
+  phase === "break" || phase === "longBreak" ? (isDark ? "#3fb950" : "#16a34a") : (isDark ? "#8b9cf7" : "hsl(var(--primary))");
 
 const phaseLabel: Record<PomodoroPhase, string> = {
   idle: "准备专注",
@@ -313,6 +313,7 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
 }) {
   // Restore persisted timer state if available
   const restored = restoreTimerState(initialSettings);
+  const [isDark, setIsDark] = useState(false);
   const [state, dispatch] = useReducer(pomodoroReducer, {
     phase: restored?.phase ?? ("idle" as PomodoroPhase),
     remaining: restored?.remaining ?? initialSettings.focusMinutes * 60,
@@ -327,6 +328,21 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
   });
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Detect dark mode
+  useEffect(() => {
+    const check = () => {
+      setIsDark(
+        document.documentElement.getAttribute("data-theme") === "dark"
+        || (document.documentElement.getAttribute("data-theme") !== "light"
+            && window.matchMedia("(prefers-color-scheme: dark)").matches)
+      );
+    };
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class"] });
+    return () => observer.disconnect();
+  }, []);
 
   // Start/stop interval based on isRunning
   useEffect(() => {

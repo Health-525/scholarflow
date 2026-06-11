@@ -44,6 +44,8 @@ export default function KnowledgeRoadmapPage() {
   const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
+  const [filterPriority, setFilterPriority] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchData() {

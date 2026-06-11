@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Target, Plus, Check, Trash2, Flame, Trophy, Sparkles, ChevronRight } from "lucide-react";
+import { semanticColor, semanticBg } from "@/lib/theme-colors";
 
 interface DailyGoal {
   id: string;
@@ -40,6 +41,11 @@ export default function DailyGoalsPage() {
   const [newGoal, setNewGoal] = useState("");
   const [streak, setStreakState] = useState(0);
   const [history, setHistory] = useState<{ date: string; completed: number; total: number }[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const stored = loadGoals();
@@ -113,6 +119,11 @@ export default function DailyGoalsPage() {
   const recent7Total = recent7.reduce((s, h) => s + h.total, 0);
   const recent7Rate = recent7Total > 0 ? Math.round((recent7Completed / recent7Total) * 100) : 0;
 
+  const successColor = semanticColor("success");
+  const successBg = semanticBg("success");
+  const warningColor = semanticColor("warning");
+  const warningBg = semanticBg("warning");
+
   return (
     <div className="max-w-5xl mx-auto py-6 animate-page">
       {/* Header */}
@@ -136,7 +147,7 @@ export default function DailyGoalsPage() {
             <Sparkles className="w-3.5 h-3.5 text-primary" />
             <span className="text-[10px] font-semibold text-muted-foreground">今日进度</span>
           </div>
-          <div className="text-2xl font-bold tabular-nums animate-count" style={{ color: allDone ? "#22c55e" : "var(--accent)" }}>
+          <div className="text-2xl font-bold tabular-nums animate-count" style={{ color: allDone ? successColor : "var(--accent)" }}>
             {pct}%
           </div>
           <div className="text-[10px] text-muted-foreground">{done}/{goals.length} 完成</div>
@@ -146,7 +157,7 @@ export default function DailyGoalsPage() {
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${pct}%`,
-                  backgroundColor: allDone ? "#22c55e" : "var(--accent)",
+                  backgroundColor: allDone ? successColor : "var(--accent)",
                 }}
               />
             </div>
@@ -154,24 +165,24 @@ export default function DailyGoalsPage() {
         </div>
 
         {/* Streak */}
-        <div className="rounded-2xl p-4 bg-card border border-orange-500/20 shadow-sm animate-fade-up stagger-2">
+        <div className="rounded-2xl p-4 bg-card shadow-sm animate-fade-up stagger-2" style={{ border: `1px solid ${warningBg}` }}>
           <div className="flex items-center gap-2 mb-2">
-            <Flame className="w-3.5 h-3.5 text-orange-500" />
+            <Flame className="w-3.5 h-3.5" style={{ color: warningColor }} />
             <span className="text-[10px] font-semibold text-muted-foreground">连续天数</span>
           </div>
-          <div className="text-2xl font-bold tabular-nums text-orange-500 animate-count">
+          <div className="text-2xl font-bold tabular-nums animate-count" style={{ color: warningColor }}>
             {streak}
           </div>
           <div className="text-[10px] text-muted-foreground">天全部完成</div>
         </div>
 
         {/* 7-day rate */}
-        <div className="rounded-2xl p-4 bg-card border border-green-500/20 shadow-sm animate-fade-up stagger-3">
+        <div className="rounded-2xl p-4 bg-card shadow-sm animate-fade-up stagger-3" style={{ border: `1px solid ${successBg}` }}>
           <div className="flex items-center gap-2 mb-2">
-            <Trophy className="w-3.5 h-3.5 text-green-500" />
+            <Trophy className="w-3.5 h-3.5" style={{ color: successColor }} />
             <span className="text-[10px] font-semibold text-muted-foreground">7日完成率</span>
           </div>
-          <div className="text-2xl font-bold tabular-nums text-green-500 animate-count">
+          <div className="text-2xl font-bold tabular-nums animate-count" style={{ color: successColor }}>
             {recent7Rate}%
           </div>
           <div className="text-[10px] text-muted-foreground">{recent7Completed}/{recent7Total} 项</div>

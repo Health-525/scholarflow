@@ -20,7 +20,7 @@ export function JwcNewsCard() {
     : "";
 
   return (
-    <div className="sf-card p-4">
+    <div className="rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">

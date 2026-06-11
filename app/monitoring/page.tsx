@@ -85,7 +85,7 @@ function AgentCard({ agent }: { agent: AgentStatus }) {
           <span>{formatElapsed(agent.elapsedMs)}</span>
         </div>
         {agent.summary && Object.keys(agent.summary).length > 0 && (
-          <div className="mt-2 pt-2 border-t border-border">
+          <div className="mt-2 pt-2 border-t border-border dark:border-t-transparent">
             {Object.entries(agent.summary).map(([k, v]) => (
               <div key={k} className="flex justify-between">
                 <span>{k}</span>
@@ -95,7 +95,7 @@ function AgentCard({ agent }: { agent: AgentStatus }) {
           </div>
         )}
         {agent.errors.length > 0 && (
-          <div className="mt-2 pt-2 border-t border-border text-red-500">
+          <div className="mt-2 pt-2 border-t border-border dark:border-t-transparent text-red-500">
             {agent.errors.map((e, i) => (
               <div key={i} className="truncate">{e}</div>
             ))}
@@ -125,9 +125,10 @@ export default function MonitoringPage() {
       try {
         const file = await client.getFile("execution", "_out/health-status.json");
         setHealth(JSON.parse(file.content));
-      } catch (err: any) {
-        if (err?.type === "not_found") setError("健康数据尚未生成");
-        else setError(`获取失败：${err?.message || String(err)}`);
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        if ((error as { type?: string }).type === "not_found") setError("健康数据尚未生成");
+        else setError(`获取失败：${error.message}`);
       }
     }
     fetchHealth().finally(() => setLoading(false));
