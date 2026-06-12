@@ -1,19 +1,18 @@
 "use client";
 
-/**
- * Loading Skeleton — 统一的骨架屏组件
- */
-export function Skeleton({ className = "" }: { className?: string }) {
+import { cn } from "@/lib/utils";
+
+export function Skeleton({ className }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-xl bg-muted ${className}`}
+      className={cn("animate-pulse rounded-xl bg-muted", className)}
     />
   );
 }
 
 export function CardSkeleton() {
   return (
-    <div className="rounded-2xl p-5 space-y-3 bg-card border border-border dark:border-transparent shadow-sm">
+    <div className="rounded-2xl p-5 space-y-3 bg-card border border-border shadow-sm">
       <div className="flex items-center gap-3">
         <Skeleton className="w-9 h-9 rounded-xl" />
         <div className="flex-1 space-y-1.5">

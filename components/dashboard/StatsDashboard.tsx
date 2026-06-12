@@ -74,7 +74,7 @@ function AssignmentsChart() {
   const tooltipStyle = { ...TOOLTIP_STYLE, backgroundColor: colors.cardBg, color: colors.foreground, border: `1px solid ${colors.border}` };
 
   return (
-      <div className="rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+      <div className="rounded-2xl p-4 bg-card border border-border shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-primary/10">
           <svg className="w-3 h-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -124,7 +124,7 @@ function WeeklyScheduleChart() {
   const tooltipStyle = { ...TOOLTIP_STYLE, backgroundColor: colors.cardBg, color: colors.foreground, border: `1px solid ${colors.border}` };
 
   return (
-      <div className="rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+      <div className="rounded-2xl p-4 bg-card border border-border shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-primary/10">
           <svg className="w-3 h-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -171,7 +171,7 @@ function RunningTrendChart() {
   const tooltipStyle = { ...TOOLTIP_STYLE, backgroundColor: colors.cardBg, color: colors.foreground, border: `1px solid ${colors.border}` };
 
   return (
-      <div className="rounded-2xl p-4 md:col-span-2 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+      <div className="rounded-2xl p-4 md:col-span-2 bg-card border border-border shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-green-600/10">
           <svg className="w-3 h-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -217,7 +217,7 @@ function UrgencyChart() {
   const tooltipStyle = { ...TOOLTIP_STYLE, backgroundColor: colors.cardBg, color: colors.foreground, border: `1px solid ${colors.border}` };
 
   return (
-      <div className="rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+      <div className="rounded-2xl p-4 bg-card border border-border shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-amber-500/10">
           <svg className="w-3 h-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -244,7 +244,7 @@ function UrgencyChart() {
 // ── 主组件 ─────────────────────────────────────────────────
 export function StatsDashboard() {
   return (
-      <div className="rounded-2xl p-5 bg-card border border-border dark:border-transparent shadow-sm">
+      <div className="rounded-2xl p-5 bg-card border border-border shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">
           <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

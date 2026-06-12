@@ -5,7 +5,7 @@ import { Bot, Sparkles, ArrowRight } from "lucide-react";
 
 export function AIChatCard() {
   return (
-    <Link href="/chat" className="block rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm group h-full transition-all duration-200 hover:shadow-md hover:-translate-y-0.5" aria-label="AI 学习助手">
+    <Link href="/chat" className="block rounded-2xl p-4 bg-card border border-border shadow-sm group h-full transition-all duration-200 hover:shadow-md hover:-translate-y-0.5" aria-label="AI 学习助手">
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-3">

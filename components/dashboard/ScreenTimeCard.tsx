@@ -1,8 +1,9 @@
 "use client";
 
-import { useActivityTrackerV3, CATEGORY_LABELS } from "@/lib/activity-tracker-v3";
-import type { Category } from "@/lib/activity-tracker-v3";
+import { useActivityTrackerV3 } from "@/lib/activity-tracker-v3";
 import Link from "next/link";
+import { cardClasses } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export function ScreenTimeCard() {
   const state = useActivityTrackerV3();
@@ -12,81 +13,40 @@ export function ScreenTimeCard() {
   const rate = Math.round((activeMins / total) * 100);
 
   return (
-    <Link href="/activity" className="block rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10 transition-transform duration-200 group-hover:scale-110">
-          <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-[13px] font-semibold text-foreground font-display">屏幕时间</h3>
-          <p className="text-[10px] text-muted-foreground">{state.currentApp}</p>
-        </div>
-      </div>
-
-      <div className="flex items-end justify-between mb-3">
-        <div className="flex items-baseline gap-1">
-          <span className="text-[24px] font-bold tabular-nums text-foreground transition-transform duration-200 group-hover:scale-105">{activeMins}</span>
-          <span className="text-[11px] text-muted-foreground">活跃 min</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-14 h-1.5 rounded-full overflow-hidden flex bg-secondary">
-            <div className="h-full transition-all bg-primary" style={{ width: `${rate}%` }} />
+    <Link href="/activity" className={cn(cardClasses, "h-full")}>
+      <div className="flex flex-col h-full p-4 justify-center text-center relative">
+        <div className="absolute -right-2 -bottom-2 w-16 h-16 rounded-full opacity-[0.04] dark:opacity-[0.07] pointer-events-none group-hover:opacity-[0.08] dark:group-hover:opacity-[0.13] transition-opacity duration-300 bg-primary" />
+        <div className="relative">
+          <div className="text-[28px] font-bold tabular-nums transition-transform duration-200 group-hover:scale-105 text-foreground leading-none">
+            {activeMins}<span className="text-[13px] font-medium text-muted-foreground"> min</span>
           </div>
-          <span className="text-[10px] font-medium tabular-nums text-primary">{rate}%</span>
-        </div>
-      </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">活跃时长</div>
 
-      {/* Category breakdown */}
-      {state.categoryBreakdown.length > 0 && (
-        <div className="mb-3">
-          <div className="h-2 rounded-full overflow-hidden flex bg-secondary">
-            {state.categoryBreakdown.map(c => (
-              <div
-                key={c.category}
-                className="h-full transition-all"
-                style={{
-                  width: `${(c.minutes / Math.max(activeMins, 1)) * 100}%`,
-                  background: c.color,
-                  minWidth: c.minutes > 0 ? "2px" : 0,
-                }}
-                title={`${CATEGORY_LABELS[c.category as Category] || c.category}: ${c.minutes}min`}
-              />
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5">
-            {state.categoryBreakdown.slice(0, 4).map(c => (
-              <span key={c.category} className="text-[10px] flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: c.color }} />
-                <span className="text-muted-foreground">{CATEGORY_LABELS[c.category as Category]?.replace(/^.\s/, "") || c.category}</span>
-                <span className="tabular-nums text-muted-foreground/60">{c.minutes}分</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Top 3 apps */}
-      {state.appBreakdown.length > 0 && (
-        <div className="pt-2 border-t border-border">
-          {state.appBreakdown.slice(0, 3).map(b => (
-            <div key={b.app} className="flex items-center gap-2 text-[10px] mt-1">
-              <span className="w-14 truncate text-muted-foreground">{b.app}</span>
-              <div className="flex-1 h-1 rounded-full bg-secondary">
-                <div className="h-full rounded-full bg-primary/15" style={{ width: `${(b.minutes / Math.max(activeMins, 1)) * 100}%` }} />
-              </div>
-              <span className="tabular-nums w-7 text-right text-muted-foreground/60">{b.minutes}分</span>
+          <div className="flex items-center gap-2 justify-center mt-3">
+            <div className="w-12 h-1 rounded-full overflow-hidden flex bg-secondary">
+              <div className="h-full transition-all bg-primary rounded-full" style={{ width: `${rate}%` }} />
             </div>
-          ))}
-        </div>
-      )}
+            <span className="text-[11px] font-medium tabular-nums text-muted-foreground">{rate}%</span>
+          </div>
 
-      {state.categoryBreakdown.length === 0 && state.appBreakdown.length === 0 && (
-        <div className="mt-2 text-[10px] text-muted-foreground">
-          {state.isElectron ? `正在追踪... 当前：${state.currentApp}` : "需要 Electron 桌面版才能追踪应用"}
+          {state.categoryBreakdown.length > 0 && (
+            <div className="flex items-center justify-center gap-3 mt-2.5">
+              {state.categoryBreakdown.slice(0, 3).map(c => (
+                <span key={c.category} className="text-[10px] flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: c.color }} />
+                  <span className="text-muted-foreground tabular-nums">{c.minutes}分</span>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {!state.isElectron && state.categoryBreakdown.length === 0 && (
+            <div className="mt-2 text-[10px] text-muted-foreground">
+              需要 Electron 桌面版才能追踪应用
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </Link>
   );
 }

@@ -133,7 +133,7 @@ export default function GPAPage() {
             <h1 className="text-xl font-bold font-display text-foreground">绩点</h1>
           </div>
         </div>
-        <div className="rounded-2xl p-8 text-center border border-border dark:border-transparent bg-card">
+        <div className="rounded-2xl p-8 text-center border border-border bg-card">
           <BookOpen className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
           <p className="text-[13px] mb-1 text-muted-foreground">暂未同步教务系统成绩</p>
           <p className="text-[11px] text-muted-foreground/60">运行 timetable/scripts/fetch_grades_all.js 导入成绩</p>
@@ -169,7 +169,7 @@ export default function GPAPage() {
             className={`shrink-0 px-3.5 py-1.5 rounded-xl text-[12px] font-medium transition-all ${
               activeSemester === "all"
                 ? "bg-primary text-primary-foreground border border-primary shadow-md"
-                : "bg-card text-muted-foreground border border-border dark:border-transparent"
+                : "bg-card text-muted-foreground border border-border"
             }`}
             aria-pressed={activeSemester === "all"}
           >
@@ -185,7 +185,7 @@ export default function GPAPage() {
                 className={`shrink-0 px-3.5 py-1.5 rounded-xl text-[12px] font-medium transition-all ${
                   isActive
                     ? "bg-primary text-primary-foreground border border-primary shadow-md"
-                    : "bg-card text-muted-foreground border border-border dark:border-transparent"
+                    : "bg-card text-muted-foreground border border-border"
                 }`}
                 aria-pressed={isActive}
               >
@@ -202,7 +202,7 @@ export default function GPAPage() {
       </div>
 
       {/* GPA 主卡片 */}
-      <div className="rounded-2xl p-6 mb-4 text-center relative overflow-hidden bg-card border border-border dark:border-transparent shadow-sm">
+      <div className="rounded-2xl p-6 mb-4 text-center relative overflow-hidden bg-card border border-border shadow-sm">
         <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 30%, ${currentGPAColor}15 0%, transparent 60%)` }} />
         <div className="relative flex flex-col items-center">
           <div className="relative">
@@ -220,7 +220,7 @@ export default function GPAPage() {
               { value: filteredCourses.length, label: "课程" },
               { value: filteredRequired, label: "必修" },
             ].map((item, i) => (
-              <div key={i} className={`flex-1 text-center ${i < 2 ? "border-r border-border dark:border-r-transparent" : ""}`}>
+              <div key={i} className={`flex-1 text-center ${i < 2 ? "border-r border-border" : ""}`}>
                 <div className="text-[18px] font-semibold tabular-nums text-foreground">{item.value}</div>
                 <div className="text-[10px] text-muted-foreground">{item.label}</div>
               </div>
@@ -230,7 +230,7 @@ export default function GPAPage() {
       </div>
 
       {/* 成绩分布 */}
-      <div className="rounded-2xl p-4 mb-4 bg-card border border-border dark:border-transparent shadow-sm">
+      <div className="rounded-2xl p-4 mb-4 bg-card border border-border shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="w-4 h-4 text-primary" />
           <span className="text-[13px] font-semibold text-foreground">成绩分布</span>
@@ -281,7 +281,7 @@ export default function GPAPage() {
               const expanded = expandedSemesters[sem] ?? false;
               const semCredits = calcCredits(courses);
               return (
-                <div key={sem} className="rounded-2xl overflow-hidden bg-card border border-border dark:border-transparent transition-shadow duration-200" style={{ boxShadow: expanded ? "var(--shadow-sm)" : "var(--shadow-xs)" }}>
+                <div key={sem} className="rounded-2xl overflow-hidden bg-card border border-border shadow-sm transition-shadow duration-200">
                   <button onClick={() => toggleSemester(sem)} className="w-full flex items-center justify-between p-4 text-left">
                     <div className="flex-1 min-w-0">
                       <div className="text-[14px] font-semibold text-foreground">{getSemesterLabel(sem)}</div>
@@ -306,7 +306,7 @@ export default function GPAPage() {
             })}
           </div>
         ) : (
-          <div className="rounded-2xl overflow-hidden bg-card border border-border dark:border-transparent shadow-sm">
+          <div className="rounded-2xl overflow-hidden bg-card border border-border shadow-sm">
             <div className="p-4 pb-2">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-[14px] font-semibold text-foreground">{getSemesterLabel(activeSemester)}</div>
@@ -319,7 +319,7 @@ export default function GPAPage() {
       </div>
 
       {/* GPA 参考 */}
-      <div className="rounded-2xl p-4 mb-4 bg-card border border-border dark:border-transparent shadow-sm">
+      <div className="rounded-2xl p-4 mb-4 bg-card border border-border shadow-sm">
         <div className="flex items-center gap-2 mb-3">
           <TrendingUp className="w-4 h-4 text-primary" />
           <span className="text-[12px] font-semibold text-muted-foreground">百分制 ↔ GPA</span>

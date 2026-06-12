@@ -66,7 +66,7 @@ export function applyTheme(theme?: ThemeValue): void {
   if (typeof window !== 'undefined' && window.electronAPI?.setTitleBarOverlay) {
     window.electronAPI.setTitleBarOverlay(
       effective === 'dark'
-        ? { color: '#040816', symbolColor: '#f5f7ff', height: 36 }
+        ? { color: '#050508', symbolColor: '#d8d8e2', height: 36 }
         : { color: '#faf7f2', symbolColor: '#1a1510', height: 36 }
     );
   }

@@ -165,7 +165,7 @@ export default function DailyGoalsPage() {
         </div>
 
         {/* Streak */}
-        <div className="rounded-2xl p-4 bg-card shadow-sm animate-fade-up stagger-2" style={{ border: `1px solid ${warningBg}` }}>
+        <div className="rounded-2xl p-4 bg-card shadow-sm animate-fade-up stagger-2 border" style={{ borderColor: warningBg }}>
           <div className="flex items-center gap-2 mb-2">
             <Flame className="w-3.5 h-3.5" style={{ color: warningColor }} />
             <span className="text-[10px] font-semibold text-muted-foreground">连续天数</span>
@@ -177,7 +177,7 @@ export default function DailyGoalsPage() {
         </div>
 
         {/* 7-day rate */}
-        <div className="rounded-2xl p-4 bg-card shadow-sm animate-fade-up stagger-3" style={{ border: `1px solid ${successBg}` }}>
+        <div className="rounded-2xl p-4 bg-card shadow-sm animate-fade-up stagger-3 border" style={{ borderColor: successBg }}>
           <div className="flex items-center gap-2 mb-2">
             <Trophy className="w-3.5 h-3.5" style={{ color: successColor }} />
             <span className="text-[10px] font-semibold text-muted-foreground">7日完成率</span>

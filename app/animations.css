@@ -1,0 +1,94 @@
+/* ScholarFlow Animations */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.018); }
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0); }
+  50% { box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.15); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateX(100px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Animation utility classes */
+.animate-in { animation: fadeInUp 0.3s ease; }
+.animate-fade { animation: fadeIn 0.2s ease; }
+.animate-fade-up { animation: fadeSlideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade-in { animation: fadeIn 0.3s ease both; }
+.animate-breathe { animation: breathe 2.2s ease-in-out infinite; transform-origin: left center; }
+.animate-page { animation: pageEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-pulse { animation: pulseGlow 2s ease-in-out infinite; }
+.animate-count { animation: countUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-confetti { animation: confettiFall 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.animate-pulse-subtle { animation: pulseSubtle 2s ease-in-out infinite; }
+.animate-toast-in { animation: toastSlideIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Staggered animation delays */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+.stagger-7 { animation-delay: 0.35s; }
+.stagger-8 { animation-delay: 0.4s; }
+.stagger-9 { animation-delay: 0.45s; }
+.stagger-10 { animation-delay: 0.5s; }
+
+/* Hover utilities */
+.hover-scale {
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+.hover-scale:active {
+  transform: scale(0.98);
+}

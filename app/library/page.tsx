@@ -307,11 +307,11 @@ export default function LibraryPage() {
         <div className="flex items-center gap-2 shrink-0">
           {isElectron && (
             <button onClick={handleRefreshJWT} title="刷新登录凭证"
-              className="px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1 bg-card text-muted-foreground border border-border dark:border-transparent">
+              className="px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1 bg-card text-muted-foreground border border-border">
               <KeyRound className="w-3.5 h-3.5" />
             </button>
           )}
-          <button onClick={fetchData} className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-card text-muted-foreground border border-border dark:border-transparent">
+          <button onClick={fetchData} className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-card text-muted-foreground border border-border">
             <RefreshCw className="w-3.5 h-3.5" />刷新
           </button>
         </div>
@@ -339,7 +339,7 @@ export default function LibraryPage() {
       )}
 
       {/* Summary */}
-      <div className="rounded-2xl p-5 mb-4 bg-card border border-border dark:border-transparent shadow-sm">
+      <div className="rounded-2xl p-5 mb-4 bg-card border border-border shadow-sm">
         <div className="flex items-center gap-6">
           <div className="text-center">
             <div className="text-3xl font-bold" style={{ color: c((1 - summary.rate) * 100) }}>{summary.avail}</div>
@@ -367,7 +367,7 @@ export default function LibraryPage() {
       {/* Current reservation + Messages row */}
       <div className="grid gap-3 mb-6 sm:grid-cols-2">
         {/* 当前预约 */}
-        <div className="rounded-xl p-4 bg-card border border-border dark:border-transparent shadow-sm">
+        <div className="rounded-xl p-4 bg-card border border-border shadow-sm">
           <div className="flex items-center gap-1.5 mb-2">
             <BookmarkCheck className="w-4 h-4 text-primary" />
             <span className="font-medium text-sm text-foreground">当前预约</span>
@@ -409,7 +409,7 @@ export default function LibraryPage() {
 
         {/* 消息通知入口 */}
         <div onClick={() => router.push("/library/messages")}
-          className="rounded-xl p-4 bg-card border border-border dark:border-transparent shadow-sm cursor-pointer hover:opacity-80 transition-opacity">
+          className="rounded-xl p-4 bg-card border border-border shadow-sm cursor-pointer hover:opacity-80 transition-opacity">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Bell className="w-4 h-4 text-primary" />
@@ -427,7 +427,7 @@ export default function LibraryPage() {
           const rt = lib.lib_rt, pct = rt.seats_total > 0 ? (rt.seats_used / rt.seats_total) * 100 : 0;
           return (
             <div key={lib.lib_id} onClick={() => router.push(`/library/layout?lib_id=${lib.lib_id}`)}
-              className="rounded-xl p-4 cursor-pointer hover:opacity-80 transition-opacity bg-card border border-border dark:border-transparent shadow-sm">
+              className="rounded-xl p-4 cursor-pointer hover:opacity-80 transition-opacity bg-card border border-border shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-primary" />

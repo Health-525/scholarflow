@@ -1,0 +1,119 @@
+/* ScholarFlow Markdown & Callout Styles */
+
+.markdown-body {
+  color: var(--text-primary);
+  line-height: 1.8;
+  font-size: 15px;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  margin-top: 1.75em;
+  margin-bottom: 0.6em;
+  color: var(--text-primary);
+  font-family: 'Noto Serif SC', Georgia, serif;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.markdown-body h1 { font-size: 1.7em; }
+.markdown-body h2 { font-size: 1.35em; }
+.markdown-body h3 { font-size: 1.15em; }
+.markdown-body p { margin: 0 0 1em; }
+.markdown-body ul,
+.markdown-body ol { padding-left: 1.6em; margin-bottom: 1em; }
+.markdown-body li { margin-bottom: 0.3em; }
+.markdown-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.markdown-body a:hover { color: var(--accent-hover); }
+.markdown-body code {
+  padding: 0.12em 0.4em;
+  border-radius: 4px;
+  background: var(--accent-softer);
+  font-family: ui-monospace, "Cascadia Mono", monospace;
+  font-size: 0.85em;
+}
+.markdown-body pre {
+  margin-bottom: 1.2em;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  padding: 1em 1.2em;
+}
+.markdown-body pre code { background: none; padding: 0; }
+.markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 1em; font-size: 0.9em; }
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid var(--border);
+  padding: 0.5em 0.8em;
+  text-align: left;
+}
+.markdown-body th { background: var(--accent-softer); font-weight: 600; }
+.markdown-body blockquote {
+  margin-left: 0;
+  border-left: 3px solid var(--accent);
+  padding-left: 1em;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+.markdown-body hr { margin: 1.8em 0; border: none; border-top: 1px solid var(--border); }
+
+/* Callout component */
+.callout {
+  margin-bottom: 1em;
+  border-top: 1px solid;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+  border-left: 3px solid;
+  border-radius: var(--radius-md);
+  padding: 0.8em 1.1em;
+}
+
+.callout-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  margin-bottom: 0.45em;
+  font-family: 'Noto Serif SC', Georgia, serif;
+  font-size: 0.88em;
+  font-weight: 600;
+}
+
+.callout-icon { font-style: normal; }
+
+/* Light callout variants */
+.callout-info { background: rgba(42, 68, 148, 0.06); border-left-color: #2a4494; border-color: rgba(42, 68, 148, 0.15); }
+.callout-tip { background: rgba(45, 122, 79, 0.06); border-left-color: #2d7a4f; border-color: rgba(45, 122, 79, 0.15); }
+.callout-warning { background: rgba(184, 92, 0, 0.07); border-left-color: #b85c00; border-color: rgba(184, 92, 0, 0.18); }
+.callout-danger { background: rgba(192, 57, 43, 0.07); border-left-color: #c0392b; border-color: rgba(192, 57, 43, 0.18); }
+.callout-note { background: rgba(100, 116, 139, 0.06); border-left-color: #64748b; border-color: rgba(100, 116, 139, 0.15); }
+.callout-summary { background: rgba(100, 70, 150, 0.06); border-left-color: #6446a0; border-color: rgba(100, 70, 150, 0.15); }
+.callout-abstract { background: rgba(6, 140, 160, 0.06); border-left-color: #068ca0; border-color: rgba(6, 140, 160, 0.15); }
+
+/* Dark callout variants */
+[data-theme="dark"] .callout-info { background: rgba(124, 199, 255, 0.1); border-left-color: #7cc7ff; border-color: rgba(124, 199, 255, 0.18); }
+[data-theme="dark"] .callout-tip { background: rgba(54, 230, 165, 0.1); border-left-color: #36e6a5; border-color: rgba(54, 230, 165, 0.18); }
+[data-theme="dark"] .callout-warning { background: rgba(255, 191, 105, 0.1); border-left-color: #ffbf69; border-color: rgba(255, 191, 105, 0.2); }
+[data-theme="dark"] .callout-danger { background: rgba(255, 95, 122, 0.1); border-left-color: #ff5f7a; border-color: rgba(255, 95, 122, 0.2); }
+[data-theme="dark"] .callout-note { background: rgba(138, 180, 255, 0.08); border-left-color: #8ab4ff; border-color: rgba(138, 180, 255, 0.14); }
+[data-theme="dark"] .callout-summary { background: rgba(117, 88, 255, 0.1); border-left-color: #7558ff; border-color: rgba(117, 88, 255, 0.16); }
+[data-theme="dark"] .callout-abstract { background: rgba(0, 230, 210, 0.08); border-left-color: #00e6d2; border-color: rgba(0, 230, 210, 0.14); }
+
+/* Wiki links & images */
+.wiki-link-unresolved {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.markdown-image {
+  max-width: 100%;
+  margin: 12px 0;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}

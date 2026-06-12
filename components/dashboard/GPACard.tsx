@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { gpaColor } from "@/lib/gpa";
 import { GPARing } from "@/components/ui/GPARing";
+import { cardClasses } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export function GPACard() {
   const [gpa, setGPA] = useState<string>("--");
@@ -27,8 +29,8 @@ export function GPACard() {
   const color = gpaColor(gpaNum);
 
   return (
-    <Link href="/gpa" className="block rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm group h-full transition-all duration-200 hover:shadow-md hover:-translate-y-0.5" aria-label={`绩点 ${gpa}，点击查看详情`}>
-      <div className="flex flex-col h-full">
+    <Link href="/gpa" className={cn(cardClasses, "h-full")} aria-label={`绩点 ${gpa}，点击查看详情`}>
+      <div className="flex flex-col h-full p-4">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110" style={{ backgroundColor: `${color}15` }}>
             <svg className="w-3.5 h-3.5" style={{ color }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -38,7 +40,6 @@ export function GPACard() {
           <span className="text-[12px] font-semibold font-display text-foreground">绩点</span>
         </div>
         <div className="flex-1 flex items-center justify-center relative">
-          {/* Background accent */}
           <div className="absolute -right-2 -bottom-2 w-16 h-16 rounded-full opacity-[0.06] pointer-events-none group-hover:opacity-[0.12] transition-opacity duration-300" style={{ backgroundColor: color }} />
           <div className="relative">
             <GPARing value={gpaNum} size={64} strokeWidth={5} label="" />

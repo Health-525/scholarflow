@@ -13,6 +13,8 @@ import { downloadActivityCSV, clearActivityData } from "@/lib/activity-tracker-v
 import { useScheduleQuery, useAssignmentsQuery, useRunningQuery, useSyncFromGitHub, useSyncToGitHub } from "@/hooks/useQueries";
 import { exportAssignmentsCSV, exportRunningCSV, buildWeekICS, downloadICS } from "@/lib/export";
 import { getDB } from "@/lib/db";
+import { SettingsSection } from "@/components/ui/settings-section";
+import { PageHeader } from "@/components/layout/PageHeader";
 import type { ThemeValue } from "@/types";
 
 const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = [
@@ -71,42 +73,31 @@ export default function SettingsPage() {
   }
 
   const currentThemeOption = THEME_OPTIONS.find(t => t.value === theme) || THEME_OPTIONS[2];
-
-  // 用户名首字
   const avatarLetter = studentInfo?.studentId ? studentInfo.studentId[0] : "?";
 
   return (
     <div className="pb-24 md:pb-8 max-w-lg mx-auto animate-page">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6 py-4">
-        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
+      <PageHeader
+        icon={
           <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.313.255-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.117.737.43.992l1.004.827c.424.35.534.955.26 1.43l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.312-.255.437-.613.43-.992a7.723 7.723 0 010-.255c.007-.38-.118-.737-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.331-.183.581-.495.644-.869l.214-1.28z" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-        </div>
-        <div>
-          <h1 className="text-xl font-bold font-display text-foreground">用户中心</h1>
-        </div>
-      </div>
+        }
+        title="用户中心"
+      />
 
-      {/* ── 用户卡片 ── */}
-      <div className="rounded-2xl p-5 mb-4 relative overflow-hidden bg-card border border-border dark:border-transparent shadow-sm">
-        <div
-          className="absolute -right-8 -top-8 w-32 h-32 rounded-full pointer-events-none opacity-[0.06] bg-gradient-to-br from-primary to-transparent"
-        />
-
+      {/* 用户卡片 */}
+      <div className="rounded-2xl p-5 mb-4 relative overflow-hidden bg-card border border-border shadow-sm">
+        <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full pointer-events-none opacity-[0.06] bg-gradient-to-br from-primary to-transparent" />
         <div className="relative flex items-center gap-4">
-          {/* 头像 */}
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-primary text-primary-foreground font-[serif] text-[22px] font-bold">
             {avatarLetter}
           </div>
           <div className="flex-1 min-w-0">
             {studentInfo ? (
               <>
-                <div className="text-[16px] font-semibold tabular-nums text-foreground">
-                  {studentInfo.studentId}
-                </div>
+                <div className="text-[16px] font-semibold tabular-nums text-foreground">{studentInfo.studentId}</div>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
                   <span className="text-[12px] text-muted-foreground">已同步教务系统</span>
@@ -123,238 +114,159 @@ export default function SettingsPage() {
             )}
           </div>
         </div>
-
-        {/* 统计 */}
         <div className="grid grid-cols-4 gap-2 mt-4">
           {studentInfo && (
             <>
-              <div className="rounded-xl p-2.5 text-center bg-secondary">
-                <div className="text-[16px] font-semibold tabular-nums text-green-700">{studentInfo.gpa}</div>
-                <div className="text-[10px] text-muted-foreground">GPA</div>
-              </div>
-              <div className="rounded-xl p-2.5 text-center bg-secondary">
-                <div className="text-[16px] font-semibold tabular-nums text-foreground">{studentInfo.totalCredits}</div>
-                <div className="text-[10px] text-muted-foreground">学分</div>
-              </div>
-              <div className="rounded-xl p-2.5 text-center bg-secondary">
-                <div className="text-[16px] font-semibold tabular-nums text-foreground">{studentInfo.courseCount}</div>
-                <div className="text-[10px] text-muted-foreground">课程</div>
-              </div>
+              <StatChip value={studentInfo.gpa} label="GPA" accent />
+              <StatChip value={String(studentInfo.totalCredits)} label="学分" />
+              <StatChip value={String(studentInfo.courseCount)} label="课程" />
             </>
           )}
           {!studentInfo && (
             <>
-              <div className="rounded-xl p-2.5 text-center bg-secondary">
-                <div className="text-[16px] font-semibold tabular-nums text-foreground">{scheduleData?.schedule?.courses?.length ?? 0}</div>
-                <div className="text-[10px] text-muted-foreground">课程</div>
-              </div>
-              <div className="rounded-xl p-2.5 text-center bg-secondary">
-                <div className="text-[16px] font-semibold tabular-nums text-foreground">{assignments.filter(a => !a.done).length}</div>
-                <div className="text-[10px] text-muted-foreground">待办</div>
-              </div>
+              <StatChip value={String(scheduleData?.schedule?.courses?.length ?? 0)} label="课程" />
+              <StatChip value={String(assignments.filter(a => !a.done).length)} label="待办" />
             </>
           )}
-          <div className="rounded-xl p-2.5 text-center bg-secondary">
-            <div className="text-[16px] font-semibold tabular-nums text-foreground">{records.length}</div>
-            <div className="text-[10px] text-muted-foreground">跑步</div>
-          </div>
+          <StatChip value={String(records.length)} label="跑步" />
         </div>
       </div>
 
-      {/* ── 外观 ── */}
-      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border dark:border-transparent shadow-sm">
-        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-          <currentThemeOption.Icon className="w-4 h-4 text-primary" />
-          <span className="text-[13px] font-semibold text-foreground">外观</span>
-        </div>
-        <div className="px-4 pb-4">
-          <div className="flex gap-1.5 p-1 rounded-xl bg-secondary">
-            {THEME_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => setTheme(opt.value)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-medium transition-all duration-200 ${
-                  theme === opt.value
-                    ? "bg-card text-primary shadow-sm"
-                    : "text-muted-foreground"
-                }`}
-                aria-pressed={theme === opt.value}
-              >
-                <opt.Icon className="w-3.5 h-3.5" />
-                <span>{opt.label}</span>
-                {theme === opt.value && <span className="w-1 h-1 rounded-full bg-primary" />}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── 数据导出 ── */}
-      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border dark:border-transparent shadow-sm">
-        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-          <Download className="w-4 h-4 text-primary" />
-          <span className="text-[13px] font-semibold text-foreground">数据导出</span>
-        </div>
-        <div className="pb-2">
-          <MenuItem icon={Calendar} label="导出课表 (ICS)" onClick={handleExportICS} disabled={!scheduleData?.schedule} />
-          <MenuItem icon={ClipboardList} label="导出作业 (CSV)" onClick={() => exportAssignmentsCSV(assignments)} disabled={!assignments.length} />
-          <MenuItem icon={Activity} label="导出跑步 (CSV)" onClick={() => exportRunningCSV(records)} disabled={!records.length} />
-          <MenuItem icon={BarChart3} label="导出屏幕时间 (CSV)" onClick={downloadActivityCSV} />
-          <MenuItem icon={Trash2} label="清除屏幕时间数据" onClick={() => { if (confirm("确定清除？")) clearActivityData(); }} danger last />
-        </div>
-      </div>
-
-      {/* ── GitHub 同步 ── */}
-      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border dark:border-transparent shadow-sm">
-        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-          <svg className="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-          <span className="text-[13px] font-semibold text-foreground">GitHub 同步</span>
-          {token && (
-            <span className="text-[10px] ml-auto px-1.5 py-0.5 rounded bg-green-500/10 text-green-600">已连接</span>
-          )}
-        </div>
-        <div className="px-4 pb-2">
-          <p className="text-[11px] mb-3 text-muted-foreground">
-            {token
-              ? "数据默认保存本地，可手动从 GitHub 导入或同步到 GitHub"
-              : "配置 GitHub Token 后可使用云端同步功能"}
-          </p>
-
-          {/* 同步状态消息 */}
-          {syncMessage && (
-            <div className={`mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line ${
-              syncMessage.includes("失败") || syncMessage.includes("错误")
-                ? "bg-red-500/8 text-red-500"
-                : "bg-green-500/8 text-green-600"
-            }`}>
-              {syncMessage}
-            </div>
-          )}
-
-          <div className="space-y-2">
+      {/* 外观 */}
+      <SettingsSection icon={<currentThemeOption.Icon className="w-4 h-4" />} title="外观">
+        <div className="flex gap-1.5 p-1 rounded-xl bg-secondary">
+          {THEME_OPTIONS.map(opt => (
             <button
-              onClick={async () => {
-                if (!token) { setSyncMessage("请先在登录页配置 GitHub Token"); return; }
-                setSyncMessage(null);
-                try {
-                  const result = await syncFromGitHub.mutateAsync(["schedule", "assignments", "running"]);
-                  if (result.imported.length > 0) {
-                    const lines = result.imported.map(t => result.details[t]).filter(Boolean);
-                    setSyncMessage(lines.length > 0 ? lines.join("\n") : `导入成功：${result.imported.join("、")}`);
-                  } else {
-                    setSyncMessage(result.errors.length ? `导入失败：${result.errors.join("、")}` : "无新数据");
-                  }
-                } catch (e) {
-                  setSyncMessage(`导入失败：${e instanceof Error ? e.message : "未知错误"}`);
-                }
-              }}
-              disabled={!token || syncFromGitHub.isPending}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
-                token ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"
-              } ${syncFromGitHub.isPending ? "opacity-60" : ""}`}
+              key={opt.value}
+              onClick={() => setTheme(opt.value)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-medium transition-all duration-200 ${
+                theme === opt.value ? "bg-card text-primary shadow-sm" : "text-muted-foreground"
+              }`}
+              aria-pressed={theme === opt.value}
             >
-              <CloudDownload className="w-4 h-4 shrink-0" />
-              <span className="text-[13px] font-medium">
-                {syncFromGitHub.isPending ? "导入中..." : "从 GitHub 导入数据"}
-              </span>
-              <span className="text-[10px] ml-auto text-muted-foreground">课表 · 作业 · 跑步</span>
+              <opt.Icon className="w-3.5 h-3.5" />
+              <span>{opt.label}</span>
+              {theme === opt.value && <span className="w-1 h-1 rounded-full bg-primary" />}
             </button>
+          ))}
+        </div>
+      </SettingsSection>
 
-            <button
-              onClick={async () => {
-                if (!token) { setSyncMessage("请先在登录页配置 GitHub Token"); return; }
-                setSyncMessage(null);
-                try {
-                  const result = await syncToGitHub.mutateAsync(["schedule", "assignments", "running"]);
-                  if (result.pushed.length > 0) {
-                    setSyncMessage(`同步成功：${result.pushed.join("、")}${result.errors.length ? `；失败：${result.errors.join("、")}` : ""}`);
-                  } else {
-                    setSyncMessage(result.errors.length ? `同步失败：${result.errors.join("、")}` : "无数据可同步");
-                  }
-                } catch (e) {
-                  setSyncMessage(`同步失败：${e instanceof Error ? e.message : "未知错误"}`);
-                }
-              }}
-              disabled={!token || syncToGitHub.isPending}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
-                token ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"
-              } ${syncToGitHub.isPending ? "opacity-60" : ""}`}
-            >
-              <CloudUpload className="w-4 h-4 shrink-0" />
-              <span className="text-[13px] font-medium">
-                {syncToGitHub.isPending ? "同步中..." : "同步到 GitHub"}
-              </span>
-              <span className="text-[10px] ml-auto text-muted-foreground">课表 · 作业 · 跑步</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* 数据导出 */}
+      <SettingsSection icon={<Download className="w-4 h-4" />} title="数据导出">
+        <MenuItem icon={Calendar} label="导出课表 (ICS)" onClick={handleExportICS} disabled={!scheduleData?.schedule} />
+        <MenuItem icon={ClipboardList} label="导出作业 (CSV)" onClick={() => exportAssignmentsCSV(assignments)} disabled={!assignments.length} />
+        <MenuItem icon={Activity} label="导出跑步 (CSV)" onClick={() => exportRunningCSV(records)} disabled={!records.length} />
+        <MenuItem icon={BarChart3} label="导出屏幕时间 (CSV)" onClick={downloadActivityCSV} />
+        <MenuItem icon={Trash2} label="清除屏幕时间数据" onClick={() => { if (confirm("确定清除？")) clearActivityData(); }} danger last />
+      </SettingsSection>
 
-      {/* ── 缓存与存储 ── */}
-      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border dark:border-transparent shadow-sm">
-        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-          <Database className="w-4 h-4 text-primary" />
-          <span className="text-[13px] font-semibold text-foreground">缓存与存储</span>
-        </div>
-        <div className="px-4 pb-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[12px] text-muted-foreground">
-              IndexedDB: <span className="font-semibold tabular-nums">{cacheSize === null ? "--" : cacheSize}</span> 文件
-            </span>
-            <div className="flex gap-1.5">
-              <button onClick={() => getDB().cachedFiles.count().then(n => setCacheSize(n)).catch(() => {})} className="text-[11px] px-2.5 py-1 rounded-lg font-medium bg-primary/10 text-primary">刷新</button>
-              <button onClick={() => { getDB().cachedFiles.clear(); getDB().mutationsQueue.clear(); setCacheSize(0); }} className="text-[11px] px-2.5 py-1 rounded-lg font-medium bg-red-500/8 text-red-500">清除</button>
-            </div>
+      {/* GitHub 同步 */}
+      <SettingsSection
+        icon={<GitHubIcon />}
+        title="GitHub 同步"
+        badge={token ? <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-600">已连接</span> : undefined}
+      >
+        <p className="text-[11px] mb-3 text-muted-foreground">
+          {token ? "数据默认保存本地，可手动从 GitHub 导入或同步到 GitHub" : "配置 GitHub Token 后可使用云端同步功能"}
+        </p>
+        {syncMessage && (
+          <div className={`mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line ${
+            syncMessage.includes("失败") || syncMessage.includes("错误") ? "bg-red-500/8 text-red-500" : "bg-green-500/8 text-green-600"
+          }`}>
+            {syncMessage}
           </div>
-          <div className="space-y-1.5 text-[11px] pt-3 border-t border-border dark:border-t-transparent">
-            <InfoRow label="Token" value="安全加密存储" />
-            <InfoRow label="课表/作业/跑步" value="本地优先，自动 Git 版本管理" />
-            <InfoRow label="考试/主题/目标" value="localStorage" />
-          </div>
-        </div>
-      </div>
-
-      {/* ── 数据版本历史 ── */}
-      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border dark:border-transparent shadow-sm">
-        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-          <Database className="w-4 h-4 text-primary" />
-          <span className="text-[13px] font-semibold text-foreground">版本历史</span>
-        </div>
-        <div className="px-4 pb-4">
-          <p className="text-[11px] mb-3 text-muted-foreground">
-            每次数据变更自动生成 Git 提交记录，可在 timetable 目录用 git log 回溯
-          </p>
-          {historyMessage && (
-            <div className="mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line bg-secondary text-foreground max-h-48 overflow-y-auto">
-              {historyMessage}
-            </div>
-          )}
-          <button
+        )}
+        <div className="space-y-2">
+          <SyncButton
+            icon={CloudDownload}
+            label={syncFromGitHub.isPending ? "导入中..." : "从 GitHub 导入数据"}
+            sub="课表 · 作业 · 跑步"
+            disabled={!token || syncFromGitHub.isPending}
             onClick={async () => {
+              if (!token) { setSyncMessage("请先在登录页配置 GitHub Token"); return; }
+              setSyncMessage(null);
               try {
-                const res = await fetch("/api/local-save", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ action: "view-history" }),
-                });
-                const data = await res.json();
-                if (data.history) {
-                  setHistoryMessage(data.history);
+                const result = await syncFromGitHub.mutateAsync(["schedule", "assignments", "running"]);
+                if (result.imported.length > 0) {
+                  const lines = result.imported.map(t => result.details[t]).filter(Boolean);
+                  setSyncMessage(lines.length > 0 ? lines.join("\n") : `导入成功：${result.imported.join("、")}`);
+                } else {
+                  setSyncMessage(result.errors.length ? `导入失败：${result.errors.join("、")}` : "无新数据");
                 }
-              } catch {
-                setHistoryMessage("获取历史失败");
+              } catch (e) {
+                setSyncMessage(`导入失败：${e instanceof Error ? e.message : "未知错误"}`);
               }
             }}
-            className="text-[11px] px-3 py-1.5 rounded-lg font-medium bg-primary/10 text-primary"
-          >
-            查看最近记录
-          </button>
+          />
+          <SyncButton
+            icon={CloudUpload}
+            label={syncToGitHub.isPending ? "同步中..." : "同步到 GitHub"}
+            sub="课表 · 作业 · 跑步"
+            disabled={!token || syncToGitHub.isPending}
+            onClick={async () => {
+              if (!token) { setSyncMessage("请先在登录页配置 GitHub Token"); return; }
+              setSyncMessage(null);
+              try {
+                const result = await syncToGitHub.mutateAsync(["schedule", "assignments", "running"]);
+                if (result.pushed.length > 0) {
+                  setSyncMessage(`同步成功：${result.pushed.join("、")}${result.errors.length ? `；失败：${result.errors.join("、")}` : ""}`);
+                } else {
+                  setSyncMessage(result.errors.length ? `同步失败：${result.errors.join("、")}` : "无数据可同步");
+                }
+              } catch (e) {
+                setSyncMessage(`同步失败：${e instanceof Error ? e.message : "未知错误"}`);
+              }
+            }}
+          />
         </div>
-      </div>
+      </SettingsSection>
 
-      {/* ── 关于 ── */}
-      <div className="rounded-2xl overflow-hidden mb-4 bg-card border border-border dark:border-transparent shadow-sm">
-        <div className="p-4 text-center">
+      {/* 缓存与存储 */}
+      <SettingsSection icon={<Database className="w-4 h-4" />} title="缓存与存储">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[12px] text-muted-foreground">
+            IndexedDB: <span className="font-semibold tabular-nums">{cacheSize === null ? "--" : cacheSize}</span> 文件
+          </span>
+          <div className="flex gap-1.5">
+            <button onClick={() => getDB().cachedFiles.count().then(n => setCacheSize(n)).catch(() => {})} className="text-[11px] px-2.5 py-1 rounded-lg font-medium bg-primary/10 text-primary">刷新</button>
+            <button onClick={() => { getDB().cachedFiles.clear(); getDB().mutationsQueue.clear(); setCacheSize(0); }} className="text-[11px] px-2.5 py-1 rounded-lg font-medium bg-red-500/8 text-red-500">清除</button>
+          </div>
+        </div>
+        <div className="space-y-1.5 text-[11px] pt-3 border-t border-border">
+          <InfoRow label="Token" value="安全加密存储" />
+          <InfoRow label="课表/作业/跑步" value="本地优先，自动 Git 版本管理" />
+          <InfoRow label="考试/主题/目标" value="localStorage" />
+        </div>
+      </SettingsSection>
+
+      {/* 版本历史 */}
+      <SettingsSection icon={<Database className="w-4 h-4" />} title="版本历史">
+        <p className="text-[11px] mb-3 text-muted-foreground">
+          每次数据变更自动生成 Git 提交记录，可在 timetable 目录用 git log 回溯
+        </p>
+        {historyMessage && (
+          <div className="mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line bg-secondary text-foreground max-h-48 overflow-y-auto">
+            {historyMessage}
+          </div>
+        )}
+        <button
+          onClick={async () => {
+            try {
+              const res = await fetch("/api/local-save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "view-history" }) });
+              const data = await res.json();
+              if (data.history) setHistoryMessage(data.history);
+            } catch { setHistoryMessage("获取历史失败"); }
+          }}
+          className="text-[11px] px-3 py-1.5 rounded-lg font-medium bg-primary/10 text-primary"
+        >
+          查看最近记录
+        </button>
+      </SettingsSection>
+
+      {/* 关于 */}
+      <SettingsSection icon={<GitHubIcon />} title="关于">
+        <div className="text-center">
           <div className="text-[14px] font-semibold mb-1 text-primary font-[serif]">ScholarFlow</div>
           <div className="text-[11px] text-muted-foreground">v1.3.0 · Electron + Next.js</div>
           <div className="text-[10px] mt-0.5 text-muted-foreground">统一学习管理中枢</div>
@@ -365,16 +277,16 @@ export default function SettingsPage() {
             <span className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 font-medium">GitHub 同步</span>
           </div>
           <div className="mt-3 text-[10px] text-muted-foreground">
-            按 <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-secondary border border-border dark:border-transparent">?</kbd> 查看快捷键
+            按 <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-secondary border border-border">?</kbd> 查看快捷键
           </div>
         </div>
-      </div>
+      </SettingsSection>
 
-      {/* ── 退出 ── */}
+      {/* 退出 */}
       {token && (
         <button
           onClick={handleLogout}
-          className="w-full rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-medium transition-all mb-4 bg-card border border-border dark:border-transparent text-red-500 shadow-sm"
+          className="w-full rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-medium transition-all mb-4 bg-card border border-border text-red-500 shadow-sm"
         >
           <LogOut className="w-4 h-4" />退出登录
         </button>
@@ -385,6 +297,15 @@ export default function SettingsPage() {
 
 // ── 子组件 ──
 
+function StatChip({ value, label, accent }: { value: string; label: string; accent?: boolean }) {
+  return (
+    <div className="rounded-xl p-2.5 text-center bg-secondary">
+      <div className={`text-[16px] font-semibold tabular-nums ${accent ? "text-green-700" : "text-foreground"}`}>{value}</div>
+      <div className="text-[10px] text-muted-foreground">{label}</div>
+    </div>
+  );
+}
+
 function MenuItem({
   icon: Icon, label, onClick, disabled, danger, last,
 }: {
@@ -394,13 +315,33 @@ function MenuItem({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-        !last ? "border-b border-border dark:border-b-transparent" : ""
+      className={`w-full flex items-center gap-3 px-2 py-3 text-left transition-colors ${
+        !last ? "border-b border-border" : ""
       } ${disabled ? "text-muted-foreground opacity-50" : danger ? "text-red-500" : "text-foreground"}`}
     >
       <Icon className="w-4 h-4 shrink-0" />
       <span className="text-[13px]">{label}</span>
       {!disabled && <ChevronRight className="w-3.5 h-3.5 ml-auto shrink-0 text-muted-foreground" />}
+    </button>
+  );
+}
+
+function SyncButton({
+  icon: Icon, label, sub, disabled, onClick,
+}: {
+  icon: typeof CloudDownload; label: string; sub: string; disabled: boolean; onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
+        disabled ? "bg-secondary text-muted-foreground opacity-60" : "bg-primary/10 text-primary"
+      }`}
+    >
+      <Icon className="w-4 h-4 shrink-0" />
+      <span className="text-[13px] font-medium">{label}</span>
+      <span className="text-[10px] ml-auto text-muted-foreground">{sub}</span>
     </button>
   );
 }
@@ -411,5 +352,13 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <span className="text-muted-foreground">{label}</span>
       <span className="text-right max-w-[60%] text-foreground">{value}</span>
     </div>
+  );
+}
+
+function GitHubIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+    </svg>
   );
 }

@@ -75,7 +75,7 @@ export default function RootLayout({
                   document.documentElement.setAttribute('data-theme', effective);
                   if (effective === 'dark') {
                     document.documentElement.classList.add('dark');
-                    document.documentElement.style.backgroundColor = '#040816';
+                    document.documentElement.style.backgroundColor = '#050508';
                   } else {
                     document.documentElement.style.backgroundColor = '#faf7f2';
                   }

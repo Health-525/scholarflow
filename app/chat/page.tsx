@@ -47,7 +47,6 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [mounted, setMounted] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   const [ollamaOnline, setOllamaOnline] = useState(false);
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [selectedModel, setSelectedModel] = useState("qwen2.5");
@@ -58,11 +57,6 @@ export default function ChatPage() {
 
   useEffect(() => {
     setMounted(true);
-    setIsDark(
-      document.documentElement.getAttribute("data-theme") === "dark"
-      || (document.documentElement.getAttribute("data-theme") !== "light"
-          && window.matchMedia("(prefers-color-scheme: dark)").matches)
-    );
     setMessages(loadMessages());
     const savedModel = localStorage.getItem(MODEL_KEY);
     if (savedModel) setSelectedModel(savedModel);
@@ -203,13 +197,6 @@ export default function ChatPage() {
     );
   }
 
-  const bgCard = isDark ? "#1a1a22" : "#fffdf9";
-  const bgUser = isDark ? "rgba(124,142,219,0.14)" : "rgba(42,68,148,0.08)";
-  const bgAssistant = isDark ? "rgba(45,212,191,0.08)" : "rgba(6,182,212,0.06)";
-  const textColor = isDark ? "#eae8e3" : "#1a1510";
-  const mutedColor = isDark ? "rgba(234,232,227,0.48)" : "rgba(26,21,16,0.55)";
-  const borderColor = isDark ? "rgba(234,232,227,0.10)" : "rgba(26,21,16,0.10)";
-
   return (
     <div className="max-w-5xl mx-auto py-6 animate-page flex flex-col" style={{ minHeight: "calc(100vh - 120px)" }}>
       {/* Header */}
@@ -322,24 +309,19 @@ export default function ChatPage() {
             {messages.map(msg => (
               <div key={msg.id} className={`flex gap-3 animate-fade-up ${msg.role === "user" ? "" : ""}`}>
                 {/* Avatar */}
-                <div className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center" style={{
-                  backgroundColor: msg.role === "user" ? bgUser : bgAssistant,
-                }}>
+                <div className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center ${msg.role === "user" ? "bg-primary/10" : "bg-teal-500/10 dark:bg-teal-400/10"}`}>
                   {msg.role === "user" ? (
-                    <User className="w-3.5 h-3.5" style={{ color: isDark ? "#7c8edb" : "#2a4494" }} />
+                    <User className="w-3.5 h-3.5 text-primary" />
                   ) : (
-                    <Bot className="w-3.5 h-3.5" style={{ color: isDark ? "#2dd4bf" : "#06b6d4" }} />
+                    <Bot className="w-3.5 h-3.5 text-teal-500 dark:text-teal-400" />
                   )}
                 </div>
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="text-[10px] font-medium mb-1" style={{ color: mutedColor }}>
+                  <div className="text-[10px] font-medium mb-1 text-muted-foreground">
                     {msg.role === "user" ? "你" : "AI 助手"} · {new Date(msg.timestamp).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
                   </div>
-                  <div className="rounded-xl p-3 text-[13px] leading-relaxed whitespace-pre-wrap" style={{
-                    backgroundColor: msg.role === "user" ? bgUser : bgAssistant,
-                    color: textColor,
-                  }}>
+                  <div className={`rounded-xl p-3 text-[13px] leading-relaxed whitespace-pre-wrap ${msg.role === "user" ? "bg-primary/10" : "bg-teal-500/10 dark:bg-teal-400/10"} text-foreground`}>
                     {msg.content}
                   </div>
                 </div>
@@ -348,17 +330,14 @@ export default function ChatPage() {
             {/* Streaming message */}
             {loading && streamingContent && (
               <div className="flex gap-3 animate-fade-up">
-                <div className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: bgAssistant }}>
-                  <Bot className="w-3.5 h-3.5" style={{ color: isDark ? "#2dd4bf" : "#06b6d4" }} />
+                <div className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center bg-teal-500/10 dark:bg-teal-400/10">
+                  <Bot className="w-3.5 h-3.5 text-teal-500 dark:text-teal-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[10px] font-medium mb-1" style={{ color: mutedColor }}>
+                  <div className="text-[10px] font-medium mb-1 text-muted-foreground">
                     AI 助手 · 思考中...
                   </div>
-                  <div className="rounded-xl p-3 text-[13px] leading-relaxed whitespace-pre-wrap" style={{
-                    backgroundColor: bgAssistant,
-                    color: textColor,
-                  }}>
+                  <div className="rounded-xl p-3 text-[13px] leading-relaxed whitespace-pre-wrap bg-teal-500/10 dark:bg-teal-400/10 text-foreground">
                     {streamingContent}
                     <span className="inline-block w-1.5 h-4 bg-primary/60 animate-pulse ml-0.5" />
                   </div>
@@ -368,14 +347,14 @@ export default function ChatPage() {
             {/* Loading indicator (no content yet) */}
             {loading && !streamingContent && (
               <div className="flex gap-3 animate-fade-up">
-                <div className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: bgAssistant }}>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: isDark ? "#2dd4bf" : "#06b6d4" }} />
+                <div className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center bg-teal-500/10 dark:bg-teal-400/10">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-teal-500 dark:text-teal-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[10px] font-medium mb-1" style={{ color: mutedColor }}>
+                  <div className="text-[10px] font-medium mb-1 text-muted-foreground">
                     AI 助手 · 思考中...
                   </div>
-                  <div className="rounded-xl p-3 text-[13px]" style={{ backgroundColor: bgAssistant, color: mutedColor }}>
+                  <div className="rounded-xl p-3 text-[13px] bg-teal-500/10 dark:bg-teal-400/10 text-muted-foreground">
                     正在生成回复...
                   </div>
                 </div>

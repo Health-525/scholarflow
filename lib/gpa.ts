@@ -32,6 +32,13 @@ export function gpaColor(gpa: number): string {
   return isDark ? "#f85149" : "#ef4444";
 }
 
+export function gpaColorClasses(gpa: number): { colorClass: string; iconBgClass: string } {
+  if (gpa >= 3.5) return { colorClass: "text-green-600 dark:text-green-400", iconBgClass: "bg-green-500/[0.07] dark:bg-green-400/10" };
+  if (gpa >= 2.5) return { colorClass: "text-indigo-800 dark:text-indigo-400", iconBgClass: "bg-indigo-500/[0.07] dark:bg-indigo-400/10" };
+  if (gpa >= 1.5) return { colorClass: "text-amber-600 dark:text-amber-400", iconBgClass: "bg-amber-500/[0.07] dark:bg-amber-400/10" };
+  return { colorClass: "text-red-500 dark:text-red-400", iconBgClass: "bg-red-500/[0.07] dark:bg-red-400/10" };
+}
+
 // ── 百分制 → 4.0 GPA (NJTECH标准) ──
 export function scoreToGPA(score: number): number {
   if (score >= 90) return 4.0;

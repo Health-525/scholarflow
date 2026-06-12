@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { cardClasses } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface Exam { id: string; subject: string; date: string; time?: string; location?: string; }
 
@@ -75,8 +77,8 @@ export function ExamCountdownCard() {
   );
 
   return (
-    <Link href="/exams" className="block rounded-2xl p-4 bg-card border border-border dark:border-transparent shadow-sm group h-full transition-all duration-200 hover:shadow-md hover:-translate-y-0.5" aria-label="考试倒计时">
-      <div className="flex flex-col h-full">
+    <Link href="/exams" className={cn(cardClasses, "h-full")} aria-label="考试倒计时">
+      <div className="flex flex-col h-full p-4">
         <div className="flex items-center gap-2 mb-2">
           <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-transform duration-200 group-hover:scale-110 ${urgent ? "bg-red-500/10" : "bg-primary/10"}`}>
             <svg className={`w-3.5 h-3.5 ${urgent ? "text-red-500" : "text-primary"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -91,7 +93,6 @@ export function ExamCountdownCard() {
           </div>
         ) : nextExam ? (
           <div className="flex-1 flex flex-col items-center justify-center relative">
-            {/* Background accent */}
             <div className={`absolute -right-2 -bottom-2 w-16 h-16 rounded-full opacity-[0.06] pointer-events-none group-hover:opacity-[0.12] transition-opacity duration-300 ${urgent ? "bg-red-500" : "bg-primary"}`} />
             <div className={`text-[28px] font-bold tabular-nums transition-transform duration-200 group-hover:scale-105 ${urgent ? "text-red-500" : "text-primary"}`}>
               {countdown}

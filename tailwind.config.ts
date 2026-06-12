@@ -55,6 +55,7 @@ const config: Config = {
           DEFAULT: "var(--destructive)",
           foreground: "var(--destructive-foreground)",
         },
+        border: "var(--border)",
         ring: "var(--ring)",
         input: "var(--input)",
 

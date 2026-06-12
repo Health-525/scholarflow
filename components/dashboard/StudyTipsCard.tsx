@@ -47,7 +47,7 @@ export function StudyTipsCard() {
   const catMeta = CATEGORY_COLORS[currentTip.category];
 
   return (
-    <div className="rounded-2xl p-5 bg-card border border-border dark:border-transparent shadow-sm">
+    <div className="rounded-2xl p-5 bg-card border border-border shadow-sm">
       <div className="flex items-center gap-2 mb-3">
         <Sparkles className="w-4 h-4 text-primary" />
         <span className="text-[13px] font-semibold text-foreground">学习小贴士</span>
