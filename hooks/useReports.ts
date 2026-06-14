@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useGitHubClient } from "./useGitHubClient";
-import type { DirectoryEntry } from "@/types";
+
 import type { GitHubError } from "@/lib/github/errors";
+import type { DirectoryEntry } from "@/types";
+
+import { useGitHubClient } from "./useGitHubClient";
 
 interface ReportsState {
   entries: DirectoryEntry[];

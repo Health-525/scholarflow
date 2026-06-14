@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback } from "react";
+
 import { FileTree } from "@/components/notes/FileTree";
 
 export default function NotesLayout({ children }: { children: React.ReactNode }) {

@@ -1,15 +1,18 @@
 "use client";
 
-import { useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useGitHubClient } from "./useGitHubClient";
-import { getDB } from "@/lib/db";
-import { parseSchedule } from "@/lib/schedule/schedule";
-import type { GitHubError } from "@/lib/github/errors";
-import type { Assignment, AssignmentDraft, AssignmentsFile, RunRecord, RunType } from "@/types";
+import { useState, useCallback } from "react";
+
+
 import { buildAssignment, sortAssignments } from "@/lib/assignment-utils";
-import { loadAdjustments } from "@/lib/schedule/adjustments";
+import { getDB } from "@/lib/db";
+import type { GitHubError } from "@/lib/github/errors";
 import { readData, writeData } from "@/lib/mobile-data";
+import { loadAdjustments } from "@/lib/schedule/adjustments";
+import { parseSchedule } from "@/lib/schedule/schedule";
+import type { Assignment, AssignmentDraft, AssignmentsFile, RunRecord, RunType } from "@/types";
+
+import { useGitHubClient } from "./useGitHubClient";
 
 // ============================================================
 // TanStack Query 数据层 v2 — 本地优先架构
@@ -202,7 +205,7 @@ export function useScheduleQuery() {
 // ── Assignments Hook ───────────────────────────────────────
 export function useAssignmentsQuery() {
   const queryClient = useQueryClient();
-  const undoBufferRef = useRef<{ assignment: Assignment; expiresAt: number } | null>(null);
+  const [undoBuffer, setUndoBuffer] = useState<{ assignment: Assignment; expiresAt: number } | null>(null);
 
   const query = useQuery({
     queryKey: queryKeys.assignments,
@@ -248,7 +251,7 @@ export function useAssignmentsQuery() {
     onSuccess: ({ updated, target }) => {
       queryClient.setQueryData(queryKeys.assignments, updated);
       if (target) {
-        undoBufferRef.current = { assignment: target, expiresAt: Date.now() + 10_000 };
+        setUndoBuffer({ assignment: target, expiresAt: Date.now() + 10_000 });
       }
     },
   });
@@ -266,18 +269,30 @@ export function useAssignmentsQuery() {
     },
     onSuccess: (updated) => {
       queryClient.setQueryData(queryKeys.assignments, updated);
-      undoBufferRef.current = null;
+      setUndoBuffer(null);
+    },
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: async (next: Assignment[]) => {
+      const updated = sortAssignments(next);
+      const content = JSON.stringify(updated, null, 2);
+      await saveLocally("data/assignments.json", content, "调整顺序");
+      try { await getDB().cacheFile("execution", "data/assignments.json", content, ""); } catch {}
+      return updated;
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(queryKeys.assignments, updated);
     },
   });
 
   const undo = useCallback(async () => {
-    const buf = undoBufferRef.current;
-    if (!buf || Date.now() > buf.expiresAt) {
-      undoBufferRef.current = null;
+    if (!undoBuffer || Date.now() > undoBuffer.expiresAt) {
+      setUndoBuffer(null);
       return;
     }
-    await undoMutation.mutateAsync(buf.assignment.id);
-  }, [undoMutation.mutateAsync]);
+    await undoMutation.mutateAsync(undoBuffer.assignment.id);
+  }, [undoBuffer, undoMutation.mutateAsync]);
 
   return {
     assignments: query.data ?? [],
@@ -286,10 +301,12 @@ export function useAssignmentsQuery() {
     reload: () => query.refetch(),
     add: addMutation.mutateAsync,
     markDone: markDoneMutation.mutateAsync,
+    reorder: reorderMutation.mutateAsync,
     undo,
-    undoBuffer: undoBufferRef.current,
+    undoBuffer,
     isAdding: addMutation.isPending,
     isMarking: markDoneMutation.isPending,
+    isReordering: reorderMutation.isPending,
   };
 }
 

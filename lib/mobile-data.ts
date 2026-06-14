@@ -5,9 +5,9 @@
  * 在 Capacitor 模式下直接用原生插件读写
  */
 
-import { Preferences } from "@capacitor/preferences";
-import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
 import { Capacitor } from "@capacitor/core";
+import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
+import { Preferences } from "@capacitor/preferences";
 
 export const isNative = Capacitor.isNativePlatform();
 

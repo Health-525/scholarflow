@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { canSetReminder, scheduleReminder, clearReminder, loadReminders } from "@/lib/notification";
+
+import { showToast } from "@/components/ui/ToastContainer";
 import { useNotification } from "@/hooks/useNotification";
+import { canSetReminder, scheduleReminder, clearReminder, loadReminders } from "@/lib/notification";
 import type { ReminderEntry } from "@/types";
 
 type Minutes = 5 | 10 | 15;
@@ -35,7 +37,7 @@ export function ReminderButton({ courseKey, courseTitle, location, startAt }: Re
     }
 
     if (!canSetReminder(startAt, minutes)) {
-      alert("距离上课时间太近，无法设置提醒");
+      showToast("warning", "距离上课时间太近，无法设置提醒");
       return;
     }
 

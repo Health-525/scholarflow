@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { useAuthStore } from "@/store/auth";
+
 import { GitHubClient } from "@/lib/github/client";
+import { useAuthStore } from "@/store/auth";
 
 /**
  * 从 auth store 读取 token，返回 GitHubClient 实例

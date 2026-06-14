@@ -1,9 +1,10 @@
 "use client";
 
-import { useActivityTrackerV3, downloadActivityCSV, clearActivityData, CATEGORY_COLORS, CATEGORY_LABELS } from "@/lib/activity-tracker-v3";
-import type { Category } from "@/lib/activity-tracker-v3";
 import { ChevronLeft, Trash2, Monitor } from "lucide-react";
 import Link from "next/link";
+
+import { useActivityTrackerV3, downloadActivityCSV, clearActivityData, CATEGORY_COLORS, CATEGORY_LABELS } from "@/lib/activity-tracker-v3";
+import type { Category } from "@/lib/activity-tracker-v3";
 
 export default function ActivityPage() {
   const state = useActivityTrackerV3();

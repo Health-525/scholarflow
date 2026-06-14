@@ -1,7 +1,9 @@
-import { githubCache } from "./cache";
-import { toGitHubError, GitHubError } from "./errors";
-import { REPOS } from "./repos";
 import type { GitHubRepo, FileContent, DirectoryEntry } from "@/types";
+
+import { githubCache } from "./cache";
+import type { GitHubError } from "./errors";
+import { toGitHubError } from "./errors";
+import { REPOS } from "./repos";
 
 const TIMEOUT_MS = 10_000;
 const MAX_RATE_LIMIT_RETRIES = 3;

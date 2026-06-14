@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { Target, Plus, Check, Trash2, Flame, Trophy, Sparkles, ChevronRight } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+
+import { SortableList } from "@/components/ui/SortableList";
 import { semanticColor, semanticBg } from "@/lib/theme-colors";
 
 interface DailyGoal {
@@ -107,6 +109,11 @@ export default function DailyGoalsPage() {
       saveGoals(u);
       return u;
     });
+  }, []);
+
+  const reorder = useCallback((next: DailyGoal[]) => {
+    setGoals(next);
+    saveGoals(next);
   }, []);
 
   const done = goals.filter(g => g.done).length;
@@ -229,32 +236,55 @@ export default function DailyGoalsPage() {
       </div>
 
       {/* Goals list */}
-      <div className="space-y-2 mb-6">
-        {goals.map((g, i) => (
-          <div
-            key={g.id}
-            className={`flex items-center gap-3 p-4 rounded-xl transition-all cursor-pointer animate-fade-up hover:shadow-sm ${
-              g.done
-                ? "opacity-70 bg-green-500/5 border border-green-500/30"
-                : "bg-card border border-border hover:border-primary/20"
-            }`}
-            style={{ animationDelay: `${i * 0.03}s` }}
-            onClick={() => toggle(g.id)}
-          >
-            <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${
-              g.done ? "bg-green-600 border-2 border-green-600" : "border-2 border-border hover:border-primary/30"
-            }`}>
-              {g.done && <Check className="w-3 h-3 text-white" />}
-            </div>
-            <span className={`flex-1 text-[13px] transition-all ${g.done ? "line-through text-muted-foreground" : "text-foreground font-medium"}`}>
-              {g.text}
-            </span>
-            <button onClick={e => { e.stopPropagation(); del(g.id); }} className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/5 transition-all">
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        ))}
-        {goals.length === 0 && (
+      <div className="mb-6">
+        {goals.length > 0 ? (
+          <SortableList
+            items={goals}
+            onReorder={reorder}
+            itemClassName="animate-fade-up"
+            renderItem={(g) => (
+              <div
+                className={`flex items-center gap-3 p-4 rounded-xl transition-all cursor-pointer hover:shadow-sm ${
+                  g.done
+                    ? "opacity-70 bg-green-500/5 border border-green-500/30"
+                    : "bg-card border border-border hover:border-primary/20"
+                }`}
+                onClick={() => toggle(g.id)}
+              >
+                <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${
+                  g.done ? "bg-green-600 border-2 border-green-600" : "border-2 border-border hover:border-primary/30"
+                }`}>
+                  {g.done && <Check className="w-3 h-3 text-white" />}
+                </div>
+                <span className={`flex-1 text-[13px] transition-all ${g.done ? "line-through text-muted-foreground" : "text-foreground font-medium"}`}>
+                  {g.text}
+                </span>
+                <button onClick={e => { e.stopPropagation(); del(g.id); }} className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/5 transition-all">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+            renderDragOverlay={(g) => (
+              <div
+                className={`flex items-center gap-3 p-4 rounded-xl ${
+                  g.done
+                    ? "opacity-70 bg-green-500/5 border border-green-500/30"
+                    : "bg-card border border-border"
+                }`}
+              >
+                <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${
+                  g.done ? "bg-green-600 border-2 border-green-600" : "border-2 border-border"
+                }`}>
+                  {g.done && <Check className="w-3 h-3 text-white" />}
+                </div>
+                <span className={`flex-1 text-[13px] ${g.done ? "line-through text-muted-foreground" : "text-foreground font-medium"}`}>
+                  {g.text}
+                </span>
+                <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
+              </div>
+            )}
+          />
+        ) : (
           <div className="text-center py-16 animate-fade-up">
             <div className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-primary/10">
               <Target className="w-6 h-6 text-primary" />

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useScheduleQuery } from "@/hooks/useQueries";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { ErrorFallback } from "@/components/ui/ErrorFallback";
+
+import { QueryView } from "@/components/schedule/QueryView";
 import { TodayView } from "@/components/schedule/TodayView";
 import { WeekGrid } from "@/components/schedule/WeekGrid";
-import { QueryView } from "@/components/schedule/QueryView";
+import { ErrorFallback } from "@/components/ui/ErrorFallback";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { useScheduleQuery } from "@/hooks/useQueries";
 
 type Tab = "today" | "week" | "query";
 
@@ -66,7 +67,7 @@ export default function SchedulePage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto pb-24 md:pb-6">
+      <div className="flex-1 overflow-y-auto pb-20 md:pb-0">
         {isLoading && (
           <div className="py-16">
             <LoadingSpinner label="加载课表..." />

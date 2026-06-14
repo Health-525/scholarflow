@@ -2,7 +2,9 @@
  * 离线数据库层测试
  */
 import { describe, it, expect, beforeEach } from "vitest";
-import { getDB, ScholarFlowDB } from "@/lib/db";
+
+import type { ScholarFlowDB } from "@/lib/db";
+import { getDB } from "@/lib/db";
 
 describe("ScholarFlowDB", () => {
   let db: ScholarFlowDB;

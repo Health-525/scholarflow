@@ -1,7 +1,7 @@
 "use client";
 
-import { useReducer, useEffect, useRef, useCallback, useState } from "react";
 import { Play, Pause, RotateCcw, Coffee, Brain, Settings2 } from "lucide-react";
+import { useReducer, useEffect, useRef, useCallback, useState } from "react";
 
 // ── Types ──────────────────────────────────────────────────
 type PomodoroPhase = "focus" | "break" | "longBreak" | "idle";
@@ -433,7 +433,7 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
             <div
               className="absolute inset-0 rounded-full animate-breathe opacity-30"
               style={{
-                background: `radial-gradient(circle, ${phaseStrokeColor(state.phase)}20 0%, transparent 70%)`,
+                background: `radial-gradient(circle, ${phaseStrokeColor(state.phase, isDark)}20 0%, transparent 70%)`,
                 transform: "scale(1.1)",
               }}
             />
@@ -445,7 +445,7 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
             <circle
               cx="130" cy="130" r={radius}
               fill="none"
-              stroke={phaseStrokeColor(state.phase)}
+              stroke={phaseStrokeColor(state.phase, isDark)}
               strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -457,7 +457,7 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
             <circle cx="130" cy="130" r={radius - 16} fill="none" stroke="currentColor" strokeWidth="1" className="text-border/30" />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-[42px] font-bold tabular-nums font-display ${phaseColorClass(state.phase)} ${state.isRunning ? "animate-breathe" : ""}`}>
+            <span className={`text-[42px] font-bold tabular-nums font-display ${phaseColorClass(state.phase, isDark)} ${state.isRunning ? "animate-breathe" : ""}`}>
               {formatTime(state.remaining)}
             </span>
             <span className="text-[11px] mt-1 text-muted-foreground">{phaseLabel[state.phase]}</span>
@@ -475,7 +475,7 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
         <button onClick={reset} className="w-11 h-11 rounded-xl flex items-center justify-center transition-all bg-card border border-border text-muted-foreground" title="重置">
           <RotateCcw className="w-4 h-4" />
         </button>
-        <button onClick={togglePause} className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 text-primary-foreground ${phaseBgClass(state.phase)}`}>
+        <button onClick={togglePause} className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 text-primary-foreground ${phaseBgClass(state.phase, isDark)}`}>
           {state.phase === "idle" || !state.isRunning ? <Play className="w-6 h-6 ml-0.5" /> : <Pause className="w-6 h-6" />}
         </button>
         <button onClick={() => dispatch({ type: "TOGGLE_SETTINGS" })} className="w-11 h-11 rounded-xl flex items-center justify-center transition-all bg-card border border-border text-muted-foreground" title="设置">

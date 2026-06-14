@@ -1,10 +1,11 @@
 "use client";
 
-import { use } from "react";
 import Link from "next/link";
-import { useDirectory, useFileContent } from "@/hooks/useNotes";
+import { use } from "react";
+
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
+import { useDirectory, useFileContent } from "@/hooks/useNotes";
 
 interface PageProps {
   params: Promise<{ path: string[] }>;

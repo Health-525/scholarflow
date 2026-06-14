@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
 import { TrendingUp, BookOpen, ChevronDown, Filter } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+
+import { GPARing } from "@/components/ui/GPARing";
 import {
   scoreToGPA, gpaColor, getScoreBadgeStyle, getScoreDisplay, getSemesterLabel,
 } from "@/lib/gpa";
 import { getScoreRanges, getGPARef } from "@/lib/theme-colors";
-import { GPARing } from "@/components/ui/GPARing";
 
 interface JwglCourse {
   course: string;
@@ -105,7 +106,7 @@ export default function GPAPage() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto pb-24 md:pb-8 animate-page">
+      <div className="max-w-5xl mx-auto pb-20 md:pb-0 animate-page">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10 animate-pulse">
             <TrendingUp className="w-5 h-5 text-primary" />
@@ -124,7 +125,7 @@ export default function GPAPage() {
 
   if (!grades) {
     return (
-      <div className="max-w-5xl mx-auto pb-24 md:pb-8 animate-page">
+      <div className="max-w-5xl mx-auto pb-20 md:pb-0 animate-page">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
             <TrendingUp className="w-5 h-5 text-primary" />
@@ -145,7 +146,7 @@ export default function GPAPage() {
   const currentGPAColor = gpaColor(filteredGPA);
 
   return (
-    <div className="max-w-5xl mx-auto pb-24 md:pb-8 animate-page">
+    <div className="max-w-5xl mx-auto pb-20 md:pb-0 animate-page">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">

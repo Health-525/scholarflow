@@ -1,11 +1,13 @@
-import { unified } from "unified";
-import remarkParse from "remark-parse";
-import remarkGfm from "remark-gfm";
-import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
+import remarkGfm from "remark-gfm";
+import remarkParse from "remark-parse";
+import remarkRehype from "remark-rehype";
+import { unified } from "unified";
+
+import { sanitizeHtml } from "@/lib/sanitize";
+
 import calloutPlugin from "./callout-plugin";
 import wikiLinkPlugin from "./wiki-link-plugin";
-import { sanitizeHtml } from "@/lib/sanitize";
 
 export interface MarkdownOptions {
   noteDir?: string;

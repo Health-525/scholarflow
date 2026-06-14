@@ -1,12 +1,13 @@
-import {
+import type {
   RawCourse,
   RawScheduleData,
   DayItem,
   CourseView,
+  Weekday} from "./schedule";
+import {
   getWeekNumber,
   weekday1to7,
-  parseWeekSpec,
-  Weekday,
+  parseWeekSpec
 } from "./schedule";
 
 export type AdjustmentMode = "once" | "longterm";

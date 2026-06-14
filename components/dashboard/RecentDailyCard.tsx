@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useDailyReports } from "@/hooks/useReports";
-import { ErrorFallback } from "@/components/ui/ErrorFallback";
+
 import { Card, CardContent } from "@/components/ui/card";
+import { ErrorFallback } from "@/components/ui/ErrorFallback";
+import { useDailyReports } from "@/hooks/useReports";
 
 function formatDateLabel(dateStr: string): { main: string; sub: string } {
   try {

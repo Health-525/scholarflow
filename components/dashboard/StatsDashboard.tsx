@@ -5,11 +5,12 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line,
 } from "recharts";
+
+import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { useScheduleQuery, useAssignmentsQuery, useRunningQuery } from "@/hooks/useQueries";
+import { classifyUrgency } from "@/lib/assignment-utils";
 import { getWeekNumber, getItemsForDate } from "@/lib/schedule/schedule";
 import { getNowInTimeZone } from "@/lib/schedule/timezone";
-import { classifyUrgency } from "@/lib/assignment-utils";
-import { ErrorFallback } from "@/components/ui/ErrorFallback";
 
 // Recharts SVG doesn't support CSS variables — use computed values
 // Safe for SSR: returns light-mode defaults, then updates on client mount

@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+
+import { CountdownTimer } from "@/components/schedule/CountdownTimer";
+import { Card, CardContent } from "@/components/ui/card";
+import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { useScheduleQuery } from "@/hooks/useQueries";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
-import { getNowInTimeZone } from "@/lib/schedule/timezone";
 import { getNextCourse } from "@/lib/schedule/next-course";
-import { CountdownTimer } from "@/components/schedule/CountdownTimer";
-import { ErrorFallback } from "@/components/ui/ErrorFallback";
-import { Card, CardContent } from "@/components/ui/card";
+import { getNowInTimeZone } from "@/lib/schedule/timezone";
 
 const COURSE_PALETTE = [
   { row: "bg-indigo-500/[0.07] dark:bg-indigo-400/10 border border-indigo-800/10 dark:border-indigo-400/10", dot: "bg-indigo-800 dark:bg-indigo-400", accent: "text-indigo-800 dark:text-indigo-400" },

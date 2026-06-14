@@ -4,6 +4,7 @@
  * 测试课表引擎核心逻辑：周次解析、日期计算、课程查询、输出格式化。
  */
 import { describe, it, expect } from "vitest";
+
 import {
   parseWeekSpec,
   weekday1to7,

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useGitHubClient } from "@/hooks/useGitHubClient";
-import { FileTree } from "@/components/notes/FileTree";
-import { NoteViewer } from "@/components/notes/NoteViewer";
-import { NoteEditor } from "@/components/notes/NoteEditor";
 import { FileText, PenLine, Eye, ArrowLeft } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+
+import { FileTree } from "@/components/notes/FileTree";
+import { NoteEditor } from "@/components/notes/NoteEditor";
+import { NoteViewer } from "@/components/notes/NoteViewer";
+import { useGitHubClient } from "@/hooks/useGitHubClient";
 
 type ViewMode = "view" | "edit";
 
@@ -65,38 +66,17 @@ export default function NotesPage() {
         )}
       </div>
 
-      {/* Desktop: side-by-side layout */}
-      <div className="hidden md:flex gap-4" style={{ minHeight: "calc(100vh - 120px)" }}>
-        {/* File tree panel */}
-        <div className="w-64 shrink-0 rounded-2xl overflow-hidden bg-card border border-border">
-          <div className="px-4 py-3 border-b border-border">
-            <div className="flex items-center gap-2">
-              <FileText className="w-3.5 h-3.5 text-primary" />
-              <span className="text-[12px] font-semibold text-foreground">
-                文件浏览器
-              </span>
-            </div>
-            <p className="text-[10px] mt-0.5 text-muted-foreground">
-              jiangshu-study
-            </p>
-          </div>
-          <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 200px)" }}>
-            <FileTree onSelect={handleSelect} activePath={selectedPath ?? undefined} />
-          </div>
-        </div>
-
-        {/* Content panel */}
-        <div className="flex-1 min-w-0">
-          {selectedPath ? (
-            <NoteContent
-              path={selectedPath}
-              mode={mode}
-              onModeChange={setMode}
-            />
-          ) : (
-            <EmptyState />
-          )}
-        </div>
+      {/* Desktop: content only — file tree is provided by layout.tsx */}
+      <div className="hidden md:block" style={{ minHeight: "calc(100vh - 120px)" }}>
+        {selectedPath ? (
+          <NoteContent
+            path={selectedPath}
+            mode={mode}
+            onModeChange={setMode}
+          />
+        ) : (
+          <EmptyState />
+        )}
       </div>
     </div>
   );

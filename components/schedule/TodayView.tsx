@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { RawScheduleData, DayItem } from "@/lib/schedule/schedule";
+
 import type { Adjustment } from "@/lib/schedule/adjustments";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
-import { getNextCourse } from "@/lib/schedule/next-course";
-import { getNowInTimeZone } from "@/lib/schedule/timezone";
 import { courseColor } from "@/lib/schedule/course-color";
+import { getNextCourse } from "@/lib/schedule/next-course";
+import type { RawScheduleData, DayItem } from "@/lib/schedule/schedule";
+import { getNowInTimeZone } from "@/lib/schedule/timezone";
+
 import { CountdownTimer } from "./CountdownTimer";
 import { CourseDrawer } from "./CourseDrawer";
 

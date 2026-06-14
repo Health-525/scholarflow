@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
 import {
   Activity, BookOpen, Bot, Brain, CalendarDays, Calculator,
   ClipboardList, Clock, FileText, HeartPulse, LayoutDashboard,
   Library, Monitor, Newspaper, Settings, Sparkles, Target, Timer, TrendingUp,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const PRIMARY_ITEMS = [
   { href: "/", label: "仪表盘", Icon: LayoutDashboard },

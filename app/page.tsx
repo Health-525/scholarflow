@@ -1,14 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AssignmentsCard } from "@/components/dashboard/AssignmentsCard";
-import { ExamCountdownCard } from "@/components/dashboard/ExamCountdownCard";
-import { JwcNewsCard } from "@/components/dashboard/JwcNewsCard";
-import { RecentDailyCard } from "@/components/dashboard/RecentDailyCard";
-import { RunningCard } from "@/components/dashboard/RunningCard";
-import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
-import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
-import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
+
+import { QuickActions } from "@/components/dashboard/QuickActions";
+import { SortableDashboard } from "@/components/dashboard/SortableDashboard";
 
 function useGreeting() {
   const [greeting, setGreeting] = useState({
@@ -88,63 +83,13 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Quick Stats */}
+      {/* Quick Actions */}
       <div className="animate-fade-up stagger-1">
-        <SummaryBanner />
+        <QuickActions />
       </div>
 
-      {/* 今日焦点 */}
-      <div className="space-y-2.5">
-        <div className="flex items-center gap-2 px-1">
-          <span className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase">今日焦点</span>
-        </div>
-        <div className="animate-fade-up stagger-2">
-          <ScheduleCard />
-        </div>
-      </div>
-
-      {/* 任务与健康 */}
-      <div className="space-y-2.5">
-        <div className="flex items-center gap-2 px-1">
-          <span className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase">任务与健康</span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="animate-fade-up stagger-3">
-            <AssignmentsCard />
-          </div>
-          <div className="animate-fade-up stagger-4">
-            <RunningCard />
-          </div>
-        </div>
-      </div>
-
-      {/* 数据追踪 */}
-      <div className="space-y-2.5">
-        <div className="flex items-center gap-2 px-1">
-          <span className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase">数据追踪</span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="animate-fade-up stagger-5">
-            <ScreenTimeCard />
-          </div>
-          <div className="animate-fade-up stagger-6">
-            <ExamCountdownCard />
-          </div>
-          <div className="animate-fade-up stagger-7">
-            <RecentDailyCard />
-          </div>
-        </div>
-      </div>
-
-      {/* 信息浏览 */}
-      <div className="space-y-2.5">
-        <div className="flex items-center gap-2 px-1">
-          <span className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase">信息浏览</span>
-        </div>
-        <div className="animate-fade-up stagger-8">
-          <JwcNewsCard />
-        </div>
-      </div>
+      {/* Sortable Dashboard Sections */}
+      <SortableDashboard />
     </div>
   );
 }

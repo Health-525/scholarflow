@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
 import { renderMarkdown } from "@/lib/markdown/processor";
 
 interface NoteViewerProps {

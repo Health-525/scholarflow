@@ -1,20 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import {
   Sun, Moon, Monitor, LogOut, ChevronRight,
   Calendar, ClipboardList, Activity, Database,
   BarChart3, Trash2, Download, CloudDownload, CloudUpload,
 } from "lucide-react";
-import { useThemeStore } from "@/store/theme";
-import { useAuthStore } from "@/store/auth";
-import { downloadActivityCSV, clearActivityData } from "@/lib/activity-tracker-v3";
-import { useScheduleQuery, useAssignmentsQuery, useRunningQuery, useSyncFromGitHub, useSyncToGitHub } from "@/hooks/useQueries";
-import { exportAssignmentsCSV, exportRunningCSV, buildWeekICS, downloadICS } from "@/lib/export";
-import { getDB } from "@/lib/db";
-import { SettingsSection } from "@/components/ui/settings-section";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+
 import { PageHeader } from "@/components/layout/PageHeader";
+import { SettingsSection } from "@/components/ui/settings-section";
+import { useScheduleQuery, useAssignmentsQuery, useRunningQuery, useSyncFromGitHub, useSyncToGitHub } from "@/hooks/useQueries";
+import { downloadActivityCSV, clearActivityData } from "@/lib/activity-tracker-v3";
+import { getDB } from "@/lib/db";
+import { exportAssignmentsCSV, exportRunningCSV, buildWeekICS, downloadICS } from "@/lib/export";
+import { useAuthStore } from "@/store/auth";
+import { useThemeStore } from "@/store/theme";
 import type { ThemeValue } from "@/types";
 
 const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = [
@@ -76,7 +77,7 @@ export default function SettingsPage() {
   const avatarLetter = studentInfo?.studentId ? studentInfo.studentId[0] : "?";
 
   return (
-    <div className="pb-24 md:pb-8 max-w-lg mx-auto animate-page">
+    <div className="pb-20 md:pb-0 max-w-lg mx-auto animate-page">
       <PageHeader
         icon={
           <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

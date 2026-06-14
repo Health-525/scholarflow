@@ -1,4 +1,5 @@
-import { RawScheduleData, getItemsForDate } from "./schedule/schedule";
+import type { RawScheduleData} from "./schedule/schedule";
+import { getItemsForDate } from "./schedule/schedule";
 import { normalizeDate } from "./schedule/timezone";
 
 function pad2(n: number): string {

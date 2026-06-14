@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+
+import { NextResponse } from "next/server";
 
 let cachedJWT = "", jwtExpiry = 0;
 

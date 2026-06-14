@@ -1,8 +1,8 @@
 "use client";
 
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useMarkdown } from "@/hooks/useMarkdown";
 import type { MarkdownOptions } from "@/lib/markdown/processor";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 interface MarkdownRendererProps {
   content: string;

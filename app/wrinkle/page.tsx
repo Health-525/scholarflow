@@ -575,7 +575,7 @@ export default function WrinklePage() {
 
             {/* 灵敏度 */}
             <div>
-              <label className="text-xs text-muted-foreground">灵敏度</label>
+              <span className="block text-xs text-muted-foreground">灵敏度</span>
               <div className="flex gap-2 mt-1">
                 {(["low", "medium", "high"] as const).map(s => (
                   <button key={s} onClick={() => { const c = { ...calibration, sensitivity: s }; setCalibration(c); saveCalibration(c); }}
@@ -588,7 +588,7 @@ export default function WrinklePage() {
 
             {/* 冷却时间 */}
             <div>
-              <label className="text-xs text-muted-foreground">提醒冷却</label>
+              <span className="block text-xs text-muted-foreground">提醒冷却</span>
               <div className="flex gap-2 mt-1">
                 {[15, 20, 30, 60].map(t => (
                   <button key={t} onClick={() => { const c = { ...calibration, cooldown: t }; setCalibration(c); saveCalibration(c); }}
@@ -601,7 +601,7 @@ export default function WrinklePage() {
 
             {/* 校准 */}
             <div>
-              <label className="text-xs text-muted-foreground">基线校准</label>
+              <span className="block text-xs text-muted-foreground">基线校准</span>
               <p className="text-[10px] text-muted-foreground mt-0.5">
                 {calibration.calibratedAt > 0
                   ? `上次校准: ${new Date(calibration.calibratedAt).toLocaleDateString("zh-CN")}`

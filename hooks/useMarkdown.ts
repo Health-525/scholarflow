@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
 import { renderMarkdown, type MarkdownOptions } from "@/lib/markdown/processor";
 
 function buildBaseUrl(opts?: MarkdownOptions): string {

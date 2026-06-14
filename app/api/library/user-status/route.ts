@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { getCachedJWT, graphql } from "../_lib";
 
 // Check user account status (blacklist, rank, etc.)

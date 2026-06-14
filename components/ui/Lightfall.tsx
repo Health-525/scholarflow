@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { Renderer, Program, Mesh, Triangle } from "ogl";
+import { useEffect, useRef } from "react";
 
 const MAX_COLORS = 8;
 

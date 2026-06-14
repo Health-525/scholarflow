@@ -1,6 +1,6 @@
-import { visit } from "unist-util-visit";
-import type { Plugin } from "unified";
 import type { Root, Text, PhrasingContent, Parent } from "mdast";
+import type { Plugin } from "unified";
+import { visit } from "unist-util-visit";
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 

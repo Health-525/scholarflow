@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import https from "https";
 import fs from "fs";
+import https from "https";
 import path from "path";
+
+import { NextResponse } from "next/server";
 
 function getCachedJWT(): string | null {
   const mem = globalThis.__libraryJWT;
@@ -29,11 +30,11 @@ function getCachedJWT(): string | null {
   return null;
 }
 
-function graphql(jwt: string, query: string) {
+function graphql<T = unknown>(jwt: string, query: string) {
   const body = JSON.stringify({ query });
   const hostname = process.env.LIBRARY_API_HOSTNAME || "seat.njtech.edu.cn";
   const allowInsecure = process.env.NODE_ENV === "development" || process.env.LIBRARY_ALLOW_INSECURE === "true";
-  return new Promise<{ ok: boolean; data: any }>(resolve => {
+  return new Promise<{ ok: boolean; data: T }>(resolve => {
     const r = https.request({
       method: "POST", hostname, path: "/index.php/graphql/",
       headers: { "Content-Type": "application/json", Cookie: `Authorization=${jwt};v=5.5` },
@@ -42,11 +43,11 @@ function graphql(jwt: string, query: string) {
       let b = "";
       res.on("data", c => (b += c));
       res.on("end", () => {
-        try { resolve({ ok: res.statusCode === 200, data: JSON.parse(b) }); }
-        catch { resolve({ ok: false, data: { error: b } }); }
+        try { resolve({ ok: res.statusCode === 200, data: JSON.parse(b) as T }); }
+        catch { resolve({ ok: false, data: { error: b } as T }); }
       });
     });
-    r.on("error", e => resolve({ ok: false, data: { error: e.message } }));
+    r.on("error", e => resolve({ ok: false, data: { error: e.message } as T }));
     r.setTimeout(15000, () => r.destroy());
     r.write(body); r.end();
   });
@@ -62,10 +63,14 @@ export async function GET(request: Request) {
   if (!libId) return NextResponse.json({ error: "缺少 lib_id" }, { status: 400 });
 
   const query = `{userAuth{reserve{libs(libId:${libId}){lib_id lib_name lib_floor lib_rt{seats_total seats_used seats_has open_time_str close_time_str}lib_layout{seats{x y key name seat_status status}}}}}}`;
-  const r = await graphql(jwt, query);
-  if (!r.ok || r.data.errors) return NextResponse.json({ error: r.data?.errors?.[0]?.msg || "请求失败" }, { status: 500 });
+  type Response = {
+    errors?: Array<{ msg?: string }>;
+    data?: { userAuth?: { reserve?: { libs?: unknown[] } } };
+  };
+  const r = await graphql<Response>(jwt, query);
+  if (!r.ok || r.data.errors) return NextResponse.json({ error: r.data.errors?.[0]?.msg || "请求失败" }, { status: 500 });
 
-  const lib = r.data?.data?.userAuth?.reserve?.libs?.[0];
+  const lib = r.data.data?.userAuth?.reserve?.libs?.[0];
   if (!lib) return NextResponse.json({ error: "未找到该阅览室" }, { status: 404 });
 
   return NextResponse.json(lib);

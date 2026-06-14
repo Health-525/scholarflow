@@ -1,15 +1,17 @@
 "use client";
 
-import { ReactNode } from "react";
-import { SideNav } from "./SideNav";
-import { BottomNav } from "./BottomNav";
-import { NotificationActivator } from "@/hooks/useNotifications";
-import { UpdateNotification } from "@/components/ui/UpdateNotification";
-import { KeyboardOverlay } from "@/components/ui/KeyboardOverlay";
+import type { ReactNode } from "react";
+
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { GlobalSearch } from "@/components/ui/GlobalSearch";
+import { KeyboardOverlay } from "@/components/ui/KeyboardOverlay";
 import { ToastContainer } from "@/components/ui/ToastContainer";
+import { UpdateNotification } from "@/components/ui/UpdateNotification";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { NotificationActivator } from "@/hooks/useNotifications";
+
+import { BottomNav } from "./BottomNav";
+import { SideNav } from "./SideNav";
 
 interface AppShellProps {
   children: ReactNode;
@@ -21,8 +23,8 @@ function ShortcutActivator() {
   return null;
 }
 
-export function AppShell({ children }: AppShellProps) {
-  const online = useOnlineStatus();
+export function AppShell({ children, isOnline }: AppShellProps) {
+  const online = isOnline ?? true;
 
   return (
     <div className="relative flex min-h-screen bg-background">
@@ -45,6 +47,7 @@ export function AppShell({ children }: AppShellProps) {
       <ShortcutActivator />
       <UpdateNotification />
       <KeyboardOverlay />
+      <GlobalSearch />
       <ToastContainer />
     </div>
   );

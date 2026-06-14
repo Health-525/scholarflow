@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import {
   CalendarDays, ClipboardList, Activity, Clock, Bot,
   FileText, Timer, TrendingUp, Library, Brain,
 } from "lucide-react";
+import Link from "next/link";
 
 const QUICK_ACTIONS = [
   { href: "/schedule",      label: "课表",   Icon: CalendarDays,  color: "#2a4494", darkColor: "#7c8edb" },

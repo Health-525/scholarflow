@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useGitHubClient } from "@/hooks/useGitHubClient";
 import { BookOpen, ClipboardList, Activity, Calculator } from "lucide-react";
-import { gpaColor, gpaColorClasses } from "@/lib/gpa";
+import { useEffect, useState, useRef } from "react";
+
 import { cardClasses } from "@/components/ui/card";
+import { useGitHubClient } from "@/hooks/useGitHubClient";
+import { gpaColor, gpaColorClasses } from "@/lib/gpa";
 import { cn } from "@/lib/utils";
 
 interface DashboardSummary {

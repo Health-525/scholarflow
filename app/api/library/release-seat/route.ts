@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { getCachedJWT, graphql } from "../_lib";
 
 // POST /api/library/release-seat — 释放座位

@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
-import { execSync } from "child_process";
+
+import { NextResponse } from "next/server";
 
 // 复用 local-data 的时间表目录探测
 function findTimetableDir(): string {

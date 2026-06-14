@@ -1,11 +1,11 @@
 "use client";
 
+import { Brain, Code2, FlaskConical, Languages, Wrench, TrendingUp, AlertTriangle, Sparkles } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   ResponsiveContainer,
 } from "recharts";
-import { Brain, Code2, FlaskConical, Languages, Wrench, TrendingUp, AlertTriangle, Sparkles } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────
 interface SkillData {

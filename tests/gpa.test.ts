@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { calculateGPA, predictTarget, type Course } from "@/lib/gpa";
 
 describe("calculateGPA", () => {

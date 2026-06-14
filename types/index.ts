@@ -53,6 +53,7 @@ export interface Assignment {
   done: boolean;
   createdAt: string; // ISO 8601 时间戳
   completedAt?: string; // ISO 8601（完成时追加）
+  order?: number; // 自定义排序权重（越大越靠前）
 }
 
 export interface AssignmentsFile {

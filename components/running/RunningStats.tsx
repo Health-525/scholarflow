@@ -1,7 +1,7 @@
 "use client";
 
-import type { RunStats } from "@/types";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import type { RunStats } from "@/types";
 
 interface RunningStatsProps {
   stats: RunStats;

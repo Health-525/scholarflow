@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Sparkles, Brain, BookOpen, Code2, TrendingUp, Target, Clock, Flame } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface StudyTip {
   id: string;

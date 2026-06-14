@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { gpaColor } from "@/lib/gpa";
-import { GPARing } from "@/components/ui/GPARing";
+import { useState, useEffect } from "react";
+
 import { cardClasses } from "@/components/ui/card";
+import { GPARing } from "@/components/ui/GPARing";
+import { gpaColor } from "@/lib/gpa";
 import { cn } from "@/lib/utils";
 
 export function GPACard() {

@@ -1,7 +1,7 @@
 "use client";
 
-import type { HeatmapDay } from "@/types";
 import { buildHeatmapData } from "@/lib/running-utils";
+import type { HeatmapDay } from "@/types";
 import type { RunRecord } from "@/types";
 
 interface RunningHeatmapProps {

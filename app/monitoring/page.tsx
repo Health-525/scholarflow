@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useGitHubClient } from "@/hooks/useGitHubClient";
 import { Activity, CheckCircle2, XCircle, Clock, AlertTriangle } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { useGitHubClient } from "@/hooks/useGitHubClient";
 
 interface AgentStatus {
   agent: string;

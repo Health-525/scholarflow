@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
 import { TrendingUp, BookOpen, Code2, FlaskConical, Languages, Wrench, Target, CheckCircle2, Clock, Flame } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
 
 interface ProgressEntry {
   date: string;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+
 import { requestPermission } from "@/lib/notification";
 
 export function useNotification() {

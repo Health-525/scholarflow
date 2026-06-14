@@ -2,6 +2,7 @@
  * lib/ics.ts 单元测试
  */
 import { describe, it, expect } from "vitest";
+
 import { validateICS, buildWeekICS } from "@/lib/ics";
 import type { RawScheduleData } from "@/lib/schedule/schedule";
 

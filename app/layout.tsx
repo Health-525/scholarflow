@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_SC, Geist } from "next/font/google";
+
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+
 import ClientShell from "./ClientShell";
 import QueryProvider from "./QueryProvider";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { cn } from "@/lib/utils";
 import "./globals.css";
 
 const notoSansSC = Noto_Sans_SC({

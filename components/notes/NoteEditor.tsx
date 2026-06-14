@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
 import { Save, X, Bold, Italic, Heading2, List, Code, Link, Quote } from "lucide-react";
+import { useState, useRef, useCallback } from "react";
 
 interface NoteEditorProps {
   content: string;

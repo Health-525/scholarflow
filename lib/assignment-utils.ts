@@ -44,10 +44,12 @@ export function formatDeadlineCountdown(ms: number): string {
 }
 
 /**
- * 排序作业：先按截止时间升序，相同时间按创建时间升序
+ * 排序作业：优先按自定义 order 降序，然后按截止时间升序，相同时间按创建时间升序
  */
 export function sortAssignments(assignments: Assignment[]): Assignment[] {
   return [...assignments].sort((a, b) => {
+    const orderDiff = (b.order ?? 0) - (a.order ?? 0);
+    if (orderDiff !== 0) return orderDiff;
     const deadlineDiff =
       new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
     if (deadlineDiff !== 0) return deadlineDiff;

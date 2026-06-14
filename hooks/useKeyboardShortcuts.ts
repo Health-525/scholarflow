@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+import { useSearchStore } from "@/store/search";
 
 /**
  * 全局键盘快捷键
  * - Ctrl/Cmd + 1-7: 导航到各页面
- * - Ctrl/Cmd + K: 全局搜索（由GlobalSearch处理）
- * - Ctrl/Cmd + E: 导出 (根据当前页面)
+ * - Ctrl/Cmd + 8: 统计
+ * - Ctrl/Cmd + K: 全局搜索
  */
 
 type ShortcutAction = {
@@ -17,8 +19,18 @@ type ShortcutAction = {
   description: string;
 };
 
+function isEditingTarget(e: KeyboardEvent): boolean {
+  const target = e.target as HTMLElement | null;
+  if (!target) return false;
+  const tag = target.tagName.toLowerCase();
+  if (tag === "input" || tag === "textarea" || tag === "select") return true;
+  if (target.isContentEditable) return true;
+  return false;
+}
+
 export function useKeyboardShortcuts() {
   const router = useRouter();
+  const setOpen = useSearchStore((s) => s.setOpen);
 
   useEffect(() => {
     const shortcuts: ShortcutAction[] = [
@@ -29,15 +41,20 @@ export function useKeyboardShortcuts() {
       { key: "5", ctrl: true, action: () => router.push("/notes"), description: "笔记" },
       { key: "6", ctrl: true, action: () => router.push("/reports/daily"), description: "日报" },
       { key: "7", ctrl: true, action: () => router.push("/activity"), description: "屏幕时间" },
-      { key: "7", ctrl: true, action: () => router.push("/stats"), description: "统计" },
+      { key: "8", ctrl: true, action: () => router.push("/stats"), description: "统计" },
     ];
 
     function handleKeyDown(e: KeyboardEvent) {
-      // Skip if in input/textarea or if modal is open
-      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
-      if (tag === "input" || tag === "textarea" || tag === "select") return;
+      if (isEditingTarget(e)) return;
 
       const mod = e.metaKey || e.ctrlKey;
+
+      // Ctrl/Cmd + K: open global search
+      if (mod && (e.key === "k" || e.key === "K")) {
+        e.preventDefault();
+        setOpen(true);
+        return;
+      }
 
       for (const sc of shortcuts) {
         if (sc.ctrl && mod && e.key === sc.key) {

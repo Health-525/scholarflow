@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, Suspense } from "react";
-import { ArrowLeft, RefreshCw, Loader2, Move } from "lucide-react";
+import { ArrowLeft, RefreshCw, Loader2, Move, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 
 interface Seat {
   x: number;
@@ -72,7 +72,8 @@ function LibraryLayoutInner() {
   const [reserving, setReserving] = useState(false);
   const [reserveResult, setReserveResult] = useState<string | null>(null);
   const [hoverSeat, setHoverSeat] = useState<Seat | null>(null);
-  const isDraggingRef = useRef(false);
+  const [scale, setScale] = useState(1);
+  const [dragging, setDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragState = useRef({ active: false, startX: 0, startY: 0, startScrollX: 0, startScrollY: 0, moved: false });
 
@@ -145,23 +146,35 @@ function LibraryLayoutInner() {
     if (!dragState.current.active) return;
     const container = containerRef.current;
     if (!container) return;
-    const dx = e.clientX - dragState.current.startX;
-    const dy = e.clientY - dragState.current.startY;
+    const dx = (e.clientX - dragState.current.startX) / scale;
+    const dy = (e.clientY - dragState.current.startY) / scale;
     if (!dragState.current.moved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
       dragState.current.moved = true;
-      isDraggingRef.current = true;
+      setDragging(true);
     }
     if (dragState.current.moved) {
       container.scrollLeft = dragState.current.startScrollX - dx;
       container.scrollTop = dragState.current.startScrollY - dy;
     }
-  }, []);
+  }, [scale]);
 
   const onPointerUp = useCallback(() => {
     dragState.current.active = false;
-    isDraggingRef.current = false;
+    setDragging(false);
     setTimeout(() => { dragState.current.moved = false; }, 10);
   }, []);
+
+  const onWheel = useCallback((e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      setScale((s) => Math.min(2.5, Math.max(0.5, Math.round((s + delta) * 10) / 10)));
+    }
+  }, []);
+
+  const zoomIn = useCallback(() => setScale((s) => Math.min(2.5, Math.round((s + 0.2) * 10) / 10)), []);
+  const zoomOut = useCallback(() => setScale((s) => Math.max(0.5, Math.round((s - 0.2) * 10) / 10)), []);
+  const resetZoom = useCallback(() => setScale(1), []);
 
   if (loading) {
     return (
@@ -249,23 +262,37 @@ function LibraryLayoutInner() {
         <span className="text-xs font-medium text-red-500">● {counts.occupied} 占用</span>
         {counts.maintenance > 0 && <span className="text-xs font-medium text-amber-500">● {counts.maintenance} 维护</span>}
         <span className="text-xs text-muted-foreground">共 {rt.seats_total} 座</span>
-        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Move className="w-3 h-3" />拖拽移动
-        </span>
+        <div className="ml-auto flex items-center gap-2">
+          <button onClick={zoomOut} className="p-1.5 rounded-lg bg-secondary border border-border text-muted-foreground hover:text-foreground" title="缩小">
+            <ZoomOut className="w-3.5 h-3.5" />
+          </button>
+          <span className="text-[11px] tabular-nums text-muted-foreground min-w-[42px] text-center">{Math.round(scale * 100)}%</span>
+          <button onClick={zoomIn} className="p-1.5 rounded-lg bg-secondary border border-border text-muted-foreground hover:text-foreground" title="放大">
+            <ZoomIn className="w-3.5 h-3.5" />
+          </button>
+          <button onClick={resetZoom} className="p-1.5 rounded-lg bg-secondary border border-border text-muted-foreground hover:text-foreground" title="重置缩放">
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+          <span className="hidden sm:flex items-center gap-1 text-[10px] text-muted-foreground border-l border-border pl-2 ml-1">
+            <Move className="w-3 h-3" />拖拽移动
+          </span>
+        </div>
       </div>
 
       {/* Seat map */}
       <div ref={containerRef}
         className="rounded-2xl overflow-auto select-none bg-card border border-border relative"
         style={{
-          cursor: dragState.current.active && dragState.current.moved ? "grabbing" : "grab",
-          touchAction: "pan-x pan-y",
+          cursor: dragging ? "grabbing" : "grab",
+          touchAction: "none",
           overscrollBehavior: "contain",
           maxHeight: "65vh",
         }}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
+        onWheel={onWheel}
+        onDoubleClick={resetZoom}
       >
-        <div className="relative p-4" style={{ width: mapW + 32, height: mapH + 32, minWidth: "100%", minHeight: "100%" }}>
+        <div className="relative p-4 origin-top-left transition-transform duration-150 ease-out" style={{ width: (mapW + 32) * scale, height: (mapH + 32) * scale, minWidth: "100%", minHeight: "100%", transform: `scale(${scale})` }}>
           {visibleSeats.map(seat => {
             const cat = categorize(seat);
             if (cat === "empty") return null;

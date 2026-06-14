@@ -1,9 +1,10 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { StatsDashboard } from "@/components/dashboard/StatsDashboard";
 import { useScheduleQuery, useAssignmentsQuery, useRunningQuery } from "@/hooks/useQueries";
 import { calculateRunStats } from "@/lib/running-utils";
-import { useMemo } from "react";
 
 export default function StatsPage() {
   const { data: scheduleData } = useScheduleQuery();

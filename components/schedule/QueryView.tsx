@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useMemo, useCallback, useRef } from "react";
-import type { RawScheduleData, DayItem } from "@/lib/schedule/schedule";
+
 import type { Adjustment } from "@/lib/schedule/adjustments";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
-import { normalizeDate } from "@/lib/schedule/timezone";
 import { courseColor } from "@/lib/schedule/course-color";
+import type { RawScheduleData, DayItem } from "@/lib/schedule/schedule";
+import { normalizeDate } from "@/lib/schedule/timezone";
+
 import { CourseDrawer } from "./CourseDrawer";
 
 interface QueryViewProps {

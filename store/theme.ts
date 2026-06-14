@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { ThemeValue } from "@/types";
+
 import { applyTheme } from "@/lib/theme";
+import type { ThemeValue } from "@/types";
 
 const safeStorage = {
   getItem: (name: string) => typeof window !== 'undefined' ? window.localStorage.getItem(name) : null,

@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import https from "https";
 import fs from "fs";
+import https from "https";
 import path from "path";
+
+import { NextResponse } from "next/server";
 
 function getCachedJWT(): string | null {
   const mem = globalThis.__libraryJWT;
@@ -29,11 +30,11 @@ function getCachedJWT(): string | null {
   return null;
 }
 
-function graphql(jwt: string, query: string) {
+function graphql<T = unknown>(jwt: string, query: string) {
   const body = JSON.stringify({ query });
   const hostname = process.env.LIBRARY_API_HOSTNAME || "seat.njtech.edu.cn";
   const allowInsecure = process.env.NODE_ENV === "development" || process.env.LIBRARY_ALLOW_INSECURE === "true";
-  return new Promise<{ ok: boolean; data: any }>(resolve => {
+  return new Promise<{ ok: boolean; data: T }>(resolve => {
     const r = https.request({
       method: "POST", hostname, path: "/index.php/graphql/",
       headers: { "Content-Type": "application/json", Cookie: `Authorization=${jwt};v=5.5` },
@@ -42,11 +43,11 @@ function graphql(jwt: string, query: string) {
       let b = "";
       res.on("data", c => (b += c));
       res.on("end", () => {
-        try { resolve({ ok: res.statusCode === 200, data: JSON.parse(b) }); }
-        catch { resolve({ ok: false, data: { error: b } }); }
+        try { resolve({ ok: res.statusCode === 200, data: JSON.parse(b) as T }); }
+        catch { resolve({ ok: false, data: { error: b } as T }); }
       });
     });
-    r.on("error", e => resolve({ ok: false, data: { error: e.message } }));
+    r.on("error", e => resolve({ ok: false, data: { error: e.message } as T }));
     r.setTimeout(15000, () => r.destroy());
     r.write(body); r.end();
   });
@@ -58,14 +59,18 @@ export async function GET() {
   if (!jwt) return NextResponse.json({ error: "JWT未配置或已过期" }, { status: 401 });
 
   const query = `{userAuth{user{rank(type:"week"){rank} rank(type:"month"){rank} rank(type:"total"){rank}}}}`;
-  const r = await graphql(jwt, query);
+  type Response = {
+    errors?: Array<{ msg?: string }>;
+    data?: { userAuth?: { user?: { rank?: Array<{ rank?: number }> } } };
+  };
+  const r = await graphql<Response>(jwt, query);
   if (!r.ok || r.data.errors) {
-    const msg = r.data?.errors?.[0]?.msg || "请求失败";
+    const msg = r.data.errors?.[0]?.msg || "请求失败";
     if (msg === "access denied!") return NextResponse.json({ error: "access_denied" }, { status: 403 });
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 
-  const user = r.data?.data?.userAuth?.user;
+  const user = r.data.data?.userAuth?.user;
   return NextResponse.json({
     week: user?.rank?.[0]?.rank ?? null,
     month: user?.rank?.[1]?.rank ?? null,

@@ -1,40 +1,53 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { RefreshCw, AlertCircle, KeyRound, MapPin, BookmarkCheck, Bell } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { RefreshCw, AlertCircle, KeyRound, MapPin, BookmarkCheck, Bell, Library, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { statusColor, statusColorBg, getReserveStatusMap } from "@/lib/theme-colors";
-import type { LibraryData, LibraryRoom } from "@/types";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { toast } from "sonner";
 
-interface CurrentReserve {
-  lib_id: number;
-  seat_key: string;
-  seat_name: string;
-  lib_name: string;
-  status: number;
-  user_id: number;
-  date: string;
-  token: string;
-}
+import {
+  useLibraryData,
+  useLibraryReserveStatus,
+  useLibraryUserStatus,
+  useCancelReserve,
+  useHoldSeat,
+  JWTExpiredError,
+  libraryQueryKeys,
+} from "@/hooks/useLibraryQuery";
+import { statusColor, getReserveStatusMap } from "@/lib/theme-colors";
+import type { LibraryRoom } from "@/types";
 
 const DEFAULT_SUMMARY = { rate: 0, avail: 0, used: 0, total: 0, has: 0 };
 
 export default function LibraryPage() {
   const router = useRouter();
-  const [data, setData] = useState<LibraryData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [jwtStatus, setJwtStatus] = useState<"unknown" | "expired" | "refreshing" | "ok" | "error">("unknown");
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [isElectron, setIsElectron] = useState(false);
   const unsubTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [currentReserve, setCurrentReserve] = useState<CurrentReserve | null>(null);
-  const [cancelLoading, setCancelLoading] = useState(false);
-  const [holdLoading, setHoldLoading] = useState(false);
   const [countdown, setCountdown] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [userStatus, setUserStatus] = useState<{ reserve: CurrentReserve | null; rank: number | null } | null>(null);
   const [blacklisted, setBlacklisted] = useState(false);
+
+  const enabled = jwtStatus === "ok" || jwtStatus === "unknown";
+  const {
+    data,
+    isLoading: dataLoading,
+    error: dataError,
+  } = useLibraryData(enabled);
+  const {
+    data: userStatus,
+    error: userStatusError,
+  } = useLibraryUserStatus(enabled);
+  const {
+    data: reserveData,
+    error: reserveError,
+  } = useLibraryReserveStatus(enabled);
+
+  const cancelReserve = useCancelReserve();
+  const holdSeat = useHoldSeat();
 
   // Hydration-safe Electron detection
   useEffect(() => {
@@ -42,128 +55,43 @@ export default function LibraryPage() {
     setMounted(true);
   }, []);
 
-  const fetchData = useCallback(() => {
-    setLoading(true); setError(null);
-    fetch("/api/vpn-proxy")
-      .then(r => {
-        if (r.status === 401) {
-          setJwtStatus("expired");
-          throw new Error("JWT_EXPIRED");
-        }
-        return r.json();
-      })
-      .then(json => { if (json.error) throw new Error(json.error); setData(json); setJwtStatus("ok"); })
-      .catch(e => {
-        if (e.message !== "JWT_EXPIRED") { setError(e.message); setJwtStatus("error"); }
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
-  const fetchUserStatus = useCallback(() => {
-    fetch("/api/library/user-status")
-      .then(r => {
-        if (r.status === 401) return;
-        return r.json();
-      })
-      .then(json => {
-        if (!json) return;
-        if (json.error) {
-          // If error mentions blacklist or forbidden, mark as blacklisted
-          if (json.error?.includes("黑名单") || json.error?.includes("forbidden") || json.error?.includes("禁止")) {
-            setBlacklisted(true);
-          }
-          return;
-        }
-        setUserStatus(json);
-        setBlacklisted(false);
-      })
-      .catch(() => {});
-  }, []);
-
-  const fetchReserve = useCallback(() => {
-    fetch("/api/library/reserve-status")
-      .then(r => r.json())
-      .then(json => {
-        if (json.reserve) setCurrentReserve(json.reserve);
-        else setCurrentReserve(null);
-      })
-      .catch(() => setCurrentReserve(null));
-  }, []);
-
-  const handleCancelReserve = useCallback(async () => {
-    if (!currentReserve?.token || cancelLoading) return;
-    if (!confirm("确定要取消当前预约吗？")) return;
-    setCancelLoading(true);
-    try {
-      const r = await fetch("/api/library/cancel-reserve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sToken: currentReserve.token }),
-      });
-      const json = await r.json();
-      if (json.ok) {
-        setCurrentReserve(null);
-        fetchData();
-      } else {
-        alert(json.error || "取消失败");
-      }
-    } catch {
-      alert("网络错误");
-    } finally {
-      setCancelLoading(false);
+  // Map query errors to JWT status
+  useEffect(() => {
+    const err = dataError || userStatusError || reserveError;
+    if (!err) return;
+    if (err instanceof JWTExpiredError) {
+      setJwtStatus("expired");
+    } else if (jwtStatus === "ok") {
+      // Keep ok on transient errors if we already have data; TanStack Query will retry
     }
-  }, [currentReserve, cancelLoading, fetchData]);
+  }, [dataError, userStatusError, reserveError, jwtStatus]);
 
-  const handleHoldSeat = useCallback(async () => {
-    if (holdLoading) return;
-    setHoldLoading(true);
-    try {
-      const r = await fetch("/api/library/hold-seat", { method: "POST" });
-      const json = await r.json();
-      if (json.ok) {
-        fetchReserve();
-      } else {
-        alert(json.error || "暂离失败");
-      }
-    } catch {
-      alert("网络错误");
-    } finally {
-      setHoldLoading(false);
+  // Once data arrives successfully, mark JWT as ok
+  useEffect(() => {
+    if (data && jwtStatus !== "ok") setJwtStatus("ok");
+  }, [data, jwtStatus]);
+
+  // Blacklist detection from user-status error
+  useEffect(() => {
+    if (userStatusError?.message?.includes("access_denied") ||
+        userStatusError?.message?.includes("黑名单") ||
+        userStatusError?.message?.includes("forbidden") ||
+        userStatusError?.message?.includes("禁止")) {
+      setBlacklisted(true);
+    } else if (userStatus) {
+      setBlacklisted(false);
     }
-  }, [holdLoading, fetchReserve]);
+  }, [userStatusError, userStatus]);
 
-  useEffect(() => { fetchData(); fetchUserStatus(); }, [fetchData, fetchUserStatus]);
-
-  // 自动刷新座位数据（每60秒）
+  // Countdown: reserve_ttl=1800秒（30分钟）
   useEffect(() => {
-    if (jwtStatus !== "ok") return;
-    const timer = setInterval(() => { fetchData(); }, 60000);
-    return () => clearInterval(timer);
-  }, [jwtStatus, fetchData]);
-
-  // 自动刷新预约状态（每30秒）
-  useEffect(() => {
-    if (jwtStatus !== "ok") return;
-    fetchReserve();
-    const timer = setInterval(() => { fetchReserve(); }, 30000);
-    return () => clearInterval(timer);
-  }, [jwtStatus, fetchReserve]);
-
-  // 签到倒计时：reserve_ttl=1800秒（30分钟）
-  useEffect(() => {
-    if (!currentReserve || currentReserve.status !== 1) {
+    const reserve = reserveData?.reserve;
+    if (!reserve || reserve.status !== 1) {
       setCountdown(null);
       return;
     }
-    const timer = setInterval(() => {
-      fetchReserve(); // 刷新预约状态
-    }, 30000);
-    // 简单显示"需在30分钟内签到"
     setCountdown("需在30分钟内签到");
-    return () => clearInterval(timer);
-  }, [currentReserve, fetchReserve]);
-
-  // 获取座位数据成功后查当前预约（由自动刷新useEffect处理）
+  }, [reserveData]);
 
   const handleRefreshJWT = useCallback(async () => {
     if (!isElectron) {
@@ -173,16 +101,13 @@ export default function LibraryPage() {
     setJwtStatus("refreshing"); setRefreshError(null);
     try {
       await window.electronAPI?.libraryLogin();
-      // If no jwt-refreshed event within 5s, reset to expired
       const timer = setTimeout(() => {
         setJwtStatus("expired");
       }, 5000);
       const origUnsub = window.electronAPI?.onLibraryJWTRefreshed(() => {
         clearTimeout(timer);
       });
-      // Clear previous timer before setting new one (prevent leak)
       if (unsubTimerRef.current) clearTimeout(unsubTimerRef.current);
-      // Auto-cleanup listener after 6s
       if (origUnsub) unsubTimerRef.current = setTimeout(() => origUnsub(), 6000);
     } catch (e) {
       setJwtStatus("expired");
@@ -195,7 +120,7 @@ export default function LibraryPage() {
     if (!isElectron || !window.electronAPI) return;
     const unsub = window.electronAPI.onLibraryJWTRefreshed(() => {
       setJwtStatus("ok");
-      fetchData();
+      queryClient.invalidateQueries({ queryKey: libraryQueryKeys.all });
     });
     const unsubExpired = window.electronAPI.onLibraryJWTExpired(() => {
       setJwtStatus("expired");
@@ -205,12 +130,43 @@ export default function LibraryPage() {
       unsubExpired();
       if (unsubTimerRef.current) clearTimeout(unsubTimerRef.current);
     };
-  }, [isElectron, fetchData]);
+  }, [isElectron, queryClient]);
+
+  const handleCancelReserve = useCallback(async () => {
+    const token = reserveData?.reserve?.token;
+    if (!token || cancelReserve.isPending) return;
+    if (!confirm("确定要取消当前预约吗？")) return;
+    cancelReserve.mutate(
+      { sToken: token },
+      {
+        onSuccess: () => toast.success("预约已取消"),
+        onError: (err) => {
+          if (err instanceof JWTExpiredError) setJwtStatus("expired");
+          toast.error(err.message || "取消失败");
+        },
+      }
+    );
+  }, [reserveData, cancelReserve]);
+
+  const handleHoldSeat = useCallback(async () => {
+    if (holdSeat.isPending) return;
+    holdSeat.mutate(undefined, {
+      onSuccess: () => toast.success("已暂离"),
+      onError: (err) => {
+        if (err instanceof JWTExpiredError) setJwtStatus("expired");
+        toast.error(err.message || "暂离失败");
+      },
+    });
+  }, [holdSeat]);
+
+  const fetchData = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: libraryQueryKeys.all });
+  }, [queryClient]);
 
   // Loading
-  if (loading) {
+  if (dataLoading && !data) {
     return (
-      <div className="pb-24 md:pb-8 py-16 text-center">
+      <div className="pb-20 md:pb-0 py-16 text-center">
         <div className="text-[13px] text-muted-foreground">加载中...</div>
       </div>
     );
@@ -220,7 +176,7 @@ export default function LibraryPage() {
   if (jwtStatus === "expired" || jwtStatus === "refreshing") {
     const isRefreshing = jwtStatus === "refreshing";
     return (
-      <div className="pb-24 md:pb-8 max-w-md mx-auto py-16 px-4 text-center">
+      <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
         <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
           <KeyRound className="w-6 h-6 text-red-500" />
         </div>
@@ -229,8 +185,11 @@ export default function LibraryPage() {
           {isElectron ? "点击下方按钮登录智慧南工，自动同步凭证" : "请在浏览器中重新登录图书馆系统"}
         </p>
         {refreshError && <p className="text-[11px] mt-1 mb-3 text-red-500">{refreshError}</p>}
-        <button onClick={handleRefreshJWT}
-          className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground">
+        <button
+          type="button"
+          onClick={handleRefreshJWT}
+          className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
+        >
           <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
           {isRefreshing ? "登录中...（如窗口已关闭请重试）" : "登录刷新"}
         </button>
@@ -242,15 +201,22 @@ export default function LibraryPage() {
   }
 
   // Error
-  if (error) {
+  const queryError = dataError && !(dataError instanceof JWTExpiredError)
+    ? dataError.message
+    : null;
+  if (queryError && !data) {
     return (
-      <div className="pb-24 md:pb-8 max-w-md mx-auto py-16 px-4 text-center">
+      <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
         <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
           <AlertCircle className="w-6 h-6 text-red-500" />
         </div>
         <h1 className="text-[16px] font-bold mb-2 text-foreground">加载失败</h1>
-        <p className="text-[12px] mb-4 text-muted-foreground">{error}</p>
-        <button onClick={fetchData} className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground">
+        <p className="text-[12px] mb-4 text-muted-foreground">{queryError}</p>
+        <button
+          type="button"
+          onClick={fetchData}
+          className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
+        >
           <RefreshCw className="w-3.5 h-3.5" />重试
         </button>
       </div>
@@ -260,11 +226,17 @@ export default function LibraryPage() {
   // No data
   if (!data) {
     return (
-      <div className="pb-24 md:pb-8 max-w-md mx-auto py-16 px-4 text-center">
-        <div className="text-5xl mb-4">📚</div>
+      <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
+          <Library className="w-8 h-8 text-primary" />
+        </div>
         <h1 className="text-[16px] font-bold mb-2 text-foreground">图书馆座位</h1>
         <p className="text-[12px] mb-4 text-muted-foreground">需要先同步图书馆登录凭证</p>
-        <button onClick={handleRefreshJWT} className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground">
+        <button
+          type="button"
+          onClick={handleRefreshJWT}
+          className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
+        >
           <KeyRound className="w-3.5 h-3.5" />刷新凭证
         </button>
       </div>
@@ -273,7 +245,7 @@ export default function LibraryPage() {
 
   if (!data?.libs?.length) {
     return (
-      <div className="pb-24 md:pb-8 py-8 text-center">
+      <div className="pb-20 md:pb-0 py-8 text-center">
         <p className="text-[13px] text-muted-foreground">暂无数据</p>
       </div>
     );
@@ -285,9 +257,10 @@ export default function LibraryPage() {
   const closedCount = libs.length - openLibs.length;
   const reserveStatusMap = mounted ? getReserveStatusMap() : getReserveStatusMap();
   const c = statusColor;
+  const currentReserve = reserveData?.reserve ?? null;
 
   return (
-    <div className="max-w-5xl mx-auto pb-24 md:pb-8 py-6 animate-page">
+    <div className="max-w-5xl mx-auto pb-20 md:pb-0 py-6 animate-page">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
@@ -306,12 +279,21 @@ export default function LibraryPage() {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {isElectron && (
-            <button onClick={handleRefreshJWT} title="刷新登录凭证"
-              className="px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1 bg-card text-muted-foreground border border-border">
+            <button
+              type="button"
+              onClick={handleRefreshJWT}
+              title="刷新登录凭证"
+              className="min-h-9 min-w-9 px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center justify-center gap-1 bg-card text-muted-foreground border border-border cursor-pointer"
+              aria-label="刷新登录凭证"
+            >
               <KeyRound className="w-3.5 h-3.5" />
             </button>
           )}
-          <button onClick={fetchData} className="px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-card text-muted-foreground border border-border">
+          <button
+            type="button"
+            onClick={fetchData}
+            className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-card text-muted-foreground border border-border cursor-pointer"
+          >
             <RefreshCw className="w-3.5 h-3.5" />刷新
           </button>
         </div>
@@ -320,7 +302,8 @@ export default function LibraryPage() {
       {/* Data freshness */}
       {data.updated && (
         <div className="mb-4 text-[11px] flex items-center gap-1.5 text-muted-foreground">
-          <span>⏱ 上次更新：{new Date(data.updated).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })} · 自动刷新</span>
+          <Clock className="w-3.5 h-3.5" />
+          <span>上次更新：{new Date(data.updated).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })} · 自动刷新</span>
           {Date.now() - new Date(data.updated).getTime() > 5 * 60 * 1000 && (
             <span className="text-amber-500">· 数据可能已过期</span>
           )}
@@ -385,19 +368,31 @@ export default function LibraryPage() {
               </div>
               <p className="text-[12px] text-muted-foreground mb-2">{currentReserve.lib_name} · {currentReserve.date}</p>
               {countdown && currentReserve.status === 1 && (
-                <p className="text-[11px] mb-2 text-amber-500 font-medium">⏱ {countdown}</p>
+                <p className="text-[11px] mb-2 text-amber-500 font-medium flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> {countdown}
+                </p>
               )}
               <div className="flex gap-2">
                 {(currentReserve.status === 1 || currentReserve.status === 2) && (
-                  <button onClick={handleCancelReserve} disabled={cancelLoading}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50">
-                    {cancelLoading ? "取消中..." : "取消预约"}
+                  <button
+                    type="button"
+                    onClick={handleCancelReserve}
+                    disabled={cancelReserve.isPending}
+                    className="min-h-8 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50 cursor-pointer"
+                    aria-label="取消当前预约"
+                  >
+                    {cancelReserve.isPending ? "取消中..." : "取消预约"}
                   </button>
                 )}
                 {currentReserve.status === 2 && (
-                  <button onClick={handleHoldSeat} disabled={holdLoading}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 disabled:opacity-50">
-                    {holdLoading ? "处理中..." : "暂离"}
+                  <button
+                    type="button"
+                    onClick={handleHoldSeat}
+                    disabled={holdSeat.isPending}
+                    className="min-h-8 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 disabled:opacity-50 cursor-pointer"
+                    aria-label="暂离座位"
+                  >
+                    {holdSeat.isPending ? "处理中..." : "暂离"}
                   </button>
                 )}
               </div>
@@ -408,8 +403,12 @@ export default function LibraryPage() {
         </div>
 
         {/* 消息通知入口 */}
-        <div onClick={() => router.push("/library/messages")}
-          className="rounded-xl p-4 bg-card border border-border shadow-sm cursor-pointer hover:opacity-80 transition-opacity">
+        <button
+          type="button"
+          onClick={() => router.push("/library/messages")}
+          className="w-full text-left rounded-xl p-4 bg-card border border-border shadow-sm cursor-pointer hover:opacity-80 transition-opacity"
+          aria-label="查看图书馆消息通知"
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Bell className="w-4 h-4 text-primary" />
@@ -418,7 +417,7 @@ export default function LibraryPage() {
             <span className="text-xs text-muted-foreground">查看 →</span>
           </div>
           <p className="text-[12px] text-muted-foreground mt-2">预约提醒、违规通知等</p>
-        </div>
+        </button>
       </div>
 
       {/* Room cards */}
@@ -426,8 +425,13 @@ export default function LibraryPage() {
         {openLibs.map((lib: LibraryRoom) => {
           const rt = lib.lib_rt, pct = rt.seats_total > 0 ? (rt.seats_used / rt.seats_total) * 100 : 0;
           return (
-            <div key={lib.lib_id} onClick={() => router.push(`/library/layout?lib_id=${lib.lib_id}`)}
-              className="rounded-xl p-4 cursor-pointer hover:opacity-80 transition-opacity bg-card border border-border shadow-sm">
+            <button
+              key={lib.lib_id}
+              type="button"
+              onClick={() => router.push(`/library/layout?lib_id=${lib.lib_id}`)}
+              className="w-full text-left rounded-xl p-4 cursor-pointer hover:opacity-80 transition-opacity bg-card border border-border shadow-sm"
+              aria-label={`进入 ${lib.lib_name} 座位图`}
+            >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-primary" />
@@ -448,7 +452,7 @@ export default function LibraryPage() {
                   提前{rt.advance_booking}可约 · 签到限时{rt.reserve_ttl ? Math.floor(rt.reserve_ttl / 60) : 30}分钟
                 </p>
               )}
-            </div>
+            </button>
           );
         })}
       </div>

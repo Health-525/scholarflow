@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { DayItem, CourseView } from "@/lib/schedule/schedule";
-import { ReminderButton } from "./ReminderButton";
+
 import { courseColor } from "@/lib/schedule/course-color";
+import type { DayItem, CourseView } from "@/lib/schedule/schedule";
+
+import { ReminderButton } from "./ReminderButton";
 
 interface CourseDrawerProps {
   item: DayItem | null;

@@ -1,7 +1,7 @@
-import { RawScheduleData, DayItem } from "./schedule";
 import { getAdjustedItemsForDate } from "./adjustments";
-import { getNowInTimeZone, parseTimeToDate } from "./timezone";
 import type { Adjustment } from "./adjustments";
+import type { RawScheduleData, DayItem } from "./schedule";
+import { getNowInTimeZone, parseTimeToDate } from "./timezone";
 
 export interface NextCourseInfo {
   item: DayItem;

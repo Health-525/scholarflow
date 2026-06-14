@@ -41,15 +41,14 @@ export function gpaColorClasses(gpa: number): { colorClass: string; iconBgClass:
 
 // ── 百分制 → 4.0 GPA (NJTECH标准) ──
 export function scoreToGPA(score: number): number {
-  if (score >= 90) return 4.0;
-  if (score >= 86) return 3.7;
-  if (score >= 82) return 3.3;
-  if (score >= 79) return 3.0;
-  if (score >= 75) return 2.7;
-  if (score >= 71) return 2.3;
-  if (score >= 68) return 2.0;
-  if (score >= 64) return 1.7;
-  if (score >= 60) return 1.3;
+  if (score >= 95) return 4.0;
+  if (score >= 90) return 3.8;
+  if (score >= 85) return 3.6;
+  if (score >= 80) return 3.2;
+  if (score >= 75) return 2.8;
+  if (score >= 70) return 2.4;
+  if (score >= 65) return 1.8;
+  if (score >= 60) return 1.0;
   return 0;
 }
 

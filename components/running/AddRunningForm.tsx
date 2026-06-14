@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, FormEvent } from "react";
-import type { RunRecord, RunType } from "@/types";
+import type { FormEvent } from "react";
+import { useState } from "react";
+
 import { isDuplicateRun } from "@/lib/running-utils";
+import type { RunRecord, RunType } from "@/types";
 
 interface AddRunningFormProps {
   records: RunRecord[];

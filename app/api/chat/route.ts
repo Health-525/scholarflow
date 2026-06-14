@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 
 // Ollama chat API proxy — streams responses to client
 export async function POST(req: NextRequest) {

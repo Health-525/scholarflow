@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 
 // 接收 vision-model 的抬头纹提醒
 let latestAlert: { score: number; rising: boolean; time: number } | null = null;

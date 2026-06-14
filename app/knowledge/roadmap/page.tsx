@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useGitHubClient } from "@/hooks/useGitHubClient";
 import { BookOpen, Clock, TrendingUp, CheckCircle2, ChevronRight, Lightbulb } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { useGitHubClient } from "@/hooks/useGitHubClient";
 
 interface Topic {
   id: string;
@@ -60,9 +61,10 @@ export default function KnowledgeRoadmapPage() {
       try {
         const file = await client.getFile("execution", "_out/knowledge-roadmap.json");
         setRoadmap(JSON.parse(file.content));
-      } catch (err: any) {
-        if (err?.type === "not_found") setError("知识路线图尚未生成");
-        else setError(`获取失败：${err?.message || String(err)}`);
+      } catch (err: unknown) {
+        const e = err as { type?: string; message?: string };
+        if (e?.type === "not_found") setError("知识路线图尚未生成");
+        else setError(`获取失败：${e?.message || String(err)}`);
       }
     }
     fetchData().finally(() => setLoading(false));

@@ -1,6 +1,6 @@
-import { visit } from "unist-util-visit";
-import type { Plugin } from "unified";
 import type { Root, Blockquote, Paragraph, Text } from "mdast";
+import type { Plugin } from "unified";
+import { visit } from "unist-util-visit";
 
 const CALLOUT_ICONS: Record<string, string> = {
   info: "ℹ️",

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Download, RefreshCw, X, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface UpdateInfo {
   version: string;

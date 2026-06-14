@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { useRunningQuery } from "@/hooks/useQueries";
 import { calculateRunStats } from "@/lib/running-utils";
-import { ErrorFallback } from "@/components/ui/ErrorFallback";
-import { Card, CardContent } from "@/components/ui/card";
 
 export function RunningCard() {
   const { records, isLoading, error, reload } = useRunningQuery();

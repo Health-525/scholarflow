@@ -1,8 +1,8 @@
 "use client";
 
-import { useJwcNewsQuery } from "@/hooks/useQueries";
-import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { Card, CardContent } from "@/components/ui/card";
+import { ErrorFallback } from "@/components/ui/ErrorFallback";
+import { useJwcNewsQuery } from "@/hooks/useQueries";
 import type { GitHubError } from "@/lib/github/errors";
 
 const CATEGORY_STYLES: Record<string, { dot: string; bg: string; text: string }> = {

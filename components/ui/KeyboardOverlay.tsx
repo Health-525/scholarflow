@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Keyboard, X } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface ShortcutItem {
   key: string;
@@ -10,14 +10,15 @@ interface ShortcutItem {
 }
 
 const SHORTCUTS: ShortcutItem[] = [
-  { key: "1", description: "仪表板", action: "/" },
-  { key: "2", description: "课表", action: "/schedule" },
-  { key: "3", description: "作业", action: "/assignments" },
-  { key: "4", description: "跑步", action: "/running" },
-  { key: "5", description: "笔记", action: "/notes" },
-  { key: "6", description: "图书馆", action: "/library" },
-  { key: "7", description: "AI 助手", action: "/chat" },
-  { key: "0", description: "用户中心", action: "/settings" },
+  { key: "Ctrl+1", description: "仪表板", action: "/" },
+  { key: "Ctrl+2", description: "课表", action: "/schedule" },
+  { key: "Ctrl+3", description: "作业", action: "/assignments" },
+  { key: "Ctrl+4", description: "跑步", action: "/running" },
+  { key: "Ctrl+5", description: "笔记", action: "/notes" },
+  { key: "Ctrl+6", description: "日报", action: "/reports/daily" },
+  { key: "Ctrl+7", description: "屏幕时间", action: "/activity" },
+  { key: "Ctrl+8", description: "统计", action: "/stats" },
+  { key: "Ctrl+K", description: "全局搜索", action: "search" },
   { key: "?", description: "显示快捷键", action: "toggle" },
   { key: "Esc", description: "关闭弹窗", action: "close" },
 ];
@@ -27,7 +28,12 @@ export function KeyboardOverlay() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "?" || (e.key === "/" && !e.ctrlKey && !e.metaKey)) {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const tag = target.tagName.toLowerCase();
+      const isEditing = tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable;
+
+      if ((e.key === "?" || e.key === "slash") && !isEditing && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         setVisible(prev => !prev);
       }

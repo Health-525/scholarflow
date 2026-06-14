@@ -1,8 +1,9 @@
 "use client";
 
-import { useActivityTrackerV3 } from "@/lib/activity-tracker-v3";
 import Link from "next/link";
+
 import { cardClasses } from "@/components/ui/card";
+import { useActivityTrackerV3 } from "@/lib/activity-tracker-v3";
 import { cn } from "@/lib/utils";
 
 export function ScreenTimeCard() {
