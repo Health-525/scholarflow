@@ -2,8 +2,15 @@
 
 import { useEffect, useState } from "react";
 
+import { AssignmentsCard } from "@/components/dashboard/AssignmentsCard";
+import { ExamCountdownCard } from "@/components/dashboard/ExamCountdownCard";
+import { JwcNewsCard } from "@/components/dashboard/JwcNewsCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { SortableDashboard } from "@/components/dashboard/SortableDashboard";
+import { RecentDailyCard } from "@/components/dashboard/RecentDailyCard";
+import { RunningCard } from "@/components/dashboard/RunningCard";
+import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
+import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
+import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
 
 function useGreeting() {
   const [greeting, setGreeting] = useState({
@@ -88,8 +95,50 @@ export default function DashboardPage() {
         <QuickActions />
       </div>
 
-      {/* Sortable Dashboard Sections */}
-      <SortableDashboard />
+      {/* Dashboard Sections */}
+      <section className="space-y-4 animate-fade-up stagger-2">
+        <div className="space-y-2.5">
+          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+            快捷统计
+          </span>
+          <SummaryBanner />
+        </div>
+
+        <div className="space-y-2.5">
+          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+            今日焦点
+          </span>
+          <ScheduleCard />
+        </div>
+
+        <div className="space-y-2.5">
+          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+            任务与健康
+          </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <AssignmentsCard />
+            <RunningCard />
+          </div>
+        </div>
+
+        <div className="space-y-2.5">
+          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+            数据追踪
+          </span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <ScreenTimeCard />
+            <ExamCountdownCard />
+            <RecentDailyCard />
+          </div>
+        </div>
+
+        <div className="space-y-2.5">
+          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+            信息浏览
+          </span>
+          <JwcNewsCard />
+        </div>
+      </section>
     </div>
   );
 }

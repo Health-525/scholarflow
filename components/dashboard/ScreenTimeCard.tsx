@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { cardClasses } from "@/components/ui/card";
 import { useActivityTrackerV3 } from "@/lib/activity-tracker-v3";
@@ -8,6 +9,11 @@ import { cn } from "@/lib/utils";
 
 export function ScreenTimeCard() {
   const state = useActivityTrackerV3();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const activeMins = Math.round(state.totalActiveMs / 60000);
   const idleMins = Math.round((state.idleMs + state.awayMs) / 60000);
   const total = activeMins + idleMins || 1;
@@ -41,7 +47,7 @@ export function ScreenTimeCard() {
             </div>
           )}
 
-          {!state.isElectron && state.categoryBreakdown.length === 0 && (
+          {mounted && !state.isElectron && state.categoryBreakdown.length === 0 && (
             <div className="mt-2 text-[10px] text-muted-foreground">
               需要 Electron 桌面版才能追踪应用
             </div>
