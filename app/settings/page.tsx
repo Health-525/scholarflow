@@ -150,7 +150,7 @@ export default function SettingsPage() {
       </div>
 
       {/* 外观 */}
-      <SettingsSection icon={<currentThemeOption.Icon className="w-4 h-4" />} title="外观">
+      <SettingsSection icon={<Sun className="w-4 h-4" />} title="外观">
         <div className="flex gap-1.5 p-1 rounded-xl bg-secondary">
           {THEME_OPTIONS.map(opt => (
             <button
