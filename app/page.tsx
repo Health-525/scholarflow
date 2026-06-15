@@ -61,79 +61,65 @@ export default function DashboardPage() {
   const { text: greeting, emoji: greetingEmoji, date: dateStr } = useGreeting();
 
   return (
-    <div className="max-w-5xl mx-auto py-5 pb-24 md:pb-10 space-y-4 animate-page">
-      {/* Hero */}
-      <header className="relative overflow-hidden rounded-[28px] px-6 py-5 animate-fade-up">
-        <div className="pointer-events-none absolute inset-0 hidden dark:block" aria-hidden="true">
-          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/8 blur-3xl" />
-        </div>
-
-        <div className="relative flex items-start justify-between gap-4">
+    <div className="mx-auto max-w-5xl py-5 pb-32 md:py-8 md:pb-12 space-y-4 md:space-y-5 animate-page">
+      <header className="animate-fade-up">
+        <div className="flex items-end justify-between gap-4 border-b border-border pb-4 md:pb-5">
           <div className="min-w-0 flex-1" suppressHydrationWarning>
-            <span className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground/70">
+            <span className="text-[12px] font-medium text-muted-foreground">
               {dateStr}
             </span>
-            <h1 className="text-[28px] font-bold leading-tight font-display text-foreground tracking-tight">
-              {greeting}
+            <h1 className="mt-1.5 text-[24px] font-semibold leading-tight font-display text-foreground md:mt-2 md:text-2xl">
+              {greeting}，今天处理什么？
             </h1>
-            <p className="text-[13px] text-muted-foreground mt-1.5">
-              新的一天，从计划开始
-            </p>
           </div>
-
-          <div className="relative shrink-0" suppressHydrationWarning>
-            <div className="absolute inset-0 rounded-full bg-primary/10 blur-2xl dark:bg-primary/12" aria-hidden="true" />
-            <div className="relative flex h-16 w-16 items-center justify-center rounded-[22px] bg-card/75 text-[34px] backdrop-blur-xl shadow-sm dark:bg-[#1a1a20]/60">
-              {greetingEmoji}
-            </div>
+          <div className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-lg md:flex" suppressHydrationWarning>
+            {greetingEmoji}
           </div>
         </div>
       </header>
 
-      {/* Quick Actions */}
       <div className="animate-fade-up stagger-1">
         <QuickActions />
       </div>
 
-      {/* Dashboard Sections */}
-      <section className="space-y-4 animate-fade-up stagger-2">
-        <div className="space-y-2.5">
-          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
-            快捷统计
+      <section className="space-y-4 md:space-y-5 animate-fade-up stagger-2">
+        <div className="space-y-2">
+          <span className="block text-[12px] font-medium text-muted-foreground px-1">
+            概览
           </span>
           <SummaryBanner />
         </div>
 
-        <div className="space-y-2.5">
-          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+        <div className="space-y-2">
+          <span className="block text-[12px] font-medium text-muted-foreground px-1">
             今日焦点
           </span>
           <ScheduleCard />
         </div>
 
-        <div className="space-y-2.5">
-          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+        <div className="space-y-2">
+          <span className="block text-[12px] font-medium text-muted-foreground px-1">
             任务与健康
           </span>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
             <AssignmentsCard />
             <RunningCard />
           </div>
         </div>
 
-        <div className="space-y-2.5">
-          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+        <div className="space-y-2">
+          <span className="block text-[12px] font-medium text-muted-foreground px-1">
             数据追踪
           </span>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
             <ScreenTimeCard />
             <ExamCountdownCard />
             <RecentDailyCard />
           </div>
         </div>
 
-        <div className="space-y-2.5">
-          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+        <div className="space-y-2">
+          <span className="block text-[12px] font-medium text-muted-foreground px-1">
             信息浏览
           </span>
           <JwcNewsCard />

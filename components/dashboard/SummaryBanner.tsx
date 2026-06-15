@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 
 import { cardClasses } from "@/components/ui/card";
 import { useGitHubClient } from "@/hooks/useGitHubClient";
-import { gpaColor, gpaColorClasses } from "@/lib/gpa";
+import { gpaColorClasses } from "@/lib/gpa";
 import { cn } from "@/lib/utils";
 
 interface DashboardSummary {
@@ -47,7 +47,7 @@ function AnimatedNumber({ value, duration = 800 }: { value: number | string; dur
   return <span className="tabular-nums">{decimals > 0 ? display.toFixed(decimals) : display}</span>;
 }
 
-function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge, badgeClass, sub }: {
+function StatMiniCard({ icon: Icon, label, value, colorClass, badge, badgeClass, sub }: {
   icon: typeof BookOpen;
   label: string;
   value: number | string;
@@ -58,14 +58,13 @@ function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge
   sub: string;
 }) {
   return (
-    <div className={cn(cardClasses, "p-3 hover:-translate-y-1")}>
-      <div className={`absolute -right-3 -top-3 w-20 h-20 rounded-full pointer-events-none opacity-[0.04] dark:opacity-[0.08] group-hover:opacity-[0.08] dark:group-hover:opacity-[0.14] transition-opacity duration-300 ${iconBgClass}`} />
+    <div className={cn(cardClasses, "p-3")}>
       <div className="relative">
-        <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 transition-transform duration-200 group-hover:scale-110 ${iconBgClass}`}>
-          <Icon size={15} className={colorClass} />
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2.5 bg-secondary text-muted-foreground">
+          <Icon size={15} />
         </div>
         <div className="text-[11px] mb-0.5 text-muted-foreground font-medium">{label}</div>
-        <div className={`text-[22px] font-bold tabular-nums leading-none ${colorClass}`}>
+        <div className="text-[22px] font-semibold tabular-nums leading-none text-foreground">
           <AnimatedNumber value={value} />
         </div>
         {badge && (
@@ -73,7 +72,7 @@ function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge
             {badge}
           </span>
         )}
-        <div className="text-[10px] text-muted-foreground mt-1">{sub}</div>
+        <div className={cn("text-[10px] text-muted-foreground mt-1", badge && colorClass)}>{sub}</div>
       </div>
     </div>
   );
@@ -99,10 +98,10 @@ export function SummaryBanner() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
         {[1,2,3,4].map(i => (
-          <div key={i} className={cn(cardClasses, "p-4 hover:translate-y-0 hover:shadow-sm")}>
-            <div className="skeleton w-8 h-8 rounded-xl mb-2" />
+          <div key={i} className={cn(cardClasses, "p-4")}>
+            <div className="skeleton w-8 h-8 rounded-lg mb-2" />
             <div className="skeleton w-12 h-3 rounded mb-1.5" />
             <div className="skeleton w-16 h-7 rounded" />
           </div>
@@ -119,14 +118,14 @@ export function SummaryBanner() {
       { icon: Calculator, label: "绩点", colorClass: "text-indigo-800 dark:text-indigo-400", iconBgClass: "bg-indigo-500/[0.07] dark:bg-indigo-400/10" },
     ];
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
         {fallbackItems.map((item, i) => (
-          <div key={i} className={cn(cardClasses, "p-4 hover:translate-y-0 hover:shadow-sm")}>
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 ${item.iconBgClass}`}>
-              <item.icon size={15} className={item.colorClass} />
+          <div key={i} className={cn(cardClasses, "p-4")}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2.5 bg-secondary text-muted-foreground">
+              <item.icon size={15} />
             </div>
             <div className="text-[11px] mb-0.5 text-muted-foreground font-medium">{item.label}</div>
-            <div className="text-[22px] font-bold tabular-nums text-muted-foreground leading-none">--</div>
+            <div className="text-[22px] font-semibold tabular-nums text-muted-foreground leading-none">--</div>
           </div>
         ))}
       </div>
@@ -174,7 +173,7 @@ export function SummaryBanner() {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3">
       {items.map((item, i) => (
         <StatMiniCard key={i} {...item} />
       ))}

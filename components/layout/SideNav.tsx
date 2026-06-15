@@ -40,16 +40,16 @@ function NavItem({ href, label, Icon }: { href: string; label: string; Icon: typ
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={[
-        "group relative flex items-center gap-3.5 rounded-xl px-4 py-2.5 text-[14px] font-medium transition-all duration-200",
+        "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-150",
         active
-          ? "bg-primary/8 text-primary dark:bg-primary/[0.12] dark:text-white"
-          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground dark:hover:bg-primary/[0.04]",
+          ? "bg-secondary text-foreground"
+          : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground",
       ].join(" ")}
     >
       {active && (
-        <span className="absolute inset-y-1.5 left-1.5 w-[3px] rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary-rgb),0.35)] dark:bg-accent dark:shadow-[0_0_10px_rgba(141,168,255,0.4)]" aria-hidden="true" />
+        <span className="absolute inset-y-2 left-1 w-[2px] rounded-full bg-foreground/70" aria-hidden="true" />
       )}
-      <Icon className="h-5 w-5 shrink-0" />
+      <Icon className="h-4 w-4 shrink-0" strokeWidth={active ? 2.1 : 1.8} />
       <span>{label}</span>
     </Link>
   );
@@ -58,29 +58,29 @@ function NavItem({ href, label, Icon }: { href: string; label: string; Icon: typ
 export function SideNav() {
   return (
     <aside
-      className="hidden md:flex flex-col w-56 shrink-0 h-screen sticky top-0 border-r border-border bg-card/80 backdrop-blur-2xl dark:bg-[#07070b]/97 dark:border-r-transparent dark:shadow-[4px_0_20px_rgba(0,0,0,0.25)]"
+      className="hidden md:flex flex-col w-56 shrink-0 h-screen sticky top-0 border-r border-border bg-sidebar"
       aria-label="主导航"
     >
       {/* Logo */}
-      <div className="px-5 pt-5 pb-3" style={{ WebkitAppRegion: "drag" } as React.CSSProperties}>
+      <div className="px-4 pt-4 pb-3" style={{ WebkitAppRegion: "drag" } as React.CSSProperties}>
         <div className="flex items-center gap-2.5" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
           <Image
             src="/icons/logo.png"
             alt="ScholarFlow"
             width={28}
             height={28}
-            className="rounded-lg shrink-0"
+            className="rounded-md shrink-0"
             style={{ objectFit: "cover" }}
           />
-          <span className="font-display text-[17px] font-semibold tracking-tight text-foreground">
+          <span className="font-display text-[15px] font-semibold text-foreground">
             ScholarFlow
           </span>
         </div>
       </div>
 
       {/* Navigation — flat list */}
-      <nav className="flex-1 px-4 overflow-y-auto" role="navigation">
-        <div className="space-y-1">
+      <nav className="flex-1 px-3 overflow-y-auto" role="navigation">
+        <div className="space-y-0.5">
           {PRIMARY_ITEMS.map((item) => (
             <NavItem key={item.href} {...item} />
           ))}
@@ -88,7 +88,7 @@ export function SideNav() {
       </nav>
 
       {/* Settings */}
-      <div className="px-4 py-3 border-t border-border">
+      <div className="px-3 py-3 border-t border-border">
         <NavItem href="/settings" label="用户中心" Icon={Settings} />
       </div>
     </aside>

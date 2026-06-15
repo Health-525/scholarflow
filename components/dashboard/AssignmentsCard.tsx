@@ -44,15 +44,15 @@ export function AssignmentsCard() {
           </Link>
         </div>
 
-        {isLoading && (
+        {(!mounted || isLoading) && (
           <div className="space-y-2">
             {[1,2,3].map(i => <div key={i} className="skeleton h-8 rounded-xl" />)}
           </div>
         )}
 
-        {error && !isLoading && <ErrorFallback message={error.message} onRetry={reload} />}
+        {mounted && error && !isLoading && <ErrorFallback message={error.message} onRetry={reload} />}
 
-        {!isLoading && !error && (
+        {mounted && !isLoading && !error && (
           pending.length === 0 ? (
             <div className="py-4 flex items-center justify-center gap-2">
               <span className="text-lg">✨</span>
