@@ -51,12 +51,28 @@ export async function loginJwgl(
     body: `csrftoken=${encodeURIComponent(csrf)}&yhm=${username}&mm=${encodeURIComponent(ep)}&language=zh_CN`,
   });
 
-  if (loginResp.status !== 200 && loginResp.status !== 302) {
-    throw new Error(`登录失败 (HTTP ${loginResp.status})`);
+  // 正方教务系统登录失败时仍返回 200，但响应体包含错误信息
+  // 成功登录会重定向到主页，或返回包含用户信息的页面
+  const body = loginResp.body || "";
+
+  // 检查是否登录失败 — 正方系统失败时页面仍包含登录表单或错误提示
+  if (body.includes("用户名或密码不正确") || body.includes("密码错误") || body.includes("验证码错误")) {
+    throw new Error("学号或密码不正确");
+  }
+
+  // 如果响应体仍然包含登录表单的 CSRF token，说明没有成功跳转
+  if (body.includes("csrftoken") && body.length > 500) {
+    throw new Error("登录失败，请检查学号和密码");
+  }
+
+  // 检查 cookie 是否包含 JSESSIONID — 登录成功的标志
+  const cookie = client.getCookie();
+  if (!cookie || !cookie.includes("JSESSIONID")) {
+    throw new Error("登录失败：未获取到有效会话");
   }
 
   return {
-    cookie: client.getCookie(),
+    cookie,
     username,
   };
 }
@@ -71,19 +87,34 @@ export async function fetchSchedule(
   const client = createClientWithCookie(BASE, cookie);
 
   const now = new Date();
-  const year = xnm ?? (now.getMonth() >= 9 ? now.getFullYear() : now.getFullYear() - 1);
-  const semester = xqm ?? ((now.getMonth() >= 9 || now.getMonth() <= 1) ? 3 : 12);
+  // NJTECH 正方教务系统学年/学期参数：
+  // 第一学期(秋季): xqm=3, 学年=当年 (如 2025-2026 秋 → xnm=2025)
+  // 第二学期(春季): xqm=12, 学年=当年 (如 2025-2026 春 → xnm=2025)
+  // 9月-1月 → 第一学期, 2月-8月 → 第二学期
+  const month = now.getMonth(); // 0-based: Jan=0, Jun=5, Sep=8
+  const isFirstSemester = month >= 8 || month <= 1; // Sep-Jan
+  const year = xnm ?? now.getFullYear();
+  const semester = xqm ?? (isFirstSemester ? 3 : 12);
 
   const resp = await client.req("/kbcx/xskbcx_cxXsKb.html?gnmkdm=N253508", {
     method: "POST",
     body: `xnm=${year}&xqm=${semester}`,
   });
 
-  if (resp.body.length < 100) return [];
+  console.log(`[NJTECH] fetchSchedule: xnm=${year}, xqm=${semester}, status=${resp.status}, bodyLen=${resp.body?.length || 0}`);
+
+  if (!resp.body || resp.body.length < 10) {
+    console.log(`[NJTECH] fetchSchedule: empty response, returning []`);
+    return [];
+  }
 
   try {
     const data = JSON.parse(resp.body);
     const kbList = data?.kbList || [];
+    console.log(`[NJTECH] fetchSchedule: got ${kbList.length} courses`);
+    if (kbList.length === 0) {
+      console.log(`[NJTECH] fetchSchedule: raw response keys:`, Object.keys(data || {}));
+    }
     return kbList.map((item: Record<string, unknown>) => ({
       title: (item.kcmc as string) || "",
       weekday: parseInt(item.xqj as string) || 0,
