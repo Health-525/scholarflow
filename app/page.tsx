@@ -50,13 +50,33 @@ function useGreeting() {
   return greeting;
 }
 
+function useHeroStats() {
+  const [stats, setStats] = useState<{ courses: number; assignments: number; running: string } | null>(null);
+  useEffect(() => {
+    fetch("/api/local-data?type=dashboard")
+      .then(r => r.json())
+      .then(d => {
+        if (d?.overview) {
+          setStats({
+            courses: d.overview.courses ?? 0,
+            assignments: d.overview.pendingAssignments ?? 0,
+            running: `${d.overview.running?.total ?? 0}/50`,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+  return stats;
+}
+
 export default function DashboardPage() {
   const { text: greeting, emoji: greetingEmoji, date: dateStr } = useGreeting();
+  const heroStats = useHeroStats();
 
   return (
     <div className="max-w-[1280px] mx-auto py-5 pb-24 md:pb-10 space-y-6 animate-page">
       {/* Hero */}
-      <header className="relative overflow-hidden rounded-[28px] px-6 py-4 bg-gradient-to-br from-[#EEF0FF] to-[#F8F5FF] dark:from-primary/[0.08] dark:to-primary/[0.03] shadow-sm animate-fade-up">
+      <header className="relative overflow-hidden rounded-[28px] px-6 py-4 bg-gradient-to-br from-[#E8EAFF] to-[#F5F3FF] dark:from-primary/[0.08] dark:to-primary/[0.03] shadow-sm animate-fade-up">
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/8 blur-3xl" />
         </div>
@@ -69,6 +89,13 @@ export default function DashboardPage() {
             <p className="text-[13px] text-muted-foreground mt-1">
               {dateStr} · 新的一天，从计划开始
             </p>
+            {heroStats && (
+              <p className="text-[12px] text-muted-foreground/60 mt-1.5 flex items-center gap-3">
+                <span>课程 {heroStats.courses}</span>
+                <span>作业 {heroStats.assignments}</span>
+                <span>跑步 {heroStats.running}</span>
+              </p>
+            )}
           </div>
 
           <div className="relative shrink-0 flex items-center gap-3" suppressHydrationWarning>

@@ -46,7 +46,7 @@ export function ScheduleCard() {
             </div>
             <h2 className="text-[13px] font-semibold tracking-wide font-display text-foreground">今日课表</h2>
           </div>
-          <Link href="/schedule" className="text-[11px] tracking-wide text-primary hover:opacity-70 transition-opacity">
+          <Link href="/schedule" className="text-[11px] tracking-wide text-[#7C89A3] hover:text-[#4F46E5] transition-colors">
             查看全部 →
           </Link>
         </div>
@@ -102,7 +102,7 @@ export function ScheduleCard() {
                     key={idx}
                     className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all duration-200 hover:shadow-sm ${pal.row}`}
                   >
-                    <span className={`w-[4px] h-8 rounded-full shrink-0 ${pal.dot}`} />
+                    <span className={`w-[3px] h-8 rounded-[999px] shrink-0 ${pal.dot}`} />
                     <span className={`text-[12.5px] font-medium flex-1 truncate ${pal.accent}`}>{item.title}</span>
                     {item.timeText && (
                       <span className="text-[11px] shrink-0 tabular-nums text-muted-foreground">{item.timeText}</span>

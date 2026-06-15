@@ -39,7 +39,7 @@ function NavItem({ href, label, Icon }: { href: string; label: string; Icon: typ
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={[
-        "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-150 cursor-pointer",
+        "group flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 cursor-pointer",
         active
           ? "bg-[#F1F4FF] text-[#2a4494] dark:bg-primary/[0.12] dark:text-white"
           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
@@ -78,8 +78,8 @@ export function SideNav() {
       {/* Brand — 拖拽区域 */}
       <div className="px-6 pt-6 pb-4" style={{ WebkitAppRegion: "drag" } as React.CSSProperties}>
         <div className="flex items-center gap-2.5" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
-          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-            <span className="font-display text-[14px] font-bold text-primary">S</span>
+          <div className="w-[32px] h-[32px] rounded-xl bg-primary/10 flex items-center justify-center">
+            <span className="font-display text-[15px] font-bold text-primary">S</span>
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="font-display text-[18px] font-semibold text-primary tracking-tight">
