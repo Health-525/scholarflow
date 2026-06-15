@@ -4,7 +4,6 @@ import { BookOpen, ClipboardList, Activity, Calculator } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 
 import { cardClasses } from "@/components/ui/card";
-import { useGitHubClient } from "@/hooks/useGitHubClient";
 import { gpaColor, gpaColorClasses } from "@/lib/gpa";
 import { cn } from "@/lib/utils";
 
@@ -80,7 +79,6 @@ function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge
 }
 
 export function SummaryBanner() {
-  const client = useGitHubClient();
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -88,14 +86,8 @@ export function SummaryBanner() {
     fetch("/api/local-data?type=dashboard")
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false); })
-      .catch(() => {
-        if (client) {
-          client.getFile("execution", "_out/dashboard-summary.json")
-            .then(f => { setData(JSON.parse(f.content)); setLoading(false); })
-            .catch(() => setLoading(false));
-        } else setLoading(false);
-      });
-  }, [client]);
+      .catch(() => setLoading(false));
+  }, []);
 
   if (loading) {
     return (
