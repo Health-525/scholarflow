@@ -71,7 +71,9 @@ export default function ClientShell({ children }: ClientShellProps) {
   // Route guard — redirect to /setup if not authenticated
   useEffect(() => {
     if (isRestoring) return;
-    if (!isAuthenticated && !PUBLIC_PATHS.includes(pathname)) return; // already on setup page
+    // Already on a public path — no redirect needed
+    if (PUBLIC_PATHS.includes(pathname)) return;
+    // Not authenticated and on a protected path — redirect to setup
     if (!isAuthenticated) {
       router.replace("/setup");
     }
