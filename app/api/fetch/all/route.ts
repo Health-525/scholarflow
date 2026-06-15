@@ -30,6 +30,8 @@ export async function POST(request: Request) {
     const userId = username || "default";
     const savedCreds = db.getCredentials(schoolId, userId);
 
+    console.log(`[fetch/all] savedCreds:`, JSON.stringify(savedCreds));
+
     if (!savedCreds) {
       return NextResponse.json({ error: "凭证已过期或不存在，请重新登录" }, { status: 401 });
     }
@@ -44,7 +46,10 @@ export async function POST(request: Request) {
 
     // 课表 — 加上 meta 字段（前端需要 week1_monday 和 tz）
     try {
+      console.log(`[fetch/all] credentials.data keys:`, Object.keys(savedCreds));
+      console.log(`[fetch/all] cookie present:`, !!savedCreds.cookie, `username:`, savedCreds.username);
       const courses = await adapter.fetchSchedule(credentials);
+      console.log(`[fetch/all] fetchSchedule returned ${courses.length} courses`);
       // 计算 week1_monday：NJTECH 2025-2026 学年第二学期，开学日期 2026-02-16（周一）
       // TODO: 后续从学校配置或用户设置中获取
       const week1Monday = "2026-02-16";

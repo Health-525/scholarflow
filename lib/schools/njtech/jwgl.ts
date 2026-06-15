@@ -88,12 +88,16 @@ export async function fetchSchedule(
 
   const now = new Date();
   // NJTECH 正方教务系统学年/学期参数：
-  // 第一学期(秋季): xqm=3, 学年=当年 (如 2025-2026 秋 → xnm=2025)
-  // 第二学期(春季): xqm=12, 学年=当年 (如 2025-2026 春 → xnm=2025)
-  // 9月-1月 → 第一学期, 2月-8月 → 第二学期
+  // xnm = 学年起始年份（如 2025-2026 学年 → xnm=2025）
+  // 第一学期(秋季): xqm=3, 9月-1月
+  // 第二学期(春季): xqm=12, 2月-8月
   const month = now.getMonth(); // 0-based: Jan=0, Jun=5, Sep=8
   const isFirstSemester = month >= 8 || month <= 1; // Sep-Jan
-  const year = xnm ?? now.getFullYear();
+  // 第二学期（2-8月）属于上一学年，所以 xnm = 当前年份 - 1
+  // 第一学期（9-1月）属于当前学年，xnm = 当前年份（9月后）或 当前年份-1（1月前）
+  const year = xnm ?? (isFirstSemester
+    ? (month >= 8 ? now.getFullYear() : now.getFullYear() - 1)
+    : now.getFullYear() - 1);
   const semester = xqm ?? (isFirstSemester ? 3 : 12);
 
   const resp = await client.req("/kbcx/xskbcx_cxXsKb.html?gnmkdm=N253508", {
@@ -111,22 +115,93 @@ export async function fetchSchedule(
   try {
     const data = JSON.parse(resp.body);
     const kbList = data?.kbList || [];
-    console.log(`[NJTECH] fetchSchedule: got ${kbList.length} courses`);
-    if (kbList.length === 0) {
-      console.log(`[NJTECH] fetchSchedule: raw response keys:`, Object.keys(data || {}));
+    console.log(`[NJTECH] fetchSchedule: got ${kbList.length} courses from JWGL`);
+
+    if (kbList.length > 0) {
+      return kbList.map((item: Record<string, unknown>) => ({
+        title: (item.kcmc as string) || "",
+        weekday: parseInt(item.xqj as string) || 0,
+        periods: parsePeriods(item.cdmc as string),
+        weeks: (item.zcd as string) || "",
+        location: (item.xqmc as string) || (item.cdmc as string) || "",
+        teacher: (item.xm as string) || "",
+        ...item,
+      }));
     }
-    return kbList.map((item: Record<string, unknown>) => ({
-      title: (item.kcmc as string) || "",
-      weekday: parseInt(item.xqj as string) || 0,
-      periods: parsePeriods(item.cdmc as string),
-      weeks: (item.zcd as string) || "",
-      location: (item.xqmc as string) || (item.cdmc as string) || "",
-      teacher: (item.xm as string) || "",
-      ...item,
-    }));
+
+    // JWGL 返回空课表（学期末常见）→ 从考试数据反向生成课表
+    console.log(`[NJTECH] fetchSchedule: JWGL returned 0 courses, falling back to exam data`);
+    const examCourses = await buildScheduleFromExams(cookie, year, semester);
+    console.log(`[NJTECH] fetchSchedule: built ${examCourses.length} courses from exam data`);
+    return examCourses;
   } catch {
     return [];
   }
+}
+
+/**
+ * 从考试数据的 sksj（上课时间）字段反向生成课表
+ * sksj 格式: "星期一第5-6节{2-17周};星期四第5-6节{2-17周}"
+ */
+async function buildScheduleFromExams(
+  cookie: string,
+  year: number,
+  semester: number
+): Promise<CourseData[]> {
+  const exams = await fetchExams(cookie, year, semester);
+  if (!exams.length) return [];
+
+  const courses: CourseData[] = [];
+  const seen = new Set<string>();
+
+  for (const exam of exams) {
+    const title = exam.subject || (exam as Record<string, unknown>).kcmc as string || "";
+    if (!title || seen.has(title)) continue;
+    seen.add(title);
+
+    const sksj = ((exam as Record<string, unknown>).sksj as string) || "";
+    if (!sksj) continue;
+
+    // 解析 sksj: "星期一第5-6节{2-17周};星期四第5-6节{2-17周}"
+    const segments = sksj.split(";").filter(Boolean);
+
+    for (const seg of segments) {
+      const weekdayMatch = seg.match(/星期([一二三四五六日天])/);
+      const periodMatch = seg.match(/第(\d+)-?(\d+)?节/);
+      const weeksMatch = seg.match(/\{(\d+)-(\d+)周\}/);
+
+      if (!weekdayMatch) continue;
+
+      const weekdayMap: Record<string, number> = {
+        "一": 1, "二": 2, "三": 3, "四": 4,
+        "五": 5, "六": 6, "日": 7, "天": 7,
+      };
+      const weekday = weekdayMap[weekdayMatch[1]] || 0;
+
+      const startPeriod = periodMatch ? parseInt(periodMatch[1]) : 0;
+      const endPeriod = periodMatch?.[2] ? parseInt(periodMatch[2]) : startPeriod;
+      const periods: number[] = [];
+      for (let i = startPeriod; i <= endPeriod; i++) periods.push(i);
+
+      const weeks = weeksMatch ? `${weeksMatch[1]}-${weeksMatch[2]}` : "";
+
+      const teacher = ((exam as Record<string, unknown>).jsxx as string) || "";
+      const teacherName = teacher.split("/").pop() || teacher;
+
+      const location = ((exam as Record<string, unknown>).cdmc as string) || "";
+
+      courses.push({
+        title,
+        weekday,
+        periods,
+        weeks,
+        location,
+        teacher: teacherName,
+      });
+    }
+  }
+
+  return courses;
 }
 
 function parsePeriods(cdmc: string): number[] {
@@ -151,8 +226,12 @@ export async function fetchExams(
   const client = createClientWithCookie(BASE, cookie);
 
   const now = new Date();
-  const year = xnm ?? (now.getMonth() >= 9 ? now.getFullYear() : now.getFullYear() - 1);
-  const semester = xqm ?? ((now.getMonth() >= 9 || now.getMonth() <= 1) ? 3 : 12);
+  const month = now.getMonth();
+  const isFirstSemester = month >= 8 || month <= 1;
+  const year = xnm ?? (isFirstSemester
+    ? (month >= 8 ? now.getFullYear() : now.getFullYear() - 1)
+    : now.getFullYear() - 1);
+  const semester = xqm ?? (isFirstSemester ? 3 : 12);
 
   const resp = await client.req(
     "/kwgl/kscx_cxXsksxxIndex.html?doType=query&gnmkdm=N358105",
@@ -188,8 +267,12 @@ export async function fetchCurrentGrades(
   const client = createClientWithCookie(BASE, cookie);
 
   const now = new Date();
-  const year = xnm ?? (now.getMonth() >= 9 ? now.getFullYear() : now.getFullYear() - 1);
-  const semester = xqm ?? ((now.getMonth() >= 9 || now.getMonth() <= 1) ? 3 : 12);
+  const month = now.getMonth();
+  const isFirstSemester = month >= 8 || month <= 1;
+  const year = xnm ?? (isFirstSemester
+    ? (month >= 8 ? now.getFullYear() : now.getFullYear() - 1)
+    : now.getFullYear() - 1);
+  const semester = xqm ?? (isFirstSemester ? 3 : 12);
 
   const resp = await client.req(
     "/cjcx/cjcx_cxDgXscj.html?doType=query&gnmkdm=N305005",
