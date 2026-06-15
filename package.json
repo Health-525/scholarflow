@@ -43,13 +43,15 @@
     "asar": true,
     "asarUnpack": [
       ".next/standalone/**/*",
-      "public/**/*"
+      "public/**/*",
+      "node_modules/better-sqlite3/**/*"
     ],
     "files": [
       "electron/**/*",
       ".next/standalone/**/*",
       "public/**/*",
       "package.json",
+      "node_modules/better-sqlite3/**/*",
       "!**/*.map"
     ],
     "win": {
