@@ -3,16 +3,15 @@
 import {
   Sun, Moon, Monitor, LogOut, ChevronRight,
   Calendar, ClipboardList, Activity, Database,
-  BarChart3, Trash2, Download, CloudDownload, CloudUpload,
+  BarChart3, Trash2, Download, RefreshCw,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SettingsSection } from "@/components/ui/settings-section";
-import { useScheduleQuery, useAssignmentsQuery, useRunningQuery, useSyncFromGitHub, useSyncToGitHub } from "@/hooks/useQueries";
+import { useScheduleQuery, useAssignmentsQuery, useRunningQuery, useRefreshData } from "@/hooks/useQueries";
 import { downloadActivityCSV, clearActivityData } from "@/lib/activity-tracker-v3";
-import { getDB } from "@/lib/db";
 import { exportAssignmentsCSV, exportRunningCSV, buildWeekICS, downloadICS } from "@/lib/export";
 import { useAuthStore } from "@/store/auth";
 import { useThemeStore } from "@/store/theme";
@@ -34,25 +33,20 @@ interface StudentInfo {
 export default function SettingsPage() {
   const router = useRouter();
   const { theme, setTheme } = useThemeStore();
-  const token = useAuthStore((s) => s.token);
-  const clearToken = useAuthStore((s) => s.clearToken);
+  const { schoolId, username, clearToken } = useAuthStore((s) => s);
   const { data: scheduleData } = useScheduleQuery();
   const { assignments } = useAssignmentsQuery();
   const { records } = useRunningQuery();
-  const [cacheSize, setCacheSize] = useState<number | null>(null);
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [syncMessage, setSyncMessage] = useState<string | null>(null);
-  const [historyMessage, setHistoryMessage] = useState<string | null>(null);
+  const [fetchMessage, setFetchMessage] = useState<string | null>(null);
 
-  const syncFromGitHub = useSyncFromGitHub();
-  const syncToGitHub = useSyncToGitHub();
+  const refreshData = useRefreshData();
 
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     if (mounted) {
-      getDB().cachedFiles.count().then(n => setCacheSize(n)).catch(() => setCacheSize(0));
       fetch("/api/local-data?type=student")
         .then(r => r.json())
         .then(d => { if (d?.studentId) setStudentInfo(d); })
@@ -73,8 +67,30 @@ export default function SettingsPage() {
     downloadICS(ics, `schedule-${new Date().toISOString().slice(0, 10)}.ics`);
   }
 
-  const currentThemeOption = THEME_OPTIONS.find(t => t.value === theme) || THEME_OPTIONS[2];
-  const avatarLetter = studentInfo?.studentId ? studentInfo.studentId[0] : "?";
+  const handleRefreshFromSchool = async () => {
+    if (!schoolId || !username) {
+      setFetchMessage("请先登录学校账号");
+      return;
+    }
+    setFetchMessage(null);
+    try {
+      // Get cookie from auth store or session
+      const sessionRes = await fetch("/api/auth/session");
+      const sessionData = await sessionRes.json();
+      const cookie = sessionData?.cookie || "";
+
+      const result = await refreshData.mutateAsync({ schoolId, cookie, username });
+      if (result.success) {
+        setFetchMessage(`数据刷新成功：${result.fetched?.join("、") || "全部"}`);
+      } else {
+        setFetchMessage(`刷新失败：${result.error || "未知错误"}`);
+      }
+    } catch (e) {
+      setFetchMessage(`刷新失败：${e instanceof Error ? e.message : "未知错误"}`);
+    }
+  };
+
+  const avatarLetter = studentInfo?.studentId ? studentInfo.studentId[0] : username ? username[0] : "?";
 
   return (
     <div className="pb-20 md:pb-0 max-w-lg mx-auto animate-page">
@@ -106,7 +122,7 @@ export default function SettingsPage() {
               </>
             ) : (
               <>
-                <div className="text-[16px] font-semibold text-foreground">ScholarFlow 用户</div>
+                <div className="text-[16px] font-semibold text-foreground">{username || "ScholarFlow 用户"}</div>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
                   <span className="text-[12px] text-muted-foreground">未同步教务系统</span>
@@ -153,6 +169,31 @@ export default function SettingsPage() {
         </div>
       </SettingsSection>
 
+      {/* 数据刷新 */}
+      <SettingsSection icon={<RefreshCw className="w-4 h-4" />} title="数据刷新">
+        <p className="text-[11px] mb-3 text-muted-foreground">
+          从学校教务系统重新抓取课表、成绩、考试等数据
+        </p>
+        {fetchMessage && (
+          <div className={`mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line ${
+            fetchMessage.includes("失败") || fetchMessage.includes("错误") ? "bg-red-500/8 text-red-500" : "bg-green-500/8 text-green-600"
+          }`}>
+            {fetchMessage}
+          </div>
+        )}
+        <button
+          onClick={handleRefreshFromSchool}
+          disabled={refreshData.isPending}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
+            refreshData.isPending ? "bg-secondary text-muted-foreground opacity-60" : "bg-primary/10 text-primary"
+          }`}
+        >
+          <RefreshCw className={`w-4 h-4 shrink-0 ${refreshData.isPending ? "animate-spin" : ""}`} />
+          <span className="text-[13px] font-medium">{refreshData.isPending ? "刷新中..." : "从教务系统刷新数据"}</span>
+          <span className="text-[10px] ml-auto text-muted-foreground">课表 · 成绩 · 考试</span>
+        </button>
+      </SettingsSection>
+
       {/* 数据导出 */}
       <SettingsSection icon={<Download className="w-4 h-4" />} title="数据导出">
         <MenuItem icon={Calendar} label="导出课表 (ICS)" onClick={handleExportICS} disabled={!scheduleData?.schedule} />
@@ -162,120 +203,27 @@ export default function SettingsPage() {
         <MenuItem icon={Trash2} label="清除屏幕时间数据" onClick={() => { if (confirm("确定清除？")) clearActivityData(); }} danger last />
       </SettingsSection>
 
-      {/* GitHub 同步 */}
-      <SettingsSection
-        icon={<GitHubIcon />}
-        title="GitHub 同步"
-        badge={token ? <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-600">已连接</span> : undefined}
-      >
-        <p className="text-[11px] mb-3 text-muted-foreground">
-          {token ? "数据默认保存本地，可手动从 GitHub 导入或同步到 GitHub" : "配置 GitHub Token 后可使用云端同步功能"}
-        </p>
-        {syncMessage && (
-          <div className={`mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line ${
-            syncMessage.includes("失败") || syncMessage.includes("错误") ? "bg-red-500/8 text-red-500" : "bg-green-500/8 text-green-600"
-          }`}>
-            {syncMessage}
-          </div>
-        )}
-        <div className="space-y-2">
-          <SyncButton
-            icon={CloudDownload}
-            label={syncFromGitHub.isPending ? "导入中..." : "从 GitHub 导入数据"}
-            sub="课表 · 作业 · 跑步"
-            disabled={!token || syncFromGitHub.isPending}
-            onClick={async () => {
-              if (!token) { setSyncMessage("请先在登录页配置 GitHub Token"); return; }
-              setSyncMessage(null);
-              try {
-                const result = await syncFromGitHub.mutateAsync(["schedule", "assignments", "running"]);
-                if (result.imported.length > 0) {
-                  const lines = result.imported.map(t => result.details[t]).filter(Boolean);
-                  setSyncMessage(lines.length > 0 ? lines.join("\n") : `导入成功：${result.imported.join("、")}`);
-                } else {
-                  setSyncMessage(result.errors.length ? `导入失败：${result.errors.join("、")}` : "无新数据");
-                }
-              } catch (e) {
-                setSyncMessage(`导入失败：${e instanceof Error ? e.message : "未知错误"}`);
-              }
-            }}
-          />
-          <SyncButton
-            icon={CloudUpload}
-            label={syncToGitHub.isPending ? "同步中..." : "同步到 GitHub"}
-            sub="课表 · 作业 · 跑步"
-            disabled={!token || syncToGitHub.isPending}
-            onClick={async () => {
-              if (!token) { setSyncMessage("请先在登录页配置 GitHub Token"); return; }
-              setSyncMessage(null);
-              try {
-                const result = await syncToGitHub.mutateAsync(["schedule", "assignments", "running"]);
-                if (result.pushed.length > 0) {
-                  setSyncMessage(`同步成功：${result.pushed.join("、")}${result.errors.length ? `；失败：${result.errors.join("、")}` : ""}`);
-                } else {
-                  setSyncMessage(result.errors.length ? `同步失败：${result.errors.join("、")}` : "无数据可同步");
-                }
-              } catch (e) {
-                setSyncMessage(`同步失败：${e instanceof Error ? e.message : "未知错误"}`);
-              }
-            }}
-          />
-        </div>
-      </SettingsSection>
-
-      {/* 缓存与存储 */}
-      <SettingsSection icon={<Database className="w-4 h-4" />} title="缓存与存储">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[12px] text-muted-foreground">
-            IndexedDB: <span className="font-semibold tabular-nums">{cacheSize === null ? "--" : cacheSize}</span> 文件
-          </span>
-          <div className="flex gap-1.5">
-            <button onClick={() => getDB().cachedFiles.count().then(n => setCacheSize(n)).catch(() => {})} className="text-[11px] px-2.5 py-1 rounded-lg font-medium bg-primary/10 text-primary">刷新</button>
-            <button onClick={() => { getDB().cachedFiles.clear(); getDB().mutationsQueue.clear(); setCacheSize(0); }} className="text-[11px] px-2.5 py-1 rounded-lg font-medium bg-red-500/8 text-red-500">清除</button>
-          </div>
-        </div>
-        <div className="space-y-1.5 text-[11px] pt-3 border-t border-border">
-          <InfoRow label="Token" value="安全加密存储" />
-          <InfoRow label="课表/作业/跑步" value="本地优先，自动 Git 版本管理" />
+      {/* 存储信息 */}
+      <SettingsSection icon={<Database className="w-4 h-4" />} title="存储信息">
+        <div className="space-y-1.5 text-[11px]">
+          <InfoRow label="数据存储" value="SQLite 本地数据库" />
+          <InfoRow label="课表/作业/跑步" value="本地优先，自动持久化" />
           <InfoRow label="考试/主题/目标" value="localStorage" />
+          <InfoRow label="学校凭证" value="安全加密存储" />
         </div>
-      </SettingsSection>
-
-      {/* 版本历史 */}
-      <SettingsSection icon={<Database className="w-4 h-4" />} title="版本历史">
-        <p className="text-[11px] mb-3 text-muted-foreground">
-          每次数据变更自动生成 Git 提交记录，可在 timetable 目录用 git log 回溯
-        </p>
-        {historyMessage && (
-          <div className="mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line bg-secondary text-foreground max-h-48 overflow-y-auto">
-            {historyMessage}
-          </div>
-        )}
-        <button
-          onClick={async () => {
-            try {
-              const res = await fetch("/api/local-save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "view-history" }) });
-              const data = await res.json();
-              if (data.history) setHistoryMessage(data.history);
-            } catch { setHistoryMessage("获取历史失败"); }
-          }}
-          className="text-[11px] px-3 py-1.5 rounded-lg font-medium bg-primary/10 text-primary"
-        >
-          查看最近记录
-        </button>
       </SettingsSection>
 
       {/* 关于 */}
-      <SettingsSection icon={<GitHubIcon />} title="关于">
+      <SettingsSection icon={<SchoolIcon />} title="关于">
         <div className="text-center">
           <div className="text-[14px] font-semibold mb-1 text-primary font-[serif]">ScholarFlow</div>
-          <div className="text-[11px] text-muted-foreground">v1.3.0 · Electron + Next.js</div>
-          <div className="text-[10px] mt-0.5 text-muted-foreground">统一学习管理中枢</div>
+          <div className="text-[11px] text-muted-foreground">v2.0 · Electron + Next.js</div>
+          <div className="text-[10px] mt-0.5 text-muted-foreground">独立学习管理中枢</div>
           <div className="mt-3 flex flex-wrap gap-1.5 justify-center">
             <span className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium">AI 助手</span>
             <span className="text-[10px] px-2 py-0.5 rounded-md bg-green-500/10 text-green-600 font-medium">PWA</span>
             <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 font-medium">离线优先</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 font-medium">GitHub 同步</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 font-medium">SQLite 存储</span>
           </div>
           <div className="mt-3 text-[10px] text-muted-foreground">
             按 <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-secondary border border-border">?</kbd> 查看快捷键
@@ -284,7 +232,7 @@ export default function SettingsPage() {
       </SettingsSection>
 
       {/* 退出 */}
-      {token && (
+      {schoolId && (
         <button
           onClick={handleLogout}
           className="w-full rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-medium transition-all mb-4 bg-card border border-border text-red-500 shadow-sm"
@@ -327,26 +275,6 @@ function MenuItem({
   );
 }
 
-function SyncButton({
-  icon: Icon, label, sub, disabled, onClick,
-}: {
-  icon: typeof CloudDownload; label: string; sub: string; disabled: boolean; onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
-        disabled ? "bg-secondary text-muted-foreground opacity-60" : "bg-primary/10 text-primary"
-      }`}
-    >
-      <Icon className="w-4 h-4 shrink-0" />
-      <span className="text-[13px] font-medium">{label}</span>
-      <span className="text-[10px] ml-auto text-muted-foreground">{sub}</span>
-    </button>
-  );
-}
-
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between">
@@ -356,10 +284,11 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function GitHubIcon({ className = "w-4 h-4" }: { className?: string }) {
+function SchoolIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.5M4 21V8.5l8-5 8 5V21M4 8.5l8 5 8-5" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 7.5l3-2 3 2" />
     </svg>
   );
 }
