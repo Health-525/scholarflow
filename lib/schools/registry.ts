@@ -7,6 +7,7 @@
  */
 
 import type { SchoolAdapter } from "./types";
+import { njtechAdapter } from "./njtech";
 
 const ADAPTERS: Map<string, SchoolAdapter> = new Map();
 
@@ -39,23 +40,4 @@ export function getSchoolOptions(): { id: string; name: string }[] {
 }
 
 // ── 注册已知学校 ────────────────────────────────────────────
-// 动态导入避免循环依赖，在应用启动时注册
-
-let initialized = false;
-
-export function ensureSchoolsInitialized(): void {
-  if (initialized) return;
-  initialized = true;
-
-  // 注册 NJTECH（南京工业大学）
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { njtechAdapter } = require("./njtech");
-    registerSchool(njtechAdapter);
-  } catch {
-    // NJTECH adapter 尚未创建时忽略
-  }
-}
-
-// 自动初始化
-ensureSchoolsInitialized();
+registerSchool(njtechAdapter);
