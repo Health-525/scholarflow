@@ -3,7 +3,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { useJwcNewsQuery } from "@/hooks/useQueries";
-import type { GitHubError } from "@/lib/github/errors";
 
 const CATEGORY_STYLES: Record<string, { dot: string; bg: string; text: string }> = {
   "通知公告": { dot: "bg-primary", bg: "bg-primary/5", text: "text-primary" },
@@ -14,7 +13,7 @@ export function JwcNewsCard() {
   const { data, isLoading, error, refetch } = useJwcNewsQuery();
   const items = (data?.items ?? []).slice(0, 8);
   const fetchedAt = data?.fetchedAt ?? "";
-  const ghError = error as GitHubError | null;
+  const fetchError = error as Error | null;
 
   const fetchedLabel = fetchedAt
     ? new Date(fetchedAt).toLocaleDateString("zh-CN", { month: "numeric", day: "numeric" }) + " 更新"
@@ -45,17 +44,11 @@ export function JwcNewsCard() {
           </div>
         )}
 
-        {ghError && !isLoading && (
-          ghError.type === "not_found" ? (
-            <div className="py-3">
-              <p className="text-[12.5px] text-muted-foreground">暂无数据，教务通知将在每天早上 8:30 自动更新。</p>
-            </div>
-          ) : (
-            <ErrorFallback message={ghError.message} onRetry={() => refetch()} />
-          )
+        {fetchError && !isLoading && (
+          <ErrorFallback message={fetchError.message} onRetry={() => refetch()} />
         )}
 
-        {!isLoading && !ghError && (
+        {!isLoading && !fetchError && (
           items.length === 0 ? (
             <p className="text-[12.5px] py-3 text-muted-foreground">暂无通知</p>
           ) : (
