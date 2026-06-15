@@ -14,10 +14,10 @@ export async function POST(request: Request) {
       cookie?: string;
       username?: string;
     };
-    const { schoolId, cookie, username } = body;
+    const { schoolId, username } = body;
 
-    if (!schoolId || !cookie) {
-      return NextResponse.json({ error: "missing schoolId or cookie" }, { status: 400 });
+    if (!schoolId) {
+      return NextResponse.json({ error: "missing schoolId" }, { status: 400 });
     }
 
     const adapter = getAdapter(schoolId);
@@ -25,9 +25,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `unknown school: ${schoolId}` }, { status: 400 });
     }
 
+    // 从数据库读取已保存的凭证（login 时保存的 cookie）
+    const db = getServerDB();
+    const userId = username || "default";
+    const savedCreds = db.getCredentials(schoolId, userId);
+
+    if (!savedCreds) {
+      return NextResponse.json({ error: "凭证已过期或不存在，请重新登录" }, { status: 401 });
+    }
+
     const credentials = {
       schoolId,
-      data: { cookie, username: username || "" },
+      data: savedCreds,
       expiresAt: Date.now() + 30 * 60 * 1000,
     };
 
