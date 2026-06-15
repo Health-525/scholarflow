@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerDB } from "@/lib/server-db";
 import { getAdapter } from "@/lib/schools/registry";
+import { NJTECH_PERIOD_TIMES } from "@/lib/schools/njtech/jwgl";
 
 /**
  * POST /api/fetch/all
@@ -61,6 +62,7 @@ export async function POST(request: Request) {
           semester: "2025-2026-2",
           schoolId,
         },
+        periodTimes: NJTECH_PERIOD_TIMES,
       });
       results.schedule = `${courses.length} 门课程`;
     } catch (e) {

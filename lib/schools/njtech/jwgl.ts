@@ -9,6 +9,21 @@ import type { CourseData, ExamData, GradeCourse } from "../types";
 
 const BASE = "https://jwgl.njtech.edu.cn";
 
+// ── NJTECH 节次时间表 ──────────────────────────────────────────
+// 南京工业大学标准作息时间（每节课45分钟，课间休息10分钟）
+export const NJTECH_PERIOD_TIMES: Record<string, string> = {
+  "1": "08:10-08:55",
+  "2": "09:05-09:50",
+  "3": "10:20-11:05",
+  "4": "11:15-12:00",
+  "5": "14:00-14:45",
+  "6": "14:55-15:40",
+  "7": "16:00-16:45",
+  "8": "16:55-17:40",
+  "9": "19:00-19:45",
+  "10": "19:55-20:40",
+};
+
 // ── 登录 ────────────────────────────────────────────────────
 
 export interface JwglSession {
@@ -121,9 +136,9 @@ export async function fetchSchedule(
       return kbList.map((item: Record<string, unknown>) => ({
         title: (item.kcmc as string) || "",
         weekday: parseInt(item.xqj as string) || 0,
-        periods: parsePeriods(item.cdmc as string),
-        weeks: (item.zcd as string) || "",
-        location: (item.xqmc as string) || (item.cdmc as string) || "",
+        periods: parsePeriods(item.jc as string),
+        weeks: cleanWeekSpec((item.zcd as string) || ""),
+        location: (item.cdmc as string) || (item.xqmc as string) || "",
         teacher: (item.xm as string) || "",
         ...item,
       }));
@@ -204,8 +219,17 @@ async function buildScheduleFromExams(
   return courses;
 }
 
-function parsePeriods(cdmc: string): number[] {
-  const match = cdmc.match(/(\d+)-(\d+)/);
+/**
+ * 清理周次规格字符串 — 去掉"周"字后缀
+ * JWGL 返回 "2-13周" 或 "2-13,偶数周"，需要转为 "2-13" 或 "2-13,偶数"
+ */
+function cleanWeekSpec(spec: string): string {
+  return spec.replace(/周/g, "").trim();
+}
+
+function parsePeriods(jc: string): number[] {
+  // jc 格式: "1-2节" 或 "3-4节" 或 "5节"
+  const match = jc.match(/(\d+)-(\d+)/);
   if (match) {
     const start = parseInt(match[1]);
     const end = parseInt(match[2]);
@@ -213,7 +237,9 @@ function parsePeriods(cdmc: string): number[] {
     for (let i = start; i <= end; i++) periods.push(i);
     return periods;
   }
-  return [parseInt(cdmc) || 0];
+  const single = parseInt(jc);
+  if (single > 0) return [single];
+  return [];
 }
 
 // ── 考试抓取 ────────────────────────────────────────────────
