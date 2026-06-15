@@ -1,34 +1,5 @@
-import fs from "fs";
-import path from "path";
-
 import { NextResponse } from "next/server";
-
-// 自动探测 timetable 目录
-function findTimetableDir(): string | null {
-  const envDir = process.env.TIMETABLE_DIR;
-  if (envDir) try { if (fs.existsSync(path.join(envDir, "data", "schedule.json"))) return envDir; } catch {}
-
-  const candidates = [
-    path.join(process.cwd(), "..", "timetable"),
-    path.join(process.cwd(), "..", "..", "timetable"),
-    path.join(process.cwd(), "..", "..", "..", "timetable"),
-  ];
-  for (const c of candidates) {
-    try { if (fs.existsSync(path.join(c, "data", "schedule.json"))) return c; } catch {}
-  }
-  return null; // Not found — return empty data instead of crashing
-}
-
-const TIMETABLE_DIR = findTimetableDir();
-
-function safeRead(filePath: string) {
-  try {
-    if (fs.existsSync(filePath)) {
-      return JSON.parse(fs.readFileSync(filePath, "utf8"));
-    }
-  } catch {}
-  return null;
-}
+import { getServerDB } from "@/lib/server-db";
 
 interface CourseEntry {
   title: string;
@@ -50,23 +21,17 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type") || "dashboard";
 
-  if (!TIMETABLE_DIR) {
-    // No timetable dir — return empty data
-    return NextResponse.json(type === "library" ? { libs: [], summary: { total: 0, used: 0, avail: 0, rate: 0 } } : type === "dashboard" ? { updatedAt: new Date().toISOString(), overview: {} } : {});
-  }
-
-  const dataDir = path.join(TIMETABLE_DIR, "data");
-  const outDir = path.join(TIMETABLE_DIR, "_out");
+  const db = getServerDB();
 
   switch (type) {
     case "dashboard": {
       // Return dashboard summary — auto-generate if not exists
-      let summary = safeRead(path.join(outDir, "dashboard-summary.json"));
+      let summary = db.readData("dashboard-summary");
       if (!summary) {
-        const schedule = safeRead(path.join(dataDir, "schedule.json")) || { courses: [] };
-        const assignments: AssignmentEntry[] = safeRead(path.join(dataDir, "assignments.json")) || [];
-        const running: { records: RunningRecord[]; completed?: boolean } = safeRead(path.join(dataDir, "running.json")) || { records: [] };
-        const grades = safeRead(path.join(outDir, "jwgl_grades_all.json")) || { gpa: "0.00" };
+        const schedule = (db.readData("schedule") as { courses?: CourseEntry[] }) || { courses: [] };
+        const assignments: AssignmentEntry[] = (db.readData("assignments") as AssignmentEntry[]) || [];
+        const running: { records: RunningRecord[]; completed?: boolean } = (db.readData("running") as { records: RunningRecord[] }) || { records: [] };
+        const grades = (db.readData("grades") as { gpa?: string }) || { gpa: "0.00" };
         const today = new Date().toISOString().slice(0, 10);
         const courses: CourseEntry[] = schedule.courses || [];
         summary = {
@@ -86,49 +51,52 @@ export async function GET(request: Request) {
           health: { agents: 0, total: 0, failing: 0 },
           knowledge: { gapsRemaining: 0, estimatedHours: 0 },
         };
+        // Cache the generated summary
+        db.writeData("dashboard-summary", summary);
       }
       return NextResponse.json(summary);
     }
 
     case "schedule":
-      return NextResponse.json(safeRead(path.join(dataDir, "schedule.json")) || { courses: [] });
+      return NextResponse.json(db.readData("schedule") || { courses: [] });
 
     case "assignments":
-      return NextResponse.json(safeRead(path.join(dataDir, "assignments.json")) || []);
+      return NextResponse.json(db.readData("assignments") || []);
 
     case "running":
-      return NextResponse.json(safeRead(path.join(dataDir, "running.json")) || { records: [] });
+      return NextResponse.json(db.readData("running") || { records: [] });
 
     case "health":
-      return NextResponse.json(safeRead(path.join(outDir, "health-status.json")) || { agents: [] });
+      return NextResponse.json(db.readData("health-status") || { agents: [] });
 
     case "roadmap":
-      return NextResponse.json(safeRead(path.join(outDir, "knowledge-roadmap.json")) || { phases: [] });
+      return NextResponse.json(db.readData("knowledge-roadmap") || { phases: [] });
 
     case "jwc-news":
-      return NextResponse.json(safeRead(path.join(outDir, "jwc_news.json")) || []);
+      return NextResponse.json(db.readData("jwc-news") || []);
 
     case "exams":
-      return NextResponse.json(safeRead(path.join(outDir, "jwgl_exams.json")) || []);
+      return NextResponse.json(db.readData("exams") || []);
 
     case "grades":
-      return NextResponse.json(safeRead(path.join(outDir, "jwgl_grades_all.json")) || { gpa: 0, allCourses: [] });
+      return NextResponse.json(db.readData("grades") || { gpa: 0, allCourses: [] });
 
     case "library":
-      return NextResponse.json(safeRead(path.join(dataDir, "library.json")) || { libs: [], summary: { total: 0, used: 0, avail: 0, rate: 0 } });
+      return NextResponse.json(db.readData("library") || { libs: [], summary: { total: 0, used: 0, avail: 0, rate: 0 } });
 
     case "student": {
-      let studentId = "";
-      try {
-        const envPath = path.join(TIMETABLE_DIR, ".env");
-        if (fs.existsSync(envPath)) {
-          const envContent = fs.readFileSync(envPath, "utf8");
-          const match = envContent.match(/JWGL_USERNAME=(.+)/);
-          if (match) studentId = match[1].trim();
-        }
-      } catch {}
-      const grades = safeRead(path.join(outDir, "jwgl_grades_all.json")) || { allCourses: [] };
-      return NextResponse.json({ studentId, gpa: grades.gpa || "0", totalCredits: grades.totalCredits || 0, courseCount: (grades.allCourses || []).length });
+      const studentInfo = db.readData("student") as { studentId?: string; gpa?: string; totalCredits?: number; courseCount?: number } | null;
+      if (studentInfo) {
+        return NextResponse.json(studentInfo);
+      }
+      // Fallback: derive from grades data
+      const grades = (db.readData("grades") as { gpa?: string; totalCredits?: number; allCourses?: unknown[] }) || { allCourses: [] };
+      return NextResponse.json({
+        studentId: "",
+        gpa: grades.gpa || "0",
+        totalCredits: grades.totalCredits || 0,
+        courseCount: (grades.allCourses || []).length,
+      });
     }
 
     default:
