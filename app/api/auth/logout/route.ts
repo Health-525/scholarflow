@@ -3,19 +3,19 @@ import { getServerDB } from "@/lib/server-db";
 
 /**
  * POST /api/auth/logout
- * 清除凭证和认证状态
+ * 清除指定用户的凭证
  */
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    const db = getServerDB();
+    const body = await request.json() as { schoolId?: string; userId?: string };
+    const { schoolId, userId } = body;
 
-    // 删除所有已知学校的凭证
-    const knownSchools = ["njtech"];
-    for (const schoolId of knownSchools) {
-      const studentData = db.readData("student") as Record<string, string> | null;
-      const userId = studentData?.studentId || "default";
-      db.deleteCredentials(schoolId, userId);
+    if (!schoolId || !userId) {
+      return NextResponse.json({ error: "missing schoolId or userId" }, { status: 400 });
     }
+
+    const db = getServerDB();
+    db.deleteCredentials(schoolId, userId);
 
     return NextResponse.json({ ok: true });
   } catch {

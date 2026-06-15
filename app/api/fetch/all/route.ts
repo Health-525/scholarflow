@@ -45,6 +45,9 @@ export async function POST(request: Request) {
 
     const results: Record<string, string> = {};
 
+    // 数据 key 前缀 — 实现账号隔离
+    const prefix = `${schoolId}:${userId}`;
+
     // 课表 — 加上 meta 字段（前端需要 week1_monday 和 tz）
     try {
       console.log(`[fetch/all] credentials.data keys:`, Object.keys(savedCreds));
@@ -54,7 +57,7 @@ export async function POST(request: Request) {
       // 计算 week1_monday：NJTECH 2025-2026 学年第二学期，开学日期 2026-03-02（周一）
       // TODO: 后续从学校配置或用户设置中获取
       const week1Monday = "2026-03-02";
-      db.writeData("schedule", {
+      db.writeData(`schedule:${prefix}`, {
         courses,
         meta: {
           week1_monday: week1Monday,
@@ -72,7 +75,7 @@ export async function POST(request: Request) {
     // 考试
     try {
       const exams = await adapter.fetchExams(credentials);
-      db.writeData("exams", exams);
+      db.writeData(`exams:${prefix}`, exams);
       results.exams = `${exams.length} 门考试`;
     } catch (e) {
       results.exams = `失败: ${(e as Error).message}`;
@@ -81,8 +84,8 @@ export async function POST(request: Request) {
     // 成绩
     try {
       const grades = await adapter.fetchGrades(credentials);
-      db.writeData("grades", grades);
-      db.writeData("student", {
+      db.writeData(`grades:${prefix}`, grades);
+      db.writeData(`student:${prefix}`, {
         studentId: username || savedCreds.username || "",
         gpa: grades.gpa,
         totalCredits: grades.totalCredits,
@@ -96,9 +99,9 @@ export async function POST(request: Request) {
     // 教务通知
     if (adapter.fetchJwcNews) {
       try {
-        const existing = (db.readData("jwc-news") as import("@/lib/schools/types").NewsItem[]) || [];
+        const existing = (db.readData(`jwc-news:${schoolId}`) as import("@/lib/schools/types").NewsItem[]) || [];
         const news = await adapter.fetchJwcNews(existing);
-        db.writeData("jwc-news", news);
+        db.writeData(`jwc-news:${schoolId}`, news);
         results.jwcNews = `${news.length} 条通知`;
       } catch (e) {
         results.jwcNews = `失败: ${(e as Error).message}`;
@@ -106,13 +109,13 @@ export async function POST(request: Request) {
     }
 
     // 重新生成 dashboard summary
-    const schedule = (db.readData("schedule") as { courses?: unknown[] }) || { courses: [] };
-    const assignments = db.readData("assignments") || [];
-    const running = db.readData("running") || { records: [] };
-    const gradesData = db.readData("grades") || { gpa: "0.00" };
+    const schedule = (db.readData(`schedule:${prefix}`) as { courses?: unknown[] }) || { courses: [] };
+    const assignments = db.readData(`assignments:${prefix}`) || [];
+    const running = db.readData(`running:${prefix}`) || { records: [] };
+    const gradesData = db.readData(`grades:${prefix}`) || { gpa: "0.00" };
     const today = new Date().toISOString().slice(0, 10);
 
-    db.writeData("dashboard-summary", {
+    db.writeData(`dashboard-summary:${prefix}`, {
       updatedAt: new Date().toISOString(),
       date: today,
       overview: {

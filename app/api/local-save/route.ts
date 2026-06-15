@@ -3,8 +3,8 @@ import { getServerDB } from "@/lib/server-db";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { file?: string; content?: string; action?: string };
-    const { file, content, action } = body;
+    const body = await request.json() as { file?: string; content?: string; action?: string; schoolId?: string; userId?: string };
+    const { file, content, action, schoolId, userId } = body;
 
     // Special action: view data history (from SQLite timestamps)
     if (action === "view-history" && !file) {
@@ -27,6 +27,10 @@ export async function POST(request: Request) {
       .replace(/^_out\//, "")
       .replace(/\.json$/, "");
 
+    // Prefix key with schoolId:userId for account isolation
+    const prefix = schoolId && userId ? `${schoolId}:${userId}` : "";
+    const fullKey = prefix ? `${key}:${prefix}` : key;
+
     const db = getServerDB();
 
     // Parse content if it's JSON string, store as parsed object
@@ -37,7 +41,7 @@ export async function POST(request: Request) {
       data = content; // Store as raw string if not JSON
     }
 
-    db.writeData(key, data);
+    db.writeData(fullKey, data);
 
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
