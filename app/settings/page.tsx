@@ -4,6 +4,8 @@ import {
   Sun, Moon, Monitor, LogOut, ChevronRight,
   Calendar, ClipboardList, Activity, Database,
   BarChart3, Trash2, Download, RefreshCw,
+  GraduationCap, ShieldCheck, Clock, User,
+  School, Info,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -15,6 +17,7 @@ import { downloadActivityCSV, clearActivityData } from "@/lib/activity-tracker-v
 import { exportAssignmentsCSV, exportRunningCSV, buildWeekICS, downloadICS } from "@/lib/export";
 import { useAuthStore } from "@/store/auth";
 import { useThemeStore } from "@/store/theme";
+import { cn } from "@/lib/utils";
 import type { ThemeValue } from "@/types";
 
 const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = [
@@ -33,7 +36,7 @@ interface StudentInfo {
 export default function SettingsPage() {
   const router = useRouter();
   const { theme, setTheme } = useThemeStore();
-  const { schoolId, username, clearToken } = useAuthStore((s) => s);
+  const { schoolId, userId, username, clearToken } = useAuthStore((s) => s);
   const { data: scheduleData } = useScheduleQuery();
   const { assignments } = useAssignmentsQuery();
   const { records } = useRunningQuery();
@@ -55,10 +58,8 @@ export default function SettingsPage() {
   }, [mounted]);
 
   const handleLogout = () => {
-    if (confirm("确定要退出登录吗？")) {
-      clearToken();
-      router.replace("/setup");
-    }
+    clearToken();
+    router.replace("/setup");
   };
 
   function handleExportICS() {
@@ -74,7 +75,6 @@ export default function SettingsPage() {
     }
     setFetchMessage(null);
     try {
-      // Get cookie from auth store or session
       const sessionRes = await fetch("/api/auth/session");
       const sessionData = await sessionRes.json();
       const cookie = sessionData?.cookie || "";
@@ -90,56 +90,84 @@ export default function SettingsPage() {
     }
   };
 
-  const avatarLetter = studentInfo?.studentId ? studentInfo.studentId[0] : username ? username[0] : "?";
+  // ── Derived display values ──────────────────────────────────
+  const displayName = studentInfo?.studentId || userId || username || "ScholarFlow 用户";
+  const avatarLetter = displayName[0]?.toUpperCase() || "S";
+  const schoolName = schoolId === "njtech" ? "南京工业大学" : schoolId || "未绑定";
+  const isSynced = !!studentInfo?.studentId || !!schoolId;
 
   return (
     <div className="pb-20 md:pb-0 max-w-lg mx-auto animate-page">
       <PageHeader
-        icon={
-          <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.313.255-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.117.737.43.992l1.004.827c.424.35.534.955.26 1.43l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.312-.255.437-.613.43-.992a7.723 7.723 0 010-.255c.007-.38-.118-.737-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.331-.183.581-.495.644-.869l.214-1.28z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        }
+        icon={<User className="w-5 h-5 text-primary" />}
         title="用户中心"
       />
 
-      {/* 用户卡片 */}
-      <div className="rounded-2xl p-5 mb-4 relative overflow-hidden bg-card border border-border shadow-sm">
-        <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full pointer-events-none opacity-[0.06] bg-gradient-to-br from-primary to-transparent" />
+      {/* ── 用户卡片 ──────────────────────────────────────────── */}
+      <div className="card-glow rounded-[28px] p-6 mb-5 relative overflow-hidden bg-card border border-border shadow-sm animate-fade-up">
+        {/* Background decoration */}
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/6 blur-3xl" />
+          <div className="absolute -left-8 -bottom-8 h-24 w-24 rounded-full bg-primary/4 blur-2xl" />
+        </div>
+
         <div className="relative flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-primary text-primary-foreground font-[serif] text-[22px] font-bold">
-            {avatarLetter}
+          {/* Avatar */}
+          <div className="relative shrink-0">
+            <div className="absolute inset-0 rounded-[22px] bg-primary/10 blur-xl" aria-hidden="true" />
+            <div className="relative w-14 h-14 rounded-[22px] flex items-center justify-center bg-primary text-primary-foreground font-display text-[22px] font-bold shadow-sm">
+              {avatarLetter}
+            </div>
           </div>
+
+          {/* Info */}
           <div className="flex-1 min-w-0">
-            {studentInfo ? (
-              <>
-                <div className="text-[16px] font-semibold tabular-nums text-foreground">{studentInfo.studentId}</div>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                  <span className="text-[12px] text-muted-foreground">已同步教务系统</span>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="text-[16px] font-semibold text-foreground">{username || "ScholarFlow 用户"}</div>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
-                  <span className="text-[12px] text-muted-foreground">未同步教务系统</span>
-                </div>
-              </>
+            <div className="text-[16px] font-semibold tabular-nums text-foreground truncate">
+              {displayName}
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={cn(
+                "w-1.5 h-1.5 rounded-full",
+                isSynced ? "bg-[var(--status-success)]" : "bg-muted-foreground/40"
+              )} />
+              <span className="text-[12px] text-muted-foreground">
+                {isSynced ? "已同步教务系统" : "未同步教务系统"}
+              </span>
+            </div>
+            {schoolId && (
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <School className="w-3 h-3 text-primary/60" />
+                <span className="text-[11px] text-muted-foreground">{schoolName}</span>
+              </div>
             )}
           </div>
+
+          {/* Logout button — always visible */}
+          <button
+            onClick={handleLogout}
+            className={cn(
+              "shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-medium",
+              "transition-all cursor-pointer",
+              "bg-destructive/8 border border-destructive/15 text-destructive",
+              "hover:bg-destructive/15 hover:border-destructive/25",
+              "active:translate-y-0.5"
+            )}
+            aria-label="退出登录"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>退出</span>
+          </button>
         </div>
-        <div className="grid grid-cols-4 gap-2 mt-4">
-          {studentInfo && (
+
+        {/* Stats grid */}
+        <div className="grid grid-cols-4 gap-2 mt-5">
+          {studentInfo ? (
             <>
               <StatChip value={studentInfo.gpa} label="GPA" accent />
               <StatChip value={String(studentInfo.totalCredits)} label="学分" />
               <StatChip value={String(studentInfo.courseCount)} label="课程" />
             </>
-          )}
-          {!studentInfo && (
+          ) : (
             <>
               <StatChip value={String(scheduleData?.schedule?.courses?.length ?? 0)} label="课程" />
               <StatChip value={String(assignments.filter(a => !a.done).length)} label="待办" />
@@ -149,16 +177,19 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* 外观 */}
+      {/* ── 外观 ──────────────────────────────────────────────── */}
       <SettingsSection icon={<Sun className="w-4 h-4" />} title="外观">
         <div className="flex gap-1.5 p-1 rounded-xl bg-secondary">
           {THEME_OPTIONS.map(opt => (
             <button
               key={opt.value}
               onClick={() => setTheme(opt.value)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-medium transition-all duration-200 ${
-                theme === opt.value ? "bg-card text-primary shadow-sm" : "text-muted-foreground"
-              }`}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-medium transition-all duration-200 cursor-pointer",
+                theme === opt.value
+                  ? "bg-card text-primary shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
               aria-pressed={theme === opt.value}
             >
               <opt.Icon className="w-3.5 h-3.5" />
@@ -169,32 +200,40 @@ export default function SettingsPage() {
         </div>
       </SettingsSection>
 
-      {/* 数据刷新 */}
+      {/* ── 数据刷新 ──────────────────────────────────────────── */}
       <SettingsSection icon={<RefreshCw className="w-4 h-4" />} title="数据刷新">
         <p className="text-[11px] mb-3 text-muted-foreground">
           从学校教务系统重新抓取课表、成绩、考试等数据
         </p>
         {fetchMessage && (
-          <div className={`mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line ${
-            fetchMessage.includes("失败") || fetchMessage.includes("错误") ? "bg-red-500/8 text-red-500" : "bg-green-500/8 text-green-600"
-          }`}>
+          <div className={cn(
+            "mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line",
+            fetchMessage.includes("失败") || fetchMessage.includes("错误")
+              ? "bg-destructive/8 border border-destructive/15 text-destructive"
+              : "bg-[var(--status-success)]/8 border border-[var(--status-success)]/15 text-[var(--status-success)]"
+          )}>
             {fetchMessage}
           </div>
         )}
         <button
           onClick={handleRefreshFromSchool}
           disabled={refreshData.isPending}
-          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
-            refreshData.isPending ? "bg-secondary text-muted-foreground opacity-60" : "bg-primary/10 text-primary"
-          }`}
+          className={cn(
+            "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all cursor-pointer",
+            refreshData.isPending
+              ? "bg-secondary text-muted-foreground opacity-60"
+              : "bg-primary/10 text-primary hover:bg-primary/15 active:translate-y-0.5"
+          )}
         >
-          <RefreshCw className={`w-4 h-4 shrink-0 ${refreshData.isPending ? "animate-spin" : ""}`} />
-          <span className="text-[13px] font-medium">{refreshData.isPending ? "刷新中..." : "从教务系统刷新数据"}</span>
+          <RefreshCw className={cn("w-4 h-4 shrink-0", refreshData.isPending && "animate-spin")} />
+          <span className="text-[13px] font-medium">
+            {refreshData.isPending ? "刷新中..." : "从教务系统刷新数据"}
+          </span>
           <span className="text-[10px] ml-auto text-muted-foreground">课表 · 成绩 · 考试</span>
         </button>
       </SettingsSection>
 
-      {/* 数据导出 */}
+      {/* ── 数据导出 ──────────────────────────────────────────── */}
       <SettingsSection icon={<Download className="w-4 h-4" />} title="数据导出">
         <MenuItem icon={Calendar} label="导出课表 (ICS)" onClick={handleExportICS} disabled={!scheduleData?.schedule} />
         <MenuItem icon={ClipboardList} label="导出作业 (CSV)" onClick={() => exportAssignmentsCSV(assignments)} disabled={!assignments.length} />
@@ -203,27 +242,26 @@ export default function SettingsPage() {
         <MenuItem icon={Trash2} label="清除屏幕时间数据" onClick={() => { if (confirm("确定清除？")) clearActivityData(); }} danger last />
       </SettingsSection>
 
-      {/* 存储信息 */}
+      {/* ── 存储信息 ──────────────────────────────────────────── */}
       <SettingsSection icon={<Database className="w-4 h-4" />} title="存储信息">
-        <div className="space-y-1.5 text-[11px]">
-          <InfoRow label="数据存储" value="SQLite 本地数据库" />
-          <InfoRow label="课表/作业/跑步" value="本地优先，自动持久化" />
-          <InfoRow label="考试/主题/目标" value="localStorage" />
-          <InfoRow label="学校凭证" value="安全加密存储" />
+        <div className="space-y-2 text-[11px]">
+          <InfoRow icon={<ShieldCheck className="w-3 h-3" />} label="数据存储" value="SQLite 本地数据库" />
+          <InfoRow icon={<Clock className="w-3 h-3" />} label="课表/作业/跑步" value="本地优先，自动持久化" />
+          <InfoRow icon={<GraduationCap className="w-3 h-3" />} label="学校凭证" value="安全加密存储" />
         </div>
       </SettingsSection>
 
-      {/* 关于 */}
-      <SettingsSection icon={<SchoolIcon />} title="关于">
+      {/* ── 关于 ──────────────────────────────────────────────── */}
+      <SettingsSection icon={<Info className="w-4 h-4" />} title="关于">
         <div className="text-center">
-          <div className="text-[14px] font-semibold mb-1 text-primary font-[serif]">ScholarFlow</div>
+          <div className="text-[14px] font-semibold mb-1 text-primary font-display">ScholarFlow</div>
           <div className="text-[11px] text-muted-foreground">v2.0 · Electron + Next.js</div>
           <div className="text-[10px] mt-0.5 text-muted-foreground">独立学习管理中枢</div>
           <div className="mt-3 flex flex-wrap gap-1.5 justify-center">
             <span className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium">AI 助手</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-green-500/10 text-green-600 font-medium">PWA</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--status-success)]/10 text-[var(--status-success)] font-medium">PWA</span>
             <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 font-medium">离线优先</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 font-medium">SQLite 存储</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 font-medium">SQLite</span>
           </div>
           <div className="mt-3 text-[10px] text-muted-foreground">
             按 <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-secondary border border-border">?</kbd> 查看快捷键
@@ -231,25 +269,35 @@ export default function SettingsPage() {
         </div>
       </SettingsSection>
 
-      {/* 退出 */}
-      {schoolId && (
-        <button
-          onClick={handleLogout}
-          className="w-full rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-medium transition-all mb-4 bg-card border border-border text-red-500 shadow-sm"
-        >
-          <LogOut className="w-4 h-4" />退出登录
-        </button>
-      )}
+      {/* ── 底部退出登录（大按钮，始终可见） ───────────────────── */}
+      <button
+        onClick={handleLogout}
+        className={cn(
+          "w-full rounded-[28px] p-4 flex items-center justify-center gap-2 text-[13px] font-medium",
+          "transition-all cursor-pointer mb-6",
+          "bg-card border border-destructive/15 text-destructive shadow-sm",
+          "hover:bg-destructive/8 hover:border-destructive/25 hover:shadow-md",
+          "active:translate-y-0.5"
+        )}
+      >
+        <LogOut className="w-4 h-4" />
+        退出登录
+      </button>
     </div>
   );
 }
 
-// ── 子组件 ──
+// ── 子组件 ──────────────────────────────────────────────────────
 
 function StatChip({ value, label, accent }: { value: string; label: string; accent?: boolean }) {
   return (
-    <div className="rounded-xl p-2.5 text-center bg-secondary">
-      <div className={`text-[16px] font-semibold tabular-nums ${accent ? "text-green-700" : "text-foreground"}`}>{value}</div>
+    <div className="rounded-xl p-2.5 text-center bg-secondary/60">
+      <div className={cn(
+        "text-[16px] font-semibold tabular-nums",
+        accent ? "text-[var(--status-success)]" : "text-foreground"
+      )}>
+        {value}
+      </div>
       <div className="text-[10px] text-muted-foreground">{label}</div>
     </div>
   );
@@ -264,9 +312,13 @@ function MenuItem({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`w-full flex items-center gap-3 px-2 py-3 text-left transition-colors ${
-        !last ? "border-b border-border" : ""
-      } ${disabled ? "text-muted-foreground opacity-50" : danger ? "text-red-500" : "text-foreground"}`}
+      className={cn(
+        "w-full flex items-center gap-3 px-2 py-3 text-left transition-colors cursor-pointer",
+        !last && "border-b border-border",
+        disabled && "text-muted-foreground opacity-50 cursor-default",
+        danger && !disabled && "text-destructive",
+        !danger && !disabled && "text-foreground hover:bg-secondary/40"
+      )}
     >
       <Icon className="w-4 h-4 shrink-0" />
       <span className="text-[13px]">{label}</span>
@@ -275,20 +327,12 @@ function MenuItem({
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="flex justify-between">
+    <div className="flex items-center gap-2">
+      <span className="text-primary/60 shrink-0">{icon}</span>
       <span className="text-muted-foreground">{label}</span>
-      <span className="text-right max-w-[60%] text-foreground">{value}</span>
+      <span className="text-right ml-auto text-foreground">{value}</span>
     </div>
-  );
-}
-
-function SchoolIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.5M4 21V8.5l8-5 8 5V21M4 8.5l8 5 8-5" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 7.5l3-2 3 2" />
-    </svg>
   );
 }
