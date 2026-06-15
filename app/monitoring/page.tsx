@@ -3,8 +3,6 @@
 import { Activity, CheckCircle2, XCircle, Clock, AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { useGitHubClient } from "@/hooks/useGitHubClient";
-
 interface AgentStatus {
   agent: string;
   lastRun: string;
@@ -108,7 +106,6 @@ function AgentCard({ agent }: { agent: AgentStatus }) {
 }
 
 export default function MonitoringPage() {
-  const client = useGitHubClient();
   const [health, setHealth] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -122,18 +119,10 @@ export default function MonitoringPage() {
           if (data.agents?.length > 0) { setHealth(data); return; }
         }
       } catch {}
-      if (!client) return;
-      try {
-        const file = await client.getFile("execution", "_out/health-status.json");
-        setHealth(JSON.parse(file.content));
-      } catch (err: unknown) {
-        const error = err instanceof Error ? err : new Error(String(err));
-        if ((error as { type?: string }).type === "not_found") setError("健康数据尚未生成");
-        else setError(`获取失败：${error.message}`);
-      }
+      setError("健康数据尚未生成");
     }
     fetchHealth().finally(() => setLoading(false));
-  }, [client]);
+  }, []);
 
   if (loading) {
     return (
@@ -153,14 +142,6 @@ export default function MonitoringPage() {
   }
 
   if (!health || !health.summary || health.agents.length === 0) {
-    if (!client) {
-      return (
-        <div className="p-8 text-center text-muted-foreground">
-          <AlertTriangle size={48} className="mx-auto mb-4 opacity-40" />
-          <p>请先配置 GitHub Token 以查看 Agent 健康状态</p>
-        </div>
-      );
-    }
     return (
       <div className="p-8 text-center text-muted-foreground">
         <Activity size={48} className="mx-auto mb-4 opacity-40" />
