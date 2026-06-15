@@ -1,11 +1,11 @@
 /* ScholarFlow Theme Tokens */
 /* Light theme */
 :root {
-  --background: #faf7f2;
+  --background: #F8F7F4;
   --foreground: #1a1510;
-  --card: #fffdf9;
+  --card: #FFFFFF;
   --card-foreground: #1a1510;
-  --popover: #fffdf9;
+  --popover: #FFFFFF;
   --popover-foreground: #1a1510;
   --primary: #2a4494;
   --primary-foreground: #ffffff;
@@ -16,8 +16,8 @@
   --muted-foreground: rgba(26, 21, 16, 0.55);
   --destructive: #c0392b;
   --destructive-foreground: #ffffff;
-  --border: rgba(26, 21, 16, 0.1);
-  --input: rgba(26, 21, 16, 0.1);
+  --border: #ECE8E1;
+  --input: #ECE8E1;
   --ring: #2a4494;
   --radius: 0.625rem;
 
@@ -30,17 +30,17 @@
   --sidebar-border: rgba(26, 21, 16, 0.1);
   --sidebar-ring: #2a4494;
 
-  --surface: #faf7f2;
-  --surface-elevated: rgba(255, 253, 248, 0.92);
-  --surface-card: #fffdf9;
-  --surface-glass: rgba(255, 253, 248, 0.75);
+  --surface: #F8F7F4;
+  --surface-elevated: rgba(255, 255, 255, 0.92);
+  --surface-card: #FFFFFF;
+  --surface-glass: rgba(255, 255, 255, 0.75);
 
   --text-primary: #1a1510;
   --text-secondary: rgba(26, 21, 16, 0.62);
   --text-tertiary: rgba(26, 21, 16, 0.38);
   --text-muted: rgba(26, 21, 16, 0.28);
 
-  --border-subtle: rgba(26, 21, 16, 0.055);
+  --border-subtle: #ECE8E1;
   --border-strong: rgba(26, 21, 16, 0.2);
 
   --accent: #2a4494;
@@ -59,12 +59,12 @@
   --bg-gradient:
     radial-gradient(ellipse 120% 80% at 15% -10%, rgba(42, 68, 148, 0.07) 0%, transparent 55%),
     radial-gradient(ellipse 80% 60% at 90% 100%, rgba(180, 140, 80, 0.06) 0%, transparent 50%),
-    linear-gradient(160deg, #fdf9f3 0%, #faf7f2 40%, #f7f3ec 100%);
+    linear-gradient(160deg, #F8F7F4 0%, #F5F3EE 40%, #F2F0EA 100%);
 
-  --shadow-xs: 0 1px 3px rgba(26, 21, 16, 0.06), 0 1px 2px rgba(26, 21, 16, 0.04);
-  --shadow-sm: 0 4px 12px rgba(26, 21, 16, 0.08), 0 1px 3px rgba(26, 21, 16, 0.05);
-  --shadow-md: 0 8px 24px rgba(26, 21, 16, 0.1), 0 3px 8px rgba(26, 21, 16, 0.06);
-  --shadow-lg: 0 20px 48px rgba(26, 21, 16, 0.12), 0 6px 16px rgba(26, 21, 16, 0.07);
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.06);
 
   --space-1: 4px;
   --space-2: 8px;

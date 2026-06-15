@@ -41,7 +41,7 @@ function NavItem({ href, label, Icon }: { href: string; label: string; Icon: typ
       className={[
         "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-150 cursor-pointer",
         active
-          ? "bg-primary/10 text-primary dark:bg-primary/[0.15] dark:text-white"
+          ? "bg-[#EEF4FF] text-[#2a4494] dark:bg-primary/[0.15] dark:text-white"
           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
       ].join(" ")}
     >

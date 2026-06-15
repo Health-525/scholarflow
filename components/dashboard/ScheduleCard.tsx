@@ -12,12 +12,12 @@ import { getNextCourse } from "@/lib/schedule/next-course";
 import { getNowInTimeZone } from "@/lib/schedule/timezone";
 
 const COURSE_PALETTE = [
-  { row: "bg-indigo-500/[0.07] dark:bg-indigo-400/10 border border-indigo-800/10 dark:border-indigo-400/10", dot: "bg-indigo-800 dark:bg-indigo-400", accent: "text-indigo-800 dark:text-indigo-400" },
-  { row: "bg-emerald-600/[0.07] dark:bg-green-400/10 border border-emerald-700/10 dark:border-green-400/10", dot: "bg-emerald-700 dark:bg-green-400", accent: "text-emerald-700 dark:text-green-400" },
-  { row: "bg-amber-700/[0.07] dark:bg-amber-400/10 border border-amber-700/10 dark:border-amber-400/10", dot: "bg-amber-700 dark:bg-amber-400", accent: "text-amber-700 dark:text-amber-400" },
-  { row: "bg-violet-600/[0.07] dark:bg-purple-400/10 border border-violet-700/10 dark:border-purple-400/10", dot: "bg-violet-700 dark:bg-purple-400", accent: "text-violet-700 dark:text-purple-400" },
-  { row: "bg-cyan-600/[0.07] dark:bg-cyan-300/10 border border-cyan-700/10 dark:border-cyan-300/10", dot: "bg-cyan-700 dark:bg-cyan-300", accent: "text-cyan-700 dark:text-cyan-300" },
-  { row: "bg-red-600/[0.07] dark:bg-red-400/10 border border-red-700/10 dark:border-red-400/10", dot: "bg-red-700 dark:bg-red-400", accent: "text-red-700 dark:text-red-400" },
+  { row: "bg-[#F4F3FF] dark:bg-indigo-400/10 border border-[#E5E1FF] dark:border-indigo-400/10", dot: "bg-[#4F46E5] dark:bg-indigo-400", accent: "text-[#4F46E5] dark:text-indigo-400 font-semibold" },
+  { row: "bg-[#ECFDF5] dark:bg-green-400/10 border border-[#D1FAE5] dark:border-green-400/10", dot: "bg-[#059669] dark:bg-green-400", accent: "text-[#059669] dark:text-green-400 font-semibold" },
+  { row: "bg-[#FEF3C7] dark:bg-amber-400/10 border border-[#FDE68A] dark:border-amber-400/10", dot: "bg-[#D97706] dark:bg-amber-400", accent: "text-[#D97706] dark:text-amber-400 font-semibold" },
+  { row: "bg-[#F5F3FF] dark:bg-purple-400/10 border border-[#E9D5FF] dark:border-purple-400/10", dot: "bg-[#7C3AED] dark:bg-purple-400", accent: "text-[#7C3AED] dark:text-purple-400 font-semibold" },
+  { row: "bg-[#ECFEFF] dark:bg-cyan-300/10 border border-[#CFFAFE] dark:border-cyan-300/10", dot: "bg-[#0891B2] dark:bg-cyan-300", accent: "text-[#0891B2] dark:text-cyan-300 font-semibold" },
+  { row: "bg-[#FEF2F2] dark:bg-red-400/10 border border-[#FECACA] dark:border-red-400/10", dot: "bg-[#DC2626] dark:bg-red-400", accent: "text-[#DC2626] dark:text-red-400 font-semibold" },
 ];
 
 function getPalette(title: string) {

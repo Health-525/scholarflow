@@ -64,7 +64,7 @@ function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge
           <Icon size={15} className={colorClass} />
         </div>
         <div className="text-[11px] mb-0.5 text-muted-foreground font-medium">{label}</div>
-        <div className={`text-[22px] font-bold tabular-nums leading-none ${colorClass}`}>
+        <div className={`text-[36px] font-bold tabular-nums leading-none ${colorClass}`}>
           <AnimatedNumber value={value} />
         </div>
         {badge && (
