@@ -32,7 +32,7 @@ export function AppShell({ children, isOnline }: AppShellProps) {
       <div className="relative z-[1] flex-1 flex flex-col min-h-screen min-w-0">
         {/* 拖拽条 — Electron 窗口拖拽区域 */}
         <div
-          className="h-[36px] shrink-0 flex items-center px-4"
+          className="h-[36px] shrink-0 flex items-center px-4 bg-background"
           style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
         >
           {/* 窗口控制按钮区域 — 不拖拽 */}
