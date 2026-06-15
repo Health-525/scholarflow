@@ -40,13 +40,23 @@ export async function POST(request: Request) {
       expiresAt: Date.now() + 30 * 60 * 1000,
     };
 
-    const db = getServerDB();
     const results: Record<string, string> = {};
 
-    // 课表
+    // 课表 — 加上 meta 字段（前端需要 week1_monday 和 tz）
     try {
       const courses = await adapter.fetchSchedule(credentials);
-      db.writeData("schedule", { courses });
+      // 计算 week1_monday：NJTECH 2025-2026 学年第二学期，开学日期 2026-02-16（周一）
+      // TODO: 后续从学校配置或用户设置中获取
+      const week1Monday = "2026-02-16";
+      db.writeData("schedule", {
+        courses,
+        meta: {
+          week1_monday: week1Monday,
+          tz: "Asia/Shanghai",
+          semester: "2025-2026-2",
+          schoolId,
+        },
+      });
       results.schedule = `${courses.length} 门课程`;
     } catch (e) {
       results.schedule = `失败: ${(e as Error).message}`;
@@ -66,7 +76,7 @@ export async function POST(request: Request) {
       const grades = await adapter.fetchGrades(credentials);
       db.writeData("grades", grades);
       db.writeData("student", {
-        studentId: username || "",
+        studentId: username || savedCreds.username || "",
         gpa: grades.gpa,
         totalCredits: grades.totalCredits,
         courseCount: grades.allCourses.length,
