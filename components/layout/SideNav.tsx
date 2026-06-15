@@ -72,13 +72,12 @@ function NavItem({ href, label, Icon }: { href: string; label: string; Icon: typ
 export function SideNav() {
   return (
     <aside
-      className="hidden md:flex flex-col w-56 shrink-0 h-screen sticky top-0 border-r border-border/50 bg-card/60 backdrop-blur-2xl dark:bg-[#0a0a0f]/95 dark:border-white/[0.06]"
-      style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
+      className="hidden md:flex flex-col w-64 shrink-0 h-screen sticky top-0 border-r border-border/50 bg-card/60 backdrop-blur-2xl dark:bg-[#0a0a0f]/95 dark:border-white/[0.06]"
       aria-label="侧边导航"
     >
-      {/* Brand */}
-      <div className="px-6 pt-6 pb-4" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
-        <div className="flex items-baseline gap-1.5">
+      {/* Brand — 拖拽区域 */}
+      <div className="px-6 pt-6 pb-4" style={{ WebkitAppRegion: "drag" } as React.CSSProperties}>
+        <div className="flex items-baseline gap-1.5" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
           <span className="font-display text-[18px] font-semibold text-primary tracking-tight">
             Scholar
           </span>
@@ -99,14 +98,14 @@ export function SideNav() {
       </div>
 
       {/* Nav items — flat list */}
-      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto scrollbar-thin" role="navigation">
+      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto scrollbar-thin" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties} role="navigation">
         {NAV_ITEMS.map((item) => (
           <NavItem key={item.href} {...item} />
         ))}
       </nav>
 
       {/* Settings */}
-      <div className="px-3 pb-4 border-t border-border/40 pt-3">
+      <div className="px-3 pb-4 border-t border-border/40 pt-3" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
         <NavItem href="/settings" label="用户中心" Icon={Settings} />
       </div>
     </aside>
