@@ -5,6 +5,7 @@ import {
   ClipboardList, Clock, FileText, HeartPulse, LayoutDashboard,
   Library, Monitor, Newspaper, Settings, Sparkles, Target, Timer, TrendingUp,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -78,9 +79,14 @@ export function SideNav() {
       {/* Brand — 拖拽区域 */}
       <div className="px-6 pt-6 pb-4" style={{ WebkitAppRegion: "drag" } as React.CSSProperties}>
         <div className="flex items-center gap-2.5" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
-          <div className="w-[32px] h-[32px] rounded-xl bg-primary/10 flex items-center justify-center">
-            <span className="font-display text-[15px] font-bold text-primary">S</span>
-          </div>
+          <Image
+            src="/icons/logo.png"
+            alt="ScholarFlow"
+            width={32}
+            height={32}
+            className="rounded-xl shrink-0"
+            style={{ objectFit: "cover" }}
+          />
           <div className="flex items-baseline gap-1.5">
             <span className="font-display text-[18px] font-semibold text-primary tracking-tight">
               Scholar
