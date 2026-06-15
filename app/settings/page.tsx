@@ -57,8 +57,14 @@ export default function SettingsPage() {
     }
   }, [mounted]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // 1. Call logout API to clear credentials from DB
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {}
+    // 2. Clear Zustand auth state
     clearToken();
+    // 3. Navigate to setup page
     router.replace("/setup");
   };
 
