@@ -102,7 +102,7 @@ export function ScheduleCard() {
                     key={idx}
                     className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all duration-200 hover:shadow-sm ${pal.row}`}
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${pal.dot}`} />
+                    <span className={`w-[4px] h-8 rounded-full shrink-0 ${pal.dot}`} />
                     <span className={`text-[12.5px] font-medium flex-1 truncate ${pal.accent}`}>{item.title}</span>
                     {item.timeText && (
                       <span className="text-[11px] shrink-0 tabular-nums text-muted-foreground">{item.timeText}</span>

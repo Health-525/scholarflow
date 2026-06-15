@@ -60,11 +60,11 @@ function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge
     <div className={cn(cardClasses, "p-3 hover:-translate-y-1")}>
       <div className={`absolute -right-3 -top-3 w-20 h-20 rounded-full pointer-events-none opacity-[0.04] dark:opacity-[0.08] group-hover:opacity-[0.08] dark:group-hover:opacity-[0.14] transition-opacity duration-300 ${iconBgClass}`} />
       <div className="relative">
-        <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 transition-transform duration-200 group-hover:scale-110 ${iconBgClass}`}>
+        <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-3 transition-transform duration-200 group-hover:scale-110 ${iconBgClass}`}>
           <Icon size={15} className={colorClass} />
         </div>
-        <div className="text-[11px] mb-0.5 text-muted-foreground font-medium">{label}</div>
-        <div className={`text-[36px] font-bold tabular-nums leading-none ${colorClass}`}>
+        <div className="text-[11px] text-muted-foreground font-medium">{label}</div>
+        <div className={`text-[36px] font-bold tabular-nums leading-none mt-1 ${colorClass}`}>
           <AnimatedNumber value={value} />
         </div>
         {badge && (
@@ -72,7 +72,7 @@ function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge
             {badge}
           </span>
         )}
-        <div className="text-[10px] text-muted-foreground mt-1">{sub}</div>
+        <div className="text-[11px] text-muted-foreground mt-2">{sub}</div>
       </div>
     </div>
   );

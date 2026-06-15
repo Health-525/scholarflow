@@ -122,7 +122,8 @@ export function SortableDashboard() {
       renderItem={(s) => (
         <div className="space-y-2.5">
           <div className="flex items-center gap-2 px-1">
-            <LayoutGrid className="w-3 h-3 text-muted-foreground/60 opacity-0 group-hover/section:opacity-100 transition-opacity" />
+            <LayoutGrid className="w-3 h-3 text-muted-foreground/40 opacity-0 group-hover/section:opacity-100 transition-opacity duration-200" />
+            <span className="w-[3px] h-[10px] rounded-full bg-primary/30" aria-hidden="true" />
             <span className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase">{s.label}</span>
           </div>
           {s.content}

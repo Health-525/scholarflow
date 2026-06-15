@@ -41,14 +41,14 @@ function NavItem({ href, label, Icon }: { href: string; label: string; Icon: typ
       className={[
         "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-150 cursor-pointer",
         active
-          ? "bg-[#EEF4FF] text-[#2a4494] dark:bg-primary/[0.15] dark:text-white"
+          ? "bg-[#F1F4FF] text-[#2a4494] dark:bg-primary/[0.12] dark:text-white"
           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
       ].join(" ")}
     >
       {/* Active indicator bar */}
       <span
         className={[
-          "shrink-0 w-1 h-5 rounded-full transition-all duration-150",
+          "shrink-0 w-[3px] h-5 rounded-full transition-all duration-150",
           active ? "bg-primary" : "bg-transparent",
         ].join(" ")}
         aria-hidden="true"
@@ -77,13 +77,18 @@ export function SideNav() {
     >
       {/* Brand — 拖拽区域 */}
       <div className="px-6 pt-6 pb-4" style={{ WebkitAppRegion: "drag" } as React.CSSProperties}>
-        <div className="flex items-baseline gap-1.5" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
-          <span className="font-display text-[18px] font-semibold text-primary tracking-tight">
-            Scholar
-          </span>
-          <span className="font-display text-[18px] font-semibold text-foreground tracking-tight">
-            Flow
-          </span>
+        <div className="flex items-center gap-2.5" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
+          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+            <span className="font-display text-[14px] font-bold text-primary">S</span>
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-display text-[18px] font-semibold text-primary tracking-tight">
+              Scholar
+            </span>
+            <span className="font-display text-[18px] font-semibold text-foreground tracking-tight">
+              Flow
+            </span>
+          </div>
         </div>
         <p className="text-[11px] mt-1 tracking-widest uppercase text-muted-foreground/50">
           学习管理中枢
