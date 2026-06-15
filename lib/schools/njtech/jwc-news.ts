@@ -38,8 +38,8 @@ function fetchHtml(url: string, timeout = 15000): Promise<string> {
       (res) => {
         // Handle redirects
         if (
-          res.statusCode >= 300 &&
-          res.statusCode < 400 &&
+          (res.statusCode ?? 0) >= 300 &&
+          (res.statusCode ?? 0) < 400 &&
           res.headers.location
         ) {
           const redirectUrl = res.headers.location.startsWith("http")
@@ -47,8 +47,8 @@ function fetchHtml(url: string, timeout = 15000): Promise<string> {
             : new URL(res.headers.location, url).href;
           return fetchHtml(redirectUrl, timeout).then(resolve).catch(reject);
         }
-        if (res.statusCode < 200 || res.statusCode >= 400) {
-          return reject(new Error(`HTTP ${res.statusCode} for ${url}`));
+        if ((res.statusCode ?? 0) < 200 || (res.statusCode ?? 0) >= 400) {
+          return reject(new Error(`HTTP ${res.statusCode ?? 0} for ${url}`));
         }
 
         const chunks: Buffer[] = [];

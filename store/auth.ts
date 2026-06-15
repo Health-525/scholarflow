@@ -19,10 +19,16 @@ interface AuthState {
   isAuthenticated: boolean;
   /** 用户 ID (学号) */
   userId: string | null;
+  /** 用户名（兼容旧代码） */
+  username: string | null;
+  /** 旧 token 字段（兼容旧代码，现在为空） */
+  token: string | null;
   /** 设置认证信息 */
   setAuth: (schoolId: string, userId: string) => void;
-  /** 清除认证信息 */
+  /** 清除认证信息（兼容旧代码的 clearToken） */
   clearAuth: () => void;
+  /** 清除 token（别名 clearAuth） */
+  clearToken: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -31,13 +37,19 @@ export const useAuthStore = create<AuthState>()(
       schoolId: null,
       isAuthenticated: false,
       userId: null,
+      username: null,
+      token: null,
 
       setAuth: (schoolId: string, userId: string) => {
-        set({ schoolId, userId, isAuthenticated: true });
+        set({ schoolId, userId, username: userId, isAuthenticated: true });
       },
 
       clearAuth: () => {
-        set({ schoolId: null, userId: null, isAuthenticated: false });
+        set({ schoolId: null, userId: null, username: null, isAuthenticated: false, token: null });
+      },
+
+      clearToken: () => {
+        set({ schoolId: null, userId: null, username: null, isAuthenticated: false, token: null });
       },
     }),
     {
@@ -46,6 +58,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         schoolId: state.schoolId,
         userId: state.userId,
+        username: state.username,
         isAuthenticated: state.isAuthenticated,
       }),
     }

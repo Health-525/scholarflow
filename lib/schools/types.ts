@@ -21,9 +21,9 @@ export interface SchoolAdapter {
   /** 抓取成绩 + GPA */
   fetchGrades(credentials: SchoolCredentials): Promise<GradeResult>;
   /** 抓取图书馆座位（可选） */
-  fetchLibrary?(credentials: SchoolCredentials): Promise<LibraryData>;
+  fetchLibrary?(credentials: SchoolCredentials): Promise<LibraryData | null>;
   /** 抓取教务通知（可选） */
-  fetchJwcNews?(): Promise<NewsItem[]>;
+  fetchJwcNews?(existingItems?: NewsItem[]): Promise<NewsItem[]>;
 }
 
 // ── Login ───────────────────────────────────────────────────

@@ -3,8 +3,6 @@
 import { BookOpen, Clock, TrendingUp, CheckCircle2, ChevronRight, Lightbulb } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { useGitHubClient } from "@/hooks/useGitHubClient";
-
 interface Topic {
   id: string;
   title: string;
@@ -41,7 +39,6 @@ const PRIORITY_COLORS: Record<number, string> = {
 };
 
 export default function KnowledgeRoadmapPage() {
-  const client = useGitHubClient();
   const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,22 +54,10 @@ export default function KnowledgeRoadmapPage() {
           if (data.phases?.length > 0) { setRoadmap(data); return; }
         }
       } catch {}
-      if (!client) return;
-      try {
-        const file = await client.getFile("execution", "_out/knowledge-roadmap.json");
-        setRoadmap(JSON.parse(file.content));
-      } catch (err: unknown) {
-        const e = err as { type?: string; message?: string };
-        if (e?.type === "not_found") setError("知识路线图尚未生成");
-        else setError(`获取失败：${e?.message || String(err)}`);
-      }
+      setError("知识路线图尚未生成");
     }
     fetchData().finally(() => setLoading(false));
-  }, [client]);
-
-  if (!client) {
-    return <EmptyState icon={BookOpen} text="请先配置 GitHub Token" />;
-  }
+  }, []);
 
   if (loading) {
     return <div className="p-8 text-center animate-pulse text-muted-foreground">加载中...</div>;

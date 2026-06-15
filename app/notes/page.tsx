@@ -6,7 +6,6 @@ import { useState, useEffect, useCallback } from "react";
 import { FileTree } from "@/components/notes/FileTree";
 import { NoteEditor } from "@/components/notes/NoteEditor";
 import { NoteViewer } from "@/components/notes/NoteViewer";
-import { useGitHubClient } from "@/hooks/useGitHubClient";
 
 type ViewMode = "view" | "edit";
 
@@ -91,46 +90,45 @@ function NoteContent({
   mode: ViewMode;
   onModeChange: (m: ViewMode) => void;
 }) {
-  const client = useGitHubClient();
   const [content, setContent] = useState("");
-  const [_sha, setSha] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const fetchFile = useCallback(async () => {
-    if (!client) return;
     setIsLoading(true);
     setError(null);
     try {
-      const file = await client.getFile("content", path);
-      setContent(file.content);
-      setSha(file.sha);
+      // TODO: implement local file content reading
+      setContent("");
     } catch (err) {
-      setError((err as Error).message || "加载失败");
+      setError(err instanceof Error ? err.message : "加载失败");
     } finally {
       setIsLoading(false);
     }
-  }, [client, path]);
+  }, [path]);
 
   useEffect(() => {
     fetchFile();
   }, [fetchFile]);
 
   const handleSave = async (newContent: string) => {
-    if (!client) return;
     setSaving(true);
     setSaveSuccess(false);
     try {
-      await client.putFile("content", path, newContent, "编辑笔记");
+      const res = await fetch("/api/local-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ file: path, content: newContent, action: "编辑笔记" }),
+      });
+      if (!res.ok) throw new Error("保存失败");
       setContent(newContent);
-      await fetchFile();
       setSaveSuccess(true);
       onModeChange("view");
       setTimeout(() => setSaveSuccess(false), 2000);
     } catch (err) {
-      setError((err as Error).message || "保存失败");
+      setError(err instanceof Error ? err.message : "保存失败");
     } finally {
       setSaving(false);
     }

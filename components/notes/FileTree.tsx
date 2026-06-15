@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-import { useGitHubClient } from "@/hooks/useGitHubClient";
-
 interface TreeNode {
   name: string;
   path: string;
@@ -12,65 +10,30 @@ interface TreeNode {
   loaded?: boolean;
 }
 
-interface FileTreeProps {
+ interface FileTreeProps {
   onSelect: (path: string) => void;
   activePath?: string;
 }
 
-export function FileTree({ onSelect, activePath }: FileTreeProps) {
-  const client = useGitHubClient();
+ export function FileTree({ onSelect, activePath }: FileTreeProps) {
   const [roots, setRoots] = useState<TreeNode[]>([]);
 
+  const [loading, setLoading] = useState(true);
+
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    if (!client) return;
-    client.listDirectory("content", "").then((entries) => {
-      const nodes: TreeNode[] = entries
-        .filter(
-          (e) =>
-            e.type === "dir" &&
-            !e.name.startsWith(".") &&
-            !e.name.startsWith("_") &&
-            e.name !== "日报" &&
-            e.name !== "周报" &&
-            e.name !== "图片" &&
-            e.name !== "public"
-        )
-        .map((e) => ({
-          name: e.name,
-          path: e.path,
-          type: e.type as "dir",
-          children: [],
-          loaded: false,
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name));
-      setRoots(nodes);
-    });
-  }, [client]);
+    // TODO: implement local notes directory listing
+    // Currently returns empty tree
+    setLoading(true);
+    setError(null);
+    setRoots([]);
+    setLoading(false);
+  }, []);
 
   async function toggleNode(node: TreeNode) {
-    if (!client) return;
-
-    if (node.loaded) {
-      node.loaded = false;
-      setRoots([...roots]);
-      return;
-    }
-
-    const entries = await client.listDirectory("content", node.path);
-    node.children = entries
-      .filter((e) => !e.name.startsWith("."))
-      .map((e) => ({
-        name: e.name,
-        path: e.path,
-        type: e.type as "file" | "dir",
-        children: [],
-        loaded: false,
-      }))
-      .sort((a, b) => {
-        if (a.type !== b.type) return a.type === "dir" ? -1 : 1;
-        return a.name.localeCompare(b.name);
-      });
-    node.loaded = true;
+    // TODO: implement local notes directory expansion
+    node.loaded = false;
     setRoots([...roots]);
   }
 
@@ -90,7 +53,7 @@ export function FileTree({ onSelect, activePath }: FileTreeProps) {
   );
 }
 
-function TreeNodeView({
+ function TreeNodeView({
   node,
   depth,
   onToggle,
@@ -144,12 +107,9 @@ function TreeNodeView({
           </span>
         )}
         {!isDir && <span className="w-4 shrink-0" />}
-
         <span className="shrink-0 text-xs">{getIcon()}</span>
-
         <span className="truncate">{node.name}</span>
       </div>
-
       {isExpanded &&
         node.children?.map((child) => (
           <TreeNodeView
@@ -161,6 +121,6 @@ function TreeNodeView({
             activePath={activePath}
           />
         ))}
-    </div>
+      </div>
   );
 }

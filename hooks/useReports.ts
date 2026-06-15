@@ -2,43 +2,45 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-import type { GitHubError } from "@/lib/github/errors";
 import type { DirectoryEntry } from "@/types";
-
-import { useGitHubClient } from "./useGitHubClient";
 
 interface ReportsState {
   entries: DirectoryEntry[];
   isLoading: boolean;
-  error: GitHubError | null;
+  error: Error | null;
   reload: () => void;
 }
 
 /**
- * 获取日报列表
+ * 获取日报列表 — 从本地 API 读取
  */
 export function useDailyReports(): ReportsState {
-  const client = useGitHubClient();
   const [entries, setEntries] = useState<DirectoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<GitHubError | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   const load = useCallback(async () => {
-    if (!client) return;
     setIsLoading(true);
     setError(null);
     try {
-      const all = await client.listDirectory("content", "日报");
-      const files = all
-        .filter((e) => e.type === "file" && e.name.endsWith(".md"))
-        .sort((a, b) => b.name.localeCompare(a.name)); // newest first
-      setEntries(files);
+      const res = await fetch("/api/local-data?type=dailyReports");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setEntries(data);
+        } else {
+          setEntries([]);
+        }
+      } else {
+        setEntries([]);
+      }
     } catch (err) {
-      setError(err as GitHubError);
+      setError(err instanceof Error ? err : new Error(String(err)));
+      setEntries([]);
     } finally {
       setIsLoading(false);
     }
-  }, [client]);
+  }, []);
 
   useEffect(() => {
     load();
@@ -48,30 +50,35 @@ export function useDailyReports(): ReportsState {
 }
 
 /**
- * 获取周报列表
+ * 获取周报列表 — 从本地 API 读取
  */
 export function useWeeklyReports(): ReportsState {
-  const client = useGitHubClient();
   const [entries, setEntries] = useState<DirectoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<GitHubError | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   const load = useCallback(async () => {
-    if (!client) return;
     setIsLoading(true);
     setError(null);
     try {
-      const all = await client.listDirectory("content", "周报");
-      const files = all
-        .filter((e) => e.type === "file" && e.name.endsWith(".md"))
-        .sort((a, b) => b.name.localeCompare(a.name)); // newest first
-      setEntries(files);
+      const res = await fetch("/api/local-data?type=weeklyReports");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setEntries(data);
+        } else {
+          setEntries([]);
+        }
+      } else {
+        setEntries([]);
+      }
     } catch (err) {
-      setError(err as GitHubError);
+      setError(err instanceof Error ? err : new Error(String(err)));
+      setEntries([]);
     } finally {
       setIsLoading(false);
     }
-  }, [client]);
+  }, []);
 
   useEffect(() => {
     load();
@@ -81,46 +88,32 @@ export function useWeeklyReports(): ReportsState {
 }
 
 /**
- * 获取单篇报告内容
+ * 获取单篇报告内容 — 从本地 API 读取
  */
 export function useReportContent(
   type: "daily" | "weekly",
   slug: string
-): { content: string; isLoading: boolean; error: GitHubError | null } {
-  const client = useGitHubClient();
+): { content: string; isLoading: boolean; error: Error | null } {
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<GitHubError | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (!client || !slug) return;
-
-    const folder = type === "daily" ? "日报" : "周报";
-    const path = `${folder}/${slug}.md`;
+    if (!slug) return;
 
     let cancelled = false;
     setIsLoading(true);
     setError(null);
 
-    client
-      .getFile("content", path)
-      .then((file) => {
-        if (!cancelled) {
-          setContent(file.content);
-          setIsLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(err as GitHubError);
-          setIsLoading(false);
-        }
-      });
+    const folder = type === "daily" ? "日报" : "周报";
+    // TODO: implement local report content reading via API
+    setContent("");
+    setIsLoading(false);
 
     return () => {
       cancelled = true;
     };
-  }, [client, type, slug]);
+  }, [type, slug]);
 
   return { content, isLoading, error };
 }
