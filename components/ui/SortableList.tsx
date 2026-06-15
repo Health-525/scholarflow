@@ -63,7 +63,7 @@ export function SortableItem({ id, children, showGrip = true, className = "" }: 
           type="button"
           {...attributes}
           {...listeners}
-          className="shrink-0 min-h-8 min-w-8 p-1 rounded-md text-muted-foreground/50 hover:text-muted-foreground hover:bg-secondary cursor-grab active:cursor-grabbing touch-none"
+          className="shrink-0 min-h-8 min-w-8 p-1 rounded-md text-muted-foreground/50 hover:text-muted-foreground hover:bg-secondary cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover/section:opacity-100 transition-opacity duration-200"
           aria-label="拖动排序"
         >
           <GripVertical className="w-4 h-4" />
