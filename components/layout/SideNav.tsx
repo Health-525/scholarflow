@@ -4,12 +4,9 @@ import {
   Activity, BookOpen, Bot, Brain, CalendarDays, Calculator,
   ClipboardList, Clock, FileText, HeartPulse, LayoutDashboard,
   Library, Monitor, Newspaper, Settings, Sparkles, Target, Timer, TrendingUp,
-  ChevronDown, ChevronRight,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 
 // ── 分组导航 ──────────────────────────────────────────────────
 const NAV_GROUPS = [
@@ -58,90 +55,85 @@ function NavItem({ href, label, Icon }: { href: string; label: string; Icon: typ
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={[
-        "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200 cursor-pointer",
+        "group flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 cursor-pointer",
         active
           ? "bg-primary/10 text-primary dark:bg-primary/[0.15] dark:text-white"
-          : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
+          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
       ].join(" ")}
     >
-      {active && (
-        <span className="absolute inset-y-1 left-0.5 w-[3px] rounded-full bg-primary" aria-hidden="true" />
-      )}
+      {/* Active indicator bar */}
+      <span
+        className={[
+          "shrink-0 w-1 h-5 rounded-full transition-all duration-150",
+          active ? "bg-primary" : "bg-transparent",
+        ].join(" ")}
+        aria-hidden="true"
+      />
       <Icon className={[
-        "h-[18px] w-[18px] shrink-0 transition-colors duration-200",
-        active ? "text-primary" : "text-muted-foreground/70 group-hover:text-foreground",
+        "shrink-0 h-[16px] w-[16px] transition-colors duration-150",
+        active ? "text-primary" : "text-muted-foreground/60 group-hover:text-foreground",
       ].join(" ")} />
-      <span className="truncate">{label}</span>
+      <span className="tracking-wide">{label}</span>
+      {/* Hover accent dot */}
+      {!active && (
+        <span
+          className="ml-auto w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-150 bg-muted-foreground/40"
+          aria-hidden="true"
+        />
+      )}
     </Link>
   );
 }
 
-function NavGroup({ label, items }: { label: string; items: typeof NAV_GROUPS[number]["items"] }) {
-  const pathname = usePathname();
-  const hasActive = items.some(item =>
-    item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
-  );
-  const [expanded, setExpanded] = useState(true);
-
-  return (
-    <div className="mb-1">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 hover:text-muted-foreground transition-colors duration-200 cursor-pointer"
-        aria-expanded={expanded}
-      >
-        <span className="flex-1">{label}</span>
-        {expanded ? (
-          <ChevronDown className="h-3 w-3 shrink-0" />
-        ) : (
-          <ChevronRight className="h-3 w-3 shrink-0" />
-        )}
-      </button>
-      {expanded && (
-        <div className="space-y-0.5 mt-0.5">
-          {items.map((item) => (
-            <NavItem key={item.href} {...item} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function SideNav() {
+  const pathname = usePathname();
+
   return (
     <aside
-      className="hidden md:flex flex-col w-60 shrink-0 h-screen sticky top-0 border-r border-border/60 bg-card/50 backdrop-blur-xl dark:bg-[#0a0a0f]/95 dark:border-white/[0.06]"
-      aria-label="主导航"
+      className="hidden md:flex flex-col w-56 shrink-0 h-screen sticky top-0 border-r border-border/50 bg-card/60 backdrop-blur-2xl dark:bg-[#0a0a0f]/95 dark:border-white/[0.06]"
+      style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
+      aria-label="侧边导航"
     >
-      {/* Logo — 拖拽区域 */}
-      <div className="px-4 pt-4 pb-2" style={{ WebkitAppRegion: "drag" } as React.CSSProperties}>
-        <div className="flex items-center gap-2.5" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
-          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Image
-              src="/icons/logo.png"
-              alt="ScholarFlow"
-              width={24}
-              height={24}
-              className="rounded-lg shrink-0"
-              style={{ objectFit: "cover" }}
-            />
-          </div>
-          <span className="font-display text-[16px] font-semibold tracking-tight text-foreground">
-            ScholarFlow
+      {/* Brand */}
+      <div className="px-6 pt-6 pb-4" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
+        <div className="flex items-baseline gap-1.5">
+          <span className="font-display text-[18px] font-semibold text-primary tracking-tight">
+            Scholar
+          </span>
+          <span className="font-display text-[18px] font-semibold text-foreground tracking-tight">
+            Flow
           </span>
         </div>
+        <p className="text-[11px] mt-1 tracking-widest uppercase text-muted-foreground/50">
+          学习管理中枢
+        </p>
       </div>
 
-      {/* 分组导航 */}
-      <nav className="flex-1 px-3 pt-2 overflow-y-auto scrollbar-thin" role="navigation">
+      {/* Decorative divider */}
+      <div className="mx-6 mb-3 flex items-center gap-2">
+        <div className="flex-1 h-px bg-border/60" />
+        <div className="w-1 h-1 rounded-full bg-primary/30" />
+        <div className="flex-1 h-px bg-border/60" />
+      </div>
+
+      {/* Grouped navigation */}
+      <nav className="flex-1 px-3 overflow-y-auto scrollbar-thin" role="navigation">
         {NAV_GROUPS.map((group) => (
-          <NavGroup key={group.label} {...group} />
+          <div key={group.label} className="mb-3">
+            <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/40">
+              {group.label}
+            </p>
+            <div className="space-y-0.5">
+              {group.items.map((item) => (
+                <NavItem key={item.href} {...item} />
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
 
       {/* Settings */}
-      <div className="px-3 py-2 border-t border-border/40">
+      <div className="px-3 pb-4 border-t border-border/40 pt-3">
         <NavItem href="/settings" label="用户中心" Icon={Settings} />
       </div>
     </aside>
