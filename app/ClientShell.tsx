@@ -68,10 +68,11 @@ export default function ClientShell({ children }: ClientShellProps) {
     restoreAuth().catch(() => setIsRestoring(false));
   }, [setAuth]);
 
-  // Route guard
+  // Route guard — redirect to /setup if not authenticated
   useEffect(() => {
     if (isRestoring) return;
-    if (!isAuthenticated && !PUBLIC_PATHS.includes(pathname)) {
+    if (!isAuthenticated && !PUBLIC_PATHS.includes(pathname)) return; // already on setup page
+    if (!isAuthenticated) {
       router.replace("/setup");
     }
   }, [isAuthenticated, pathname, router, isRestoring]);
@@ -90,9 +91,13 @@ export default function ClientShell({ children }: ClientShellProps) {
     );
   }
 
-  // While not authenticated (and about to redirect), render nothing
+  // Not authenticated but not yet on /setup — show loading while redirect happens
   if (!isAuthenticated) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 rounded-xl bg-primary/10 animate-breathe" />
+      </div>
+    );
   }
 
   return <AppShell isOnline={isOnline}>{children}</AppShell>;
