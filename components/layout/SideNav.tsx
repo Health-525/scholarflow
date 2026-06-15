@@ -39,7 +39,7 @@ function NavItem({ href, label, Icon }: { href: string; label: string; Icon: typ
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={[
-        "group flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 cursor-pointer",
+        "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-150 cursor-pointer",
         active
           ? "bg-primary/10 text-primary dark:bg-primary/[0.15] dark:text-white"
           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
@@ -54,7 +54,7 @@ function NavItem({ href, label, Icon }: { href: string; label: string; Icon: typ
         aria-hidden="true"
       />
       <Icon className={[
-        "shrink-0 h-[16px] w-[16px] transition-colors duration-150",
+        "shrink-0 h-[18px] w-[18px] transition-colors duration-150",
         active ? "text-primary" : "text-muted-foreground/60 group-hover:text-foreground",
       ].join(" ")} />
       <span className="tracking-wide">{label}</span>
@@ -72,7 +72,7 @@ function NavItem({ href, label, Icon }: { href: string; label: string; Icon: typ
 export function SideNav() {
   return (
     <aside
-      className="hidden md:flex flex-col w-64 shrink-0 h-screen sticky top-0 border-r border-border/50 bg-card/60 backdrop-blur-2xl dark:bg-[#0a0a0f]/95 dark:border-white/[0.06]"
+      className="hidden md:flex flex-col w-56 shrink-0 h-screen sticky top-0 border-r border-border/50 bg-card/60 backdrop-blur-2xl dark:bg-[#0a0a0f]/95 dark:border-white/[0.06]"
       aria-label="侧边导航"
     >
       {/* Brand — 拖拽区域 */}
