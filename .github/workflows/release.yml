@@ -19,6 +19,10 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: write
+    env:
+      # node-gyp / npm 10+ 通过环境变量读取这些配置
+      npm_config_msvs_version: 2022
+      npm_config_python: python
 
     steps:
       - name: Checkout repository
@@ -33,11 +37,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Configure node-gyp for Visual Studio 2022
+      - name: Verify Visual Studio installation
         shell: pwsh
         run: |
-          npm config set msvs_version 2022
-          npm config set python python3
+          Get-ChildItem "C:\Program Files\Microsoft Visual Studio\2022\*\MSBuild\Current\Bin\MSBuild.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
 
       - name: Build Electron app
         shell: pwsh
