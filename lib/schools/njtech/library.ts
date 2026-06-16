@@ -7,9 +7,8 @@
  */
 
 import https from "https";
-import type { LibraryData, LibraryRoom } from "../types";
 
-const GRAPHQL_URL = "https://seat.njtech.edu.cn/index.php/graphql/";
+import type { LibraryData, LibraryRoom } from "../types";
 
 // ── GraphQL 请求 ────────────────────────────────────────────
 

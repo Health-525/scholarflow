@@ -114,11 +114,22 @@ export function BottomNav() {
 
       {/* 更多抽屉 — Bottom Sheet */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-50 md:hidden" onClick={() => setDrawerOpen(false)}>
+        <div
+          className="fixed inset-0 z-50 md:hidden"
+          role="button"
+          tabIndex={-1}
+          aria-label="关闭更多功能"
+          onClick={() => setDrawerOpen(false)}
+          onKeyDown={(e) => { if (e.key === "Escape") setDrawerOpen(false); }}
+        >
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-in" />
           <div
             className="absolute bottom-0 left-0 right-0 bg-card border-t border-border rounded-t-[24px] shadow-lg max-h-[65vh] overflow-y-auto pb-safe animate-fade-up"
+            role="button"
+            tabIndex={-1}
+            aria-hidden="true"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => { e.stopPropagation(); }}
           >
             {/* Handle bar */}
             <div className="flex justify-center pt-3 pb-1">

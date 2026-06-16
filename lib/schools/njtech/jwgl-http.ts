@@ -89,7 +89,7 @@ export function createClient(baseURL: string): HttpClient {
         }
       );
 
-      q.on("error", (e: Error) =>
+      q.on("error", (_e: Error) =>
         resolve({ status: 0, body: "", headers: {} })
       );
       q.setTimeout(30000, () => q.destroy());

@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
-import { getServerDB } from "@/lib/server-db";
-import { getAdapter } from "@/lib/schools/registry";
+
+import { buildDashboardSummary } from "@/lib/dashboard/summary";
 import { NJTECH_PERIOD_TIMES } from "@/lib/schools/njtech/jwgl";
+import { getAdapter } from "@/lib/schools/registry";
+import { getServerDB } from "@/lib/server-db";
 
 /**
  * POST /api/fetch/all
@@ -31,8 +33,6 @@ export async function POST(request: Request) {
     const userId = username || "default";
     const savedCreds = db.getCredentials(schoolId, userId);
 
-    console.log(`[fetch/all] savedCreds:`, JSON.stringify(savedCreds));
-
     if (!savedCreds) {
       return NextResponse.json({ error: "凭证已过期或不存在，请重新登录" }, { status: 401 });
     }
@@ -50,19 +50,19 @@ export async function POST(request: Request) {
 
     // 课表 — 加上 meta 字段（前端需要 week1_monday 和 tz）
     try {
-      console.log(`[fetch/all] credentials.data keys:`, Object.keys(savedCreds));
-      console.log(`[fetch/all] cookie present:`, !!savedCreds.cookie, `username:`, savedCreds.username);
       const courses = await adapter.fetchSchedule(credentials);
-      console.log(`[fetch/all] fetchSchedule returned ${courses.length} courses`);
-      // 计算 week1_monday：NJTECH 2025-2026 学年第二学期，开学日期 2026-03-02（周一）
-      // TODO: 后续从学校配置或用户设置中获取
-      const week1Monday = "2026-03-02";
+
+      // 从学校适配器获取学期配置
+      const semesterInfo = adapter.getCurrentSemester?.() || {
+        year: "2025", semester: "2", week1Monday: "2026-03-02",
+      };
+
       db.writeData(`schedule:${prefix}`, {
         courses,
         meta: {
-          week1_monday: week1Monday,
+          week1_monday: semesterInfo.week1Monday,
           tz: "Asia/Shanghai",
-          semester: "2025-2026-2",
+          semester: `${semesterInfo.year}-${semesterInfo.year + 1}-${semesterInfo.semester}`,
           schoolId,
         },
         periodTimes: NJTECH_PERIOD_TIMES,
@@ -108,26 +108,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // 重新生成 dashboard summary
-    const schedule = (db.readData(`schedule:${prefix}`) as { courses?: unknown[] }) || { courses: [] };
-    const assignments = db.readData(`assignments:${prefix}`) || [];
-    const running = db.readData(`running:${prefix}`) || { records: [] };
-    const gradesData = db.readData(`grades:${prefix}`) || { gpa: "0.00" };
-    const today = new Date().toISOString().slice(0, 10);
-
-    db.writeData(`dashboard-summary:${prefix}`, {
-      updatedAt: new Date().toISOString(),
-      date: today,
-      overview: {
-        courses: new Set((schedule.courses as { title: string }[]).map(c => c.title)).size,
-        pendingAssignments: Array.isArray(assignments) ? (assignments as { done?: boolean }[]).filter(a => !a.done).length : 0,
-        urgentAssignments: 0,
-        running: { total: 0, morning: 0, completed: false },
-        gpa: (gradesData as { gpa?: string }).gpa || "0.00",
-      },
-      health: { agents: 0, total: 0, failing: 0 },
-      knowledge: { gapsRemaining: 0, estimatedHours: 0 },
-    });
+    // 重新生成 dashboard summary — 使用实际数据而非硬编码
+    db.writeData(`dashboard-summary:${prefix}`, buildDashboardSummary(db, prefix));
 
     return NextResponse.json({ ok: true, results });
   } catch (e: unknown) {

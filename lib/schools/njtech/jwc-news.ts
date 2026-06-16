@@ -6,8 +6,9 @@
  * 无需认证（公开页面）
  */
 
-import https from "https";
 import http from "http";
+import https from "https";
+
 import type { NewsItem } from "../types";
 
 const BASE_URL = "https://jwc.njtech.edu.cn";

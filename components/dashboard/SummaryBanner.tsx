@@ -4,7 +4,7 @@ import { BookOpen, ClipboardList, Activity, Calculator } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 
 import { cardClasses } from "@/components/ui/card";
-import { gpaColor, gpaColorClasses } from "@/lib/gpa";
+import { gpaColorClasses } from "@/lib/gpa";
 import { cn } from "@/lib/utils";
 
 interface DashboardSummary {

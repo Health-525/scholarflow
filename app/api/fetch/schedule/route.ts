@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getServerDB } from "@/lib/server-db";
-import { getAdapter } from "@/lib/schools/registry";
+
 import { NJTECH_PERIOD_TIMES } from "@/lib/schools/njtech/jwgl";
+import { getAdapter } from "@/lib/schools/registry";
+import { getServerDB } from "@/lib/server-db";
 
 /**
  * POST /api/fetch/schedule

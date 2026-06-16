@@ -28,53 +28,38 @@ export default function ClientShell({ children }: ClientShellProps) {
     applyTheme();
 
     async function restoreAuth() {
-      // If already authenticated from Zustand persist, skip
-      if (useAuthStore.getState().isAuthenticated) {
-        setIsRestoring(false);
-        return;
-      }
-
-      // Try to read from localStorage — Zustand persist is async
-      try {
-        const raw = localStorage.getItem("sf_auth");
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          const stored = parsed?.state || parsed;
-          if (stored?.schoolId && stored?.isAuthenticated) {
-            setAuth(stored.schoolId, stored.userId || "");
-            setIsRestoring(false);
-            return;
-          }
-        }
-      } catch {}
-
-      // Check if server has data (indicates previous login)
+      // Server-side session is the source of truth.
+      // Zustand persist already provides a synchronous fallback.
       try {
         const res = await fetch("/api/auth/session");
         if (res.ok) {
           const data = await res.json();
           if (data.authenticated && data.schoolId && data.userId) {
             setAuth(data.schoolId, data.userId);
-            // Auto-refresh data on session restore (switching accounts)
-            try {
-              await fetch("/api/fetch/all", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ schoolId: data.schoolId, username: data.userId }),
-              });
-            } catch {}
-            setIsRestoring(false);
-            return;
+
+            // Auto-refresh data on session restore when on a protected page
+            if (!PUBLIC_PATHS.includes(pathname)) {
+              try {
+                await fetch("/api/fetch/all", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ schoolId: data.schoolId, username: data.userId }),
+                });
+              } catch {
+                // Refresh is best-effort; do not block auth restore
+              }
+            }
           }
         }
-      } catch {}
-
-      // Not authenticated — will redirect to /setup
-      setIsRestoring(false);
+      } catch {
+        // Offline or server error — rely on Zustand persist state
+      } finally {
+        setIsRestoring(false);
+      }
     }
 
-    restoreAuth().catch(() => setIsRestoring(false));
-  }, [setAuth]);
+    restoreAuth();
+  }, [setAuth, pathname]);
 
   // Route guard — redirect to /setup if not authenticated
   useEffect(() => {

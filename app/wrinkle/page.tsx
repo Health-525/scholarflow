@@ -5,6 +5,11 @@ import { useState, useRef, useCallback, useEffect } from "react";
 const API_URL = process.env.NEXT_PUBLIC_WRINKLE_API_URL || "http://localhost:8000";
 const WS_URL = API_URL.replace(/^http/, "ws") + "/ws/realtime";
 
+function confirmAction(message: string): boolean {
+  // eslint-disable-next-line no-alert
+  return window.confirm(message);
+}
+
 interface RealtimeData {
   face_detected: boolean;
   wrinkle_score: number;
@@ -316,7 +321,7 @@ export default function WrinklePage() {
       if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
       if (ea) ea.browMonitorStart().then(r => { if (r.ok) ea.petShow().catch(() => {}); }).catch(() => {});
     };
-  }, []);
+  }, [ea]);
 
   // ── 衍生数据 ──
   const score = rtData?.face_detected ? rtData.wrinkle_score : 0;
@@ -512,7 +517,10 @@ export default function WrinklePage() {
               border: `1.5px solid ${rtData.brow_rising ? "rgba(251,146,60,0.65)" : "rgba(34,211,238,0.3)"}`, borderRadius: 10,
               boxShadow: rtData.brow_rising ? "0 0 28px rgba(251,146,60,0.2)" : "none",
             }}>
-              {rtData.heatmap && <img src={rtData.heatmap} alt="" className="w-full h-full object-cover opacity-40 rounded-[8px]" />}
+              {rtData.heatmap && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={rtData.heatmap} alt="" className="w-full h-full object-cover opacity-40 rounded-[8px]" />
+              )}
             </div>
           )}
 
@@ -564,8 +572,22 @@ export default function WrinklePage() {
 
       {/* ══════ 设置面板 ══════ */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setShowSettings(false)}>
-          <div className="bg-card rounded-2xl border border-border shadow-lg w-80 p-5 space-y-4" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+          role="button"
+          tabIndex={-1}
+          aria-label="关闭监控设置"
+          onClick={() => setShowSettings(false)}
+          onKeyDown={(e) => { if (e.key === "Escape") setShowSettings(false); }}
+        >
+          <div
+            className="bg-card rounded-2xl border border-border shadow-lg w-80 p-5 space-y-4"
+            role="button"
+            tabIndex={-1}
+            aria-hidden="true"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => { e.stopPropagation(); }}
+          >
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold">监控设置</h2>
               <button onClick={() => setShowSettings(false)} className="text-muted-foreground hover:text-foreground">
@@ -614,7 +636,7 @@ export default function WrinklePage() {
             </div>
 
             {/* 清除数据 */}
-            <button onClick={() => { if (confirm("清除所有检测历史？")) { localStorage.removeItem(STORAGE_KEY); setHistory([]); } }}
+            <button onClick={() => { if (confirmAction("清除所有检测历史？")) { localStorage.removeItem(STORAGE_KEY); setHistory([]); } }}
               className="w-full py-2 text-xs text-muted-foreground hover:text-rose-500 transition-colors">
               清除历史数据
             </button>

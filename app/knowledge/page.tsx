@@ -118,7 +118,7 @@ export default function KnowledgeProfilePage() {
       map[s.category].push(s);
     }
     return map;
-  }, []);
+  }, [skills]);
 
   // Radar chart data — use top skills per category for readability
   const radarData = useMemo(() => {
@@ -133,7 +133,7 @@ export default function KnowledgeProfilePage() {
       skills.find(s => s.name === "数学建模")!,
     ];
     return picks.map(s => ({ subject: s.name, level: s.level, fullMark: 100 }));
-  }, []);
+  }, [skills]);
 
   // Simulated knowledge gaps (from 知识画像.md analysis)
   const knowledgeGaps = [

@@ -24,6 +24,8 @@ export interface SchoolAdapter {
   fetchLibrary?(credentials: SchoolCredentials): Promise<LibraryData | null>;
   /** 抓取教务通知（可选） */
   fetchJwcNews?(existingItems?: NewsItem[]): Promise<NewsItem[]>;
+  /** 获取当前学期信息（可选） */
+  getCurrentSemester?(): { year: string; semester: string; week1Monday: string };
 }
 
 // ── Login ───────────────────────────────────────────────────

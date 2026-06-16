@@ -6,6 +6,11 @@ import Link from "next/link";
 import { useActivityTrackerV3, downloadActivityCSV, clearActivityData, CATEGORY_COLORS, CATEGORY_LABELS } from "@/lib/activity-tracker-v3";
 import type { Category } from "@/lib/activity-tracker-v3";
 
+function confirmClear(message: string): boolean {
+  // eslint-disable-next-line no-alert
+  return window.confirm(message);
+}
+
 export default function ActivityPage() {
   const state = useActivityTrackerV3();
 
@@ -117,7 +122,7 @@ export default function ActivityPage() {
         <button onClick={downloadActivityCSV} className="flex-1 py-3 rounded-xl text-[13px] font-medium bg-card border border-border text-foreground">
           导出 CSV
         </button>
-        <button onClick={() => { if (confirm("确定清除所有活动记录？")) { clearActivityData(); window.location.reload(); } }} className="flex items-center justify-center gap-1 py-3 px-4 rounded-xl text-[13px] font-medium bg-card border border-border text-red-500">
+        <button onClick={() => { if (confirmClear("确定清除所有活动记录？")) { clearActivityData(); window.location.reload(); } }} className="flex items-center justify-center gap-1 py-3 px-4 rounded-xl text-[13px] font-medium bg-card border border-border text-red-500">
           <Trash2 className="w-4 h-4" />清除
         </button>
       </div>

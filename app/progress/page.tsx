@@ -54,7 +54,7 @@ const DEMO_ENTRIES: ProgressEntry[] = [
 
 export default function ProgressPage() {
   const [mounted, setMounted] = useState(false);
-  const [isDark, setIsDark] = useState(false);
+  const [_isDark, setIsDark] = useState(false);
   const [entries] = useState<ProgressEntry[]>(DEMO_ENTRIES);
   const [filterSubject, setFilterSubject] = useState<string | null>(null);
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getServerDB } from "@/lib/server-db";
+
 import { getAdapter } from "@/lib/schools/registry";
+import { getServerDB } from "@/lib/server-db";
 
 export async function POST(request: Request) {
   try {
@@ -18,10 +19,11 @@ export async function POST(request: Request) {
 
     // Get existing news for merge
     const db = getServerDB();
-    const existing = (db.readData("jwc-news") as import("@/lib/schools/types").NewsItem[]) || [];
+    const key = `jwc-news:${schoolId}`;
+    const existing = (db.readData(key) as import("@/lib/schools/types").NewsItem[]) || [];
 
     const news = await adapter.fetchJwcNews(existing);
-    db.writeData("jwc-news", news);
+    db.writeData(key, news);
 
     return NextResponse.json({ ok: true, count: news.length });
   } catch (e: unknown) {

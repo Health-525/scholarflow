@@ -3,9 +3,10 @@
  * 搬自 timetable/scripts/fetch_jwgl.js，改为 TypeScript 函数化
  */
 
-import { createClient, createClientWithCookie, type HttpClient, type HttpResponse } from "./jwgl-http";
-import { encryptPassword } from "./jwgl-crypto";
 import type { CourseData, ExamData, GradeCourse } from "../types";
+
+import { encryptPassword } from "./jwgl-crypto";
+import { createClient, createClientWithCookie } from "./jwgl-http";
 
 const BASE = "https://jwgl.njtech.edu.cn";
 
@@ -120,17 +121,13 @@ export async function fetchSchedule(
     body: `xnm=${year}&xqm=${semester}`,
   });
 
-  console.log(`[NJTECH] fetchSchedule: xnm=${year}, xqm=${semester}, status=${resp.status}, bodyLen=${resp.body?.length || 0}`);
-
   if (!resp.body || resp.body.length < 10) {
-    console.log(`[NJTECH] fetchSchedule: empty response, returning []`);
     return [];
   }
 
   try {
     const data = JSON.parse(resp.body);
     const kbList = data?.kbList || [];
-    console.log(`[NJTECH] fetchSchedule: got ${kbList.length} courses from JWGL`);
 
     if (kbList.length > 0) {
       return kbList.map((item: Record<string, unknown>) => ({
@@ -145,9 +142,7 @@ export async function fetchSchedule(
     }
 
     // JWGL 返回空课表（学期末常见）→ 从考试数据反向生成课表
-    console.log(`[NJTECH] fetchSchedule: JWGL returned 0 courses, falling back to exam data`);
     const examCourses = await buildScheduleFromExams(cookie, year, semester);
-    console.log(`[NJTECH] fetchSchedule: built ${examCourses.length} courses from exam data`);
     return examCourses;
   } catch {
     return [];

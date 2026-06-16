@@ -3,8 +3,9 @@
  * 搬自 timetable/scripts/fetch_grades_all.js，改为 TypeScript 函数化
  */
 
-import { createClientWithCookie } from "./jwgl";
 import type { GradeResult, GradeCourse } from "../types";
+
+import { createClientWithCookie } from "./jwgl";
 
 const BASE = "https://jwgl.njtech.edu.cn";
 
@@ -53,7 +54,7 @@ function isRequired(type: string): boolean {
  */
 export async function fetchAllGrades(
   cookie: string,
-  username: string
+  _username: string
 ): Promise<GradeResult> {
   const client = createClientWithCookie(BASE, cookie);
 

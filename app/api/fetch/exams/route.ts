@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getServerDB } from "@/lib/server-db";
+
 import { getAdapter } from "@/lib/schools/registry";
+import { getServerDB } from "@/lib/server-db";
 
 export async function POST(request: Request) {
   try {

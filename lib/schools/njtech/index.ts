@@ -13,10 +13,11 @@ import type {
   LibraryData,
   NewsItem,
 } from "../types";
-import { loginJwgl, fetchSchedule, fetchExams, fetchCurrentGrades } from "./jwgl";
+
 import { fetchAllGrades } from "./grades";
-import { fetchLibrarySeats } from "./library";
 import { fetchJwcNews } from "./jwc-news";
+import { loginJwgl, fetchSchedule, fetchExams } from "./jwgl";
+import { fetchLibrarySeats } from "./library";
 
 export const njtechAdapter: SchoolAdapter = {
   id: "njtech",
@@ -89,5 +90,26 @@ export const njtechAdapter: SchoolAdapter = {
 
   async fetchJwcNews(): Promise<NewsItem[]> {
     return fetchJwcNews();
+  },
+
+  getCurrentSemester(): { year: string; semester: string; week1Monday: string } {
+    const now = new Date();
+    const month = now.getMonth() + 1; // 1-12
+    // NJTECH: 第一学期 9-1月, 第二学期 2-6月, 暑假 7-8月
+    const isSecondSemester = month >= 2 && month <= 6;
+    const year = isSecondSemester
+      ? String(now.getFullYear() - 1)  // 2025-2026学年第二学期 → year=2025
+      : String(now.getFullYear());     // 2025-2026学年第一学期 → year=2025
+    const semester = isSecondSemester ? "2" : "1";
+
+    // NJTECH 2025-2026学年第二学期开学日期: 2026-03-02
+    // TODO: 后续可从教务系统动态获取
+    const week1MondayMap: Record<string, string> = {
+      "2025-2": "2026-03-02",
+      "2025-1": "2025-09-01",
+    };
+    const week1Monday = week1MondayMap[`${year}-${semester}`] || "2026-03-02";
+
+    return { year, semester, week1Monday };
   },
 };

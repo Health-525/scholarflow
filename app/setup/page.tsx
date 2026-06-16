@@ -1,12 +1,13 @@
 "use client";
 
+import { GraduationCap, KeyRound, Loader2, ArrowLeft, CheckCircle2, XCircle, BookOpen, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { GraduationCap, KeyRound, Loader2, ArrowLeft, CheckCircle2, XCircle, BookOpen, ShieldCheck } from "lucide-react";
 
-import { getSchoolOptions } from "@/lib/schools/registry";
-import { useAuthStore } from "@/store/auth";
+import { getAllSchools } from "@/lib/schools/registry";
+import type { SchoolAdapter } from "@/lib/schools/types";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth";
 
 type Step = "select-school" | "enter-credentials" | "loading-data";
 
@@ -22,7 +23,7 @@ export default function SetupPage() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
 
-  const schools = getSchoolOptions();
+  const schools = getAllSchools();
 
   const [step, setStep] = useState<Step>("select-school");
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>(schools[0]?.id || "");
@@ -31,7 +32,7 @@ export default function SetupPage() {
   const [fetchStatuses, setFetchStatuses] = useState<FetchStatus[]>([]);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const selectedSchool = schools.find((s) => s.id === selectedSchoolId);
+  const selectedSchool = schools.find((s) => s.id === selectedSchoolId) as SchoolAdapter | undefined;
 
   useEffect(() => {
     if (selectedSchoolId) setCredentials({});
@@ -156,9 +157,9 @@ export default function SetupPage() {
 
               {/* School selector */}
               <div className="space-y-3">
-                <label className="block text-[11px] font-medium tracking-[0.12em] text-muted-foreground/70 uppercase">
+                <span className="block text-[11px] font-medium tracking-[0.12em] text-muted-foreground/70 uppercase">
                   选择学校
-                </label>
+                </span>
                 <div className="space-y-2">
                   {schools.map((s) => (
                     <button
@@ -237,71 +238,32 @@ export default function SetupPage() {
               </div>
 
               <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-4">
-                {/* Username */}
-                <div className="space-y-1.5">
-                  <label htmlFor="username" className="block text-[11px] font-medium tracking-[0.12em] text-muted-foreground/70 uppercase">
-                    学号
-                  </label>
-                  <input
-                    id="username"
-                    type="text"
-                    placeholder="如 202321144057"
-                    value={credentials.username || ""}
-                    onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-                    className={cn(
-                      "w-full h-10 px-4 rounded-xl text-sm outline-none transition-all",
-                      "bg-secondary/50 border border-border/60 text-foreground",
-                      "placeholder:text-muted-foreground/40",
-                      "focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
+                {selectedSchool?.loginFields.map((field) => (
+                  <div key={field.key} className="space-y-1.5">
+                    <label htmlFor={field.key} className="block text-[11px] font-medium tracking-[0.12em] text-muted-foreground/70 uppercase">
+                      {field.label}
+                    </label>
+                    <input
+                      id={field.key}
+                      type={field.type}
+                      placeholder={field.placeholder || ""}
+                      value={credentials[field.key] || ""}
+                      onChange={(e) => setCredentials({ ...credentials, [field.key]: e.target.value })}
+                      className={cn(
+                        "w-full h-10 px-4 rounded-xl text-sm outline-none transition-all",
+                        "bg-secondary/50 border border-border/60 text-foreground",
+                        "placeholder:text-muted-foreground/40",
+                        "focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
+                      )}
+                      required={field.required}
+                    />
+                    {field.key === "libraryJwt" && (
+                      <p className="text-[11px] text-muted-foreground/40">
+                        用于查看图书馆座位信息，不填则跳过
+                      </p>
                     )}
-                    required
-                    autoFocus
-                  />
-                </div>
-
-                {/* Password */}
-                <div className="space-y-1.5">
-                  <label htmlFor="password" className="block text-[11px] font-medium tracking-[0.12em] text-muted-foreground/70 uppercase">
-                    教务系统密码
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    placeholder="正方教务系统密码"
-                    value={credentials.password || ""}
-                    onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                    className={cn(
-                      "w-full h-10 px-4 rounded-xl text-sm outline-none transition-all",
-                      "bg-secondary/50 border border-border/60 text-foreground",
-                      "placeholder:text-muted-foreground/40",
-                      "focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
-                    )}
-                    required
-                  />
-                </div>
-
-                {/* Library JWT (optional) */}
-                <div className="space-y-1.5">
-                  <label htmlFor="libraryJwt" className="block text-[11px] font-medium tracking-[0.12em] text-muted-foreground/70 uppercase">
-                    图书馆 JWT <span className="text-muted-foreground/40 normal-case tracking-normal">（可选）</span>
-                  </label>
-                  <input
-                    id="libraryJwt"
-                    type="password"
-                    placeholder="从浏览器登录图书馆后提取"
-                    value={credentials.libraryJwt || ""}
-                    onChange={(e) => setCredentials({ ...credentials, libraryJwt: e.target.value })}
-                    className={cn(
-                      "w-full h-10 px-4 rounded-xl text-sm outline-none transition-all",
-                      "bg-secondary/50 border border-border/60 text-foreground",
-                      "placeholder:text-muted-foreground/40",
-                      "focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
-                    )}
-                  />
-                  <p className="text-[11px] text-muted-foreground/40">
-                    用于查看图书馆座位信息，不填则跳过
-                  </p>
-                </div>
+                  </div>
+                ))}
 
                 {/* Error message */}
                 {loginError && (

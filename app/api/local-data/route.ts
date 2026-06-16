@@ -1,21 +1,7 @@
 import { NextResponse } from "next/server";
+
+import { getDashboardSummary } from "@/lib/dashboard/summary";
 import { getServerDB } from "@/lib/server-db";
-
-interface CourseEntry {
-  title: string;
-  [key: string]: unknown;
-}
-
-interface AssignmentEntry {
-  done?: boolean;
-  deadline?: string;
-  [key: string]: unknown;
-}
-
-interface RunningRecord {
-  type?: string;
-  [key: string]: unknown;
-}
 
 /**
  * GET /api/local-data?type=<type>&schoolId=<schoolId>&userId=<userId>
@@ -32,37 +18,12 @@ export async function GET(request: Request) {
   const db = getServerDB();
   const prefix = `${schoolId}:${userId}`;
 
+  // Auto-seed missing data from timetable on first access
+  db.seedFromTimetable(prefix);
+
   switch (type) {
-    case "dashboard": {
-      let summary = db.readData(`dashboard-summary:${prefix}`);
-      if (!summary) {
-        const schedule = (db.readData(`schedule:${prefix}`) as { courses?: CourseEntry[] }) || { courses: [] };
-        const assignments: AssignmentEntry[] = (db.readData(`assignments:${prefix}`) as AssignmentEntry[]) || [];
-        const running: { records: RunningRecord[]; completed?: boolean } = (db.readData(`running:${prefix}`) as { records: RunningRecord[] }) || { records: [] };
-        const grades = (db.readData(`grades:${prefix}`) as { gpa?: string }) || { gpa: "0.00" };
-        const today = new Date().toISOString().slice(0, 10);
-        const courses: CourseEntry[] = schedule.courses || [];
-        summary = {
-          updatedAt: new Date().toISOString(),
-          date: today,
-          overview: {
-            courses: new Set(courses.map(c => c.title)).size,
-            pendingAssignments: assignments.filter(a => !a.done).length,
-            urgentAssignments: assignments.filter(a => !a.done && a.deadline && a.deadline <= today).length,
-            running: {
-              total: Array.isArray(running.records) ? running.records.length : 0,
-              morning: Array.isArray(running.records) ? running.records.filter(r => r.type === "morning").length : 0,
-              completed: running.completed === true,
-            },
-            gpa: grades.gpa || "0.00",
-          },
-          health: { agents: 0, total: 0, failing: 0 },
-          knowledge: { gapsRemaining: 0, estimatedHours: 0 },
-        };
-        db.writeData(`dashboard-summary:${prefix}`, summary);
-      }
-      return NextResponse.json(summary);
-    }
+    case "dashboard":
+      return NextResponse.json(getDashboardSummary(db, prefix));
 
     case "schedule":
       return NextResponse.json(db.readData(`schedule:${prefix}`) || { courses: [] });

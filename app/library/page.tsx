@@ -20,6 +20,11 @@ import type { LibraryRoom } from "@/types";
 
 const DEFAULT_SUMMARY = { rate: 0, avail: 0, used: 0, total: 0, has: 0 };
 
+function confirmAction(message: string): boolean {
+  // eslint-disable-next-line no-alert
+  return window.confirm(message);
+}
+
 export default function LibraryPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -135,7 +140,7 @@ export default function LibraryPage() {
   const handleCancelReserve = useCallback(async () => {
     const token = reserveData?.reserve?.token;
     if (!token || cancelReserve.isPending) return;
-    if (!confirm("确定要取消当前预约吗？")) return;
+    if (!confirmAction("确定要取消当前预约吗？")) return;
     cancelReserve.mutate(
       { sToken: token },
       {

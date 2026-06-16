@@ -1,6 +1,6 @@
 # ScholarFlow 系统架构
 
-> 三层架构 + 离线优先 + GitHub 作为后端的多 Agent 学习管理平台
+> 本地优先 + SQLite 数据层 + 插件化学校适配器的一体化学习管理平台
 
 ## 系统总览
 
@@ -9,102 +9,135 @@
 │                    👤 用户交互层                              │
 │                                                             │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │ Obsidian     │  │ ScholarFlow  │  │ iPhone 日历      │  │
-│  │ (内容编辑)   │  │ (Web/PWA/    │  │ (订阅 ICS)       │  │
-│  │              │  │  Desktop)    │  │                  │  │
+│  │ Web          │  │ Electron     │  │ PWA / Capacitor  │  │
+│  │ (浏览器)     │  │ (桌面端)     │  │ (移动端)         │  │
 │  └──────┬───────┘  └──────┬───────┘  └────────┬─────────┘  │
 │         │                 │                    │           │
 └─────────┼─────────────────┼────────────────────┼───────────┘
           │                 │                    │
-          ▼                 ▼                    │
-┌─────────────────────────────────────────────────┼───────────┐
-│                    🔧 执行层 (timetable)         │           │
-│                                                 │           │
-│  ┌─────────┐ ┌─────────┐ ┌────────┐ ┌────────┐ │           │
-│  │课表管家 │ │作业管家 │ │调课助手│ │运动监督│ │           │
-│  │06:00    │ │dispatch │ │dispatch│ │dispatch│ │           │
-│  └────┬────┘ └────┬────┘ └────┬───┘ └────┬───┘ │           │
-│       │           │           │          │      │           │
-│  ┌────┴───────────┴───────────┴──────────┴───┐  │           │
-│  │         GitHub Actions (8 工作流)          │  │           │
-│  └────────────────────┬──────────────────────┘  │           │
-│                       │                          │           │
-│  ┌────────────────────┴──────────────────────┐  │           │
-│  │  data/schedule.json  assignments.json     │  │           │
-│  │  data/adjustments.json  running.json      │  │           │
-│  └───────────────────────────────────────────┘  │           │
-└─────────────────────────┬───────────────────────┼───────────┘
-                          │                       │
-                          ▼                       ▼
-┌─────────────────────────────────────────────────┴───────────┐
-│                    📚 内容层 (jiangshu-study)                 │
+          ▼                 ▼                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    ScholarFlow (Next.js App Router)          │
 │                                                             │
-│  Obsidian 知识库: 课程笔记 + 日报 + 周报 + 灵感 + 知识画像   │
-│  09-日常处理/ : 课表.md (自动) + 作业.md (人机协作)          │
-│  public/schedule.ics : 日历订阅发布                           │
+│  ┌─────────┐ ┌─────────┐ ┌────────┐ ┌────────┐ ┌────────┐ │
+│  │ Dashboard│ │Schedule │ │Assignments│ │Running │ │Reports │ │
+│  └────┬────┘ └────┬────┘ └────┬───┘ └────┬───┘ └────┬───┘ │
+│       │           │           │          │          │      │
+│  ┌────┴───────────┴───────────┴──────────┴──────────┴───┐  │
+│  │         TanStack Query + Zustand (UI state)          │  │
+│  └────────────────────┬──────────────────────────────────┘  │
+│                       │                                      │
+│  ┌────────────────────┴──────────────────────────────────┐  │
+│  │         Next.js API Routes                           │  │
+│  │  /api/local-data  /api/local-save  /api/fetch/*      │  │
+│  └────────────────────┬──────────────────────────────────┘  │
+│                       │                                      │
+│  ┌────────────────────┴──────────────────────────────────┐  │
+│  │         SQLite (better-sqlite3) 本地数据库            │  │
+│  │  data_store  ·  credentials  ·  schema_version        │  │
+│  └────────────────────────────────────────────────────────┘  │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    学校适配器 (School Adapter)                │
+│                                                             │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │ NJTECH Adapter: 登录 · 课表 · 考试 · 成绩 · 通知      │  │
+│  └───────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## 数据流
 
-### 输入路径（用户 → 系统）
-```
-Obsidian Markdown 编辑
-  → git push to GitHub
-  → Repository Dispatch 事件
-  → timetable Agent 唤醒
-  → 解析 Markdown → 更新 JSON → 生成产物
-  → 回写 Markdown/JSON
-  → Obsidian 自动同步（git pull）
-```
-
 ### 查询路径（系统 → 展示）
 ```
 ScholarFlow (Web/PWA/Electron)
   → TanStack Query useQuery
-  → GitHubClient.getFile / listDirectory
-  → 三层缓存: Memory (60s TTL) → IndexedDB (Dexie.js) → GitHub API
+  → /api/local-data?type=<type>&schoolId=<id>&userId=<id>
+  → ServerDB.readData(key) from SQLite
   → React 组件渲染
 ```
 
 ### 写回路径（用户操作 → 持久化）
 ```
 ScholarFlow UI 操作
-  → GitHubClient.putFile (GET sha → PUT with sha → 409重试)
-  → 使缓存失效
-  → 离线时排队到 IndexedDB mutations queue
-  → 恢复在线后批量同步
+  → /api/local-save (POST { key, content })
+  → ServerDB.writeData(key, content)
+  → SQLite 本地持久化
+  → 使 TanStack Query 缓存失效
+```
+
+### 同步路径（学校教务 → 本地）
+```
+用户点击同步 / ClientShell 恢复会话
+  → /api/auth/session (读取已保存凭证)
+  → /api/fetch/all (POST { schoolId, username })
+  → SchoolAdapter 抓取课表 / 考试 / 成绩 / 通知
+  → ServerDB.writeData(`schedule:<prefix>`, ...)
+  → 重新生成 dashboard-summary 缓存
 ```
 
 ## 核心模块
 
-### 1. GitHub Client (`lib/github/`)
+### 1. 本地数据库层 (`lib/server-db.ts`)
 
 ```
-GitHubClient
-├── getFile(repo, path)     → FileContent (缓存优先)
-├── listDirectory(repo, path) → DirectoryEntry[]
-├── putFile(repo, path, content, action) → SHA-based write
-├── invalidateCache(repo, path)
+ServerDB (better-sqlite3 单例)
+├── readData(key)            → 读取 JSON 化数据
+├── writeData(key, content)  → 写入/更新数据
+├── deleteData(key)          → 删除数据
+├── deleteDataByPrefix(prefix) → 按前缀删除（退出登录清理）
+├── seedFromTimetable(prefix)  → 从旧 timetable/data 迁移数据
 │
-├── githubCache (内存, TTL 60s)
-├── REPOS 配置 (环境变量可覆盖)
-└── 错误类型: not_found | rate_limited | unauthorized | network_error
+├── saveCredentials(schoolId, userId, data, expiresAt)
+├── getCredentials(schoolId, userId)
+└── findActiveCredentials()
+
+表结构:
+  data_store(key TEXT PRIMARY KEY, content TEXT, updated_at INTEGER)
+  credentials(school_id, user_id, credential_data, expires_at, created_at)
+  schema_version(version INTEGER PRIMARY KEY, applied_at INTEGER)
 ```
 
-### 2. 离线层 (`lib/db/`)
+数据 key 约定: `"<type>:<schoolId>:<userId>"`，例如 `schedule:njtech:202321144057`，实现账号隔离。
+
+### 2. 学校适配器 (`lib/schools/`)
 
 ```
-Dexie.js IndexedDB
-├── cachedFiles: repo + path → content + sha + cachedAt
-├── mutationsQueue: 离线写入队列
-└── 策略:
-    - 在线: GitHub API 直写 + 更新缓存
-    - 离线: 写入队列 + UI 乐观更新
-    - 恢复在线: 批量冲刷队列
+SchoolAdapter 接口
+├── id, name
+├── loginFields: LoginField[]     → setup 页动态渲染
+├── login(credentials)            → 验证并返回凭证
+├── fetchSchedule(credentials)    → 课表数据
+├── fetchExams(credentials)       → 考试安排
+├── fetchGrades(credentials)      → 成绩 + GPA
+├── fetchLibrary?(credentials)    → 图书馆座位（可选）
+├── fetchJwcNews?(existing)       → 教务通知（可选）
+└── getCurrentSemester?()         → 学期元信息（可选）
+
+Registry:
+  registerSchool(adapter) / getAdapter(id) / getAllSchools()
 ```
 
-### 3. 课表引擎 (`lib/schedule/`)
+### 3. 数据 API (`app/api/`)
+
+```
+/api/local-data?type=<type>&schoolId=<id>&userId=<id>
+  → 读取各类数据，支持 dashboard 缓存自动失效
+
+/api/local-save
+  → 写入数据到 SQLite
+
+/api/fetch/all
+  → 调用 SchoolAdapter 同步课表/考试/成绩/通知
+  → 写入 SQLite 并刷新 dashboard-summary
+
+/api/auth/login / session / logout
+  → 学校凭证登录与会话管理
+```
+
+### 4. 课表引擎 (`lib/schedule/`)
 
 ```
 输入: RawScheduleData (JSON)
@@ -121,23 +154,24 @@ Dexie.js IndexedDB
        → 匹配周次 + 星期 + 节次 + special覆盖
 ```
 
-### 4. 安全模型
+### 5. 安全模型
 
 ```
-Token 生命周期:
-  用户输入 → validateTokenFormat() → verifyToken() (GitHub API)
-  → secureStoreToken()
-      ├── Electron: safeStorage.encryptString() → 写入加密文件
-      │              (Windows DPAPI / macOS Keychain)
-      └── Web/PWA: localStorage + base64 混淆
+凭证生命周期:
+  用户在 setup 页输入 → /api/auth/login
+  → SchoolAdapter.login(credentials) 验证
+  → ServerDB.saveCredentials(schoolId, userId, data, expiresAt)
+      ├── Electron: 可结合 safeStorage 加密 credential_data
+      └── Web/PWA: 存储在服务端 SQLite（本地运行时）
 
 认证恢复:
-  ClientShell mount → secureRetrieveToken()
-  → migrateLegacyToken() (旧格式迁移)
-  → 环境变量 fallback (NEXT_PUBLIC_GH_TOKEN, 仅开发)
+  ClientShell mount → /api/auth/session
+  → ServerDB.findActiveCredentials()
+  → 若存在有效凭证则 setAuth(schoolId, userId)
+  → 在受保护页面自动 /api/fetch/all 刷新数据
 ```
 
-### 5. 渲染管道 (`lib/markdown/`)
+### 6. 渲染管道 (`lib/markdown/`)
 
 ```
 Markdown 源文本
@@ -156,11 +190,11 @@ Markdown 源文本
 
 | 决策 | 选择 | 理由 |
 |------|------|------|
-| 数据库 | JSON 文件 + GitHub API | 零运维, 版本控制, 数据量 <50KB |
-| 离线存储 | Dexie.js / IndexedDB | 浏览器原生, 无额外依赖 |
-| 数据同步 | TanStack Query v5 | SWR + dedup + 退避重试 |
+| 本地数据库 | SQLite (better-sqlite3) | 零运维, 结构化, 适配 Electron/PWA/Server 多场景 |
+| 数据访问 | Next.js API Routes + TanStack Query | 统一前后端数据层，支持 SSR 与本地优先 |
+| 学校对接 | 插件化 SchoolAdapter | 新增学校只需实现接口并注册，不改核心逻辑 |
 | 状态管理 | Zustand (persist) | 轻量, 中间件生态 |
-| UI 组件 | 自建 + shadcn/base-ui | 纸质感定制需求 |
+| UI 组件 | 自建 + base-ui | 纸质感定制需求 |
 | 图表 | Recharts | React 原生, 可组合 |
 | AI | Ollama 本地 | 隐私, 零成本, 离线可用 |
 | 构建 | Next.js + Electron-builder | SSR + 桌面端统一代码 |

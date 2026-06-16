@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
 

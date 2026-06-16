@@ -15,10 +15,15 @@ import { SettingsSection } from "@/components/ui/settings-section";
 import { useScheduleQuery, useAssignmentsQuery, useRunningQuery, useRefreshData } from "@/hooks/useQueries";
 import { downloadActivityCSV, clearActivityData } from "@/lib/activity-tracker-v3";
 import { exportAssignmentsCSV, exportRunningCSV, buildWeekICS, downloadICS } from "@/lib/export";
+import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 import { useThemeStore } from "@/store/theme";
-import { cn } from "@/lib/utils";
 import type { ThemeValue } from "@/types";
+
+function confirmAction(message: string): boolean {
+  // eslint-disable-next-line no-alert
+  return window.confirm(message);
+}
 
 const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = [
   { value: "light", label: "浅色", Icon: Sun },
@@ -50,12 +55,12 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (mounted) {
-      fetch("/api/local-data?type=student")
+      fetch(`/api/local-data?type=student&schoolId=${schoolId || "njtech"}&userId=${userId || username || "default"}`)
         .then(r => r.json())
         .then(d => { if (d?.studentId) setStudentInfo(d); })
         .catch(() => {});
     }
-  }, [mounted]);
+  }, [mounted, schoolId, userId, username]);
 
   const handleLogout = async () => {
     // 1. Call logout API to clear credentials from DB
@@ -249,7 +254,7 @@ export default function SettingsPage() {
         <MenuItem icon={ClipboardList} label="导出作业 (CSV)" onClick={() => exportAssignmentsCSV(assignments)} disabled={!assignments.length} />
         <MenuItem icon={Activity} label="导出跑步 (CSV)" onClick={() => exportRunningCSV(records)} disabled={!records.length} />
         <MenuItem icon={BarChart3} label="导出屏幕时间 (CSV)" onClick={downloadActivityCSV} />
-        <MenuItem icon={Trash2} label="清除屏幕时间数据" onClick={() => { if (confirm("确定清除？")) clearActivityData(); }} danger last />
+        <MenuItem icon={Trash2} label="清除屏幕时间数据" onClick={() => { if (confirmAction("确定清除？")) clearActivityData(); }} danger last />
       </SettingsSection>
 
       {/* ── 存储信息 ──────────────────────────────────────────── */}

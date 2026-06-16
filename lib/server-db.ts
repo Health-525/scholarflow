@@ -5,13 +5,19 @@
  * 使用 key-value 模式存储 JSON 数据，兼容现有前端解析逻辑。
  */
 
-import Database from "better-sqlite3";
-import path from "path";
 import fs from "fs";
+import path from "path";
+
+import Database from "better-sqlite3";
 
 // ── Schema ──────────────────────────────────────────────────
 
 const SCHEMA = `
+  CREATE TABLE IF NOT EXISTS schema_version (
+    version INTEGER PRIMARY KEY,
+    applied_at INTEGER NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS data_store (
     key   TEXT PRIMARY KEY,
     content TEXT NOT NULL,
@@ -27,6 +33,13 @@ const SCHEMA = `
     PRIMARY KEY (school_id, user_id)
   );
 `;
+
+const MIGRATIONS: Record<number, string> = {
+  1: SCHEMA,
+  // Future migrations go here:
+  // 2: "ALTER TABLE data_store ADD COLUMN size INTEGER;",
+  // 3: "CREATE INDEX idx_data_prefix ON data_store(key);",
+};
 
 // ── Singleton ───────────────────────────────────────────────
 
@@ -56,9 +69,29 @@ export class ServerDB {
     // Ensure directory exists
     fs.mkdirSync(path.dirname(resolvedPath), { recursive: true });
     this.db = new Database(resolvedPath);
-    this.db.exec(SCHEMA);
+    this.runMigrations();
     this.db.pragma("journal_mode = WAL");
     this.db.pragma("synchronous = NORMAL");
+  }
+
+  private runMigrations(): void {
+    // Get current version
+    const currentVersion = this.db
+      .prepare("SELECT MAX(version) as v FROM schema_version")
+      .get() as { v: number | null } | undefined;
+
+    const version = currentVersion?.v ?? 0;
+
+    // Apply pending migrations
+    for (const [v, sql] of Object.entries(MIGRATIONS)) {
+      const migrationVersion = parseInt(v);
+      if (migrationVersion > version) {
+        this.db.exec(sql);
+        this.db
+          .prepare("INSERT INTO schema_version (version, applied_at) VALUES (?, ?)")
+          .run(migrationVersion, Date.now());
+      }
+    }
   }
 
   private resolveDbPath(): string {
@@ -248,5 +281,42 @@ export class ServerDB {
    */
   close(): void {
     this.db.close();
+  }
+
+  /**
+   * 自动从 timetable/data/ 导入缺失的数据
+   * 当 assignments 或 running 数据不存在时，从 timetable 项目读取
+   */
+  seedFromTimetable(prefix: string): { assignments: number; running: number } {
+    const result = { assignments: 0, running: 0 };
+    const timetableDataDir = path.join(this.resolveDbPath(), "..", "..", "timetable", "data");
+
+    // Seed assignments if missing
+    if (!this.readData(`assignments:${prefix}`)) {
+      const assignmentsPath = path.join(timetableDataDir, "assignments.json");
+      try {
+        if (fs.existsSync(assignmentsPath)) {
+          const content = fs.readFileSync(assignmentsPath, "utf8");
+          const data = JSON.parse(content);
+          this.writeData(`assignments:${prefix}`, data);
+          result.assignments = Array.isArray(data) ? data.length : 0;
+        }
+      } catch { /* ignore */ }
+    }
+
+    // Seed running if missing
+    if (!this.readData(`running:${prefix}`)) {
+      const runningPath = path.join(timetableDataDir, "running.json");
+      try {
+        if (fs.existsSync(runningPath)) {
+          const content = fs.readFileSync(runningPath, "utf8");
+          const data = JSON.parse(content);
+          this.writeData(`running:${prefix}`, data);
+          result.running = Array.isArray(data?.records) ? data.records.length : 0;
+        }
+      } catch { /* ignore */ }
+    }
+
+    return result;
   }
 }

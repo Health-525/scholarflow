@@ -12,7 +12,7 @@ export function GPACard() {
   const [gpa, setGPA] = useState<string>("--");
   const [totalCredits, setTotalCredits] = useState(0);
   const [courseCount, setCourseCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/local-data?type=grades")
