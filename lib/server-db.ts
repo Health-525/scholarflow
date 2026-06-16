@@ -1,45 +1,28 @@
 /**
- * ScholarFlow Server Database — SQLite (better-sqlite3)
+ * ScholarFlow Server Database — 纯 JSON 文件存储
  *
- * 替代 timetable 文件系统 + GitHub API 作为数据存储层。
- * 使用 key-value 模式存储 JSON 数据，兼容现有前端解析逻辑。
+ * 替代 better-sqlite3，彻底避免 C++ 原生模块和编译依赖。
+ * 保留 key-value + credentials 的 API，兼容现有路由和前端。
  */
 
 import fs from "fs";
 import path from "path";
 
-import Database from "better-sqlite3";
-
 // ── Schema ──────────────────────────────────────────────────
 
-const SCHEMA = `
-  CREATE TABLE IF NOT EXISTS schema_version (
-    version INTEGER PRIMARY KEY,
-    applied_at INTEGER NOT NULL
-  );
+const CURRENT_VERSION = 1;
 
-  CREATE TABLE IF NOT EXISTS data_store (
-    key   TEXT PRIMARY KEY,
-    content TEXT NOT NULL,
-    updated_at INTEGER NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS credentials (
-    school_id  TEXT NOT NULL,
-    user_id    TEXT NOT NULL,
-    credential_data TEXT NOT NULL,
-    expires_at INTEGER,
-    created_at INTEGER NOT NULL,
-    PRIMARY KEY (school_id, user_id)
-  );
-`;
-
-const MIGRATIONS: Record<number, string> = {
-  1: SCHEMA,
-  // Future migrations go here:
-  // 2: "ALTER TABLE data_store ADD COLUMN size INTEGER;",
-  // 3: "CREATE INDEX idx_data_prefix ON data_store(key);",
-};
+interface DataStore {
+  version: number;
+  data_store: Record<string, { content: string; updated_at: number }>;
+  credentials: Array<{
+    school_id: string;
+    user_id: string;
+    credential_data: string;
+    expires_at: number | null;
+    created_at: number;
+  }>;
+}
 
 // ── Singleton ───────────────────────────────────────────────
 
@@ -62,109 +45,112 @@ export function resetServerDB(): void {
 // ── ServerDB Class ──────────────────────────────────────────
 
 export class ServerDB {
-  private db: Database.Database;
+  private storePath: string;
+  private store: DataStore;
 
   constructor(dbPath?: string) {
-    const resolvedPath = dbPath || this.resolveDbPath();
-    // Ensure directory exists
-    fs.mkdirSync(path.dirname(resolvedPath), { recursive: true });
-    this.db = new Database(resolvedPath);
-    this.runMigrations();
-    this.db.pragma("journal_mode = WAL");
-    this.db.pragma("synchronous = NORMAL");
-  }
-
-  private runMigrations(): void {
-    // Get current version
-    const currentVersion = this.db
-      .prepare("SELECT MAX(version) as v FROM schema_version")
-      .get() as { v: number | null } | undefined;
-
-    const version = currentVersion?.v ?? 0;
-
-    // Apply pending migrations
-    for (const [v, sql] of Object.entries(MIGRATIONS)) {
-      const migrationVersion = parseInt(v);
-      if (migrationVersion > version) {
-        this.db.exec(sql);
-        this.db
-          .prepare("INSERT INTO schema_version (version, applied_at) VALUES (?, ?)")
-          .run(migrationVersion, Date.now());
-      }
-    }
+    this.storePath = dbPath || this.resolveDbPath();
+    fs.mkdirSync(path.dirname(this.storePath), { recursive: true });
+    this.store = this.loadStore();
+    this.migrate();
   }
 
   private resolveDbPath(): string {
-    // Electron: use userData directory (detected via ELECTRON_DEV env)
-    // Server: use project data directory
-    const baseDir = process.env.ELECTRON_DEV
-      ? process.cwd()
-      : process.cwd();
-    return path.join(baseDir, "data", "scholarflow.db");
+    return path.join(process.cwd(), "data", "scholarflow.json");
   }
 
-  // ── Data Store (替代 timetable 文件系统) ──────────────────
+  private loadStore(): DataStore {
+    if (fs.existsSync(this.storePath)) {
+      try {
+        const raw = fs.readFileSync(this.storePath, "utf8");
+        const parsed = JSON.parse(raw) as Partial<DataStore>;
+        return {
+          version: parsed.version ?? CURRENT_VERSION,
+          data_store: parsed.data_store ?? {},
+          credentials: parsed.credentials ?? [],
+        };
+      } catch {
+        // 如果文件损坏，备份后重建
+        this.backupCorruptedStore();
+      }
+    }
+    return {
+      version: CURRENT_VERSION,
+      data_store: {},
+      credentials: [],
+    };
+  }
 
-  /**
-   * 读取数据 — 替代 fs.readFileSync(timetable/data/*.json)
-   * key 映射: "schedule" → timetable/data/schedule.json
-   */
+  private backupCorruptedStore(): void {
+    try {
+      const backup = `${this.storePath}.corrupted.${Date.now()}`;
+      fs.renameSync(this.storePath, backup);
+    } catch {
+      // ignore
+    }
+  }
+
+  private migrate(): void {
+    if (this.store.version < CURRENT_VERSION) {
+      this.store.version = CURRENT_VERSION;
+      this.saveStore();
+    }
+  }
+
+  private saveStore(): void {
+    const tmp = `${this.storePath}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(this.store, null, 2), "utf8");
+    fs.renameSync(tmp, this.storePath);
+  }
+
+  // ── Data Store ─────────────────────────────────────────────
+
   readData(key: string): unknown | null {
-    const row = this.db
-      .prepare("SELECT content FROM data_store WHERE key = ?")
-      .get(key) as { content: string } | undefined;
-
+    const row = this.store.data_store[key];
     if (!row) return null;
     try {
       return JSON.parse(row.content);
     } catch {
-      return row.content; // 非 JSON 内容直接返回
+      return row.content;
     }
   }
 
-  /**
-   * 写入数据 — 替代 fs.writeFileSync + git commit
-   */
   writeData(key: string, content: unknown): void {
     const json = typeof content === "string" ? content : JSON.stringify(content, null, 2);
-    this.db
-      .prepare(
-        "INSERT OR REPLACE INTO data_store (key, content, updated_at) VALUES (?, ?, ?)"
-      )
-      .run(key, json, Date.now());
+    this.store.data_store[key] = { content: json, updated_at: Date.now() };
+    this.saveStore();
   }
 
-  /**
-   * 删除数据
-   */
   deleteData(key: string): boolean {
-    const result = this.db
-      .prepare("DELETE FROM data_store WHERE key = ?")
-      .run(key);
-    return result.changes > 0;
+    if (key in this.store.data_store) {
+      delete this.store.data_store[key];
+      this.saveStore();
+      return true;
+    }
+    return false;
   }
 
   /**
-   * 按前缀删除数据 — 用于退出登录时清理用户数据
-   * prefix 格式: "njtech:202321144057" → 删除所有 key LIKE "xxx:njtech:202321144057"
+   * 按账号前缀删除数据
+   * prefix 格式: "njtech:202321144057" → 删除所有 key 以 ":njtech:202321144057" 结尾的数据
    */
   deleteDataByPrefix(prefix: string): number {
-    const result = this.db
-      .prepare("DELETE FROM data_store WHERE key LIKE ?")
-      .run(`%:${prefix}`);
-    return result.changes;
+    const suffix = `:${prefix}`;
+    const keys = Object.keys(this.store.data_store).filter((k) => k.endsWith(suffix));
+    for (const key of keys) {
+      delete this.store.data_store[key];
+    }
+    if (keys.length > 0) this.saveStore();
+    return keys.length;
   }
 
-  /**
-   * 查找所有有效凭证 — 用于 session 路由发现当前登录用户
-   */
   findActiveCredentials(): { schoolId: string; userId: string; username: string } | null {
-    const row = this.db
-      .prepare(
-        "SELECT school_id, user_id, credential_data FROM credentials WHERE expires_at IS NULL OR expires_at > ? ORDER BY created_at DESC LIMIT 1"
-      )
-      .get(Date.now()) as { school_id: string; user_id: string; credential_data: string } | undefined;
+    const now = Date.now();
+    const valid = this.store.credentials
+      .filter((c) => c.expires_at === null || c.expires_at > now)
+      .sort((a, b) => b.created_at - a.created_at);
 
+    const row = valid[0];
     if (!row) return null;
     try {
       const data = JSON.parse(row.credential_data) as Record<string, string>;
@@ -174,62 +160,45 @@ export class ServerDB {
     }
   }
 
-  /**
-   * 列出所有数据 key
-   */
   listKeys(): string[] {
-    const rows = this.db
-      .prepare("SELECT key FROM data_store ORDER BY key")
-      .all() as { key: string }[];
-    return rows.map((r) => r.key);
+    return Object.keys(this.store.data_store).sort();
   }
 
-  /**
-   * 获取数据更新时间
-   */
   getUpdatedAt(key: string): number | null {
-    const row = this.db
-      .prepare("SELECT updated_at FROM data_store WHERE key = ?")
-      .get(key) as { updated_at: number } | undefined;
-    return row?.updated_at ?? null;
+    return this.store.data_store[key]?.updated_at ?? null;
   }
 
-  // ── Credentials Store (替代 GitHub PAT 存储) ──────────────
+  // ── Credentials Store ──────────────────────────────────────
 
-  /**
-   * 保存学校凭证
-   */
   saveCredentials(
     schoolId: string,
     userId: string,
     data: Record<string, string>,
     expiresAt?: number
   ): void {
-    this.db
-      .prepare(
-        "INSERT OR REPLACE INTO credentials (school_id, user_id, credential_data, expires_at, created_at) VALUES (?, ?, ?, ?, ?)"
-      )
-      .run(schoolId, userId, JSON.stringify(data), expiresAt ?? null, Date.now());
+    const idx = this.store.credentials.findIndex(
+      (c) => c.school_id === schoolId && c.user_id === userId
+    );
+    const entry = {
+      school_id: schoolId,
+      user_id: userId,
+      credential_data: JSON.stringify(data),
+      expires_at: expiresAt ?? null,
+      created_at: Date.now(),
+    };
+    if (idx >= 0) {
+      this.store.credentials[idx] = entry;
+    } else {
+      this.store.credentials.push(entry);
+    }
+    this.saveStore();
   }
 
-  /**
-   * 获取学校凭证 — 自动检查过期
-   */
-  getCredentials(
-    schoolId: string,
-    userId: string
-  ): Record<string, string> | null {
-    const row = this.db
-      .prepare(
-        "SELECT credential_data, expires_at FROM credentials WHERE school_id = ? AND user_id = ?"
-      )
-      .get(schoolId, userId) as {
-      credential_data: string;
-      expires_at: number | null;
-    } | undefined;
-
+  getCredentials(schoolId: string, userId: string): Record<string, string> | null {
+    const row = this.store.credentials.find(
+      (c) => c.school_id === schoolId && c.user_id === userId
+    );
     if (!row) return null;
-    // 检查过期
     if (row.expires_at && Date.now() > row.expires_at) return null;
     try {
       return JSON.parse(row.credential_data);
@@ -238,60 +207,50 @@ export class ServerDB {
     }
   }
 
-  /**
-   * 删除凭证
-   */
   deleteCredentials(schoolId: string, userId: string): boolean {
-    const result = this.db
-      .prepare(
-        "DELETE FROM credentials WHERE school_id = ? AND user_id = ?"
-      )
-      .run(schoolId, userId);
-    return result.changes > 0;
+    const before = this.store.credentials.length;
+    this.store.credentials = this.store.credentials.filter(
+      (c) => !(c.school_id === schoolId && c.user_id === userId)
+    );
+    if (this.store.credentials.length < before) {
+      this.saveStore();
+      return true;
+    }
+    return false;
   }
 
-  // ── Utility ───────────────────────────────────────────────
+  // ── Utility ────────────────────────────────────────────────
 
-  /**
-   * 清理过期缓存数据
-   */
   cleanExpiredData(maxAgeMs: number = 7 * 24 * 60 * 60 * 1000): number {
     const cutoff = Date.now() - maxAgeMs;
-    const result = this.db
-      .prepare("DELETE FROM data_store WHERE updated_at < ?")
-      .run(cutoff);
-    return result.changes;
+    const keys = Object.keys(this.store.data_store).filter(
+      (k) => this.store.data_store[k].updated_at < cutoff
+    );
+    for (const key of keys) {
+      delete this.store.data_store[key];
+    }
+    if (keys.length > 0) this.saveStore();
+    return keys.length;
   }
 
-  /**
-   * 获取数据库文件大小（字节）
-   */
   getDbSize(): number {
-    const dbPath = this.resolveDbPath();
     try {
-      const stat = fs.statSync(dbPath);
-      return stat.size;
+      return fs.statSync(this.storePath).size;
     } catch {
       return 0;
     }
   }
 
-  /**
-   * 关闭数据库连接
-   */
   close(): void {
-    this.db.close();
+    this.saveStore();
   }
 
-  /**
-   * 自动从 timetable/data/ 导入缺失的数据
-   * 当 assignments 或 running 数据不存在时，从 timetable 项目读取
-   */
+  // ── Seed from legacy timetable/data ────────────────────────
+
   seedFromTimetable(prefix: string): { assignments: number; running: number } {
     const result = { assignments: 0, running: 0 };
-    const timetableDataDir = path.join(this.resolveDbPath(), "..", "..", "timetable", "data");
+    const timetableDataDir = path.join(this.storePath, "..", "..", "timetable", "data");
 
-    // Seed assignments if missing
     if (!this.readData(`assignments:${prefix}`)) {
       const assignmentsPath = path.join(timetableDataDir, "assignments.json");
       try {
@@ -304,7 +263,6 @@ export class ServerDB {
       } catch { /* ignore */ }
     }
 
-    // Seed running if missing
     if (!this.readData(`running:${prefix}`)) {
       const runningPath = path.join(timetableDataDir, "running.json");
       try {
