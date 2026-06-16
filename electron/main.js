@@ -4,6 +4,24 @@ const { fork } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
+// ── 进程级日志（早于控制台，用于排查双击无反应/闪退）─────────────
+const logDir = path.join(app.getPath('userData'), 'logs');
+const logPath = path.join(logDir, 'main.log');
+try { fs.mkdirSync(logDir, { recursive: true }); } catch {}
+function logToFile(level, msg) {
+  try {
+    fs.appendFileSync(logPath, `${new Date().toISOString()} [${level}] ${msg}\n`);
+  } catch {}
+}
+logToFile('info', `Main process starting, argv: ${process.argv.join(' ')}`);
+
+process.on('uncaughtException', (err) => {
+  logToFile('fatal', `uncaughtException: ${err.stack || err.message}`);
+});
+process.on('unhandledRejection', (reason) => {
+  logToFile('error', `unhandledRejection: ${reason}`);
+});
+
 
 const PORT = process.env.ELECTRON_DEV ? 3000 : 3456;
 const APP_URL = `http://localhost:${PORT}`;
@@ -910,6 +928,8 @@ app.whenReady().then(async () => {
     autoRefreshLibraryJWT();
     startJWTAutoRefresh();
   } catch (err) {
+    const errMsg = err instanceof Error ? err.stack || err.message : String(err);
+    logToFile('fatal', `startup failed: ${errMsg}`);
     console.error('[SF] Fatal:', err);
     dialog.showErrorBox('ScholarFlow 启动失败', `${err.message}`);
     app.quit();

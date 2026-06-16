@@ -4,6 +4,7 @@ import { Plus, Trash2, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import { parseExamDate } from "@/lib/parse-exam-date";
+import { useAuthStore } from "@/store/auth";
 
 interface Exam {
   id: string;
@@ -14,13 +15,6 @@ interface Exam {
   notes?: string;
 }
 
-const LS_KEY = "sf_exams";
-
-function load(): Exam[] {
-  try { const raw = localStorage.getItem(LS_KEY); if (raw) return JSON.parse(raw); } catch { /* ignore */ }
-  return [];
-}
-
 interface JWGLExam {
   kch?: string;
   kcmc?: string;
@@ -29,9 +23,10 @@ interface JWGLExam {
 }
 
 // Auto-import from JWGL exam data
-async function importJWGLExams(): Promise<Exam[]> {
+async function importJWGLExams(schoolId: string, userId: string): Promise<Exam[]> {
   try {
-    const res = await fetch("/api/local-data?type=exams");
+    const params = new URLSearchParams({ type: "exams", schoolId, userId });
+    const res = await fetch(`/api/local-data?${params.toString()}`);
     if (!res.ok) return [];
     const data = await res.json();
     if (!Array.isArray(data)) return [];
@@ -47,8 +42,18 @@ async function importJWGLExams(): Promise<Exam[]> {
     });
   } catch { return []; }
 }
-function save(exams: Exam[]) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(exams)); } catch { /* ignore */ }
+
+function useExamStorage(schoolId: string | null, userId: string | null) {
+  const accountKey = schoolId && userId ? `${schoolId}:${userId}` : "default";
+  const lsKey = `sf_exams:${accountKey}`;
+  const load = (): Exam[] => {
+    try { const raw = localStorage.getItem(lsKey); if (raw) return JSON.parse(raw); } catch { /* ignore */ }
+    return [];
+  };
+  const save = (exams: Exam[]) => {
+    try { localStorage.setItem(lsKey, JSON.stringify(exams)); } catch { /* ignore */ }
+  };
+  return { load, save };
 }
 
 function formatCountdown(targetDate: string): { text: string; urgent: boolean } {
@@ -69,6 +74,9 @@ function formatCountdown(targetDate: string): { text: string; urgent: boolean } 
 }
 
 export default function ExamsPage() {
+  const { schoolId, userId } = useAuthStore((s) => s);
+  const { load, save } = useExamStorage(schoolId, userId);
+
   const [exams, setExams] = useState<Exam[]>([]);
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
@@ -80,7 +88,9 @@ export default function ExamsPage() {
       const stored = load();
       setExams(stored);
       try {
-        const jwglExams = await importJWGLExams();
+        const sid = schoolId || "njtech";
+        const uid = userId || "default";
+        const jwglExams = await importJWGLExams(sid, uid);
         if (jwglExams.length > 0) {
           const merged = [...stored];
           for (const je of jwglExams) {
@@ -93,7 +103,7 @@ export default function ExamsPage() {
       } catch {}
     };
     init();
-  }, []);
+  }, [schoolId, userId, load, save]);
 
   const add = () => {
     if (!subject.trim() || !date) return;
@@ -121,7 +131,9 @@ export default function ExamsPage() {
         </div>
         <button
           onClick={async () => {
-            const jwglExams = await importJWGLExams();
+            const sid = schoolId || "njtech";
+            const uid = userId || "default";
+            const jwglExams = await importJWGLExams(sid, uid);
             if (jwglExams.length > 0) {
               const merged = [...exams];
               for (const je of jwglExams) {
