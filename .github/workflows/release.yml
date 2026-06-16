@@ -47,7 +47,7 @@ jobs:
         run: |
           npm run build
           node electron/postbuild.js
-          npx electron-builder --win --publish never
+          npx electron-builder --win nsis --publish never
 
       - name: List build outputs
         shell: pwsh
