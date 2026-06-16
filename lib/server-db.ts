@@ -56,7 +56,8 @@ export class ServerDB {
   }
 
   private resolveDbPath(): string {
-    return path.join(process.cwd(), "data", "scholarflow.json");
+    const dataDir = process.env.SCHOLARFLOW_DATA_DIR || path.join(process.cwd(), "data");
+    return path.join(dataDir, "scholarflow.json");
   }
 
   private loadStore(): DataStore {

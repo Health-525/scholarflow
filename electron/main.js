@@ -74,6 +74,16 @@ function launchServer() {
       ));
     }
 
+    // 数据目录：便携版放在 exe 同级 ScholarFlowData 文件夹；安装版放在 userData/data
+    let dataDir;
+    if (process.env.PORTABLE_EXECUTABLE_DIR) {
+      dataDir = path.join(process.env.PORTABLE_EXECUTABLE_DIR, 'ScholarFlowData');
+    } else {
+      dataDir = path.join(app.getPath('userData'), 'data');
+    }
+    fs.mkdirSync(dataDir, { recursive: true });
+    console.log('[SF] Data directory:', dataDir);
+
     // fork 比 spawn 更可靠，直接用 Node 运行，不需要 shell
     const cwd = path.dirname(serverScript);
     serverProcess = fork(serverScript, [], {
@@ -83,6 +93,7 @@ function launchServer() {
         NODE_ENV: 'production',
         PORT: String(PORT),
         HOSTNAME: '127.0.0.1',
+        SCHOLARFLOW_DATA_DIR: dataDir,
         // standalone 需要知道 public 和 .next/static 的位置
         // 通过 symlink 或者环境变量传递
       },
