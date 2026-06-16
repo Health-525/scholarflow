@@ -112,6 +112,36 @@ export class ServerDB {
   }
 
   /**
+   * 按前缀删除数据 — 用于退出登录时清理用户数据
+   * prefix 格式: "njtech:202321144057" → 删除所有 key LIKE "xxx:njtech:202321144057"
+   */
+  deleteDataByPrefix(prefix: string): number {
+    const result = this.db
+      .prepare("DELETE FROM data_store WHERE key LIKE ?")
+      .run(`%:${prefix}`);
+    return result.changes;
+  }
+
+  /**
+   * 查找所有有效凭证 — 用于 session 路由发现当前登录用户
+   */
+  findActiveCredentials(): { schoolId: string; userId: string; username: string } | null {
+    const row = this.db
+      .prepare(
+        "SELECT school_id, user_id, credential_data FROM credentials WHERE expires_at IS NULL OR expires_at > ? ORDER BY created_at DESC LIMIT 1"
+      )
+      .get(Date.now()) as { school_id: string; user_id: string; credential_data: string } | undefined;
+
+    if (!row) return null;
+    try {
+      const data = JSON.parse(row.credential_data) as Record<string, string>;
+      return { schoolId: row.school_id, userId: row.user_id, username: data.username || row.user_id };
+    } catch {
+      return { schoolId: row.school_id, userId: row.user_id, username: row.user_id };
+    }
+  }
+
+  /**
    * 列出所有数据 key
    */
   listKeys(): string[] {

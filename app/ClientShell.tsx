@@ -53,8 +53,16 @@ export default function ClientShell({ children }: ClientShellProps) {
         const res = await fetch("/api/auth/session");
         if (res.ok) {
           const data = await res.json();
-          if (data.authenticated && data.schoolId) {
-            setAuth(data.schoolId, "default");
+          if (data.authenticated && data.schoolId && data.userId) {
+            setAuth(data.schoolId, data.userId);
+            // Auto-refresh data on session restore (switching accounts)
+            try {
+              await fetch("/api/fetch/all", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ schoolId: data.schoolId, username: data.userId }),
+              });
+            } catch {}
             setIsRestoring(false);
             return;
           }
