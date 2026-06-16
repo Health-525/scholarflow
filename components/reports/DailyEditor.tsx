@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { getCurrentUser } from "@/lib/mobile-data";
+
 interface DailyEditorProps {
   existingDate?: string;
   existingContent?: string;
@@ -23,6 +25,7 @@ export function DailyEditor({ existingDate, existingContent, onSaved, onCancel }
 
     try {
       // Save via local API
+      const { schoolId, userId } = getCurrentUser();
       const res = await fetch("/api/local-save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -30,6 +33,8 @@ export function DailyEditor({ existingDate, existingContent, onSaved, onCancel }
           file: `日报/${date}.md`,
           content: content.trim() || "# ",
           action: `创建日报 ${date}`,
+          schoolId,
+          userId,
         }),
       });
       if (!res.ok) throw new Error("保存失败");

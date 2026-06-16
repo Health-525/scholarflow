@@ -49,7 +49,7 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="sf-card p-4 text-center">
+    <div className="rounded-2xl bg-card border border-border shadow-sm p-4 text-center">
       <p className="text-[11px] mb-1.5 text-muted-foreground">
         {label}
       </p>

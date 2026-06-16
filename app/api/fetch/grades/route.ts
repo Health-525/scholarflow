@@ -21,9 +21,11 @@ export async function POST(request: Request) {
     const grades = await adapter.fetchGrades(credentials);
 
     const db = getServerDB();
-    db.writeData("grades", grades);
+    const userId = username || "default";
+    const prefix = `${schoolId}:${userId}`;
+    db.writeData(`grades:${prefix}`, grades);
     // Also update student info
-    db.writeData("student", {
+    db.writeData(`student:${prefix}`, {
       studentId: username || "",
       gpa: grades.gpa,
       totalCredits: grades.totalCredits,

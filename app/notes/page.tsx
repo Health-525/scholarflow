@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText, PenLine, Eye, Plus, Trash2, XCircle, CheckCircle2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 
 import { FileTree } from "@/components/notes/FileTree";
@@ -16,6 +17,8 @@ function confirmAction(message: string): boolean {
 }
 
 export default function NotesPage() {
+  const searchParams = useSearchParams();
+
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [mode, setMode] = useState<ViewMode>("view");
   const [isCreating, setIsCreating] = useState(false);
@@ -23,14 +26,25 @@ export default function NotesPage() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const { content, setContent, isLoading, error, reload } = useNoteContent(selectedPath);
   const { reload: reloadTree } = useNoteTree();
 
+  // Enter edit mode when opened via /notes?path=...
+  useEffect(() => {
+    const pathFromQuery = searchParams.get("path");
+    if (pathFromQuery) {
+      setSelectedPath(pathFromQuery);
+      setMode("edit");
+    }
+  }, [searchParams]);
+
   // Clear transient states when selection changes
   useEffect(() => {
     setSaveSuccess(false);
+    setSaveError(null);
     setDeleteError(null);
     setCreateError(null);
     setMode("view");
@@ -51,7 +65,7 @@ export default function NotesPage() {
       setMode("view");
       setTimeout(() => setSaveSuccess(false), 2000);
     } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "保存失败");
+      setSaveError(err instanceof Error ? err.message : "保存失败");
     } finally {
       setSaving(false);
     }
@@ -196,6 +210,7 @@ export default function NotesPage() {
               onModeChange={setMode}
               saving={saving}
               saveSuccess={saveSuccess}
+              saveError={saveError}
               onSave={handleSave}
               onDelete={handleDelete}
               deleteError={deleteError}
@@ -219,6 +234,7 @@ export default function NotesPage() {
             onModeChange={setMode}
             saving={saving}
             saveSuccess={saveSuccess}
+            saveError={saveError}
             onSave={handleSave}
             onDelete={handleDelete}
             deleteError={deleteError}
@@ -243,6 +259,7 @@ interface NoteContentProps {
   onModeChange: (m: "view" | "edit") => void;
   saving: boolean;
   saveSuccess: boolean;
+  saveError: string | null;
   onSave: (content: string) => Promise<void>;
   onDelete: () => Promise<void>;
   deleteError: string | null;
@@ -260,6 +277,7 @@ function NoteContent({
   onModeChange,
   saving,
   saveSuccess,
+  saveError,
   onSave,
   onDelete,
   deleteError,
@@ -282,6 +300,11 @@ function NoteContent({
             </span>
           )}
           {saving && <span className="text-[10px] text-muted-foreground">保存中...</span>}
+          {saveError && (
+            <span className="text-[10px] text-destructive flex items-center gap-1">
+              <XCircle className="w-3 h-3" /> {saveError}
+            </span>
+          )}
           {deleteError && (
             <span className="text-[10px] text-destructive flex items-center gap-1">
               <XCircle className="w-3 h-3" /> {deleteError}

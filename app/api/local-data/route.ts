@@ -53,6 +53,50 @@ export async function GET(request: Request) {
     case "library":
       return NextResponse.json(db.readData(`library:${prefix}`) || { libs: [], summary: { total: 0, used: 0, avail: 0, rate: 0 } });
 
+    case "dailyReports": {
+      const reportPrefix = `dailyReport:${prefix}:`;
+      const entries = db
+        .listKeys()
+        .filter((key) => key.startsWith(reportPrefix))
+        .map((key) => {
+          const date = key.slice(reportPrefix.length);
+          return { name: `${date}.md`, path: `日报/${date}.md`, type: "file" as const };
+        })
+        .sort((a, b) => b.name.localeCompare(a.name));
+      return NextResponse.json(entries);
+    }
+
+    case "weeklyReports": {
+      const reportPrefix = `weeklyReport:${prefix}:`;
+      const entries = db
+        .listKeys()
+        .filter((key) => key.startsWith(reportPrefix))
+        .map((key) => {
+          const slug = key.slice(reportPrefix.length);
+          return { name: `${slug}.md`, path: `周报/${slug}.md`, type: "file" as const };
+        })
+        .sort((a, b) => b.name.localeCompare(a.name));
+      return NextResponse.json(entries);
+    }
+
+    case "dailyReport": {
+      const date = searchParams.get("date");
+      if (!date) {
+        return NextResponse.json({ error: "missing date" }, { status: 400 });
+      }
+      const data = db.readData(`dailyReport:${prefix}:${date}`);
+      return NextResponse.json(typeof data === "string" ? data : "");
+    }
+
+    case "weeklyReport": {
+      const slug = searchParams.get("slug");
+      if (!slug) {
+        return NextResponse.json({ error: "missing slug" }, { status: 400 });
+      }
+      const data = db.readData(`weeklyReport:${prefix}:${slug}`);
+      return NextResponse.json(typeof data === "string" ? data : "");
+    }
+
     case "student": {
       const studentInfo = db.readData(`student:${prefix}`) as { studentId?: string; gpa?: string; totalCredits?: number; courseCount?: number } | null;
       if (studentInfo) {

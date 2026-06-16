@@ -517,7 +517,7 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-[13px] font-semibold text-foreground">今日统计</h3>
           {state.stats.streak > 0 && (
-            <span className="sf-chip sf-chip-accent">🔥 连续 {state.stats.streak} 天</span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">🔥 连续 {state.stats.streak} 天</span>
           )}
         </div>
         <div className="grid grid-cols-3 gap-3">

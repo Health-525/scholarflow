@@ -6,7 +6,7 @@ import type { Adjustment } from "@/lib/schedule/adjustments";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
 import { courseColor } from "@/lib/schedule/course-color";
 import type { RawScheduleData, DayItem } from "@/lib/schedule/schedule";
-import { normalizeDate } from "@/lib/schedule/timezone";
+import { formatDateInTimeZone, getNowInTimeZone, normalizeDate } from "@/lib/schedule/timezone";
 
 import { CourseDrawer } from "./CourseDrawer";
 
@@ -16,8 +16,9 @@ interface QueryViewProps {
 }
 
 export function QueryView({ schedule, adjustments }: QueryViewProps) {
+  const tz = schedule.meta.tz || "Asia/Shanghai";
   const [inputDate, setInputDate] = useState(() => {
-    return new Date().toISOString().slice(0, 10);
+    return formatDateInTimeZone(getNowInTimeZone(tz), tz);
   });
   const [queryDate, setQueryDate] = useState<string>(inputDate);
   const [selectedItem, setSelectedItem] = useState<DayItem | null>(null);
@@ -70,7 +71,7 @@ export function QueryView({ schedule, adjustments }: QueryViewProps) {
                 weekday: "short",
               })}
             </span>
-            <span className="sf-chip sf-chip-accent">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
               第 {result.weekNum} 周
             </span>
           </div>
@@ -127,6 +128,7 @@ export function QueryView({ schedule, adjustments }: QueryViewProps) {
       <CourseDrawer
         item={selectedItem}
         date={result?.date ?? new Date()}
+        timeZone={tz}
         onClose={() => setSelectedItem(null)}
       />
     </div>

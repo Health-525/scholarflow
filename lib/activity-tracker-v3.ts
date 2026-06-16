@@ -74,6 +74,7 @@ let _segs: AppSegment[] = [];
 let _curApp = "启动中";
 let _curTitle = "";
 let _curCategory: Category = "system";
+// idle / away 检测暂未接入；当前恒为 0，仅保留字段占位以保持 ActivityStateV3 / DayLog API 不变
 const _idle = 0; const _away = 0;
 let _subs: Array<() => void> = [];
 let _inited = false;
@@ -205,7 +206,11 @@ export interface ActivityStateV3 {
   currentApp: string; currentTitle: string;
   appBreakdown: Array<{app:string;minutes:number}>;
   categoryBreakdown: Array<{category:Category;minutes:number;color:string}>;
-  totalActiveMs: number; idleMs: number; awayMs: number;
+  totalActiveMs: number;
+  /** 暂未实现：idle/away 检测尚未接入，当前始终为 0 */
+  idleMs: number;
+  /** 暂未实现：idle/away 检测尚未接入，当前始终为 0 */
+  awayMs: number;
   todayLog: DayLog; isElectron: boolean;
 }
 

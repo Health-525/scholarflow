@@ -15,9 +15,6 @@ export default function ActivityPage() {
   const state = useActivityTrackerV3();
 
   const activeMins = Math.round(state.totalActiveMs / 60000);
-  const idleMins = Math.round((state.idleMs + state.awayMs) / 60000);
-  const totalMins = activeMins + idleMins || 1;
-  const focusRate = Math.round((activeMins / totalMins) * 100);
 
   if (!state.isElectron) {
     return (
@@ -46,10 +43,8 @@ export default function ActivityPage() {
       </div>
 
       {/* ── Big stats ── */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        <StatCard value={activeMins} label="活跃 min" colorClass="text-green-600" icon="🟢" />
-        <StatCard value={idleMins} label="离开 min" colorClass="text-amber-500" icon="🟡" />
-        <StatCard value={`${focusRate}%`} label="使用率" colorClass="text-primary" icon="📊" />
+      <div className="grid grid-cols-1 gap-3 mb-5">
+        <StatCard value={activeMins} label="活跃 min（今日）" colorClass="text-green-600" icon="🟢" />
       </div>
 
       {/* ── Category breakdown ── */}

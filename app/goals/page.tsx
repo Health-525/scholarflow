@@ -238,27 +238,44 @@ export default function DailyGoalsPage() {
             onReorder={reorder}
             itemClassName="animate-fade-up"
             renderItem={(g) => (
-              <button
-                type="button"
+              <div
+                role="listitem"
+                aria-label={`目标：${g.text}`}
                 className={`w-full text-left flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-sm ${
                   g.done
                     ? "opacity-70 bg-green-500/5 border border-green-500/30"
                     : "bg-card border border-border hover:border-primary/20"
                 }`}
-                onClick={() => toggle(g.id)}
               >
-                <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${
-                  g.done ? "bg-green-600 border-2 border-green-600" : "border-2 border-border hover:border-primary/30"
-                }`}>
+                <button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={g.done}
+                  aria-label={g.done ? "标记为未完成" : "标记为完成"}
+                  onClick={() => toggle(g.id)}
+                  className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${
+                    g.done ? "bg-green-600 border-2 border-green-600" : "border-2 border-border hover:border-primary/30"
+                  }`}
+                >
                   {g.done && <Check className="w-3 h-3 text-white" />}
-                </div>
-                <span className={`flex-1 text-[13px] transition-all ${g.done ? "line-through text-muted-foreground" : "text-foreground font-medium"}`}>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggle(g.id)}
+                  aria-label={`${g.done ? "标记为未完成" : "标记为完成"}：${g.text}`}
+                  className={`flex-1 text-left text-[13px] transition-all ${g.done ? "line-through text-muted-foreground" : "text-foreground font-medium"}`}
+                >
                   {g.text}
-                </span>
-                <button onClick={e => { e.stopPropagation(); del(g.id); }} className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/5 transition-all">
+                </button>
+                <button
+                  type="button"
+                  onClick={() => del(g.id)}
+                  aria-label={`删除目标：${g.text}`}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/5 transition-all"
+                >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
-              </button>
+              </div>
             )}
             renderDragOverlay={(g) => (
               <div

@@ -306,6 +306,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
       <CourseDrawer
         item={selectedItem}
         date={selectedDate}
+        timeZone={tz}
         onClose={() => setSelectedItem(null)}
       />
     </div>

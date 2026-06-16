@@ -1,3 +1,5 @@
+import { GPA_TABLE } from "@/lib/gpa";
+
 /**
  * Theme-aware color utilities — single source of truth for dark/light mode colors
  * Centralizes isDark detection and color mapping used across the app
@@ -78,28 +80,15 @@ export interface GPARefEntry { range: string; gpa: string; color: string }
 
 export function getGPARef(): GPARefEntry[] {
   const dark = isDarkMode();
-  if (dark) {
-    return [
-      { range: "≥90", gpa: "4.0", color: "#3fb950" },
-      { range: "86-89", gpa: "3.7", color: "#3fb950" },
-      { range: "82-85", gpa: "3.3", color: "#7c8edb" },
-      { range: "79-81", gpa: "3.0", color: "#7c8edb" },
-      { range: "75-78", gpa: "2.7", color: "#d29922" },
-      { range: "71-74", gpa: "2.3", color: "#d29922" },
-      { range: "68-70", gpa: "2.0", color: "#f85149" },
-      { range: "60-67", gpa: "1.3", color: "#f85149" },
-    ];
-  }
-  return [
-    { range: "≥90", gpa: "4.0", color: "#22c55e" },
-    { range: "86-89", gpa: "3.7", color: "#22c55e" },
-    { range: "82-85", gpa: "3.3", color: "#2a4494" },
-    { range: "79-81", gpa: "3.0", color: "#2a4494" },
-    { range: "75-78", gpa: "2.7", color: "#f59e0b" },
-    { range: "71-74", gpa: "2.3", color: "#f59e0b" },
-    { range: "68-70", gpa: "2.0", color: "#f97316" },
-    { range: "60-67", gpa: "1.3", color: "#f97316" },
-  ];
+  return GPA_TABLE.map(entry => {
+    let color: string;
+    if (entry.gpa >= 3.7) color = dark ? "#3fb950" : "#22c55e";
+    else if (entry.gpa >= 3.0) color = dark ? "#7c8edb" : "#2a4494";
+    else if (entry.gpa >= 2.3) color = dark ? "#d29922" : "#f59e0b";
+    else if (entry.gpa >= 1.3) color = dark ? "#f85149" : "#f97316";
+    else color = dark ? "#f85149" : "#ef4444";
+    return { range: entry.range, gpa: entry.gpa.toFixed(1), color };
+  });
 }
 
 // ── Generic semantic color helpers ──

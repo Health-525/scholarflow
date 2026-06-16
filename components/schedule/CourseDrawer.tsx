@@ -4,16 +4,18 @@ import { useEffect, useRef } from "react";
 
 import { courseColor } from "@/lib/schedule/course-color";
 import type { DayItem, CourseView } from "@/lib/schedule/schedule";
+import { formatDateInTimeZone } from "@/lib/schedule/timezone";
 
 import { ReminderButton } from "./ReminderButton";
 
 interface CourseDrawerProps {
   item: DayItem | null;
   date: Date;
+  timeZone: string;
   onClose: () => void;
 }
 
-export function CourseDrawer({ item, date, onClose }: CourseDrawerProps) {
+export function CourseDrawer({ item, date, timeZone, onClose }: CourseDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export function CourseDrawer({ item, date, onClose }: CourseDrawerProps) {
     startAt = d.getTime();
   }
 
-  const courseKey = `${date.toISOString().slice(0, 10)}-${item.title}`;
+  const courseKey = `${formatDateInTimeZone(date, timeZone)}-${item.title}`;
 
   return (
     <>

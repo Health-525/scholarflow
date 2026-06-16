@@ -48,8 +48,8 @@ interface GraphQLResponse {
   error?: string;
 }
 
-export function graphql(jwt: string, query: string) {
-  const body = JSON.stringify({ query });
+export function graphql(jwt: string, query: string, variables?: Record<string, unknown>) {
+  const body = JSON.stringify({ query, variables });
   const hostname = process.env.LIBRARY_API_HOSTNAME || "seat.njtech.edu.cn";
   const allowInsecure = process.env.NODE_ENV === "development" || process.env.LIBRARY_ALLOW_INSECURE === "true";
   return new Promise<{ ok: boolean; data: GraphQLResponse }>(resolve => {

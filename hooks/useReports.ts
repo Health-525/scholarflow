@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 
+import { getCurrentUser } from "@/lib/mobile-data";
 import type { DirectoryEntry } from "@/types";
 
 interface ReportsState {
@@ -9,6 +10,11 @@ interface ReportsState {
   isLoading: boolean;
   error: Error | null;
   reload: () => void;
+}
+
+function getAuthParams(): string {
+  const { schoolId, userId } = getCurrentUser();
+  return `schoolId=${encodeURIComponent(schoolId)}&userId=${encodeURIComponent(userId)}`;
 }
 
 /**
@@ -23,7 +29,7 @@ export function useDailyReports(): ReportsState {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/local-data?type=dailyReports");
+      const res = await fetch(`/api/local-data?type=dailyReports&${getAuthParams()}`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -61,7 +67,7 @@ export function useWeeklyReports(): ReportsState {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/local-data?type=weeklyReports");
+      const res = await fetch(`/api/local-data?type=weeklyReports&${getAuthParams()}`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -104,11 +110,26 @@ export function useReportContent(
     let cancelled = false;
     setIsLoading(true);
     setError(null);
-
-    const folder = type === "daily" ? "日报" : "周报";
-    // TODO: implement local report content reading via API
     setContent("");
-    setIsLoading(false);
+
+    const reportType = type === "daily" ? "dailyReport" : "weeklyReport";
+    const paramName = type === "daily" ? "date" : "slug";
+    const url = `/api/local-data?type=${reportType}&${paramName}=${encodeURIComponent(slug)}&${getAuthParams()}`;
+
+    fetch(url)
+      .then(async (res) => {
+        if (cancelled) return;
+        if (!res.ok) throw new Error("加载失败");
+        const data = (await res.json()) as string;
+        setContent(typeof data === "string" ? data : "");
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err : new Error(String(err)));
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
 
     return () => {
       cancelled = true;

@@ -127,9 +127,9 @@ export function UpdateNotification() {
               </p>
             </div>
           </div>
-          <div className="sf-progress-track">
+          <div className="w-full rounded-full bg-secondary overflow-hidden h-2">
             <div
-              className="sf-progress-fill"
+              className="h-full rounded-full bg-primary transition-all duration-300"
               style={{ width: `${progress?.percent ?? 0}%` }}
             />
           </div>

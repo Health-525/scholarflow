@@ -48,7 +48,7 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
           <div className="relative">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs font-medium text-muted-foreground">{weekdayLabel} · {dateLabel}</span>
-              <span className="sf-chip sf-chip-accent">下节课</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">下节课</span>
             </div>
             <div className="text-lg font-bold font-display text-foreground mb-1">
               {nextCourse.item.title}
@@ -151,6 +151,7 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
       <CourseDrawer
         item={selectedItem}
         date={today}
+        timeZone={tz}
         onClose={() => setSelectedItem(null)}
       />
     </div>

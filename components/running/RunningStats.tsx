@@ -16,7 +16,7 @@ export function RunningStats({ stats }: RunningStatsProps) {
         </svg>
         <span className="text-[13px] font-semibold text-foreground">阳光长跑进度</span>
         {stats.progressPercent >= 100 && (
-          <span className="sf-chip sf-chip-ok">已达标</span>
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-600 border border-green-500/20">已达标</span>
         )}
       </div>
 

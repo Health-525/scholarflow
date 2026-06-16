@@ -51,7 +51,7 @@ export async function mobileWriteFile(fileName: string, content: string): Promis
  * 获取当前登录用户的 schoolId 和 userId
  * 从 localStorage 的 sf_auth 中读取
  */
-function getCurrentUser(): { schoolId: string; userId: string } {
+export function getCurrentUser(): { schoolId: string; userId: string } {
   try {
     const raw = localStorage.getItem("sf_auth");
     if (raw) {

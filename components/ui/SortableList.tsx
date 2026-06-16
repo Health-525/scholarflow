@@ -56,7 +56,7 @@ export function SortableItem({ id, children, showGrip = true, className = "" }: 
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-2 ${className}`}
+      className={`group/section flex items-center gap-2 ${className}`}
     >
       {showGrip && (
         <button

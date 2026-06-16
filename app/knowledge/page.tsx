@@ -296,7 +296,7 @@ export default function KnowledgeProfilePage() {
         <div className="flex items-center gap-2 mb-4">
           <AlertTriangle className="w-4 h-4 text-red-500" />
           <h2 className="text-[13px] font-semibold text-foreground">知识空白诊断</h2>
-          <span className="sf-chip sf-chip-error">{knowledgeGaps.length} 项</span>
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-500 border border-red-500/20">{knowledgeGaps.length} 项</span>
         </div>
 
         {/* Gap type legend */}

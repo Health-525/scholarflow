@@ -15,9 +15,6 @@ export function ScreenTimeCard() {
     setMounted(true);
   }, []);
   const activeMins = Math.round(state.totalActiveMs / 60000);
-  const idleMins = Math.round((state.idleMs + state.awayMs) / 60000);
-  const total = activeMins + idleMins || 1;
-  const rate = Math.round((activeMins / total) * 100);
 
   return (
     <Link href="/activity" className={cn(cardClasses, "h-full")}>
@@ -28,13 +25,6 @@ export function ScreenTimeCard() {
             {activeMins}<span className="text-[13px] font-medium text-muted-foreground"> min</span>
           </div>
           <div className="text-[11px] text-muted-foreground mt-0.5">活跃时长</div>
-
-          <div className="flex items-center gap-2 justify-center mt-3">
-            <div className="w-12 h-1 rounded-full overflow-hidden flex bg-secondary">
-              <div className="h-full transition-all bg-primary rounded-full" style={{ width: `${rate}%` }} />
-            </div>
-            <span className="text-[11px] font-medium tabular-nums text-muted-foreground">{rate}%</span>
-          </div>
 
           {state.categoryBreakdown.length > 0 && (
             <div className="flex items-center justify-center gap-3 mt-2.5">

@@ -39,16 +39,32 @@ export function gpaColorClasses(gpa: number): { colorClass: string; iconBgClass:
   return { colorClass: "text-red-500 dark:text-red-400", iconBgClass: "bg-red-500/[0.07] dark:bg-red-400/10" };
 }
 
-// ── 百分制 → 4.0 GPA (NJTECH标准) ──
+// ── 统一的百分制 → 4.0 GPA 对照表（NJTECH标准） ──
+export interface GPATableEntry {
+  min: number;
+  max: number; // 右开区间
+  gpa: number;
+  range: string;
+}
+
+export const GPA_TABLE: readonly GPATableEntry[] = [
+  { min: 95, max: 101, gpa: 4.0, range: "≥95" },
+  { min: 90, max: 95, gpa: 3.8, range: "90-94" },
+  { min: 85, max: 90, gpa: 3.6, range: "85-89" },
+  { min: 80, max: 85, gpa: 3.2, range: "80-84" },
+  { min: 75, max: 80, gpa: 2.8, range: "75-79" },
+  { min: 70, max: 75, gpa: 2.4, range: "70-74" },
+  { min: 65, max: 70, gpa: 1.8, range: "65-69" },
+  { min: 60, max: 65, gpa: 1.0, range: "60-64" },
+  { min: 0, max: 60, gpa: 0, range: "<60" },
+];
+
 export function scoreToGPA(score: number): number {
-  if (score >= 95) return 4.0;
-  if (score >= 90) return 3.8;
-  if (score >= 85) return 3.6;
-  if (score >= 80) return 3.2;
-  if (score >= 75) return 2.8;
-  if (score >= 70) return 2.4;
-  if (score >= 65) return 1.8;
-  if (score >= 60) return 1.0;
+  for (const entry of GPA_TABLE) {
+    if (score >= entry.min && score < entry.max) {
+      return entry.gpa;
+    }
+  }
   return 0;
 }
 
