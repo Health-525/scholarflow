@@ -1,6 +1,6 @@
 {
   "name": "scholarflow",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "private": true,
   "description": "ScholarFlow — 独立学习管理中枢",
   "author": "Health-525 <health-525@users.noreply.github.com>",
@@ -44,12 +44,14 @@
     "asar": true,
     "asarUnpack": [
       ".next/standalone/**/*",
+      ".next/standalone/node_modules/**/*",
       "public/**/*",
       "node_modules/better-sqlite3/**/*"
     ],
     "files": [
       "electron/**/*",
       ".next/standalone/**/*",
+      ".next/standalone/node_modules/**/*",
       "public/**/*",
       "package.json",
       "node_modules/better-sqlite3/**/*",
