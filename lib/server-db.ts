@@ -51,6 +51,8 @@ export class ServerDB {
   constructor(dbPath?: string) {
     this.storePath = dbPath || this.resolveDbPath();
     fs.mkdirSync(path.dirname(this.storePath), { recursive: true });
+    // eslint-disable-next-line no-console
+    console.log("[ServerDB] store path:", this.storePath);
     this.store = this.loadStore();
     this.migrate();
   }
@@ -99,6 +101,9 @@ export class ServerDB {
   }
 
   private saveStore(): void {
+    const dir = path.dirname(this.storePath);
+    // 防御：某些场景下目录可能被清理或尚未创建，每次写入前确保存在
+    fs.mkdirSync(dir, { recursive: true });
     const tmp = `${this.storePath}.tmp`;
     fs.writeFileSync(tmp, JSON.stringify(this.store, null, 2), "utf8");
     fs.renameSync(tmp, this.storePath);
