@@ -84,7 +84,7 @@ export interface RunStats {
   total: number;
   morning: number;
   free: number;
-  progressPercent: number; // Math.min(total / 50 * 100, 100)
+  progressPercent: number; // Math.min(total / RUNNING_GOAL * 100, 100)
 }
 
 export interface HeatmapDay {

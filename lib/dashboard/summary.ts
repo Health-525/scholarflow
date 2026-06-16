@@ -1,3 +1,4 @@
+import { RUNNING_GOAL } from "@/lib/running-utils";
 import type { ServerDB } from "@/lib/server-db";
 
 export interface DashboardSummary {
@@ -39,8 +40,6 @@ interface ScheduleData {
 interface GradesData {
   gpa?: string;
 }
-
-const RUNNING_GOAL = 50;
 
 /**
  * 根据当前 SQLite 中的数据重新生成 dashboard summary。

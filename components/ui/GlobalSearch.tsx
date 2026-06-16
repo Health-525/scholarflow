@@ -1,14 +1,11 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Search, X, Command, LayoutDashboard, CalendarDays, ClipboardList, Activity, FileText,
-  BookOpen, Library, Bot, Timer, TrendingUp, Brain, Target, Clock, Percent, BarChart3,
-  Monitor, Settings, Newspaper, Flag,
-} from "lucide-react";
+import { Command, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { GLOBAL_SEARCH_ITEMS } from "@/config/navigation";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { useSearchStore } from "@/store/search";
 
@@ -21,27 +18,16 @@ interface SearchItem {
   keywords?: string[];
 }
 
-const ITEMS: SearchItem[] = [
-  { id: "dashboard", title: "仪表板", path: "/", icon: <LayoutDashboard className="w-4 h-4" />, keywords: ["首页", "home"] },
-  { id: "schedule", title: "课表", path: "/schedule", icon: <CalendarDays className="w-4 h-4" />, keywords: ["课程", "课表"] },
-  { id: "assignments", title: "作业", path: "/assignments", icon: <ClipboardList className="w-4 h-4" />, keywords: ["作业", "任务", "todo"] },
-  { id: "running", title: "阳光长跑", path: "/running", icon: <Activity className="w-4 h-4" />, keywords: ["跑步", "运动"] },
-  { id: "exams", title: "考试倒计时", path: "/exams", icon: <Clock className="w-4 h-4" />, keywords: ["考试", "倒计时"] },
-  { id: "goals", title: "每日目标", path: "/goals", icon: <Target className="w-4 h-4" />, keywords: ["目标", "习惯"] },
-  { id: "notes", title: "笔记", path: "/notes", icon: <FileText className="w-4 h-4" />, keywords: ["笔记", "知识库"] },
-  { id: "daily", title: "日报", path: "/reports/daily", icon: <Newspaper className="w-4 h-4" />, keywords: ["日报", "报告"] },
-  { id: "weekly", title: "周报", path: "/reports/weekly", icon: <Flag className="w-4 h-4" />, keywords: ["周报", "总结"] },
-  { id: "library", title: "图书馆", path: "/library", icon: <Library className="w-4 h-4" />, keywords: ["图书馆", "座位", "选座"] },
-  { id: "chat", title: "AI 助手", path: "/chat", icon: <Bot className="w-4 h-4" />, keywords: ["AI", "聊天", "助手"] },
-  { id: "pomodoro", title: "番茄钟", path: "/pomodoro", icon: <Timer className="w-4 h-4" />, keywords: ["番茄钟", "专注", "计时器"] },
-  { id: "progress", title: "学习进度", path: "/progress", icon: <TrendingUp className="w-4 h-4" />, keywords: ["进度", "统计"] },
-  { id: "knowledge", title: "知识画像", path: "/knowledge", icon: <Brain className="w-4 h-4" />, keywords: ["知识", "画像", "技能"] },
-  { id: "roadmap", title: "路线图", path: "/roadmap", icon: <BookOpen className="w-4 h-4" />, keywords: ["路线图", "规划"] },
-  { id: "activity", title: "屏幕时间", path: "/activity", icon: <Monitor className="w-4 h-4" />, keywords: ["屏幕时间", "使用统计"] },
-  { id: "stats", title: "统计", path: "/stats", icon: <BarChart3 className="w-4 h-4" />, keywords: ["统计", "数据"] },
-  { id: "gpa", title: "GPA", path: "/gpa", icon: <Percent className="w-4 h-4" />, keywords: ["绩点", "GPA", "成绩"] },
-  { id: "settings", title: "设置", path: "/settings", icon: <Settings className="w-4 h-4" />, keywords: ["设置", "配置"] },
-];
+const ITEMS: SearchItem[] = GLOBAL_SEARCH_ITEMS.map((item) => {
+  const Icon = item.icon;
+  return {
+    id: item.id,
+    title: item.searchTitle ?? item.label,
+    path: item.href,
+    icon: <Icon className="w-4 h-4" />,
+    keywords: item.keywords,
+  };
+});
 
 export function GlobalSearch() {
   const router = useRouter();

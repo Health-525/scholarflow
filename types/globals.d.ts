@@ -3,6 +3,16 @@
  */
 
 // Electron preload API
+interface UpdateInfo {
+  version: string;
+  releaseNotes?: string | { note: string }[];
+}
+
+interface DownloadProgress {
+  percent: number;
+  bytesPerSecond: number;
+}
+
 interface ElectronAPI {
   isElectron: boolean;
   encryptAndStoreToken: (token: string) => Promise<boolean>;
@@ -16,9 +26,9 @@ interface ElectronAPI {
   onActiveWindowChanged: (callback: (info: { title: string; app: string; timestamp: number }) => void) => () => void;
   updateCheck: () => Promise<{ currentVersion: string; latestVersion: string | null; error?: string }>;
   updateDownload: () => Promise<boolean | { error: string }>;
-  updateInstall: () => void;
-  onUpdateAvailable: (callback: (info: { version: string; releaseNotes: string }) => void) => () => void;
-  onUpdateDownloadProgress: (callback: (progress: { percent: number; bytesPerSecond: number }) => void) => () => void;
+  updateInstall: () => Promise<void>;
+  onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
+  onUpdateDownloadProgress: (callback: (progress: DownloadProgress) => void) => () => void;
   onUpdateDownloaded: (callback: (info: { version: string }) => void) => () => void;
   visionModelStatus: () => Promise<boolean>;
   visionModelStart: () => Promise<{ ok: boolean; message: string }>;

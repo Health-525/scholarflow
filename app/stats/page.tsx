@@ -4,7 +4,7 @@ import { useMemo } from "react";
 
 import { StatsDashboard } from "@/components/dashboard/StatsDashboard";
 import { useScheduleQuery, useAssignmentsQuery, useRunningQuery } from "@/hooks/useQueries";
-import { calculateRunStats } from "@/lib/running-utils";
+import { calculateRunStats, RUNNING_GOAL } from "@/lib/running-utils";
 
 export default function StatsPage() {
   const { data: scheduleData } = useScheduleQuery();
@@ -27,7 +27,7 @@ export default function StatsPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <StatCard label="课程数" value={totalCourses} unit="门" color="#2a4494" />
         <StatCard label="作业完成" value={completedAssignments} unit={`/ ${assignments.length}`} color="#2d7a4f" />
-        <StatCard label="跑步次数" value={stats.total} unit="/ 50" color="#068ca0" />
+        <StatCard label="跑步次数" value={stats.total} unit={`/ ${RUNNING_GOAL}`} color="#068ca0" />
         <StatCard label="跑步进度" value={Math.round(stats.progressPercent)} unit="%" color="#6446a0" />
       </div>
 

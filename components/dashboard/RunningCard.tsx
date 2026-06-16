@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { useRunningQuery } from "@/hooks/useQueries";
-import { calculateRunStats } from "@/lib/running-utils";
+import { calculateRunStats, RUNNING_GOAL } from "@/lib/running-utils";
 
 export function RunningCard() {
   const { records, isLoading, error, reload } = useRunningQuery();
@@ -44,7 +44,7 @@ export function RunningCard() {
               <span className="text-[28px] font-bold tabular-nums font-display text-foreground tracking-tight">
                 {stats.total}
               </span>
-              <span className="text-[12px] text-muted-foreground">/ 50 次</span>
+              <span className="text-[12px] text-muted-foreground">/ {RUNNING_GOAL} 次</span>
               {pct >= 100 && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-green-600/10 text-green-600 ml-1">达标 ✓</span>}
             </div>
 

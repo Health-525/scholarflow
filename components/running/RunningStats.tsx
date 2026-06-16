@@ -1,6 +1,7 @@
 "use client";
 
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { RUNNING_GOAL } from "@/lib/running-utils";
 import type { RunStats } from "@/types";
 
 interface RunningStatsProps {
@@ -26,7 +27,7 @@ export function RunningStats({ stats }: RunningStatsProps) {
             {stats.total}
           </span>
           <span className="text-sm text-muted-foreground">
-            / 50 次
+            / {RUNNING_GOAL} 次
           </span>
         </div>
         <ProgressBar

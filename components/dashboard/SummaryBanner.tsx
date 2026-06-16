@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 
 import { cardClasses } from "@/components/ui/card";
 import { gpaColorClasses } from "@/lib/gpa";
+import { RUNNING_GOAL } from "@/lib/running-utils";
 import { cn } from "@/lib/utils";
 
 interface DashboardSummary {
@@ -151,7 +152,7 @@ export function SummaryBanner() {
       iconBgClass: runningDone ? "bg-[#ECFDF5] dark:bg-green-400/10" : "bg-[#FEF3C7] dark:bg-amber-400/10",
       badge: runningDone ? "已达标" : undefined,
       badgeClass: runningDone ? "bg-emerald-500/10 text-emerald-700 dark:bg-green-400/15 dark:text-green-400" : "",
-      sub: `${overview.running?.total ?? 0}/50 次`,
+      sub: `${overview.running?.total ?? 0}/${RUNNING_GOAL} 次`,
     },
   ];
 

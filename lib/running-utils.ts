@@ -1,5 +1,8 @@
 import type { RunRecord, RunStats, HeatmapDay, RunType } from "@/types";
 
+/** 跑步目标次数 */
+export const RUNNING_GOAL = 50;
+
 /**
  * 计算跑步统计数据
  */
@@ -7,7 +10,7 @@ export function calculateRunStats(records: RunRecord[]): RunStats {
   const total = records.length;
   const morning = records.filter((r) => r.type === "morning").length;
   const free = records.filter((r) => r.type === "free").length;
-  const progressPercent = Math.min((total / 50) * 100, 100);
+  const progressPercent = Math.min((total / RUNNING_GOAL) * 100, 100);
 
   return { total, morning, free, progressPercent };
 }

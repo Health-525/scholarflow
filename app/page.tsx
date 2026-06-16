@@ -11,6 +11,7 @@ import { RunningCard } from "@/components/dashboard/RunningCard";
 import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
 import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
 import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
+import { RUNNING_GOAL } from "@/lib/running-utils";
 
 function useGreeting() {
   const [greeting, setGreeting] = useState({
@@ -67,7 +68,7 @@ function useHeroStats() {
           setStats({
             courses: d.overview.courses ?? 0,
             assignments: d.overview.pendingAssignments ?? 0,
-            running: `${d.overview.running?.total ?? 0}/50`,
+            running: `${d.overview.running?.total ?? 0}/${RUNNING_GOAL}`,
           });
         }
       })

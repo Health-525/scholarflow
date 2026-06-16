@@ -3,6 +3,8 @@
 import { Plus, Trash2, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 
+import { parseExamDate } from "@/lib/parse-exam-date";
+
 interface Exam {
   id: string;
   subject: string;
@@ -34,12 +36,11 @@ async function importJWGLExams(): Promise<Exam[]> {
     const data = await res.json();
     if (!Array.isArray(data)) return [];
     return data.map((e: JWGLExam) => {
-      const dateMatch = (e.kssj || "").match(/\d{4}-\d{2}-\d{2}/);
       const timeMatch = (e.kssj || "").match(/\((\d{2}:\d{2}-\d{2}:\d{2})\)/);
       return {
         id: "jwgl-" + (e.kch || Math.random()),
         subject: e.kcmc || e.kch || "",
-        date: dateMatch ? dateMatch[0] : "",
+        date: parseExamDate(e.kssj),
         time: timeMatch ? timeMatch[1] : "",
         location: (e.jxdd || "").replace(/\(多\)/g, "").replace(/;/g, " / "),
       };

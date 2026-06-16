@@ -1,63 +1,39 @@
 "use client";
 
-import {
-  Activity, Bot, BookOpen, Brain, Calculator, CalendarDays, ClipboardList,
-  Clock, Ellipsis, FileText, HeartPulse, LayoutDashboard, Library, Monitor,
-  Newspaper, Sparkles, Target, Timer, TrendingUp, X,
-} from "lucide-react";
+import { Ellipsis, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-const CORE_ITEMS = [
-  { href: "/", label: "首页", Icon: LayoutDashboard },
-  { href: "/schedule", label: "课表", Icon: CalendarDays },
-  { href: "/assignments", label: "作业", Icon: ClipboardList },
-  { href: "/running", label: "跑步", Icon: Activity },
-  { href: "/notes", label: "笔记", Icon: FileText },
-  { href: "/library", label: "图书馆", Icon: Library },
-  { href: "/chat", label: "AI", Icon: Bot },
-];
-
-const MORE_GROUPS = [
-  {
-    label: "学业",
-    items: [
-      { href: "/exams", label: "考试", Icon: Clock },
-      { href: "/goals", label: "目标", Icon: Target },
-      { href: "/gpa", label: "绩点", Icon: Calculator },
-    ],
-  },
-  {
-    label: "工具",
-    items: [
-      { href: "/pomodoro", label: "番茄钟", Icon: Timer },
-      { href: "/activity", label: "屏幕时间", Icon: Monitor },
-      { href: "/reports/daily", label: "日报", Icon: Newspaper },
-    ],
-  },
-  {
-    label: "知识",
-    items: [
-      { href: "/knowledge", label: "知识画像", Icon: Brain },
-      { href: "/knowledge/roadmap", label: "学习路线", Icon: BookOpen },
-      { href: "/progress", label: "学习进度", Icon: TrendingUp },
-    ],
-  },
-  {
-    label: "更多",
-    items: [
-      { href: "/wrinkle", label: "皮肤检测", Icon: Sparkles },
-      { href: "/monitoring", label: "Agent", Icon: HeartPulse },
-    ],
-  },
-];
+import { BOTTOM_NAV_CORE, BOTTOM_NAV_MORE_GROUPS } from "@/config/navigation";
 
 export function BottomNav() {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+
+  const handleClose = useCallback(() => {
+    setDrawerOpen(false);
+    // 关闭后将焦点归还触发按钮
+    setTimeout(() => triggerRef.current?.focus(), 0);
+  }, []);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    // 打开时将焦点移入抽屉的关闭按钮
+    const timer = setTimeout(() => closeButtonRef.current?.focus(), 0);
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [drawerOpen, handleClose]);
 
   return (
     <>
@@ -66,8 +42,10 @@ export function BottomNav() {
         aria-label="底部导航"
       >
         <div className="grid grid-cols-8 h-16">
-          {CORE_ITEMS.map((item) => {
+          {BOTTOM_NAV_CORE.map((item) => {
             const active = isActive(item.href);
+            const label = item.shortLabel ?? item.label;
+            const Icon = item.icon;
             return (
               <Link
                 key={item.href}
@@ -75,7 +53,7 @@ export function BottomNav() {
                 className={`relative flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
                   active ? "text-primary dark:text-white" : "text-muted-foreground/75 active:text-muted-foreground"
                 }`}
-                aria-label={item.label}
+                aria-label={label}
                 aria-current={active ? "page" : undefined}
               >
                 {active && (
@@ -84,14 +62,14 @@ export function BottomNav() {
                     <span className="absolute inset-x-3 inset-y-2 rounded-2xl bg-primary/[0.06] dark:bg-primary/[0.06]" aria-hidden="true" />
                   </>
                 )}
-                <item.Icon
+                <Icon
                   className={`relative z-[1] h-[18px] w-[18px] transition-all duration-300 ${
                     active ? "scale-[1.15] drop-shadow-[0_0_10px_rgba(var(--primary-rgb),0.28)]" : ""
                   }`}
                   strokeWidth={active ? 2.4 : 1.8}
                 />
                 <span className={`relative z-[1] text-[9px] leading-none tracking-wide ${active ? "font-semibold" : ""}`}>
-                  {item.label}
+                  {label}
                 </span>
               </Link>
             );
@@ -99,12 +77,14 @@ export function BottomNav() {
 
           {/* 更多按钮 */}
           <button
+            ref={triggerRef}
             onClick={() => setDrawerOpen(true)}
             className={`relative flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
               drawerOpen ? "text-primary dark:text-white" : "text-muted-foreground/75 active:text-muted-foreground"
             }`}
             aria-label="更多功能"
             aria-expanded={drawerOpen}
+            aria-haspopup="dialog"
           >
             <Ellipsis className="relative z-[1] h-[18px] w-[18px]" strokeWidth={1.8} />
             <span className="relative z-[1] text-[9px] leading-none tracking-wide">更多</span>
@@ -119,17 +99,24 @@ export function BottomNav() {
           role="button"
           tabIndex={-1}
           aria-label="关闭更多功能"
-          onClick={() => setDrawerOpen(false)}
-          onKeyDown={(e) => { if (e.key === "Escape") setDrawerOpen(false); }}
+          onClick={handleClose}
+          onKeyDown={(e) => { if (e.key === "Escape") handleClose(); }}
         >
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-in" />
+          {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
           <div
             className="absolute bottom-0 left-0 right-0 bg-card border-t border-border rounded-t-[24px] shadow-lg max-h-[65vh] overflow-y-auto pb-safe animate-fade-up"
-            role="button"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="bottom-nav-more-title"
             tabIndex={-1}
-            aria-hidden="true"
             onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => { e.stopPropagation(); }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.stopPropagation();
+                handleClose();
+              }
+            }}
           >
             {/* Handle bar */}
             <div className="flex justify-center pt-3 pb-1">
@@ -138,9 +125,10 @@ export function BottomNav() {
 
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3">
-              <h3 className="text-[15px] font-semibold font-display text-foreground">更多功能</h3>
+              <h3 id="bottom-nav-more-title" className="text-[15px] font-semibold font-display text-foreground">更多功能</h3>
               <button
-                onClick={() => setDrawerOpen(false)}
+                ref={closeButtonRef}
+                onClick={handleClose}
                 className="w-8 h-8 rounded-xl flex items-center justify-center bg-secondary text-muted-foreground"
                 aria-label="关闭"
               >
@@ -150,24 +138,25 @@ export function BottomNav() {
 
             {/* Groups */}
             <div className="px-3 pb-6 space-y-4">
-              {MORE_GROUPS.map((group) => (
+              {BOTTOM_NAV_MORE_GROUPS.map((group) => (
                 <div key={group.label}>
                   <div className="text-[11px] font-semibold text-muted-foreground px-2 mb-1">{group.label}</div>
                   <div className="grid grid-cols-3 gap-1.5">
                     {group.items.map((item) => {
                       const active = isActive(item.href);
+                      const Icon = item.icon;
                       return (
                         <Link
                           key={item.href}
                           href={item.href}
-                          onClick={() => setDrawerOpen(false)}
+                          onClick={handleClose}
                           className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl text-center transition-colors ${
                             active
                               ? "bg-primary/10 text-primary dark:text-white"
                               : "text-foreground hover:bg-secondary"
                           }`}
                         >
-                          <item.Icon className="w-5 h-5" strokeWidth={active ? 2.4 : 1.8} />
+                          <Icon className="w-5 h-5" strokeWidth={active ? 2.4 : 1.8} />
                           <span className="text-[11px] font-medium">{item.label}</span>
                         </Link>
                       );

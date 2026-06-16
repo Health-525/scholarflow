@@ -1,51 +1,13 @@
 "use client";
 
-import {
-  Activity, BookOpen, Bot, Brain, CalendarDays, Calculator,
-  ClipboardList, Clock, FileText, HeartPulse, LayoutDashboard,
-  Library, Monitor, Newspaper, Settings, Sparkles, Target, Timer, TrendingUp,
-} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const NAV_GROUPS = [
-  {
-    label: "学习",
-    items: [
-      { href: "/", label: "仪表盘", Icon: LayoutDashboard },
-      { href: "/schedule", label: "课表", Icon: CalendarDays },
-      { href: "/assignments", label: "作业", Icon: ClipboardList },
-      { href: "/exams", label: "考试", Icon: Clock },
-    ],
-  },
-  {
-    label: "成长",
-    items: [
-      { href: "/gpa", label: "绩点", Icon: Calculator },
-      { href: "/goals", label: "目标", Icon: Target },
-      { href: "/knowledge", label: "知识画像", Icon: Brain },
-      { href: "/knowledge/roadmap", label: "学习路线", Icon: BookOpen },
-      { href: "/progress", label: "学习进度", Icon: TrendingUp },
-    ],
-  },
-  {
-    label: "工具",
-    items: [
-      { href: "/pomodoro", label: "番茄钟", Icon: Timer },
-      { href: "/notes", label: "笔记", Icon: FileText },
-      { href: "/reports/daily", label: "日报", Icon: Newspaper },
-      { href: "/running", label: "跑步", Icon: Activity },
-      { href: "/activity", label: "屏幕时间", Icon: Monitor },
-      { href: "/library", label: "图书馆", Icon: Library },
-      { href: "/chat", label: "AI 助手", Icon: Bot },
-      { href: "/wrinkle", label: "皮肤检测", Icon: Sparkles },
-      { href: "/monitoring", label: "Agent", Icon: HeartPulse },
-    ],
-  },
-];
+import { SIDE_NAV_GROUPS, SIDE_NAV_SETTINGS, type NavItemConfig } from "@/config/navigation";
 
-function NavItem({ href, label, Icon }: { href: string; label: string; Icon: typeof LayoutDashboard }) {
+function NavItem({ item }: { item: NavItemConfig }) {
+  const { href, label, icon: Icon } = item;
   const pathname = usePathname();
   const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -118,14 +80,14 @@ export function SideNav() {
 
       {/* Grouped navigation */}
       <nav className="flex-1 px-3 overflow-y-auto scrollbar-thin" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties} role="navigation">
-        {NAV_GROUPS.map((group) => (
+        {SIDE_NAV_GROUPS.map((group) => (
           <div key={group.label} className="mb-4">
             <p className="px-3 py-1 text-[11px] font-semibold tracking-[0.12em] text-muted-foreground/40 uppercase">
               {group.label}
             </p>
             <div className="space-y-0.5">
               {group.items.map((item) => (
-                <NavItem key={item.href} {...item} />
+                <NavItem key={item.href} item={item} />
               ))}
             </div>
           </div>
@@ -134,7 +96,7 @@ export function SideNav() {
 
       {/* Settings */}
       <div className="px-3 pb-4 border-t border-[rgba(0,0,0,0.04)] pt-3" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
-        <NavItem href="/settings" label="用户中心" Icon={Settings} />
+        <NavItem item={SIDE_NAV_SETTINGS} />
       </div>
     </aside>
   );

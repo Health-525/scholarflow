@@ -3,16 +3,6 @@
 import { Download, RefreshCw, X, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 
-interface UpdateInfo {
-  version: string;
-  releaseNotes?: string | { note: string }[];
-}
-
-interface DownloadProgress {
-  percent: number;
-  bytesPerSecond: number;
-}
-
 type UpdateState = "idle" | "available" | "downloading" | "downloaded";
 
 export function UpdateNotification() {
@@ -23,48 +13,41 @@ export function UpdateNotification() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const win = window as unknown as Record<string, unknown>;
-    if (!win.electronAPI) return;
+    const api = window.electronAPI;
+    if (!api) return;
 
-    const handleAvailable = (_event: unknown, info: UpdateInfo) => {
+    const unsubscribeAvailable = api.onUpdateAvailable((info) => {
       setUpdateInfo(info);
       if (!dismissed) setState("available");
-    };
+    });
 
-    const handleProgress = (_event: unknown, p: DownloadProgress) => {
+    const unsubscribeProgress = api.onUpdateDownloadProgress((p) => {
       setProgress(p);
       setState("downloading");
-    };
+    });
 
-    const handleDownloaded = (_event: unknown, info: { version: string }) => {
+    const unsubscribeDownloaded = api.onUpdateDownloaded((info) => {
       setUpdateInfo(info);
       setState("downloaded");
       setProgress(null);
+    });
+
+    return () => {
+      unsubscribeAvailable();
+      unsubscribeProgress();
+      unsubscribeDownloaded();
     };
-
-    const api = win.electronAPI as unknown as Record<string, (...args: unknown[]) => void>;
-    if (api.onUpdateAvailable) api.onUpdateAvailable(handleAvailable);
-    if (api.onUpdateDownloadProgress) api.onUpdateDownloadProgress(handleProgress);
-    if (api.onUpdateDownloaded) api.onUpdateDownloaded(handleDownloaded);
-
-    return () => {};
   }, [dismissed]);
 
   const handleDownload = async () => {
-    const win = window as unknown as Record<string, unknown>;
-    const api = win.electronAPI as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
-    if (api.updateDownload) {
+    if (window.electronAPI?.updateDownload) {
       setState("downloading");
-      await api.updateDownload();
+      await window.electronAPI.updateDownload();
     }
   };
 
   const handleInstall = async () => {
-    const win = window as unknown as Record<string, unknown>;
-    const api = win.electronAPI as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
-    if (api.updateInstall) {
-      await api.updateInstall();
-    }
+    await window.electronAPI?.updateInstall?.();
   };
 
   if (state === "idle" || dismissed) return null;

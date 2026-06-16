@@ -1,7 +1,7 @@
 "use client";
 
 import { Keyboard, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 interface ShortcutItem {
   key: string;
@@ -23,8 +23,19 @@ const SHORTCUTS: ShortcutItem[] = [
   { key: "Esc", description: "关闭弹窗", action: "close" },
 ];
 
+const FOCUSABLE_SELECTOR = [
+  'button:not([disabled])',
+  'a[href]',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(", ");
+
 export function KeyboardOverlay() {
   const [visible, setVisible] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -45,32 +56,73 @@ export function KeyboardOverlay() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  useEffect(() => {
+    if (!visible) return;
+
+    // Move focus into the dialog when it opens.
+    closeButtonRef.current?.focus();
+
+    // Keep focus trapped inside the dialog panel.
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !panelRef.current) return;
+
+      const focusable = Array.from(panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleTab);
+    return () => document.removeEventListener("keydown", handleTab);
+  }, [visible]);
+
+  const handleBackdropClick = useCallback(() => {
+    setVisible(false);
+  }, []);
+
   if (!visible) return null;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in"
-      role="button"
-      tabIndex={-1}
-      aria-label="关闭快捷键面板"
-      onClick={() => setVisible(false)}
-      onKeyDown={(e) => { if (e.key === "Escape") setVisible(false); }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="keyboard-overlay-title"
     >
-      <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" />
       <div
-        className="relative max-w-md w-full mx-4 rounded-2xl p-6 bg-card border border-border shadow-lg animate-fade-up"
-        role="button"
-        tabIndex={-1}
+        className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
         aria-hidden="true"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => { e.stopPropagation(); }}
+        onClick={handleBackdropClick}
+      />
+      <div
+        ref={panelRef}
+        className="relative max-w-md w-full mx-4 rounded-2xl p-6 bg-card border border-border shadow-lg animate-fade-up"
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Keyboard className="w-5 h-5 text-primary" />
-            <h2 className="text-[14px] font-semibold text-foreground">快捷键</h2>
+            <h2 id="keyboard-overlay-title" className="text-[14px] font-semibold text-foreground">快捷键</h2>
           </div>
-          <button onClick={() => setVisible(false)} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-all">
+          <button
+            ref={closeButtonRef}
+            type="button"
+            onClick={() => setVisible(false)}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
+            aria-label="关闭快捷键面板"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>

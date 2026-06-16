@@ -1,9 +1,11 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useState, useEffect } from "react";
 
 import { cardClasses } from "@/components/ui/card";
+import { queryKeys } from "@/hooks/useQueries";
+import { parseExamDate } from "@/lib/parse-exam-date";
 import { cn } from "@/lib/utils";
 
 interface Exam { id: string; subject: string; date: string; time?: string; location?: string; }
@@ -17,64 +19,77 @@ interface JWGLExamRaw {
   location?: string;
 }
 
+interface ExamCountdownResult {
+  nextExam: Exam | null;
+  countdown: string;
+}
+
+function formatCountdown(dateStr: string): string {
+  const diff = new Date(dateStr + "T23:59:59").getTime() - Date.now();
+  const days = Math.floor(diff / 86400000);
+  return days === 0 ? "今天" : days === 1 ? "明天" : `${days} 天后`;
+}
+
+async function fetchNextExam(): Promise<ExamCountdownResult> {
+  try {
+    const res = await fetch("/api/local-data?type=exams");
+    if (res.ok) {
+      const apiExams: JWGLExamRaw[] = await res.json();
+      if (Array.isArray(apiExams) && apiExams.length > 0) {
+        const futureExams = apiExams
+          .filter((e) => {
+            const dateStr = parseExamDate(e.kssj || e.date);
+            return new Date(dateStr + "T23:59:59").getTime() > Date.now();
+          })
+          .sort((a, b) => {
+            const da = parseExamDate(a.kssj || a.date);
+            const db = parseExamDate(b.kssj || b.date);
+            return da.localeCompare(db);
+          });
+        if (futureExams.length > 0) {
+          const e = futureExams[0];
+          const dateStr = parseExamDate(e.kssj || e.date);
+          const nextExam: Exam = {
+            id: "0",
+            subject: e.kcmc || e.subject || "未知科目",
+            date: dateStr,
+            time: e.kssj?.replace(dateStr, "").replace(/[()]/g, "") || "",
+            location: e.jxdd || e.location,
+          };
+          return { nextExam, countdown: formatCountdown(dateStr) };
+        }
+      }
+    }
+  } catch {}
+
+  try {
+    const raw = localStorage.getItem("sf_exams");
+    if (!raw) return { nextExam: null, countdown: "" };
+    const exams: Exam[] = JSON.parse(raw)
+      .filter((e: Exam) => new Date(parseExamDate(e.date) + "T23:59:59").getTime() > Date.now())
+      .sort((a: Exam, b: Exam) => parseExamDate(a.date).localeCompare(parseExamDate(b.date)));
+    if (exams.length > 0) {
+      const nextExam = exams[0];
+      return { nextExam, countdown: formatCountdown(parseExamDate(nextExam.date)) };
+    }
+  } catch { /* ignore */ }
+
+  return { nextExam: null, countdown: "" };
+}
+
 export function ExamCountdownCard() {
-  const [nextExam, setNextExam] = useState<Exam | null>(null);
-  const [countdown, setCountdown] = useState("");
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.exams,
+    queryFn: fetchNextExam,
+    refetchInterval: 60_000,
+    staleTime: 0,
+  });
 
-  useEffect(() => {
-    const check = async () => {
-      try {
-        const res = await fetch("/api/local-data?type=exams");
-        if (res.ok) {
-          const apiExams: JWGLExamRaw[] = await res.json();
-          if (Array.isArray(apiExams) && apiExams.length > 0) {
-            const futureExams = apiExams
-              .filter((e) => {
-                const dateStr = (e.kssj || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] || e.date || "";
-                return new Date(dateStr + "T23:59:59").getTime() > Date.now();
-              })
-              .sort((a, b) => {
-                const da = (a.kssj || a.date || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] || "";
-                const db = (b.kssj || b.date || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] || "";
-                return da.localeCompare(db);
-              });
-            if (futureExams.length > 0) {
-              const e = futureExams[0];
-              const dateStr = (e.kssj || e.date || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] || "";
-              setNextExam({ id: "0", subject: e.kcmc || e.subject || "未知科目", date: dateStr, time: e.kssj?.replace(dateStr, "").replace(/[()]/g, "") || "", location: e.jxdd || e.location });
-              const diff = new Date(dateStr + "T23:59:59").getTime() - Date.now();
-              const days = Math.floor(diff / 86400000);
-              setCountdown(days === 0 ? "今天" : days === 1 ? "明天" : `${days} 天后`);
-              setLoading(false);
-              return;
-            }
-          }
-        }
-      } catch {}
-
-      try {
-        const raw = localStorage.getItem("sf_exams");
-        if (!raw) { setLoading(false); return; }
-        const exams: Exam[] = JSON.parse(raw)
-          .filter((e: Exam) => new Date(e.date + "T23:59:59").getTime() > Date.now())
-          .sort((a: Exam, b: Exam) => a.date.localeCompare(b.date));
-        if (exams.length > 0) {
-          setNextExam(exams[0]);
-          const diff = new Date(exams[0].date + "T23:59:59").getTime() - Date.now();
-          const days = Math.floor(diff / 86400000);
-          setCountdown(days === 0 ? "今天" : days === 1 ? "明天" : `${days} 天后`);
-        }
-      } catch { /* ignore */ }
-      setLoading(false);
-    };
-    check();
-    const t = setInterval(check, 60000);
-    return () => clearInterval(t);
-  }, []);
+  const nextExam = data?.nextExam ?? null;
+  const countdown = data?.countdown ?? "";
 
   const urgent = nextExam && (
-    new Date(nextExam.date + "T23:59:59").getTime() - Date.now() < 3 * 86400000
+    new Date(parseExamDate(nextExam.date) + "T23:59:59").getTime() - Date.now() < 3 * 86400000
   );
 
   return (
@@ -88,7 +103,7 @@ export function ExamCountdownCard() {
           </div>
           <span className="text-[12px] font-semibold text-foreground font-display">考试倒计时</span>
         </div>
-        {loading ? (
+        {isLoading ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="skeleton h-12 w-24 rounded-xl" />
           </div>
