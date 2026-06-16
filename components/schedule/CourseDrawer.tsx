@@ -15,16 +15,80 @@ interface CourseDrawerProps {
   onClose: () => void;
 }
 
+const FOCUSABLE_SELECTOR = [
+  "button",
+  "[href]",
+  "input",
+  "select",
+  "textarea",
+  '[tabindex]:not([tabindex="-1"])',
+].join(", ");
+
 export function CourseDrawer({ item, date, timeZone, onClose }: CourseDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
+  const previousActiveElement = useRef<Element | null>(null);
 
   useEffect(() => {
     if (!item) return;
+
+    // Save previously focused element and lock background scroll.
+    previousActiveElement.current = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    // Move focus to the first focusable element inside the drawer.
+    const drawer = drawerRef.current;
+    if (drawer) {
+      const focusable = drawer.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      const first = focusable[0];
+      if (first) first.focus();
+    }
+
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (e.key !== "Tab" || !drawer) return;
+
+      const focusable = Array.from(
+        drawer.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+      ).filter(
+        (el) =>
+          !("disabled" in el && (el as HTMLButtonElement).disabled) &&
+          el.offsetParent !== null
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (e.shiftKey) {
+        if (active === first || !drawer.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (active === last || !drawer.contains(active)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
+
     document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = previousOverflow;
+      // Restore focus if it was moved inside the drawer.
+      const prev = previousActiveElement.current as HTMLElement | null;
+      if (prev && typeof prev.focus === "function") {
+        prev.focus();
+      }
+    };
   }, [item, onClose]);
 
   if (!item) return null;

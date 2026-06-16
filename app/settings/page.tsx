@@ -11,6 +11,10 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { SettingsSection } from "@/components/ui/settings-section";
 import { useScheduleQuery, useAssignmentsQuery, useRunningQuery, useRefreshData } from "@/hooks/useQueries";
 import { downloadActivityCSV, clearActivityData } from "@/lib/activity-tracker-v3";
@@ -119,7 +123,7 @@ export default function SettingsPage() {
       />
 
       {/* ── 用户卡片 ──────────────────────────────────────────── */}
-      <div className="card-glow rounded-[28px] p-6 mb-5 relative overflow-hidden bg-card border border-border shadow-sm animate-fade-up">
+      <Card className="rounded-[28px] p-6 mb-5 relative overflow-hidden animate-fade-up hover:translate-y-0 hover:shadow-sm">
         {/* Background decoration */}
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/6 blur-3xl" />
@@ -158,20 +162,16 @@ export default function SettingsPage() {
           </div>
 
           {/* Logout button — always visible */}
-          <button
+          <Button
+            variant="destructive"
+            size="sm"
             onClick={handleLogout}
-            className={cn(
-              "shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-medium",
-              "transition-all cursor-pointer",
-              "bg-destructive/8 border border-destructive/15 text-destructive",
-              "hover:bg-destructive/15 hover:border-destructive/25",
-              "active:translate-y-0.5"
-            )}
+            className="shrink-0 rounded-xl px-3 py-2 h-auto text-[12px] font-medium gap-1.5 bg-destructive/8 border-destructive/15 text-destructive hover:bg-destructive/15 hover:border-destructive/25 active:translate-y-0.5"
             aria-label="退出登录"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>退出</span>
-          </button>
+          </Button>
         </div>
 
         {/* Stats grid */}
@@ -190,29 +190,15 @@ export default function SettingsPage() {
           )}
           <StatChip value={String(records.length)} label="跑步" />
         </div>
-      </div>
+      </Card>
 
       {/* ── 外观 ──────────────────────────────────────────────── */}
       <SettingsSection icon={<Sun className="w-4 h-4" />} title="外观">
-        <div className="flex gap-1.5 p-1 rounded-xl bg-secondary">
-          {THEME_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => setTheme(opt.value)}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-medium transition-all duration-200 cursor-pointer",
-                theme === opt.value
-                  ? "bg-card text-primary shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              aria-pressed={theme === opt.value}
-            >
-              <opt.Icon className="w-3.5 h-3.5" />
-              <span>{opt.label}</span>
-              {theme === opt.value && <span className="w-1 h-1 rounded-full bg-primary" />}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          options={THEME_OPTIONS.map(opt => ({ id: opt.value, label: opt.label, icon: opt.Icon }))}
+          value={theme}
+          onChange={(id) => setTheme(id as ThemeValue)}
+        />
       </SettingsSection>
 
       {/* ── 数据刷新 ──────────────────────────────────────────── */}
@@ -230,22 +216,15 @@ export default function SettingsPage() {
             {fetchMessage}
           </div>
         )}
-        <button
+        <Button
           onClick={handleRefreshFromSchool}
           disabled={refreshData.isPending}
-          className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all cursor-pointer",
-            refreshData.isPending
-              ? "bg-secondary text-muted-foreground opacity-60"
-              : "bg-primary/10 text-primary hover:bg-primary/15 active:translate-y-0.5"
-          )}
+          className="w-full justify-start gap-3 px-4 py-3 h-auto rounded-xl text-left text-[13px] font-medium bg-primary/10 text-primary hover:bg-primary/15 active:translate-y-0.5 disabled:opacity-60"
         >
           <RefreshCw className={cn("w-4 h-4 shrink-0", refreshData.isPending && "animate-spin")} />
-          <span className="text-[13px] font-medium">
-            {refreshData.isPending ? "刷新中..." : "从教务系统刷新数据"}
-          </span>
+          <span>{refreshData.isPending ? "刷新中..." : "从教务系统刷新数据"}</span>
           <span className="text-[10px] ml-auto text-muted-foreground">课表 · 成绩 · 考试</span>
-        </button>
+        </Button>
       </SettingsSection>
 
       {/* ── 数据导出 ──────────────────────────────────────────── */}
@@ -273,10 +252,10 @@ export default function SettingsPage() {
           <div className="text-[11px] text-muted-foreground">v2.0 · Electron + Next.js</div>
           <div className="text-[10px] mt-0.5 text-muted-foreground">独立学习管理中枢</div>
           <div className="mt-3 flex flex-wrap gap-1.5 justify-center">
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium">AI 助手</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--status-success)]/10 text-[var(--status-success)] font-medium">PWA</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 font-medium">离线优先</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 font-medium">SQLite</span>
+            <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium hover:bg-primary/10">AI 助手</Badge>
+            <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--status-success)]/10 text-[var(--status-success)] font-medium hover:bg-[var(--status-success)]/10">PWA</Badge>
+            <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 font-medium hover:bg-amber-500/10">离线优先</Badge>
+            <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 font-medium hover:bg-purple-500/10">SQLite</Badge>
           </div>
           <div className="mt-3 text-[10px] text-muted-foreground">
             按 <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-secondary border border-border">?</kbd> 查看快捷键
@@ -285,19 +264,14 @@ export default function SettingsPage() {
       </SettingsSection>
 
       {/* ── 底部退出登录（大按钮，始终可见） ───────────────────── */}
-      <button
+      <Button
+        variant="outline"
         onClick={handleLogout}
-        className={cn(
-          "w-full rounded-[28px] p-4 flex items-center justify-center gap-2 text-[13px] font-medium",
-          "transition-all cursor-pointer mb-6",
-          "bg-card border border-destructive/15 text-destructive shadow-sm",
-          "hover:bg-destructive/8 hover:border-destructive/25 hover:shadow-md",
-          "active:translate-y-0.5"
-        )}
+        className="w-full rounded-[28px] p-4 h-auto flex items-center justify-center gap-2 text-[13px] font-medium mb-6 bg-card border-destructive/15 text-destructive shadow-sm hover:bg-destructive/8 hover:text-destructive hover:border-destructive/25 hover:shadow-md active:translate-y-0.5"
       >
         <LogOut className="w-4 h-4" />
         退出登录
-      </button>
+      </Button>
     </div>
   );
 }
@@ -324,21 +298,22 @@ function MenuItem({
   icon: typeof Sun; label: string; onClick: () => void; disabled?: boolean; danger?: boolean; last?: boolean;
 }) {
   return (
-    <button
+    <Button
+      variant="ghost"
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "w-full flex items-center gap-3 px-2 py-3 text-left transition-colors cursor-pointer",
+        "w-full justify-start gap-3 px-2 py-3 h-auto text-left text-[13px] font-normal rounded-none",
         !last && "border-b border-border",
-        disabled && "text-muted-foreground opacity-50 cursor-default",
-        danger && !disabled && "text-destructive",
+        disabled && "text-muted-foreground opacity-50 cursor-default hover:bg-transparent",
+        danger && !disabled && "text-destructive hover:bg-destructive/8",
         !danger && !disabled && "text-foreground hover:bg-secondary/40"
       )}
     >
       <Icon className="w-4 h-4 shrink-0" />
-      <span className="text-[13px]">{label}</span>
+      <span>{label}</span>
       {!disabled && <ChevronRight className="w-3.5 h-3.5 ml-auto shrink-0 text-muted-foreground" />}
-    </button>
+    </Button>
   );
 }
 

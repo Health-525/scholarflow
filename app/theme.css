@@ -51,9 +51,35 @@
   --accent-softer: rgba(42, 68, 148, 0.06);
 
   --status-success: #2d7a4f;
+  --status-success-rgb: 45, 122, 79;
   --status-warning: #b85c00;
+  --status-warning-rgb: 184, 92, 0;
   --status-error: #c0392b;
+  --status-error-rgb: 192, 57, 43;
   --status-info: #2a4494;
+  --status-info-rgb: 42, 68, 148;
+
+  /* Chart palette — used by Recharts in StatsDashboard (SSR-safe) */
+  --chart-primary: #2a4494;
+  --chart-primary-rgb: 42, 68, 148;
+  --chart-border: rgba(26, 21, 16, 0.06);
+  --chart-muted-fg: rgba(26, 21, 16, 0.50);
+  --chart-card-bg: #fffdf9;
+  --chart-foreground: #1a1510;
+  --chart-foreground-rgb: 26, 21, 16;
+  --chart-success: #2d7a4f;
+  --chart-warning: #b85c00;
+  --chart-error: #c0392b;
+
+  /* GPA palette — used by gpaColor / getScoreBadgeStyle (SSR-safe) */
+  --gpa-excellent: #22c55e;
+  --gpa-excellent-rgb: 34, 197, 94;
+  --gpa-good: #2a4494;
+  --gpa-good-rgb: 42, 68, 148;
+  --gpa-average: #f59e0b;
+  --gpa-average-rgb: 245, 158, 11;
+  --gpa-poor: #ef4444;
+  --gpa-poor-rgb: 239, 68, 68;
 
   --grain-opacity: 0.025;
   --bg-gradient:
@@ -132,9 +158,35 @@
   --accent-softer: rgba(132, 150, 240, 0.05);
 
   --status-success: #3db87a;
+  --status-success-rgb: 61, 184, 122;
   --status-warning: #dca54e;
+  --status-warning-rgb: 220, 165, 78;
   --status-error: #f06078;
+  --status-error-rgb: 240, 96, 120;
   --status-info: #8496f0;
+  --status-info-rgb: 132, 150, 240;
+
+  /* Chart palette — used by Recharts in StatsDashboard (SSR-safe) */
+  --chart-primary: #818CF8;
+  --chart-primary-rgb: 129, 140, 248;
+  --chart-border: rgba(248, 250, 252, 0.08);
+  --chart-muted-fg: rgba(248, 250, 252, 0.50);
+  --chart-card-bg: #0F172A;
+  --chart-foreground: #F8FAFC;
+  --chart-foreground-rgb: 248, 250, 252;
+  --chart-success: #22C55E;
+  --chart-warning: #F59E0B;
+  --chart-error: #EF4444;
+
+  /* GPA palette — used by gpaColor / getScoreBadgeStyle (SSR-safe) */
+  --gpa-excellent: #3fb950;
+  --gpa-excellent-rgb: 63, 185, 80;
+  --gpa-good: #7c8edb;
+  --gpa-good-rgb: 124, 142, 219;
+  --gpa-average: #d29922;
+  --gpa-average-rgb: 210, 153, 34;
+  --gpa-poor: #f85149;
+  --gpa-poor-rgb: 248, 81, 73;
 
   --grain-opacity: 0.008;
   --bg-gradient:

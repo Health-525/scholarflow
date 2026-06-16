@@ -14,7 +14,6 @@ export function GPARing({ value, size = 140, strokeWidth = 10, label }: GPARingP
   const circumference = 2 * Math.PI * radius;
   const pct = Math.min(value / 4.0, 1);
   const offset = circumference * (1 - pct);
-  const color = gpaColor(value);
 
   return (
     <svg
@@ -38,7 +37,7 @@ export function GPARing({ value, size = 140, strokeWidth = 10, label }: GPARingP
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={color}
+          stroke={gpaColor(value)}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}

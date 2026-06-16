@@ -78,6 +78,8 @@ let _curCategory: Category = "system";
 const _idle = 0; const _away = 0;
 let _subs: Array<() => void> = [];
 let _inited = false;
+let _refCount = 0;
+let _unsubActiveWindow: (() => void) | null = null;
 let _latest: ActivityStateV3 | null = null;
 
 function notify() { _latest = null; _subs.forEach(f => f()); }
@@ -141,8 +143,9 @@ function extractObsidianVault(title: string): string | undefined {
 
 let _flushTimer: ReturnType<typeof setInterval> | null = null;
 
-// ── Init (called once) ──
+// ── Init / cleanup ──
 function init() {
+  _refCount++;
   if (_inited) return;
   const isElectron = !!window.electronAPI?.isElectron;
   if (!isElectron) return;
@@ -155,7 +158,7 @@ function init() {
   api.getActiveWindow().then((win: WindowInfo|null) => {
     if (win) { pushSeg(win); notify(); }
   }).catch(() => {});
-  api.onActiveWindowChanged((win: WindowInfo) => {
+  _unsubActiveWindow = api.onActiveWindowChanged((win: WindowInfo) => {
     pushSeg(win); notify();
   });
   _flushTimer = setInterval(() => {
@@ -163,6 +166,14 @@ function init() {
     saveLog(buildLog());
     _segs.push({ app: _curApp, title: _curTitle, category: _curCategory, start: nowMs(), end: 0 });
   }, 30000);
+}
+
+function cleanupSingleton() {
+  _refCount--;
+  if (_refCount > 0) return;
+  if (_flushTimer) { clearInterval(_flushTimer); _flushTimer = null; }
+  if (_unsubActiveWindow) { _unsubActiveWindow(); _unsubActiveWindow = null; }
+  _inited = false;
 }
 
 function pushSeg(win: WindowInfo) {
@@ -222,9 +233,7 @@ export function useActivityTrackerV3(): ActivityStateV3 {
     _subs.push(fn);
     return () => {
       _subs = _subs.filter(f=>f!==fn);
-      // Cleanup flush timer on unmount
-      if (_flushTimer) { clearInterval(_flushTimer); _flushTimer = null; }
-      _inited = false; // Allow re-init if component remounts
+      cleanupSingleton();
     };
   }, []);
   return _latest || computeState();

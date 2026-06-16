@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 
 import { GPARing } from "@/components/ui/GPARing";
 import {
-  scoreToGPA, gpaColor, getScoreBadgeStyle, getScoreDisplay, getSemesterLabel,
+  scoreToGPA, gpaColor, gpaColorRGB, getScoreBadgeStyle, getScoreDisplay, getSemesterLabel,
 } from "@/lib/gpa";
 import { getScoreRanges, getGPARef } from "@/lib/theme-colors";
 
@@ -143,8 +143,6 @@ export default function GPAPage() {
     );
   }
 
-  const currentGPAColor = gpaColor(filteredGPA);
-
   return (
     <div className="max-w-5xl mx-auto pb-20 md:pb-0 animate-page">
       {/* Header */}
@@ -204,12 +202,12 @@ export default function GPAPage() {
 
       {/* GPA 主卡片 */}
       <div className="rounded-2xl p-6 mb-4 text-center relative overflow-hidden bg-card border border-border shadow-sm">
-        <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 30%, ${currentGPAColor}15 0%, transparent 60%)` }} />
+        <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 30%, rgba(${gpaColorRGB(filteredGPA)}, 0.08) 0%, transparent 60%)` }} />
         <div className="relative flex flex-col items-center">
           <div className="relative">
             <GPARing value={filteredGPA} size={140} strokeWidth={10} />
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="text-[36px] font-bold tabular-nums leading-none" style={{ color: currentGPAColor }}>
+              <div className="text-[36px] font-bold tabular-nums leading-none" style={{ color: gpaColor(filteredGPA) }}>
                 {filteredGPA > 0 ? filteredGPA.toFixed(2) : "--"}
               </div>
               <div className="text-[10px] mt-0.5 text-muted-foreground">GPA</div>
@@ -278,7 +276,6 @@ export default function GPAPage() {
           <div className="space-y-3">
             {Object.entries(semesters).map(([sem, courses]) => {
               const semGPA = semesterGPAs[sem];
-              const semGPAColor = gpaColor(semGPA);
               const expanded = expandedSemesters[sem] ?? false;
               const semCredits = calcCredits(courses);
               return (
@@ -292,8 +289,8 @@ export default function GPAPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="px-3 py-1.5 rounded-xl text-center" style={{ backgroundColor: `${semGPAColor}12` }}>
-                        <div className="text-[18px] font-bold tabular-nums leading-none" style={{ color: semGPAColor }}>{semGPA > 0 ? semGPA.toFixed(2) : "--"}</div>
+                      <div className="px-3 py-1.5 rounded-xl text-center" style={{ backgroundColor: `rgba(${gpaColorRGB(semGPA)}, 0.08)` }}>
+                        <div className="text-[18px] font-bold tabular-nums leading-none" style={{ color: gpaColor(semGPA) }}>{semGPA > 0 ? semGPA.toFixed(2) : "--"}</div>
                       </div>
                       <ChevronDown
                         className="w-4 h-4 shrink-0 transition-transform duration-200 text-muted-foreground"

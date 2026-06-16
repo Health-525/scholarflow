@@ -1,23 +1,13 @@
 "use client";
 
 import { BookOpen, ClipboardList, Activity, Calculator } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { cardClasses } from "@/components/ui/card";
+import type { DashboardSummary } from "@/lib/dashboard/summary";
 import { gpaColorClasses } from "@/lib/gpa";
 import { RUNNING_GOAL } from "@/lib/running-utils";
 import { cn } from "@/lib/utils";
-
-interface DashboardSummary {
-  overview: {
-    courses: number;
-    pendingAssignments: number;
-    urgentAssignments: number;
-    running: { total: number; morning: number; completed: boolean };
-    gpa?: string;
-  };
-  health: { agents: number; total: number; failing: number };
-}
 
 function AnimatedNumber({ value, duration = 800 }: { value: number | string; duration?: number }) {
   const [display, setDisplay] = useState(0);
@@ -79,17 +69,12 @@ function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge
   );
 }
 
-export function SummaryBanner() {
-  const [data, setData] = useState<DashboardSummary | null>(null);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    setLoading(true);
-    fetch("/api/local-data?type=dashboard")
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, []);
+interface SummaryBannerProps {
+  data: DashboardSummary | null;
+  loading?: boolean;
+}
 
+export function SummaryBanner({ data, loading = true }: SummaryBannerProps) {
   if (loading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

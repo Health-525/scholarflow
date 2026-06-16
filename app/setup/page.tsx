@@ -4,6 +4,9 @@ import { GraduationCap, KeyRound, Loader2, ArrowLeft, CheckCircle2, XCircle, Boo
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { getAllSchools } from "@/lib/schools/registry";
 import type { SchoolAdapter } from "@/lib/schools/types";
 import { cn } from "@/lib/utils";
@@ -134,7 +137,7 @@ export default function SetupPage() {
 
       <div className="relative w-full max-w-[420px] animate-fade-up">
         {/* Card container */}
-        <div className="card-glow rounded-[28px] bg-card/80 backdrop-blur-xl border border-border shadow-md p-8 space-y-6">
+        <Card className="rounded-[28px] bg-card/80 backdrop-blur-xl shadow-md p-8 space-y-6 hover:translate-y-0 hover:shadow-md">
 
           {/* ── Step 1: Select School ─────────────────────────── */}
           {step === "select-school" && (
@@ -162,32 +165,28 @@ export default function SetupPage() {
                 </span>
                 <div className="space-y-2">
                   {schools.map((s) => (
-                    <button
+                    <Button
                       key={s.id}
                       type="button"
+                      variant="outline"
                       onClick={() => setSelectedSchoolId(s.id)}
                       className={cn(
-                        "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all",
-                        "border border-border/60 bg-secondary/40 hover:bg-secondary/80",
+                        "w-full justify-start gap-3 px-4 py-3 h-auto rounded-xl text-sm font-medium",
+                        "border-border/60 bg-secondary/40 hover:bg-secondary/80",
                         selectedSchoolId === s.id
-                          ? "border-primary/40 bg-primary/8 ring-2 ring-primary/20"
-                          : ""
+                          ? "border-primary/40 bg-primary/8 ring-2 ring-primary/20 text-foreground"
+                          : "text-muted-foreground"
                       )}
                     >
                       <GraduationCap className={cn(
                         "w-4 h-4 shrink-0",
                         selectedSchoolId === s.id ? "text-primary" : "text-muted-foreground"
                       )} />
-                      <span className={cn(
-                        "font-medium",
-                        selectedSchoolId === s.id ? "text-foreground" : "text-muted-foreground"
-                      )}>
-                        {s.name}
-                      </span>
+                      <span>{s.name}</span>
                       {selectedSchoolId === s.id && (
                         <CheckCircle2 className="w-4 h-4 text-primary ml-auto shrink-0" />
                       )}
-                    </button>
+                    </Button>
                   ))}
                   {schools.length === 0 && (
                     <div className="text-center py-4 text-sm text-muted-foreground">
@@ -198,19 +197,14 @@ export default function SetupPage() {
               </div>
 
               {/* Continue button */}
-              <button
+              <Button
                 type="button"
                 onClick={handleSelectSchool}
                 disabled={!selectedSchoolId}
-                className={cn(
-                  "w-full h-10 rounded-xl text-sm font-semibold transition-all",
-                  "bg-primary text-primary-foreground",
-                  "hover:bg-primary/80 active:translate-y-0.5",
-                  "disabled:opacity-40 disabled:pointer-events-none"
-                )}
+                className="w-full h-10 rounded-xl text-sm font-semibold"
               >
                 继续
-              </button>
+              </Button>
 
               <p className="text-center text-[11px] text-muted-foreground/50">
                 更多学校即将支持
@@ -243,18 +237,13 @@ export default function SetupPage() {
                     <label htmlFor={field.key} className="block text-[11px] font-medium tracking-[0.12em] text-muted-foreground/70 uppercase">
                       {field.label}
                     </label>
-                    <input
+                    <Input
                       id={field.key}
                       type={field.type}
                       placeholder={field.placeholder || ""}
                       value={credentials[field.key] || ""}
                       onChange={(e) => setCredentials({ ...credentials, [field.key]: e.target.value })}
-                      className={cn(
-                        "w-full h-10 px-4 rounded-xl text-sm outline-none transition-all",
-                        "bg-secondary/50 border border-border/60 text-foreground",
-                        "placeholder:text-muted-foreground/40",
-                        "focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
-                      )}
+                      className="h-10 px-4 rounded-xl text-sm bg-secondary/50 border-border/60 text-foreground placeholder:text-muted-foreground/40 focus-visible:border-primary/40 focus-visible:ring-primary/20"
                       required={field.required}
                     />
                     {field.key === "libraryJwt" && (
@@ -274,16 +263,10 @@ export default function SetupPage() {
                 )}
 
                 {/* Submit button */}
-                <button
+                <Button
                   type="submit"
                   disabled={isLoggingIn}
-                  className={cn(
-                    "w-full h-10 rounded-xl text-sm font-semibold transition-all",
-                    "bg-primary text-primary-foreground",
-                    "hover:bg-primary/80 active:translate-y-0.5",
-                    "disabled:opacity-60 disabled:pointer-events-none",
-                    "flex items-center justify-center gap-2"
-                  )}
+                  className="w-full h-10 rounded-xl text-sm font-semibold gap-2"
                 >
                   {isLoggingIn ? (
                     <>
@@ -293,17 +276,18 @@ export default function SetupPage() {
                   ) : (
                     "登录"
                   )}
-                </button>
+                </Button>
 
                 {/* Back button */}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => { setStep("select-school"); setLoginError(null); }}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+                  className="w-full h-auto py-2 rounded-xl text-[13px] text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   返回选择学校
-                </button>
+                </Button>
               </form>
 
               {/* Security note */}
@@ -370,20 +354,16 @@ export default function SetupPage() {
               </div>
 
               {/* Enter app button */}
-              <button
+              <Button
                 type="button"
                 onClick={handleEnterApp}
-                className={cn(
-                  "w-full h-10 rounded-xl text-sm font-semibold transition-all",
-                  "bg-primary text-primary-foreground",
-                  "hover:bg-primary/80 active:translate-y-0.5"
-                )}
+                className="w-full h-10 rounded-xl text-sm font-semibold"
               >
                 进入 ScholarFlow
-              </button>
+              </Button>
             </>
           )}
-        </div>
+        </Card>
 
         {/* Footer */}
         <p className="text-center text-[11px] text-muted-foreground/30 mt-4">

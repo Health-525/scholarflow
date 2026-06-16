@@ -12,45 +12,29 @@ import { classifyUrgency } from "@/lib/assignment-utils";
 import { getWeekNumber, getItemsForDate } from "@/lib/schedule/schedule";
 import { getNowInTimeZone } from "@/lib/schedule/timezone";
 
-// Recharts SVG doesn't support CSS variables — use computed values
-// Safe for SSR: returns light-mode defaults, then updates on client mount
+// Recharts supports CSS variables in SVG / tooltip styles.
+// Using theme CSS variables makes this SSR-safe and avoids hydration mismatch.
 function getChartColors() {
-  if (typeof window === "undefined") {
-    return {
-      primary: "#2a4494",
-      primaryLight: "rgba(42,68,148,0.10)",
-      border: "rgba(26,21,16,0.06)",
-      mutedFg: "rgba(26,21,16,0.50)",
-      cardBg: "#fffdf9",
-      foreground: "#1a1510",
-      success: "#2d7a4f",
-      warning: "#b85c00",
-      error: "#c0392b",
-    };
-  }
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark"
-    || (document.documentElement.getAttribute("data-theme") !== "light"
-        && window.matchMedia("(prefers-color-scheme: dark)").matches);
   return {
-    primary: isDark ? "#818CF8" : "#2a4494",
-    primaryLight: isDark ? "rgba(129,140,248,0.14)" : "rgba(42,68,148,0.10)",
-    border: isDark ? "rgba(248,250,252,0.08)" : "rgba(26,21,16,0.06)",
-    mutedFg: isDark ? "rgba(248,250,252,0.50)" : "rgba(26,21,16,0.50)",
-    cardBg: isDark ? "#0F172A" : "#fffdf9",
-    foreground: isDark ? "#F8FAFC" : "#1a1510",
-    success: isDark ? "#22C55E" : "#2d7a4f",
-    warning: isDark ? "#F59E0B" : "#b85c00",
-    error: isDark ? "#EF4444" : "#c0392b",
+    primary: "var(--chart-primary)",
+    primaryLight: "rgba(var(--chart-primary-rgb), 0.10)",
+    border: "var(--chart-border)",
+    mutedFg: "var(--chart-muted-fg)",
+    cardBg: "var(--chart-card-bg)",
+    foreground: "var(--chart-foreground)",
+    success: "var(--chart-success)",
+    warning: "var(--chart-warning)",
+    error: "var(--chart-error)",
   };
 }
 
 const TOOLTIP_STYLE = {
-  backgroundColor: "#161b22",
-  border: "1px solid rgba(201,209,217,0.12)",
+  backgroundColor: "var(--chart-card-bg)",
+  border: "1px solid var(--chart-border)",
   borderRadius: "12px",
   fontSize: "12px",
-  color: "#1a1510",
-  boxShadow: "0 4px 12px rgba(26,21,16,0.08)",
+  color: "var(--chart-foreground)",
+  boxShadow: "0 4px 12px rgba(var(--chart-foreground-rgb), 0.08)",
 };
 
 // ── 作业完成统计 ──────────────────────────────────────────

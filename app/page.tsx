@@ -11,6 +11,7 @@ import { RunningCard } from "@/components/dashboard/RunningCard";
 import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
 import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
 import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
+import { useDashboardSummary } from "@/lib/dashboard/use-dashboard-summary";
 import { RUNNING_GOAL } from "@/lib/running-utils";
 
 function useGreeting() {
@@ -58,28 +59,17 @@ function useGreeting() {
   return greeting;
 }
 
-function useHeroStats() {
-  const [stats, setStats] = useState<{ courses: number; assignments: number; running: string } | null>(null);
-  useEffect(() => {
-    fetch("/api/local-data?type=dashboard")
-      .then(r => r.json())
-      .then(d => {
-        if (d?.overview) {
-          setStats({
-            courses: d.overview.courses ?? 0,
-            assignments: d.overview.pendingAssignments ?? 0,
-            running: `${d.overview.running?.total ?? 0}/${RUNNING_GOAL}`,
-          });
-        }
-      })
-      .catch(() => {});
-  }, []);
-  return stats;
-}
-
 export default function DashboardPage() {
   const { text: greeting, emoji: greetingEmoji, date: dateStr } = useGreeting();
-  const heroStats = useHeroStats();
+  const { data: dashboardData, loading: dashboardLoading } = useDashboardSummary();
+
+  const heroStats = dashboardData?.overview
+    ? {
+        courses: dashboardData.overview.courses ?? 0,
+        assignments: dashboardData.overview.pendingAssignments ?? 0,
+        running: `${dashboardData.overview.running?.total ?? 0}/${RUNNING_GOAL}`,
+      }
+    : null;
 
   return (
     <div className="max-w-[1280px] mx-auto py-5 pb-24 md:pb-10 space-y-6 animate-page">
@@ -127,7 +117,7 @@ export default function DashboardPage() {
           <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
             快捷统计
           </span>
-          <SummaryBanner />
+          <SummaryBanner data={dashboardData} loading={dashboardLoading} />
         </div>
 
         <div className="space-y-2.5">
