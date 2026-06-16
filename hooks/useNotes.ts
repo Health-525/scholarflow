@@ -2,81 +2,125 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-import type { GitHubError } from "@/lib/github/errors";
-import type { DirectoryEntry } from "@/types";
+import { useAuthStore } from "@/store/auth";
 
-import { useGitHubClient } from "./useGitHubClient";
+export interface NoteTreeNode {
+  name: string;
+  path: string;
+  type: "file" | "dir";
+  children?: NoteTreeNode[];
+}
+
+function getQueryPrefix(): string {
+  if (typeof window === "undefined") return "schoolId=default&userId=default";
+  const auth = useAuthStore.getState();
+  const schoolId = auth.schoolId || "default";
+  const userId = auth.userId || "default";
+  return `schoolId=${encodeURIComponent(schoolId)}&userId=${encodeURIComponent(userId)}`;
+}
 
 /**
- * 列举仓库中某个路径下的文件和目录
+ * 读取笔记目录树
  */
-export function useDirectory(path: string) {
-  const client = useGitHubClient();
-  const [entries, setEntries] = useState<DirectoryEntry[]>([]);
+export function useNoteTree() {
+  const [tree, setTree] = useState<NoteTreeNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<GitHubError | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   const load = useCallback(async () => {
-    if (!client) return;
     setIsLoading(true);
     setError(null);
     try {
-      const all = await client.listDirectory("content", path);
-      // 过滤隐藏文件（.开头）和图片/二进制文件
-      const filtered = all.filter((e) => {
-        if (e.name.startsWith(".")) return false;
-        if (e.type === "file") {
-          const ext = e.name.split(".").pop()?.toLowerCase() ?? "";
-          return ["md", "txt", "js", "ts", "py", "json", "yaml", "yml", "csv"].includes(ext);
-        }
-        return true; // dirs
-      });
-      // 目录在前，文件在后，各自按名称排序
-      filtered.sort((a, b) => {
-        if (a.type !== b.type) return a.type === "dir" ? -1 : 1;
-        return a.name.localeCompare(b.name, "zh-CN");
-      });
-      setEntries(filtered);
+      const res = await fetch(`/api/notes/tree?${getQueryPrefix()}`);
+      if (!res.ok) throw new Error("加载文件树失败");
+      const data = (await res.json()) as NoteTreeNode[];
+      setTree(data);
     } catch (err) {
-      setError(err as GitHubError);
+      setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       setIsLoading(false);
     }
-  }, [client, path]);
+  }, []);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  return { entries, isLoading, error, reload: load };
+  return { tree, isLoading, error, reload: load };
 }
 
 /**
  * 读取单个文件内容
  */
-export function useFileContent(path: string) {
-  const client = useGitHubClient();
+export function useNoteContent(path: string | null) {
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<GitHubError | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   const load = useCallback(async () => {
-    if (!client || !path) return;
+    if (!path) {
+      setContent("");
+      setError(null);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
-      const file = await client.getFile("content", path);
-      setContent(file.content);
+      const res = await fetch(`/api/notes?${getQueryPrefix()}&path=${encodeURIComponent(path)}`);
+      if (!res.ok) throw new Error("加载笔记失败");
+      const data = (await res.json()) as { content: string };
+      setContent(data.content);
     } catch (err) {
-      setError(err as GitHubError);
+      setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       setIsLoading(false);
     }
-  }, [client, path]);
+  }, [path]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  return { content, isLoading, error, reload: load };
+  return { content, isLoading, error, reload: load, setContent };
+}
+
+/**
+ * 保存笔记
+ */
+export async function saveNote(path: string, content: string): Promise<void> {
+  const res = await fetch("/api/notes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "save", path, content, ...getAuthBody() }),
+  });
+  if (!res.ok) throw new Error("保存失败");
+}
+
+/**
+ * 创建新笔记
+ */
+export async function createNote(path: string, content = ""): Promise<void> {
+  const res = await fetch("/api/notes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "create", path, content, ...getAuthBody() }),
+  });
+  if (!res.ok) throw new Error("创建失败");
+}
+
+/**
+ * 删除笔记
+ */
+export async function deleteNote(path: string): Promise<void> {
+  const res = await fetch("/api/notes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "delete", path, ...getAuthBody() }),
+  });
+  if (!res.ok) throw new Error("删除失败");
+}
+
+function getAuthBody(): { schoolId: string; userId: string } {
+  const auth = useAuthStore.getState();
+  return { schoolId: auth.schoolId || "default", userId: auth.userId || "default" };
 }

@@ -1,10 +1,9 @@
 const { app, BrowserWindow, shell, dialog, ipcMain, safeStorage, session } = require('electron');
+
 const { fork } = require('child_process');
 const path = require('path');
-const net = require('net');
 const fs = require('fs');
-const { activeWindow } = require('active-win');
-const { autoUpdater } = require('electron-updater');
+
 
 const PORT = process.env.ELECTRON_DEV ? 3000 : 3456;
 const APP_URL = `http://localhost:${PORT}`;
@@ -373,6 +372,10 @@ function setupSecureTokenIPC() {
 
 // ── 图书馆座位数据获取（VPN代理模式）──────────────────────────
 const http = require('http');
+const net = require('net');
+
+const { activeWindow } = require('active-win');
+const { autoUpdater } = require('electron-updater');
 const SSO_LOGIN_URL = 'https://vpnlib.njtech.edu.cn/enlink/sso/login';
 const LIB_URL_VPN = 'https://vpnlib.njtech.edu.cn/https/webvpn0c5f34c56af636878cf47cc94ad9e75558ae631157ae3a788556cf416867bf92/web/index.html';
 const LIB_GRAPHQL_VPN = 'https://vpnlib.njtech.edu.cn/https/7765772e7a65612e6e6a746563682e6564752e636e/index.php/graphql/';
@@ -849,17 +852,38 @@ app.whenReady().then(async () => {
     createWindow();
     startActiveWindowTracking();
 
-    // Auto-refresh local data
-    try {
-      const { execSync } = require('child_process');
-      const timetableDir = path.join(__dirname, '..', '..', 'timetable');
-      if (require('fs').existsSync(timetableDir)) {
-        console.log('[SF] Auto-refreshing local data...');
-        setTimeout(() => {
-          try { execSync('node scripts/ci/dashboard-summary.js', { cwd: timetableDir, timeout: 15000, stdio: 'pipe' }); } catch {}
-        }, 3000);
-      }
-    } catch {}
+    // Auto-refresh local data via internal API (replaces legacy timetable execSync)
+    setTimeout(() => {
+      try {
+        const http = require('http');
+        const req = http.request({
+          hostname: '127.0.0.1', port: PORT, path: '/api/auth/session',
+          method: 'GET',
+        }, r => {
+          let d = '';
+          r.on('data', c => d += c);
+          r.on('end', () => {
+            try {
+              const session = JSON.parse(d);
+              if (session.authenticated && session.schoolId && session.userId) {
+                // Trigger data refresh for the logged-in user
+                const body = JSON.stringify({ schoolId: session.schoolId, username: session.userId });
+                const refreshReq = http.request({
+                  hostname: '127.0.0.1', port: PORT, path: '/api/fetch/all',
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                }, refreshR => { refreshR.resume(); });
+                refreshReq.write(body);
+                refreshReq.end();
+                console.log('[SF] Auto-refresh triggered for', session.userId);
+              }
+            } catch {}
+          });
+        });
+        req.setTimeout(5000, () => { req.destroy(); });
+        req.on('error', () => {});
+        req.end();
+      } catch {}
+    }, 5000);
 
     // Auto-launch Vision-Model API (non-blocking)
     setTimeout(async () => {

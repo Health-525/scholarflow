@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 
-import { useGitHubClient } from "@/hooks/useGitHubClient";
-
 interface DailyEditorProps {
   existingDate?: string;
   existingContent?: string;
@@ -12,7 +10,6 @@ interface DailyEditorProps {
 }
 
 export function DailyEditor({ existingDate, existingContent, onSaved, onCancel }: DailyEditorProps) {
-  const client = useGitHubClient();
   const today = new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState(existingDate || today);
   const [content, setContent] = useState(existingContent || "");
@@ -20,16 +17,25 @@ export function DailyEditor({ existingDate, existingContent, onSaved, onCancel }
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
-    if (!client || !date) return;
+    if (!date) return;
     setIsSaving(true);
     setError(null);
 
     try {
-      const path = `日报/${date}.md`;
-      await client.putFile("content", path, content.trim() || "# ", `创建日报 ${date}`);
+      // Save via local API
+      const res = await fetch("/api/local-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          file: `日报/${date}.md`,
+          content: content.trim() || "# ",
+          action: `创建日报 ${date}`,
+        }),
+      });
+      if (!res.ok) throw new Error("保存失败");
       onSaved();
     } catch (err) {
-      setError((err as Error).message || "保存失败");
+      setError(err instanceof Error ? err.message : "保存失败");
     } finally {
       setIsSaving(false);
     }

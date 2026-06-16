@@ -37,24 +37,24 @@ export function AppShell({ children, isOnline }: AppShellProps) {
   return (
     <div className="relative flex min-h-screen bg-background">
       <SideNav />
-      <div className="relative z-[1] flex-1 flex flex-col min-h-screen min-w-0">
-        {isElectron && (
-          <div
-            className="fixed top-0 left-0 right-0 md:left-56 h-9 z-40 bg-background"
-            style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
-            aria-hidden="true"
-          />
-        )}
-        <div className={isElectron ? "h-9 shrink-0" : "hidden"} aria-hidden="true" />
+      <div className="relative z-[1] flex-1 flex flex-col h-screen min-w-0">
+        {/* 拖拽条 — Electron 窗口拖拽区域，固定不动 */}
+        <div
+          className="h-[36px] shrink-0 flex items-center px-4 bg-background sticky top-0 z-10"
+          style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
+        >
+          {/* 窗口控制按钮区域 — 不拖拽 */}
+          <div style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties} className="flex-1" />
+        </div>
         {!online && (
-          <div className="px-4 py-2.5 flex items-center justify-center gap-2 text-[12px] font-medium bg-amber-500/8 text-amber-600 border-b border-amber-500/15 animate-fade-in">
+          <div className="px-4 py-2.5 flex items-center justify-center gap-2 text-[12px] font-medium bg-amber-500/8 text-amber-600 border-b border-amber-500/15 animate-fade-in sticky top-[36px] z-10">
             <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636a9 9 0 010 12.728M5.636 18.364a9 9 0 010-12.728M12 12h.01" />
             </svg>
             网络连接已断开，离线数据仍可浏览
           </div>
         )}
-        <main className="relative flex-1 pb-20 md:pb-0 px-4 md:px-8 lg:px-10 animate-page">
+        <main className="relative flex-1 overflow-y-auto pb-20 md:pb-0 px-4 md:px-8 lg:px-10 animate-page">
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>

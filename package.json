@@ -1,8 +1,9 @@
 {
   "name": "scholarflow",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "ScholarFlow — 统一学习管理前端",
+  "description": "ScholarFlow — 独立学习管理中枢",
+  "author": "Health-525",
   "repository": {
     "type": "git",
     "url": "https://github.com/Health-525/scholarflow"
@@ -43,13 +44,15 @@
     "asar": true,
     "asarUnpack": [
       ".next/standalone/**/*",
-      "public/**/*"
+      "public/**/*",
+      "node_modules/better-sqlite3/**/*"
     ],
     "files": [
       "electron/**/*",
       ".next/standalone/**/*",
       "public/**/*",
       "package.json",
+      "node_modules/better-sqlite3/**/*",
       "!**/*.map"
     ],
     "win": {
@@ -105,9 +108,9 @@
     "@hookform/resolvers": "^5.4.0",
     "@tanstack/react-query": "^5.101.0",
     "active-win": "^9.0.0",
+    "better-sqlite3": "^12.10.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "dexie": "^4.4.3",
     "dompurify": "^3.1.6",
     "electron-updater": "^6.8.9",
     "framer-motion": "^12.40.0",
@@ -136,6 +139,7 @@
     "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/dompurify": "^3.0.5",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -158,6 +162,7 @@
     "msw": "^2.3.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.14",
+    "tailwindcss-animate": "^1.0.7",
     "typescript": "^5",
     "vitest": "^2.0.0",
     "wait-on": "^9.0.10"

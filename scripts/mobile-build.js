@@ -5,9 +5,9 @@
  * 3. 恢复被移除的文件
  * 4. 添加 Android 平台
  */
+const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
-const { execSync } = require("child_process");
 
 const ROOT = path.join(__dirname, "..");
 const BACKUP_DIR = path.join(ROOT, ".mobile-build-backup");

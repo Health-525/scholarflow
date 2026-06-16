@@ -93,7 +93,9 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
         {items.length === 0 ? (
           <div className="rounded-2xl p-6 text-center bg-card border border-border">
             <div className="w-12 h-12 mx-auto rounded-xl bg-muted flex items-center justify-center mb-3">
-              <span className="text-xl">☕</span>
+              <svg className="w-6 h-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
             <p className="text-sm text-foreground font-medium">今天没有课程</p>
             <p className="text-xs text-muted-foreground mt-0.5">享受自由时光</p>

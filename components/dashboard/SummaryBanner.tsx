@@ -4,8 +4,7 @@ import { BookOpen, ClipboardList, Activity, Calculator } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 
 import { cardClasses } from "@/components/ui/card";
-import { useGitHubClient } from "@/hooks/useGitHubClient";
-import { gpaColor, gpaColorClasses } from "@/lib/gpa";
+import { gpaColorClasses } from "@/lib/gpa";
 import { cn } from "@/lib/utils";
 
 interface DashboardSummary {
@@ -61,11 +60,11 @@ function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge
     <div className={cn(cardClasses, "p-3 hover:-translate-y-1")}>
       <div className={`absolute -right-3 -top-3 w-20 h-20 rounded-full pointer-events-none opacity-[0.04] dark:opacity-[0.08] group-hover:opacity-[0.08] dark:group-hover:opacity-[0.14] transition-opacity duration-300 ${iconBgClass}`} />
       <div className="relative">
-        <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 transition-transform duration-200 group-hover:scale-110 ${iconBgClass}`}>
-          <Icon size={15} className={colorClass} />
+        <div className={`w-[44px] h-[44px] rounded-xl flex items-center justify-center mb-3 transition-transform duration-200 group-hover:scale-110 ${iconBgClass}`}>
+          <Icon size={18} className={colorClass} />
         </div>
-        <div className="text-[11px] mb-0.5 text-muted-foreground font-medium">{label}</div>
-        <div className={`text-[22px] font-bold tabular-nums leading-none ${colorClass}`}>
+        <div className="text-[11px] text-muted-foreground font-medium">{label}</div>
+        <div className={`text-[36px] font-bold tabular-nums leading-none mt-1 ${colorClass}`}>
           <AnimatedNumber value={value} />
         </div>
         {badge && (
@@ -73,14 +72,13 @@ function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge
             {badge}
           </span>
         )}
-        <div className="text-[10px] text-muted-foreground mt-1">{sub}</div>
+        <div className="text-[11px] text-muted-foreground mt-2">{sub}</div>
       </div>
     </div>
   );
 }
 
 export function SummaryBanner() {
-  const client = useGitHubClient();
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -88,14 +86,8 @@ export function SummaryBanner() {
     fetch("/api/local-data?type=dashboard")
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false); })
-      .catch(() => {
-        if (client) {
-          client.getFile("execution", "_out/dashboard-summary.json")
-            .then(f => { setData(JSON.parse(f.content)); setLoading(false); })
-            .catch(() => setLoading(false));
-        } else setLoading(false);
-      });
-  }, [client]);
+      .catch(() => setLoading(false));
+  }, []);
 
   if (loading) {
     return (
@@ -141,22 +133,22 @@ export function SummaryBanner() {
   const items: { icon: typeof BookOpen; label: string; value: number | string; colorClass: string; iconBgClass: string; badge?: string; badgeClass?: string; sub: string }[] = [
     {
       icon: BookOpen, label: "今日课程", value: overview.courses,
-      colorClass: "text-indigo-800 dark:text-indigo-400",
-      iconBgClass: "bg-indigo-500/[0.07] dark:bg-indigo-400/10",
+      colorClass: "text-[#4F46E5] dark:text-indigo-400",
+      iconBgClass: "bg-[#ECE9FF] dark:bg-indigo-400/10",
       sub: overview.courses > 0 ? `${overview.courses} 门课` : "无课程",
     },
     {
       icon: ClipboardList, label: "待办作业", value: overview.pendingAssignments,
-      colorClass: urgentAssign ? "text-red-600 dark:text-red-400" : "text-amber-700 dark:text-amber-400",
-      iconBgClass: urgentAssign ? "bg-red-500/[0.07] dark:bg-red-400/10" : "bg-amber-500/[0.07] dark:bg-amber-400/10",
+      colorClass: urgentAssign ? "text-[#DC2626] dark:text-red-400" : "text-[#D97706] dark:text-amber-400",
+      iconBgClass: urgentAssign ? "bg-[#FEF2F2] dark:bg-red-400/10" : "bg-[#FEF3C7] dark:bg-amber-400/10",
       badge: urgentAssign ? `${overview.urgentAssignments}紧急` : undefined,
       badgeClass: urgentAssign ? "bg-red-500/10 text-red-600 dark:bg-red-400/15 dark:text-red-400" : "bg-amber-500/10 text-amber-700 dark:bg-amber-400/15 dark:text-amber-400",
       sub: overview.pendingAssignments > 0 ? `${overview.pendingAssignments} 项` : "全部完成",
     },
     {
       icon: Activity, label: "阳光长跑", value: overview.running?.total ?? 0,
-      colorClass: runningDone ? "text-emerald-700 dark:text-green-400" : "text-amber-700 dark:text-amber-400",
-      iconBgClass: runningDone ? "bg-emerald-500/[0.07] dark:bg-green-400/10" : "bg-amber-500/[0.07] dark:bg-amber-400/10",
+      colorClass: runningDone ? "text-[#059669] dark:text-green-400" : "text-[#D97706] dark:text-amber-400",
+      iconBgClass: runningDone ? "bg-[#ECFDF5] dark:bg-green-400/10" : "bg-[#FEF3C7] dark:bg-amber-400/10",
       badge: runningDone ? "已达标" : undefined,
       badgeClass: runningDone ? "bg-emerald-500/10 text-emerald-700 dark:bg-green-400/15 dark:text-green-400" : "",
       sub: `${overview.running?.total ?? 0}/50 次`,

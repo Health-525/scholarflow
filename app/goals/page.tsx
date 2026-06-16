@@ -43,11 +43,6 @@ export default function DailyGoalsPage() {
   const [newGoal, setNewGoal] = useState("");
   const [streak, setStreakState] = useState(0);
   const [history, setHistory] = useState<{ date: string; completed: number; total: number }[]>([]);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const stored = loadGoals();
@@ -243,8 +238,9 @@ export default function DailyGoalsPage() {
             onReorder={reorder}
             itemClassName="animate-fade-up"
             renderItem={(g) => (
-              <div
-                className={`flex items-center gap-3 p-4 rounded-xl transition-all cursor-pointer hover:shadow-sm ${
+              <button
+                type="button"
+                className={`w-full text-left flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-sm ${
                   g.done
                     ? "opacity-70 bg-green-500/5 border border-green-500/30"
                     : "bg-card border border-border hover:border-primary/20"
@@ -262,7 +258,7 @@ export default function DailyGoalsPage() {
                 <button onClick={e => { e.stopPropagation(); del(g.id); }} className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/5 transition-all">
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
-              </div>
+              </button>
             )}
             renderDragOverlay={(g) => (
               <div

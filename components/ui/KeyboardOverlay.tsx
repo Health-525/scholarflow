@@ -48,9 +48,23 @@ export function KeyboardOverlay() {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in" onClick={() => setVisible(false)}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in"
+      role="button"
+      tabIndex={-1}
+      aria-label="关闭快捷键面板"
+      onClick={() => setVisible(false)}
+      onKeyDown={(e) => { if (e.key === "Escape") setVisible(false); }}
+    >
       <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" />
-      <div className="relative max-w-md w-full mx-4 rounded-2xl p-6 bg-card border border-border shadow-lg animate-fade-up" onClick={e => e.stopPropagation()}>
+      <div
+        className="relative max-w-md w-full mx-4 rounded-2xl p-6 bg-card border border-border shadow-lg animate-fade-up"
+        role="button"
+        tabIndex={-1}
+        aria-hidden="true"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => { e.stopPropagation(); }}
+      >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Keyboard className="w-5 h-5 text-primary" />

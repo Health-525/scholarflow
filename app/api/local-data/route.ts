@@ -1,134 +1,75 @@
-import fs from "fs";
-import path from "path";
-
 import { NextResponse } from "next/server";
 
-// 自动探测 timetable 目录
-function findTimetableDir(): string | null {
-  const envDir = process.env.TIMETABLE_DIR;
-  if (envDir) try { if (fs.existsSync(path.join(envDir, "data", "schedule.json"))) return envDir; } catch {}
+import { getDashboardSummary } from "@/lib/dashboard/summary";
+import { getServerDB } from "@/lib/server-db";
 
-  const candidates = [
-    path.join(process.cwd(), "..", "timetable"),
-    path.join(process.cwd(), "..", "..", "timetable"),
-    path.join(process.cwd(), "..", "..", "..", "timetable"),
-  ];
-  for (const c of candidates) {
-    try { if (fs.existsSync(path.join(c, "data", "schedule.json"))) return c; } catch {}
-  }
-  return null; // Not found — return empty data instead of crashing
-}
-
-const TIMETABLE_DIR = findTimetableDir();
-
-function safeRead(filePath: string) {
-  try {
-    if (fs.existsSync(filePath)) {
-      return JSON.parse(fs.readFileSync(filePath, "utf8"));
-    }
-  } catch {}
-  return null;
-}
-
-interface CourseEntry {
-  title: string;
-  [key: string]: unknown;
-}
-
-interface AssignmentEntry {
-  done?: boolean;
-  deadline?: string;
-  [key: string]: unknown;
-}
-
-interface RunningRecord {
-  type?: string;
-  [key: string]: unknown;
-}
-
+/**
+ * GET /api/local-data?type=<type>&schoolId=<schoolId>&userId=<userId>
+ *
+ * 数据 key 格式: "<type>:<schoolId>:<userId>"
+ * 实现账号隔离 — 不同账号的数据互不可见
+ */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type") || "dashboard";
+  const schoolId = searchParams.get("schoolId") || "njtech";
+  const userId = searchParams.get("userId") || "default";
 
-  if (!TIMETABLE_DIR) {
-    // No timetable dir — return empty data
-    return NextResponse.json(type === "library" ? { libs: [], summary: { total: 0, used: 0, avail: 0, rate: 0 } } : type === "dashboard" ? { updatedAt: new Date().toISOString(), overview: {} } : {});
-  }
+  const db = getServerDB();
+  const prefix = `${schoolId}:${userId}`;
 
-  const dataDir = path.join(TIMETABLE_DIR, "data");
-  const outDir = path.join(TIMETABLE_DIR, "_out");
+  // Auto-seed missing data from timetable on first access
+  db.seedFromTimetable(prefix);
 
   switch (type) {
-    case "dashboard": {
-      // Return dashboard summary — auto-generate if not exists
-      let summary = safeRead(path.join(outDir, "dashboard-summary.json"));
-      if (!summary) {
-        const schedule = safeRead(path.join(dataDir, "schedule.json")) || { courses: [] };
-        const assignments: AssignmentEntry[] = safeRead(path.join(dataDir, "assignments.json")) || [];
-        const running: { records: RunningRecord[]; completed?: boolean } = safeRead(path.join(dataDir, "running.json")) || { records: [] };
-        const grades = safeRead(path.join(outDir, "jwgl_grades_all.json")) || { gpa: "0.00" };
-        const today = new Date().toISOString().slice(0, 10);
-        const courses: CourseEntry[] = schedule.courses || [];
-        summary = {
-          updatedAt: new Date().toISOString(),
-          date: today,
-          overview: {
-            courses: new Set(courses.map(c => c.title)).size,
-            pendingAssignments: assignments.filter(a => !a.done).length,
-            urgentAssignments: assignments.filter(a => !a.done && a.deadline && a.deadline <= today).length,
-            running: {
-              total: Array.isArray(running.records) ? running.records.length : 0,
-              morning: Array.isArray(running.records) ? running.records.filter(r => r.type === "morning").length : 0,
-              completed: running.completed === true,
-            },
-            gpa: grades.gpa || "0.00",
-          },
-          health: { agents: 0, total: 0, failing: 0 },
-          knowledge: { gapsRemaining: 0, estimatedHours: 0 },
-        };
-      }
-      return NextResponse.json(summary);
-    }
+    case "dashboard":
+      return NextResponse.json(getDashboardSummary(db, prefix));
 
     case "schedule":
-      return NextResponse.json(safeRead(path.join(dataDir, "schedule.json")) || { courses: [] });
+      return NextResponse.json(db.readData(`schedule:${prefix}`) || { courses: [] });
 
     case "assignments":
-      return NextResponse.json(safeRead(path.join(dataDir, "assignments.json")) || []);
+      return NextResponse.json(db.readData(`assignments:${prefix}`) || []);
 
     case "running":
-      return NextResponse.json(safeRead(path.join(dataDir, "running.json")) || { records: [] });
+      return NextResponse.json(db.readData(`running:${prefix}`) || { records: [] });
 
     case "health":
-      return NextResponse.json(safeRead(path.join(outDir, "health-status.json")) || { agents: [] });
+      return NextResponse.json(db.readData("health-status") || { agents: [] });
 
     case "roadmap":
-      return NextResponse.json(safeRead(path.join(outDir, "knowledge-roadmap.json")) || { phases: [] });
+      return NextResponse.json(db.readData(`knowledge-roadmap:${prefix}`) || { phases: [] });
 
     case "jwc-news":
-      return NextResponse.json(safeRead(path.join(outDir, "jwc_news.json")) || []);
+      // 教务通知是全校共享的，按 schoolId 区分
+      return NextResponse.json(db.readData(`jwc-news:${schoolId}`) || []);
 
     case "exams":
-      return NextResponse.json(safeRead(path.join(outDir, "jwgl_exams.json")) || []);
+      return NextResponse.json(db.readData(`exams:${prefix}`) || []);
 
     case "grades":
-      return NextResponse.json(safeRead(path.join(outDir, "jwgl_grades_all.json")) || { gpa: 0, allCourses: [] });
+      return NextResponse.json(db.readData(`grades:${prefix}`) || { gpa: 0, allCourses: [] });
 
     case "library":
-      return NextResponse.json(safeRead(path.join(dataDir, "library.json")) || { libs: [], summary: { total: 0, used: 0, avail: 0, rate: 0 } });
+      return NextResponse.json(db.readData(`library:${prefix}`) || { libs: [], summary: { total: 0, used: 0, avail: 0, rate: 0 } });
 
     case "student": {
-      let studentId = "";
-      try {
-        const envPath = path.join(TIMETABLE_DIR, ".env");
-        if (fs.existsSync(envPath)) {
-          const envContent = fs.readFileSync(envPath, "utf8");
-          const match = envContent.match(/JWGL_USERNAME=(.+)/);
-          if (match) studentId = match[1].trim();
-        }
-      } catch {}
-      const grades = safeRead(path.join(outDir, "jwgl_grades_all.json")) || { allCourses: [] };
-      return NextResponse.json({ studentId, gpa: grades.gpa || "0", totalCredits: grades.totalCredits || 0, courseCount: (grades.allCourses || []).length });
+      const studentInfo = db.readData(`student:${prefix}`) as { studentId?: string; gpa?: string; totalCredits?: number; courseCount?: number } | null;
+      if (studentInfo) {
+        return NextResponse.json(studentInfo);
+      }
+      const grades = (db.readData(`grades:${prefix}`) as { gpa?: string; totalCredits?: number; allCourses?: unknown[] }) || { allCourses: [] };
+      return NextResponse.json({
+        studentId: "",
+        gpa: grades.gpa || "0",
+        totalCredits: grades.totalCredits || 0,
+        courseCount: (grades.allCourses || []).length,
+      });
+    }
+
+    case "credentials": {
+      const creds = db.getCredentials(schoolId, userId);
+      return NextResponse.json(creds || {});
     }
 
     default:

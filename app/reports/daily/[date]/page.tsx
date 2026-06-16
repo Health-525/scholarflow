@@ -48,7 +48,7 @@ export default function DailyReportPage() {
 
       {error && !isLoading && (
         <ErrorFallback
-          message={error.type === "not_found" ? "该日报不存在" : error.message}
+          message={error.message || "该日报不存在"}
         />
       )}
 

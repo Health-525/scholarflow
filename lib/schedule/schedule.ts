@@ -5,6 +5,8 @@ export type Weekday = 1 | 2 | 3 | 4 | 5 | 6 | 7; // 1=Mon..7=Sun
 export interface RawScheduleMeta {
   tz?: string; // e.g. Asia/Shanghai
   week1_monday: string; // ISO date
+  semester?: string; // e.g. "2025-2026-2"
+  schoolId?: string; // e.g. "njtech"
 }
 
 export interface RawCourse {

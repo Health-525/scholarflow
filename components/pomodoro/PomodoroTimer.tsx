@@ -107,7 +107,7 @@ function persistTimerState(state: PomodoroState) {
   try { localStorage.setItem(LS_TIMER_STATE_KEY, JSON.stringify(ts)); } catch { /* ignore */ }
 }
 
-function restoreTimerState(settings: PomodoroSettings): {
+function restoreTimerState(_settings: PomodoroSettings): {
   phase: PomodoroPhase;
   remaining: number;
   total: number;

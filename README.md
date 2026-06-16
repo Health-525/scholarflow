@@ -33,22 +33,21 @@ ScholarFlow 是一个面向大学生的一体化学习管理平台，提供课�
 │  ═══════════════ Data Layer ═══════════════         │
 │  ┌─────────────────────────────────────────────┐    │
 │  │ TanStack Query v5  (SWR, dedup, cache)      │    │
-│  │  ↕ sync                                     │    │
-│  │ Dexie.js / IndexedDB  (offline-first)       │    │
 │  │  ↕                                          │    │
-│  │ GitHub API  (primary data store)            │    │
+│  │ Next.js API Routes                          │    │
+│  │  ↕                                          │    │
+│  │ SQLite (better-sqlite3) 本地优先            │    │
 │  └─────────────────────────────────────────────┘    │
 │                                                      │
 │  ═══════════════ Security ═══════════════           │
 │  ┌─────────────────────────────────────────────┐    │
 │  │ Electron: safeStorage (DPAPI/Keychain)       │    │
-│  │ PWA/Web: localStorage + base64               │    │
+│  │ PWA/Web: 服务端 SQLite 凭证表                │    │
 │  └─────────────────────────────────────────────┘    │
 └──────────────────────────────────────────────────────┘
-         ↕ GitHub API
+         ↕ 学校适配器
 ┌──────────────────────────────────────────────────────┐
-│  Health-525/timetable (execution)  ← 数据源 1        │
-│  Health-525/jiangshu-study (content) ← 数据源 2      │
+│  NJTECH 教务系统 / 图书馆等学校服务                    │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -62,7 +61,8 @@ ScholarFlow 是一个面向大学生的一体化学习管理平台，提供课�
 | 样式 | Tailwind CSS + 自定义 CSS 变量 | ^3.4 |
 | 状态管理 | Zustand (persist) | ^5.0 |
 | 数据请求 | TanStack Query | ^5 |
-| 离线存储 | Dexie.js / IndexedDB | ^4 |
+| 本地数据库 | SQLite (better-sqlite3) | ^12 |
+| 学校适配器 | 插件化 Adapter (目前 NJTECH) | - |
 | AI | Ollama (本地 LLM) | ^0.5 |
 | 桌面端 | Electron + electron-builder | ^42 |
 | PWA | next-pwa / Workbox | ^5.6 |
@@ -76,7 +76,6 @@ ScholarFlow 是一个面向大学生的一体化学习管理平台，提供课�
 - Node.js 20+
 - npm 10+
 - (可选) Ollama 本地 LLM 服务
-- (可选) GitHub Personal Access Token（用于数据同步）
 
 ### 安装
 
@@ -86,10 +85,6 @@ cd scholarflow
 
 # 安装依赖
 npm install
-
-# 配置环境变量（可选）
-cp .env.local.example .env.local
-# 编辑 .env.local，填入 GitHub Token
 ```
 
 ### 开发
@@ -151,17 +146,16 @@ scholarflow/
 │   ├── ui/                 # 通用 UI 组件
 │   └── ...                 # 各模块组件
 ├── lib/
-│   ├── github/             # GitHub API 客户端
-│   │   ├── client.ts       # 核心：getFile/putFile/缓存
-│   │   ├── cache.ts        # 内存缓存（TTL 60s）
-│   │   ├── errors.ts       # 类型化错误处理
-│   │   └── repos.ts        # 仓库配置
-│   ├── db/
-│   │   └── index.ts        # Dexie.js 离线数据库
+│   ├── server-db.ts        # SQLite 数据层（ServerDB 单例）
+│   ├── dashboard/          # Dashboard summary 计算
+│   ├── schools/            # 学校适配器注册表与实现
+│   │   ├── registry.ts     # 学校适配器注册
+│   │   ├── types.ts        # 适配器接口
+│   │   └── njtech/         # 南京工业大学适配器
 │   ├── schedule/           # 课表解析引擎
 │   │   ├── schedule.ts     # 核心：课程/周次/日期计算
 │   │   └── adjustments.ts  # 调课合并逻辑
-│   ├── secure-auth.ts      # 安全Token存储抽象
+│   ├── markdown/           # Markdown 渲染管道
 │   └── theme.ts            # 主题系统（亮/暗/跟随系统）
 ├── store/
 │   ├── auth.ts             # 认证状态（Zustand persist）
@@ -169,10 +163,9 @@ scholarflow/
 │   ├── running.ts          # 跑步状态
 │   └── theme.ts            # 主题状态（Zustand persist）
 ├── hooks/
-│   ├── useQueries.ts       # TanStack Query 数据钩子（新）
-│   ├── useGitHubClient.ts  # GitHubClient 工厂
-│   ├── useSchedule.ts      # 课表 Hook（旧，待迁移）
-│   └── useAssignments.ts   # 作业 Hook（旧，待迁移）
+│   ├── useQueries.ts       # TanStack Query 数据钩子
+│   ├── useNotifications.ts # 浏览器通知
+│   └── ...                 # 各模块自定义 Hooks
 ├── types/
 │   ├── index.ts            # 全局类型定义
 │   └── globals.d.ts        # Electron API 类型声明
@@ -189,12 +182,12 @@ scholarflow/
 
 ## 🔐 安全设计
 
-### Token 存储
+### 学校凭证存储
 
 | 环境 | 存储方式 | 安全性 |
 |------|----------|--------|
 | **Electron** | `safeStorage` → DPAPI (Windows) / Keychain (macOS) | 🔒 系统级加密 |
-| **Web / PWA** | localStorage + base64 混淆 | ⚠️ 基础混淆，非加密 |
+| **Web / PWA** | 服务端 SQLite `credentials` 表 | ⚠️ 本地数据库，建议配合设备加密 |
 
 ### 数据流安全
 
