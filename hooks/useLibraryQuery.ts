@@ -2,11 +2,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   libraryDataSchema,
+  libraryLayoutSchema,
   libraryReserveStatusSchema,
   libraryUserStatusSchema,
 } from "@/lib/schemas/library";
 import type {
   LibraryDataInput,
+  LibraryLayoutInput,
   LibraryReserveInput,
   LibraryReserveStatusInput,
   LibraryUserStatusInput,
@@ -34,6 +36,7 @@ export const libraryQueryKeys = {
   data: () => [...libraryQueryKeys.all, "data"] as const,
   userStatus: () => [...libraryQueryKeys.all, "user-status"] as const,
   reserveStatus: () => [...libraryQueryKeys.all, "reserve-status"] as const,
+  layout: (libId: string) => [...libraryQueryKeys.all, "layout", libId] as const,
 };
 
 export function useLibraryData(enabled = true) {
@@ -67,6 +70,37 @@ export function useLibraryReserveStatus(enabled = true) {
     staleTime: 15 * 1000,
     refetchInterval: 30 * 1000,
     enabled,
+  });
+}
+
+export function useLibraryLayout(libId: string | null) {
+  return useQuery<LibraryLayoutInput, Error>({
+    queryKey: libraryQueryKeys.layout(libId ?? ""),
+    queryFn: () => fetch(`/api/library/layout?lib_id=${libId}`).then((r) => handleResponse(r, libraryLayoutSchema)),
+    enabled: !!libId,
+    staleTime: 30 * 1000,
+    refetchInterval: 30 * 1000,
+  });
+}
+
+export function useReserveSeat() {
+  const queryClient = useQueryClient();
+  return useMutation<{ success: boolean }, Error, { libId: number; key: string }>({
+    mutationFn: async ({ libId, key }) => {
+      const r = await fetch("/api/library/reserve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lib_id: libId, key }),
+      });
+      if (r.status === 401) throw new JWTExpiredError();
+      const json = await r.json().catch(() => ({}));
+      if (json.error) throw new Error(json.error);
+      if (!json.success) throw new Error(`未知响应: ${JSON.stringify(json)}`);
+      return json;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: libraryQueryKeys.all });
+    },
   });
 }
 

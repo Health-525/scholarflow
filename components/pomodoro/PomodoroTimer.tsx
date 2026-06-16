@@ -23,6 +23,7 @@ interface PomodoroState {
   phase: PomodoroPhase;
   remaining: number;
   total: number;
+  targetEndAt: number | null;
   settings: PomodoroSettings;
   completedFocus: number;
   isRunning: boolean;
@@ -33,10 +34,10 @@ interface PomodoroState {
 }
 
 type PomodoroAction =
-  | { type: "START"; phase: PomodoroPhase; duration: number }
-  | { type: "TICK" }
+  | { type: "START"; phase: PomodoroPhase; duration: number; now: number }
+  | { type: "TICK"; now: number }
   | { type: "PAUSE" }
-  | { type: "RESUME" }
+  | { type: "RESUME"; now: number }
   | { type: "RESET" }
   | { type: "TOGGLE_SETTINGS" }
   | { type: "UPDATE_SETTINGS"; key: keyof PomodoroSettings; value: number }
@@ -113,6 +114,7 @@ function restoreTimerState(_settings: PomodoroSettings): {
   total: number;
   completedFocus: number;
   isRunning: boolean;
+  targetEndAt: number | null;
 } | null {
   try {
     const raw = localStorage.getItem(LS_TIMER_STATE_KEY);
@@ -133,6 +135,7 @@ function restoreTimerState(_settings: PomodoroSettings): {
         total: ts.total,
         completedFocus: ts.completedFocus,
         isRunning: true,
+        targetEndAt: Date.now() + newRemaining * 1000,
       };
     }
     // Paused timer — restore as-is
@@ -143,6 +146,7 @@ function restoreTimerState(_settings: PomodoroSettings): {
         total: ts.total,
         completedFocus: ts.completedFocus,
         isRunning: false,
+        targetEndAt: null,
       };
     }
   } catch { /* ignore */ }
@@ -193,7 +197,7 @@ function formatMinutes(seconds: number): string {
   return rm > 0 ? `${h} 小时 ${rm} 分钟` : `${h} 小时`;
 }
 
-// ── Reducer (pure — no side effects except saveSettings which is idempotent) ─
+// ── Reducer (pure — no side effects) ───────────────────────
 function pomodoroReducer(state: PomodoroState, action: PomodoroAction): PomodoroState {
   switch (action.type) {
     case "START":
@@ -202,15 +206,19 @@ function pomodoroReducer(state: PomodoroState, action: PomodoroAction): Pomodoro
         phase: action.phase,
         total: action.duration,
         remaining: action.duration,
+        targetEndAt: action.now + action.duration * 1000,
         isRunning: true,
         lastCompletedPhase: null,
       };
 
-    case "TICK":
-      if (state.remaining <= 1) {
+    case "TICK": {
+      if (state.targetEndAt == null) return state;
+      const remainingMs = state.targetEndAt - action.now;
+      const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
+      if (remainingSec === 0) {
         const elapsed = state.total;
         const newSession: PomodoroSession = {
-          startedAt: Date.now() - elapsed * 1000,
+          startedAt: action.now - elapsed * 1000,
           duration: elapsed,
           phase: state.phase,
         };
@@ -239,19 +247,21 @@ function pomodoroReducer(state: PomodoroState, action: PomodoroAction): Pomodoro
           phase: nextPhase,
           total: nextDuration,
           remaining: nextDuration,
+          targetEndAt: null,
           completedFocus: nextCompletedFocus,
           sessions: newSessions,
           stats: newStats,
           lastCompletedPhase: state.phase,
         };
       }
-      return { ...state, remaining: state.remaining - 1 };
+      return { ...state, remaining: remainingSec };
+    }
 
     case "PAUSE":
-      return { ...state, isRunning: false };
+      return { ...state, isRunning: false, targetEndAt: null };
 
     case "RESUME":
-      return { ...state, isRunning: true };
+      return { ...state, isRunning: true, targetEndAt: action.now + state.remaining * 1000 };
 
     case "RESET":
       return {
@@ -259,6 +269,7 @@ function pomodoroReducer(state: PomodoroState, action: PomodoroAction): Pomodoro
         phase: "idle",
         remaining: state.settings.focusMinutes * 60,
         total: state.settings.focusMinutes * 60,
+        targetEndAt: null,
         isRunning: false,
         completedFocus: 0,
         lastCompletedPhase: null,
@@ -269,7 +280,6 @@ function pomodoroReducer(state: PomodoroState, action: PomodoroAction): Pomodoro
 
     case "UPDATE_SETTINGS": {
       const next = { ...state.settings, [action.key]: action.value };
-      saveSettings(next);
       if (state.phase === "idle") {
         return {
           ...state,
@@ -314,10 +324,12 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
   // Restore persisted timer state if available
   const restored = restoreTimerState(initialSettings);
   const [isDark, setIsDark] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [state, dispatch] = useReducer(pomodoroReducer, {
     phase: restored?.phase ?? ("idle" as PomodoroPhase),
     remaining: restored?.remaining ?? initialSettings.focusMinutes * 60,
     total: restored?.total ?? initialSettings.focusMinutes * 60,
+    targetEndAt: restored?.targetEndAt ?? null,
     settings: initialSettings,
     completedFocus: restored?.completedFocus ?? 0,
     isRunning: restored?.isRunning ?? false,
@@ -344,12 +356,26 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
     return () => observer.disconnect();
   }, []);
 
-  // Start/stop interval based on isRunning
+  // Detect reduced-motion preference
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Persist settings changes in an effect (keeps reducer pure)
+  useEffect(() => {
+    saveSettings(state.settings);
+  }, [state.settings]);
+
+  // Start/stop interval based on isRunning; tick uses Date.now() diff for accuracy
   useEffect(() => {
     if (state.isRunning) {
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
-        dispatch({ type: "TICK" });
+        dispatch({ type: "TICK", now: Date.now() });
       }, 1000);
     } else {
       if (timerRef.current) {
@@ -389,7 +415,7 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
       phase === "focus" ? state.settings.focusMinutes * 60 :
       phase === "break" ? state.settings.breakMinutes * 60 :
       state.settings.longBreakMinutes * 60;
-    dispatch({ type: "START", phase, duration });
+    dispatch({ type: "START", phase, duration, now: Date.now() });
   }, [state.settings]);
 
   const togglePause = useCallback(() => {
@@ -398,7 +424,7 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
     } else if (state.isRunning) {
       dispatch({ type: "PAUSE" });
     } else {
-      dispatch({ type: "RESUME" });
+      dispatch({ type: "RESUME", now: Date.now() });
     }
   }, [state.phase, state.isRunning, startPhase]);
 
@@ -426,12 +452,12 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
       </div>
 
       {/* Timer circle */}
-      <div className="flex flex-col items-center mb-6 animate-fade-up">
+      <div className={`flex flex-col items-center mb-6 ${!prefersReducedMotion ? "animate-fade-up" : ""}`}>
         <div className="relative">
           {/* Glow effect when running */}
           {state.isRunning && (
             <div
-              className="absolute inset-0 rounded-full animate-breathe opacity-30"
+              className={`absolute inset-0 rounded-full opacity-30 ${!prefersReducedMotion ? "animate-breathe" : ""}`}
               style={{
                 background: `radial-gradient(circle, ${phaseStrokeColor(state.phase, isDark)}20 0%, transparent 70%)`,
                 transform: "scale(1.1)",
@@ -451,13 +477,13 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               transform="rotate(-90 130 130)"
-              style={{ transition: "stroke-dashoffset 1s linear" }}
+              style={{ transition: prefersReducedMotion ? undefined : "stroke-dashoffset 1s linear" }}
             />
             {/* Inner decorative ring */}
             <circle cx="130" cy="130" r={radius - 16} fill="none" stroke="currentColor" strokeWidth="1" className="text-border/30" />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-[42px] font-bold tabular-nums font-display ${phaseColorClass(state.phase, isDark)} ${state.isRunning ? "animate-breathe" : ""}`}>
+            <span className={`text-[42px] font-bold tabular-nums font-display ${phaseColorClass(state.phase, isDark)} ${state.isRunning && !prefersReducedMotion ? "animate-breathe" : ""}`}>
               {formatTime(state.remaining)}
             </span>
             <span className="text-[11px] mt-1 text-muted-foreground">{phaseLabel[state.phase]}</span>
@@ -502,7 +528,7 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
 
       {/* Settings panel */}
       {state.showSettings && (
-        <div className="rounded-2xl p-4 mb-6 animate-fade-up border border-border bg-card">
+        <div className={`rounded-2xl p-4 mb-6 border border-border bg-card ${!prefersReducedMotion ? "animate-fade-up" : ""}`}>
           <h3 className="text-[12px] font-semibold mb-3 text-foreground">时间设置</h3>
           <div className="space-y-3">
             <SettingRow label="专注" icon={<Brain className="w-3.5 h-3.5 text-primary" />} value={state.settings.focusMinutes} onChange={v => updateSettings("focusMinutes", v)} min={1} max={60} />
@@ -522,15 +548,15 @@ function PomodoroTimerInner({ initialSettings, initialSessions }: {
         </div>
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-xl p-3 text-center bg-primary/5 border border-primary/10">
-            <div className="text-xl font-bold tabular-nums font-display text-primary animate-count">{state.stats.todaySessions}</div>
+            <div className={`text-xl font-bold tabular-nums font-display text-primary ${!prefersReducedMotion ? "animate-count" : ""}`}>{state.stats.todaySessions}</div>
             <div className="text-[10px] mt-0.5 text-muted-foreground">专注次数</div>
           </div>
           <div className="rounded-xl p-3 text-center bg-primary/5 border border-primary/10">
-            <div className="text-xl font-bold tabular-nums font-display text-primary animate-count">{formatMinutes(state.stats.todayFocus)}</div>
+            <div className={`text-xl font-bold tabular-nums font-display text-primary ${!prefersReducedMotion ? "animate-count" : ""}`}>{formatMinutes(state.stats.todayFocus)}</div>
             <div className="text-[10px] mt-0.5 text-muted-foreground">专注时长</div>
           </div>
           <div className="rounded-xl p-3 text-center bg-secondary border border-border">
-            <div className="text-xl font-bold tabular-nums font-display text-foreground animate-count">{state.completedFocus}</div>
+            <div className={`text-xl font-bold tabular-nums font-display text-foreground ${!prefersReducedMotion ? "animate-count" : ""}`}>{state.completedFocus}</div>
             <div className="text-[10px] mt-0.5 text-muted-foreground">本轮完成</div>
           </div>
         </div>

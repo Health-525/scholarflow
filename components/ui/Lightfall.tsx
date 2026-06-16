@@ -1,7 +1,7 @@
 "use client";
 
 import { Renderer, Program, Mesh, Triangle } from "ogl";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 const MAX_COLORS = 8;
 
@@ -114,6 +114,36 @@ interface LightfallProps {
   mouseDampening?: number;
 }
 
+type UniformConfig = Required<Omit<LightfallProps, "className" | "mouseDampening">>;
+
+const applyUniforms = (uniforms: Record<string, { value: unknown }>, config: UniformConfig) => {
+  const { arr, count, avg } = prepColors(config.colors);
+  uniforms.uColor0.value = arr[0];
+  uniforms.uColor1.value = arr[1];
+  uniforms.uColor2.value = arr[2];
+  uniforms.uColor3.value = arr[3];
+  uniforms.uColor4.value = arr[4];
+  uniforms.uColor5.value = arr[5];
+  uniforms.uColor6.value = arr[6];
+  uniforms.uColor7.value = arr[7];
+  uniforms.uColorCount.value = count;
+  uniforms.uBgColor.value = hexToRGB(config.backgroundColor);
+  uniforms.uMouseColor.value = avg;
+  uniforms.uSpeed.value = config.speed;
+  uniforms.uStreakCount.value = Math.max(1, Math.min(16, Math.round(config.streakCount)));
+  uniforms.uStreakWidth.value = config.streakWidth;
+  uniforms.uStreakLength.value = config.streakLength;
+  uniforms.uGlow.value = config.glow;
+  uniforms.uDensity.value = config.density;
+  uniforms.uTwinkle.value = config.twinkle;
+  uniforms.uZoom.value = config.zoom;
+  uniforms.uBgGlow.value = config.backgroundGlow;
+  uniforms.uOpacity.value = config.opacity;
+  uniforms.uMouseEnabled.value = config.mouseInteraction ? 1 : 0;
+  uniforms.uMouseStrength.value = config.mouseStrength;
+  uniforms.uMouseRadius.value = config.mouseRadius;
+};
+
 export function Lightfall({
   className = "",
   colors = ["#7c8edb", "#2a4494", "#d29922"],
@@ -141,7 +171,46 @@ export function Lightfall({
   const rendererRef = useRef<Renderer | null>(null);
   const mouseTargetRef = useRef<[number, number]>([0, 0]);
   const lastTimeRef = useRef<number>(0);
+  const mouseDampeningRef = useRef<number>(mouseDampening);
+  mouseDampeningRef.current = mouseDampening;
 
+  const initialConfigRef = useRef<UniformConfig>({
+    colors,
+    backgroundColor,
+    speed,
+    streakCount,
+    streakWidth,
+    streakLength,
+    glow,
+    density,
+    twinkle,
+    zoom,
+    backgroundGlow,
+    opacity,
+    mouseInteraction,
+    mouseStrength,
+    mouseRadius,
+  });
+
+  const config = useMemo<UniformConfig>(() => ({
+    colors,
+    backgroundColor,
+    speed,
+    streakCount,
+    streakWidth,
+    streakLength,
+    glow,
+    density,
+    twinkle,
+    zoom,
+    backgroundGlow,
+    opacity,
+    mouseInteraction,
+    mouseStrength,
+    mouseRadius,
+  }), [colors, backgroundColor, speed, streakCount, streakWidth, streakLength, glow, density, twinkle, zoom, backgroundGlow, opacity, mouseInteraction, mouseStrength, mouseRadius]);
+
+  // Build renderer / program / mesh once on mount.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -159,26 +228,26 @@ export function Lightfall({
     canvas.style.display = "block";
     container.appendChild(canvas);
 
-    const { arr, count, avg } = prepColors(colors);
-
-    const uniforms = {
+    const uniforms: Record<string, { value: unknown }> = {
       iResolution: { value: [gl.drawingBufferWidth, gl.drawingBufferHeight, 1] },
       iMouse: { value: [0, 0] },
       iTime: { value: 0 },
-      uColor0: { value: arr[0] }, uColor1: { value: arr[1] }, uColor2: { value: arr[2] },
-      uColor3: { value: arr[3] }, uColor4: { value: arr[4] }, uColor5: { value: arr[5] },
-      uColor6: { value: arr[6] }, uColor7: { value: arr[7] },
-      uColorCount: { value: count },
-      uBgColor: { value: hexToRGB(backgroundColor) },
-      uMouseColor: { value: avg },
-      uSpeed: { value: speed },
-      uStreakCount: { value: Math.max(1, Math.min(16, Math.round(streakCount))) },
-      uStreakWidth: { value: streakWidth }, uStreakLength: { value: streakLength },
-      uGlow: { value: glow }, uDensity: { value: density }, uTwinkle: { value: twinkle },
-      uZoom: { value: zoom }, uBgGlow: { value: backgroundGlow }, uOpacity: { value: opacity },
-      uMouseEnabled: { value: mouseInteraction ? 1 : 0 },
-      uMouseStrength: { value: mouseStrength }, uMouseRadius: { value: mouseRadius },
+      uColor0: { value: [0, 0, 0] }, uColor1: { value: [0, 0, 0] }, uColor2: { value: [0, 0, 0] },
+      uColor3: { value: [0, 0, 0] }, uColor4: { value: [0, 0, 0] }, uColor5: { value: [0, 0, 0] },
+      uColor6: { value: [0, 0, 0] }, uColor7: { value: [0, 0, 0] },
+      uColorCount: { value: 0 },
+      uBgColor: { value: [0, 0, 0] },
+      uMouseColor: { value: [0, 0, 0] },
+      uSpeed: { value: 0 },
+      uStreakCount: { value: 0 },
+      uStreakWidth: { value: 0 }, uStreakLength: { value: 0 },
+      uGlow: { value: 0 }, uDensity: { value: 0 }, uTwinkle: { value: 0 },
+      uZoom: { value: 0 }, uBgGlow: { value: 0 }, uOpacity: { value: 0 },
+      uMouseEnabled: { value: 0 },
+      uMouseStrength: { value: 0 }, uMouseRadius: { value: 0 },
     };
+
+    applyUniforms(uniforms, initialConfigRef.current);
 
     const program = new Program(gl, { vertex, fragment, uniforms });
     programRef.current = program;
@@ -196,20 +265,14 @@ export function Lightfall({
     const ro = new ResizeObserver(resize);
     ro.observe(container);
 
-    const onPointerMove = (e: PointerEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const scale = renderer.dpr || 1;
-      mouseTargetRef.current = [(e.clientX - rect.left) * scale, (rect.height - (e.clientY - rect.top)) * scale];
-    };
-    if (mouseInteraction) canvas.addEventListener("pointermove", onPointerMove);
-
     const loop = (t: number) => {
       rafRef.current = requestAnimationFrame(loop);
       uniforms.iTime.value = t * 0.001;
-      if (mouseDampening > 0) {
+      const dampening = mouseDampeningRef.current;
+      if (dampening > 0) {
         const dt = lastTimeRef.current ? (t - lastTimeRef.current) / 1000 : 0.016;
         lastTimeRef.current = t;
-        const factor = 1 - Math.exp(-dt / Math.max(1e-4, mouseDampening));
+        const factor = 1 - Math.exp(-dt / Math.max(1e-4, dampening));
         const target = mouseTargetRef.current;
         const cur = uniforms.iMouse.value as [number, number];
         cur[0] += (target[0] - cur[0]) * factor;
@@ -223,13 +286,37 @@ export function Lightfall({
 
     return () => {
       cancelAnimationFrame(rafRef.current);
-      if (mouseInteraction) canvas.removeEventListener("pointermove", onPointerMove);
       ro.disconnect();
       if (canvas.parentElement === container) container.removeChild(canvas);
       programRef.current = null; geometryRef.current = null;
       meshRef.current = null; rendererRef.current = null;
     };
-  }, [colors, backgroundColor, speed, streakCount, streakWidth, streakLength, glow, density, twinkle, zoom, backgroundGlow, opacity, mouseInteraction, mouseStrength, mouseRadius, mouseDampening]);
+  }, []);
+
+  // Sync uniforms when visual props change — no WebGL rebuild.
+  useEffect(() => {
+    const program = programRef.current;
+    if (!program) return;
+    applyUniforms(program.uniforms as Record<string, { value: unknown }>, config);
+  }, [config]);
+
+  // Attach / detach pointer listener when mouseInteraction toggles.
+  useEffect(() => {
+    const renderer = rendererRef.current;
+    const canvas = renderer?.gl.canvas as HTMLCanvasElement | undefined;
+    if (!canvas || !renderer) return;
+
+    const onPointerMove = (e: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const scale = renderer.dpr || 1;
+      mouseTargetRef.current = [(e.clientX - rect.left) * scale, (rect.height - (e.clientY - rect.top)) * scale];
+    };
+
+    if (mouseInteraction) {
+      canvas.addEventListener("pointermove", onPointerMove);
+      return () => canvas.removeEventListener("pointermove", onPointerMove);
+    }
+  }, [mouseInteraction]);
 
   return (
     <div

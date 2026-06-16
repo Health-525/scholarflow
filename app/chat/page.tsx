@@ -3,6 +3,8 @@
 import { Bot, Send, Trash2, Sparkles, Settings, ChevronDown, User, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 
+import MarkdownRenderer from "@/components/markdown/MarkdownRenderer";
+
 interface Message {
   id: string;
   role: "user" | "assistant" | "system";
@@ -53,7 +55,10 @@ export default function ChatPage() {
   const [showModelPicker, setShowModelPicker] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const [isAtBottom, setIsAtBottom] = useState(true);
 
   useEffect(() => {
     setMounted(true);
@@ -89,13 +94,38 @@ export default function ChatPage() {
 
   useEffect(() => { checkOllama(); }, [checkOllama]);
 
-  // Auto-scroll to bottom
+  // Track whether user is near bottom; only auto-scroll when they are
+  const checkAtBottom = useCallback(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return true;
+    const threshold = 80;
+    return container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    setIsAtBottom(checkAtBottom());
+  }, [checkAtBottom]);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamingContent]);
+    if (isAtBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, streamingContent, isAtBottom]);
+
+  // Abort any in-flight request when the component unmounts
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || loading) return;
+
+    // Abort any previous in-flight request before starting a new one
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
+    setIsAtBottom(true);
 
     const userMsg: Message = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
@@ -122,6 +152,7 @@ export default function ChatPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: selectedModel, messages: chatMessages, stream: true }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!res.ok) {
@@ -170,10 +201,15 @@ export default function ChatPage() {
       setMessages(finalMessages);
       saveMessages(finalMessages);
     } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") {
+        // User-initiated or unmount abort — no error message needed
+        return;
+      }
       setError(err instanceof Error ? err.message : "网络错误");
     } finally {
       setLoading(false);
       setStreamingContent("");
+      abortControllerRef.current = null;
     }
   }, [input, loading, messages, selectedModel]);
 
@@ -282,7 +318,12 @@ export default function ChatPage() {
       )}
 
       {/* Chat messages area */}
-      <div className="flex-1 overflow-y-auto mb-4 rounded-2xl p-4 bg-card border border-border shadow-sm" style={{ minHeight: "300px" }}>
+      <div
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto mb-4 rounded-2xl p-4 bg-card border border-border shadow-sm"
+        style={{ minHeight: "300px" }}
+      >
         {messages.length === 0 && !streamingContent ? (
           <div className="flex flex-col items-center justify-center h-full py-16 animate-fade-up">
             <div className="w-14 h-14 mb-4 rounded-2xl flex items-center justify-center bg-primary/10">
@@ -321,8 +362,8 @@ export default function ChatPage() {
                   <div className="text-[10px] font-medium mb-1 text-muted-foreground">
                     {msg.role === "user" ? "你" : "AI 助手"} · {new Date(msg.timestamp).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
                   </div>
-                  <div className={`rounded-xl p-3 text-[13px] leading-relaxed whitespace-pre-wrap ${msg.role === "user" ? "bg-primary/10" : "bg-teal-500/10 dark:bg-teal-400/10"} text-foreground`}>
-                    {msg.content}
+                  <div className={`rounded-xl p-3 text-[13px] leading-relaxed ${msg.role === "user" ? "bg-primary/10" : "bg-teal-500/10 dark:bg-teal-400/10"} text-foreground`}>
+                    <MarkdownRenderer content={msg.content} fallback={msg.content} showCodeCopy className="!text-[13px] !leading-relaxed [&_p:last-child]:mb-0" />
                   </div>
                 </div>
               </div>

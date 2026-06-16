@@ -4,30 +4,10 @@ import { ArrowLeft, RefreshCw, Loader2, Move, ZoomIn, ZoomOut, RotateCcw } from 
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 
-interface Seat {
-  x: number;
-  y: number;
-  key: string;
-  name: string | null;
-  seat_status: number;
-  status: boolean;
-}
+import { useLibraryLayout, useReserveSeat } from "@/hooks/useLibraryQuery";
+import type { LibraryLayoutInput } from "@/lib/schemas/library";
 
-interface LayoutData {
-  lib_id: number;
-  lib_name: string;
-  lib_floor: string;
-  lib_rt: {
-    seats_total: number;
-    seats_used: number;
-    seats_has: number;
-    open_time_str: string;
-    close_time_str: string;
-  };
-  lib_layout: {
-    seats: Seat[];
-  };
-}
+type Seat = LibraryLayoutInput["lib_layout"]["seats"][number];
 
 type SeatCategory = "empty" | "available" | "reserved" | "occupied" | "maintenance";
 
@@ -65,11 +45,10 @@ function LibraryLayoutInner() {
   const searchParams = useSearchParams();
   const libId = searchParams.get("lib_id");
 
-  const [layout, setLayout] = useState<LayoutData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: layout, isLoading, error, refetch } = useLibraryLayout(libId);
+  const reserveSeat = useReserveSeat();
+
   const [selectedSeat, setSelectedSeat] = useState<Seat | null>(null);
-  const [reserving, setReserving] = useState(false);
   const [reserveResult, setReserveResult] = useState<string | null>(null);
   const [hoverSeat, setHoverSeat] = useState<Seat | null>(null);
   const [scale, setScale] = useState(1);
@@ -77,54 +56,34 @@ function LibraryLayoutInner() {
   const containerRef = useRef<HTMLDivElement>(null);
   const dragState = useRef({ active: false, startX: 0, startY: 0, startScrollX: 0, startScrollY: 0, moved: false });
 
-  const fetchLayout = useCallback(() => {
-    if (!libId) { setError("缺少阅览室ID"); setLoading(false); return; }
-    setLoading(true); setError(null); setSelectedSeat(null); setReserveResult(null);
-    fetch(`/api/library/layout?lib_id=${libId}`)
-      .then(r => { if (r.status === 401) throw new Error("JWT_EXPIRED"); return r.json(); })
-      .then(json => { if (json.error) throw new Error(json.error); setLayout(json); })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [libId]);
-
-  useEffect(() => { fetchLayout(); }, [fetchLayout]);
-
-  // 自动刷新座位状态（30秒）
+  // 切换阅览室时重置选区与结果
   useEffect(() => {
-    const timer = setInterval(() => {
-      if (!libId) return;
-      fetch(`/api/library/layout?lib_id=${libId}`)
-        .then(r => r.json())
-        .then(json => { if (!json.error) setLayout(json); })
-        .catch(() => {});
-    }, 30000);
-    return () => clearInterval(timer);
+    setSelectedSeat(null);
+    setReserveResult(null);
   }, [libId]);
 
-  const handleReserve = async () => {
+  const handleRefresh = useCallback(() => {
+    setSelectedSeat(null);
+    setReserveResult(null);
+    refetch();
+  }, [refetch]);
+
+  const handleReserve = useCallback(async () => {
     if (!selectedSeat || !libId) return;
-    setReserving(true); setReserveResult(null);
-    try {
-      const r = await fetch("/api/library/reserve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lib_id: parseInt(libId), key: selectedSeat.key }),
-      });
-      const json = await r.json();
-      if (json.error) {
-        setReserveResult(`❌ ${json.error}`);
-      } else if (json.success) {
-        setReserveResult("✅ 选座成功！请按时到馆签到");
-        setTimeout(fetchLayout, 1500);
-      } else {
-        setReserveResult(`⚠️ 未知响应: ${JSON.stringify(json)}`);
+    setReserveResult(null);
+    reserveSeat.mutate(
+      { libId: parseInt(libId, 10), key: selectedSeat.key },
+      {
+        onSuccess: () => {
+          setReserveResult("✅ 选座成功！请按时到馆签到");
+          setSelectedSeat(null);
+        },
+        onError: (err) => {
+          setReserveResult(`❌ ${err.message}`);
+        },
       }
-    } catch {
-      setReserveResult("❌ 网络错误，请检查连接");
-    } finally {
-      setReserving(false);
-    }
-  };
+    );
+  }, [selectedSeat, libId, reserveSeat]);
 
   // Pan with mouse drag (scroll-driven)
   const onPointerDown = useCallback((e: React.PointerEvent) => {
@@ -176,7 +135,7 @@ function LibraryLayoutInner() {
   const zoomOut = useCallback(() => setScale((s) => Math.max(0.5, Math.round((s - 0.2) * 10) / 10)), []);
   const resetZoom = useCallback(() => setScale(1), []);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="pb-24 md:pb-8 py-16 text-center">
         <Loader2 className="w-6 h-6 mx-auto animate-spin text-primary" />
@@ -188,8 +147,8 @@ function LibraryLayoutInner() {
   if (error) {
     return (
       <div className="pb-24 md:pb-8 max-w-md mx-auto py-16 px-4 text-center">
-        <p className="text-[13px] text-red-500">{error}</p>
-        <button onClick={fetchLayout} className="mt-4 px-4 py-2 rounded-xl text-[13px] font-medium bg-primary text-primary-foreground">
+        <p className="text-[13px] text-red-500">{error.message}</p>
+        <button onClick={handleRefresh} className="mt-4 px-4 py-2 rounded-xl text-[13px] font-medium bg-primary text-primary-foreground">
           <RefreshCw className="w-3.5 h-3.5 inline mr-1" />重试
         </button>
       </div>
@@ -249,7 +208,7 @@ function LibraryLayoutInner() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={fetchLayout} className="p-2 rounded-xl bg-card border border-border text-muted-foreground">
+          <button onClick={handleRefresh} className="p-2 rounded-xl bg-card border border-border text-muted-foreground">
             <RefreshCw className="w-4 h-4" />
           </button>
         </div>
@@ -303,7 +262,13 @@ function LibraryLayoutInner() {
             const top = (seat.y - minY) * (CELL + GAP);
 
             return (
-              <button key={seat.key}
+              <button
+                key={seat.key}
+                type="button"
+                aria-label={`座位 ${seat.name || seat.key}，${isAvailable ? "空闲可选" : st.label}`}
+                aria-pressed={isAvailable ? isSelected : undefined}
+                aria-disabled={!isAvailable}
+                tabIndex={isAvailable ? 0 : -1}
                 onClick={(e) => { e.stopPropagation(); if (!dragState.current.moved && isAvailable) setSelectedSeat(seat); }}
                 onMouseEnter={() => setHoverSeat(seat)}
                 onMouseLeave={() => setHoverSeat(null)}
@@ -346,9 +311,9 @@ function LibraryLayoutInner() {
             </div>
             <div className="flex items-center gap-2">
               <button onClick={() => setSelectedSeat(null)} className="px-3 py-2 rounded-xl text-[12px] bg-card border border-border text-muted-foreground">取消</button>
-              <button onClick={handleReserve} disabled={reserving} className="px-4 py-2 rounded-xl text-[13px] font-medium disabled:opacity-50 bg-primary text-primary-foreground">
-                {reserving ? <Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1" /> : null}
-                {reserving ? "选座中..." : "确认选座"}
+              <button onClick={handleReserve} disabled={reserveSeat.isPending} className="px-4 py-2 rounded-xl text-[13px] font-medium disabled:opacity-50 bg-primary text-primary-foreground">
+                {reserveSeat.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1" /> : null}
+                {reserveSeat.isPending ? "选座中..." : "确认选座"}
               </button>
             </div>
           </div>

@@ -70,8 +70,34 @@ export const libraryReserveStatusSchema = z.object({
   reserve: libraryReserveSchema.nullable(),
 });
 
+export const libraryLayoutSchema = z.object({
+  lib_id: z.number(),
+  lib_name: z.string(),
+  lib_floor: z.string(),
+  lib_rt: z.object({
+    seats_total: z.number(),
+    seats_used: z.number(),
+    seats_has: z.number(),
+    open_time_str: z.string(),
+    close_time_str: z.string(),
+  }),
+  lib_layout: z.object({
+    seats: z.array(
+      z.object({
+        x: z.number(),
+        y: z.number(),
+        key: z.string(),
+        name: z.string().nullable(),
+        seat_status: z.number(),
+        status: z.boolean(),
+      })
+    ),
+  }),
+});
+
 export type LibraryRoomInput = z.infer<typeof libraryRoomSchema>;
 export type LibraryDataInput = z.infer<typeof libraryDataSchema>;
 export type LibraryReserveInput = z.infer<typeof libraryReserveSchema>;
 export type LibraryUserStatusInput = z.infer<typeof libraryUserStatusSchema>;
 export type LibraryReserveStatusInput = z.infer<typeof libraryReserveStatusSchema>;
+export type LibraryLayoutInput = z.infer<typeof libraryLayoutSchema>;

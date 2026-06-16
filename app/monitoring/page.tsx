@@ -1,7 +1,9 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { Activity, CheckCircle2, XCircle, Clock, AlertTriangle } from "lucide-react";
-import { useEffect, useState } from "react";
+
+import { queryKeys } from "@/hooks/useQueries";
 
 interface AgentStatus {
   agent: string;
@@ -105,26 +107,24 @@ function AgentCard({ agent }: { agent: AgentStatus }) {
   );
 }
 
+async function fetchHealth(): Promise<HealthData> {
+  const res = await fetch("/api/local-data?type=health");
+  if (!res.ok) throw new Error("健康数据尚未生成");
+  const data = await res.json();
+  if (!data.agents?.length) throw new Error("健康数据尚未生成");
+  return data;
+}
+
 export default function MonitoringPage() {
-  const [health, setHealth] = useState<HealthData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: health, isLoading, error } = useQuery({
+    queryKey: queryKeys.health,
+    queryFn: fetchHealth,
+    refetchInterval: 30_000,
+    staleTime: 0,
+    retry: 1,
+  });
 
-  useEffect(() => {
-    async function fetchHealth() {
-      try {
-        const res = await fetch("/api/local-data?type=health");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.agents?.length > 0) { setHealth(data); return; }
-        }
-      } catch {}
-      setError("健康数据尚未生成");
-    }
-    fetchHealth().finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="p-8 text-center text-muted-foreground">
         <div className="animate-pulse">加载中...</div>
@@ -136,7 +136,7 @@ export default function MonitoringPage() {
     return (
       <div className="p-8 text-center text-muted-foreground">
         <AlertTriangle size={48} className="mx-auto mb-4 opacity-40" />
-        <p>{error}</p>
+        <p>{error.message || "健康数据尚未生成"}</p>
       </div>
     );
   }

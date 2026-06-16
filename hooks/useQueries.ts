@@ -28,6 +28,7 @@ export const queryKeys = {
   weeklyReports: ["weeklyReports"] as const,
   notes: ["notes"] as const,
   exams: ["exams"] as const,
+  health: ["health"] as const,
 } as const;
 
 // ═══════════════════════════════════════════════════════════════
