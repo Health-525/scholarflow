@@ -3,6 +3,7 @@ const { app, BrowserWindow, shell, dialog, ipcMain, safeStorage, session } = req
 const { fork } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const { createAutoRefreshScheduler } = require('./auto-refresh');
 
 // ── 进程级日志（早于控制台，用于排查双击无反应/闪退）─────────────
 const logDir = path.join(app.getPath('userData'), 'logs');
@@ -30,6 +31,7 @@ const IS_DEV = !!process.env.ELECTRON_DEV;
 let mainWindow = null;
 let serverProcess = null;
 let visionModelProcess = null;
+let autoRefreshScheduler = null;
 
 // ── 获取 app 根目录 ──────────────────────────────────────────
 function getAppRoot() {
@@ -70,6 +72,23 @@ function waitForPort(port, timeoutMs = 60000) {
   });
 }
 
+// ── 计算稳定数据目录(打包产物之外)──────────────────────────
+/**
+ * 计算稳定数据目录,位于打包产物之外,使重装/更新不丢数据。
+ * 纯函数:仅依赖入参,便于单元/属性测试(见 task 8.2)。
+ * @param {{ PORTABLE_EXECUTABLE_DIR?: string }} env  process.env 子集
+ * @param {{ getPath: (name: string) => string }} app electron app
+ * @returns {string} 绝对路径
+ */
+function resolveStableDataDir(env, app) {
+  // 便携版:exe 同级 ScholarFlowData (R2.3)
+  if (env.PORTABLE_EXECUTABLE_DIR) {
+    return path.join(env.PORTABLE_EXECUTABLE_DIR, 'ScholarFlowData');
+  }
+  // 安装版:userData/data,位于 %APPDATA%,不被卸载/更新覆盖 (R2.4)
+  return path.join(app.getPath('userData'), 'data');
+}
+
 // ── 启动 standalone server ──────────────────────────────────
 function launchServer() {
   return new Promise((resolve, reject) => {
@@ -92,14 +111,11 @@ function launchServer() {
       ));
     }
 
-    // 数据目录：便携版放在 exe 同级 ScholarFlowData 文件夹；安装版放在 userData/data
-    let dataDir;
-    if (process.env.PORTABLE_EXECUTABLE_DIR) {
-      dataDir = path.join(process.env.PORTABLE_EXECUTABLE_DIR, 'ScholarFlowData');
-    } else {
-      dataDir = path.join(app.getPath('userData'), 'data');
-    }
+    // 数据目录:便携版放在 exe 同级 ScholarFlowData 文件夹;安装版放在 userData/data
+    // (提取为 resolveStableDataDir 纯函数,见上方;R2.3/R2.4)
+    const dataDir = resolveStableDataDir(process.env, app);
     fs.mkdirSync(dataDir, { recursive: true });
+    logToFile('info', `[SF] Data directory (stable): ${dataDir}`);
     console.log('[SF] Data directory:', dataDir);
 
     // fork 比 spawn 更可靠，直接用 Node 运行，不需要 shell
@@ -112,6 +128,9 @@ function launchServer() {
         PORT: String(PORT),
         HOSTNAME: '127.0.0.1',
         SCHOLARFLOW_DATA_DIR: dataDir,
+        // 子进程以纯 Node 模式运行 Electron 二进制(Electron ABI),
+        // 以便 better-sqlite3 原生模块按 Electron ABI 加载 (见 design §1.1)
+        ELECTRON_RUN_AS_NODE: '1',
         // standalone 需要知道 public 和 .next/static 的位置
         // 通过 symlink 或者环境变量传递
       },
@@ -397,6 +416,66 @@ function setupSecureTokenIPC() {
     if (fs.existsSync(encPath)) fs.unlinkSync(encPath);
     return true;
   });
+}
+
+// ── 凭证存储路径(与图书馆 token 隔离)────────────────────────
+function getCredentialStorePath() {
+  const userDataPath = app.getPath('userData');
+  return path.join(userDataPath, 'secure-credential.enc');
+}
+
+// ── IPC: 凭证(密码)加密存储与检索 ─────────────────────────
+// 独立于 token:* IPC,使用单独的 secure-credential.enc 文件,
+// 避免与图书馆 token 的 secure-token.enc 互相覆盖 (design §5, R3.3/3.4/3.6/4.2/9.5)
+function setupSecureCredentialIPC() {
+  ipcMain.handle('credential:store', async (_event, plaintext) => {
+    if (!safeStorage.isEncryptionAvailable()) {
+      throw new Error('系统加密不可用');
+    }
+    const encrypted = safeStorage.encryptString(plaintext);
+    const buf = Buffer.from(encrypted).toString('base64');
+    fs.writeFileSync(getCredentialStorePath(), buf, 'utf-8');
+    return true;
+  });
+
+  ipcMain.handle('credential:retrieve', async () => {
+    const encPath = getCredentialStorePath();
+    if (!fs.existsSync(encPath)) return null;
+    if (!safeStorage.isEncryptionAvailable()) return null;
+    try {
+      const buf = fs.readFileSync(encPath, 'utf-8');
+      const encrypted = Buffer.from(buf, 'base64');
+      return safeStorage.decryptString(encrypted);
+    } catch {
+      return null;
+    }
+  });
+
+  ipcMain.handle('credential:clear', async () => {
+    const encPath = getCredentialStorePath();
+    if (fs.existsSync(encPath)) fs.unlinkSync(encPath);
+    return true;
+  });
+
+  ipcMain.handle('credential:secure-available', async () => {
+    return safeStorage.isEncryptionAvailable();
+  });
+}
+
+// ── 取记住的(已解密)密码,供 AutoRefreshScheduler 静默重登使用 ──────
+// 复用 getCredentialStorePath() 读取 secure-credential.enc,逻辑等价于
+// credential:retrieve handler:文件不存在 / 加密不可用 / 解密失败均返回 null。
+function retrieveCredentialPassword() {
+  try {
+    const encPath = getCredentialStorePath();
+    if (!fs.existsSync(encPath)) return null;
+    if (!safeStorage.isEncryptionAvailable()) return null;
+    const buf = fs.readFileSync(encPath, 'utf-8');
+    const encrypted = Buffer.from(buf, 'base64');
+    return safeStorage.decryptString(encrypted);
+  } catch {
+    return null;
+  }
 }
 
 // ── 图书馆座位数据获取（VPN代理模式）──────────────────────────
@@ -866,6 +945,7 @@ function setupAutoUpdater() {
 // ── 主流程 ──────────────────────────────────────────────────
 app.whenReady().then(async () => {
   setupSecureTokenIPC();
+  setupSecureCredentialIPC();
   setupAutoUpdater();
   try {
     console.log('[SF] Starting...');
@@ -881,38 +961,15 @@ app.whenReady().then(async () => {
     createWindow();
     startActiveWindowTracking();
 
-    // Auto-refresh local data via internal API (replaces legacy timetable execSync)
-    setTimeout(() => {
-      try {
-        const http = require('http');
-        const req = http.request({
-          hostname: '127.0.0.1', port: PORT, path: '/api/auth/session',
-          method: 'GET',
-        }, r => {
-          let d = '';
-          r.on('data', c => d += c);
-          r.on('end', () => {
-            try {
-              const session = JSON.parse(d);
-              if (session.authenticated && session.schoolId && session.userId) {
-                // Trigger data refresh for the logged-in user
-                const body = JSON.stringify({ schoolId: session.schoolId, username: session.userId });
-                const refreshReq = http.request({
-                  hostname: '127.0.0.1', port: PORT, path: '/api/fetch/all',
-                  method: 'POST', headers: { 'Content-Type': 'application/json' },
-                }, refreshR => { refreshR.resume(); });
-                refreshReq.write(body);
-                refreshReq.end();
-                console.log('[SF] Auto-refresh triggered for', session.userId);
-              }
-            } catch {}
-          });
-        });
-        req.setTimeout(5000, () => { req.destroy(); });
-        req.on('error', () => {});
-        req.end();
-      } catch {}
-    }, 5000);
+    // 本地优先:不再「启动即爬取」。改由 AutoRefreshScheduler 按抖动周期
+    // 静默调度刷新(关窗后仍可触发),退出时清理定时器 (task 11.2, R5.1/R5.5)。
+    autoRefreshScheduler = createAutoRefreshScheduler({
+      port: PORT,
+      getMainWindow: () => mainWindow,
+      retrievePassword: retrieveCredentialPassword,
+      log: (level, msg) => logToFile(level, `[AutoRefresh] ${msg}`),
+    });
+    autoRefreshScheduler.start();
 
     // Auto-launch Vision-Model API (non-blocking)
     setTimeout(async () => {
@@ -937,6 +994,7 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
+  if (autoRefreshScheduler) { autoRefreshScheduler.stop(); }
   if (serverProcess) { serverProcess.kill(); serverProcess = null; }
   if (visionModelProcess) { visionModelProcess.kill(); visionModelProcess = null; }
   if (process.platform !== 'darwin') app.quit();
@@ -949,6 +1007,11 @@ app.on('activate', () => {
 app.on('before-quit', () => {
   stopActiveWindowTracking();
   stopJWTAutoRefresh();
+  if (autoRefreshScheduler) { autoRefreshScheduler.stop(); }
   if (serverProcess) { serverProcess.kill('SIGTERM'); serverProcess = null; }
   if (visionModelProcess) { visionModelProcess.kill(); visionModelProcess = null; }
 });
+
+// 导出纯函数供测试引用(task 8.2);在 Electron 中作为入口正常运行,
+// module.exports 不影响主进程逻辑(CommonJS)。
+module.exports = { resolveStableDataDir };

@@ -119,6 +119,72 @@ function collectDependencies(seedPackages) {
   return queue;
 }
 
+/**
+ * 显式确保 better-sqlite3（含 build/Release/*.node 原生模块）被复制进
+ * standalone 的 node_modules。NFT 静态追踪对 `require("better-sqlite3")`
+ * 这类原生依赖可能漏掉，且其 .node 二进制必须随包分发，故此处做确定性兜底。
+ * 同时处理 Next.js 15 monorepo 检测产生的 scholarflow/ 子目录。
+ */
+function getElectronVersion() {
+  // 优先读 electron 包的真实版本，回退到 devDependencies 范围号去掉 ^ ~
+  try {
+    const v = require(path.join(root, 'node_modules', 'electron', 'package.json')).version;
+    if (v) return v;
+  } catch { /* ignore */ }
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+    const range = (pkg.devDependencies && pkg.devDependencies.electron) || '';
+    const m = range.match(/\d+\.\d+\.\d+/);
+    if (m) return m[0];
+  } catch { /* ignore */ }
+  return null;
+}
+
+/**
+ * 确保 node_modules/better-sqlite3 的原生 .node 是针对 Electron 运行时 ABI 编译的。
+ *
+ * 关键：standalone server 由 Electron 二进制（ELECTRON_RUN_AS_NODE）运行，使用 Electron 的
+ * ABI（如 Electron 42 = NODE_MODULE_VERSION 146），而非系统 Node 的 ABI（137）。
+ * `npm install` / electron-builder 的 npmRebuild 往往装成系统 Node ABI，导致打包后
+ * 加载报 "compiled against a different Node.js version"。此处用 prebuild-install 拉取
+ * 与 Electron 版本匹配的预编译二进制（无需本地 C++ 编译器）。
+ */
+function ensureElectronAbiBinary(src) {
+  console.log('[postbuild] 为 better-sqlite3 对齐 Electron ABI ...');
+  const { execFileSync } = require('child_process');
+  try {
+    execFileSync(
+      process.execPath,
+      [path.join(root, 'scripts', 'switch-abi.js'), 'electron'],
+      { cwd: root, stdio: 'inherit' }
+    );
+  } catch (e) {
+    console.log('[postbuild] WARNING: ABI 对齐失败,打包产物可能 ABI 不匹配:', e.message);
+  }
+}
+
+function ensureBetterSqlite3() {
+  const src = path.join(root, 'node_modules', 'better-sqlite3');
+  if (!fs.existsSync(src)) {
+    console.log('[postbuild] WARNING: 未找到 node_modules/better-sqlite3，跳过原生模块兜底复制');
+    return;
+  }
+
+  // 复制进 standalone 之前，先把源目录的 .node 对齐到 Electron ABI
+  ensureElectronAbiBinary(src);
+
+  const targets = [path.join(standaloneDir, 'node_modules', 'better-sqlite3')];
+  const sfDir = path.join(standaloneDir, 'scholarflow');
+  if (fs.existsSync(sfDir)) {
+    targets.push(path.join(sfDir, 'node_modules', 'better-sqlite3'));
+  }
+
+  for (const dest of targets) {
+    copyPackage(src, dest);
+    console.log(`[postbuild] 已复制 better-sqlite3（含原生 .node）→ ${path.relative(root, dest)}`);
+  }
+}
+
 function copyStandaloneNodeModules() {
   if (!fs.existsSync(standaloneDir)) {
     console.log('[postbuild] 未找到 .next/standalone，跳过 node_modules 补齐');
@@ -170,6 +236,10 @@ if (fs.existsSync(sfDir)) {
 // 关键修复：把 Next.js standalone 运行所需的 node_modules 补齐到 standalone 内部
 console.log('[postbuild] 补齐 .next/standalone/node_modules ...');
 copyStandaloneNodeModules();
+
+// 确定性兜底：确保 better-sqlite3 原生模块进入 standalone node_modules
+console.log('[postbuild] 确保 better-sqlite3 原生模块进入 standalone ...');
+ensureBetterSqlite3();
 
 console.log('[postbuild] 完成！');
 

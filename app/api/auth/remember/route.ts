@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
 
 import { getRememberSetting, setRememberSetting } from "@/lib/auto-refresh/state";
-import { getServerDB } from "@/lib/server-db";
 
 /**
- * POST /api/auth/logout
- * 清除指定用户的凭证（不删除用户数据）
- * 下次登录同一账号时，数据仍然可用
+ * POST /api/auth/remember
  *
- * 登出时同时将 Remember_Password_Setting 置为关闭（Req 4.4），
- * 使 Auto_Refresh_Scheduler 停止后续静默刷新。加密密码本体由前端
- * 通过 Secure_Storage（clearCredential）清除。
+ * 将指定用户的 Remember_Password_Setting 置为关闭（Req 4.2）。
+ * 由设置页「清除已记住的密码」控件调用：前端负责通过 Secure_Storage
+ * 删除加密密码本体（clearCredential），此端点负责关闭服务端偏好开关，
+ * 从而使 Auto_Refresh_Scheduler 停止后续静默刷新（Req 4.3）。
  */
 export async function POST(request: Request) {
   try {
@@ -21,10 +19,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "missing schoolId or userId" }, { status: 400 });
     }
 
-    const db = getServerDB();
-    db.deleteCredentials(schoolId, userId);
-
-    // 关闭记住密码偏好（保留 lastManualLoginAt 仅作历史参考无安全影响）。
     const remember = getRememberSetting(schoolId, userId);
     setRememberSetting(schoolId, userId, { ...remember, enabled: false });
 

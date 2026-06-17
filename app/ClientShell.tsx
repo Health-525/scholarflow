@@ -35,20 +35,10 @@ export default function ClientShell({ children }: ClientShellProps) {
         if (res.ok) {
           const data = await res.json();
           if (data.authenticated && data.schoolId && data.userId) {
+            // Local-first: only mark the session as authenticated and let the
+            // user into the app. Data is read locally via /api/local-data by
+            // each page; we never auto-fetch from the school server on startup.
             setAuth(data.schoolId, data.userId);
-
-            // Auto-refresh data on session restore when on a protected page
-            if (!PUBLIC_PATHS.includes(pathname)) {
-              try {
-                await fetch("/api/fetch/all", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ schoolId: data.schoolId, username: data.userId }),
-                });
-              } catch {
-                // Refresh is best-effort; do not block auth restore
-              }
-            }
           }
         }
       } catch {

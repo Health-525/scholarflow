@@ -1,12 +1,13 @@
 "use client";
 
-import { GraduationCap, KeyRound, Loader2, ArrowLeft, CheckCircle2, XCircle, BookOpen, ShieldCheck } from "lucide-react";
+import { GraduationCap, KeyRound, Loader2, ArrowLeft, CheckCircle2, XCircle, BookOpen, ShieldCheck, Eye, EyeClosed } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { isElectron, isSecureStorageAvailable, rememberPasswordSupported } from "@/lib/runtime-env";
 import { getAllSchools } from "@/lib/schools/registry";
 import type { SchoolAdapter } from "@/lib/schools/types";
 import { cn } from "@/lib/utils";
@@ -34,12 +35,28 @@ export default function SetupPage() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [fetchStatuses, setFetchStatuses] = useState<FetchStatus[]>([]);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [revealedFields, setRevealedFields] = useState<Record<string, boolean>>({});
+  const [rememberSupported, setRememberSupported] = useState(false);
+  const [rememberChecked, setRememberChecked] = useState(false);
 
   const selectedSchool = schools.find((s) => s.id === selectedSchoolId) as SchoolAdapter | undefined;
 
   useEffect(() => {
     if (selectedSchoolId) setCredentials({});
   }, [selectedSchoolId]);
+
+  // Detect whether "remember password" is supported in the current runtime form.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const electron = isElectron();
+      const secure = await isSecureStorageAvailable();
+      if (!cancelled) setRememberSupported(rememberPasswordSupported({ electron, secure }));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // ── Step 1: Select School ──────────────────────────────────
 
@@ -59,7 +76,7 @@ export default function SetupPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ schoolId: selectedSchoolId, credentials }),
+        body: JSON.stringify({ schoolId: selectedSchoolId, credentials, remember: rememberChecked }),
       });
 
       const data = await res.json();
@@ -68,6 +85,17 @@ export default function SetupPage() {
         setLoginError(data.error || "登录失败，请检查学号和密码");
         setIsLoggingIn(false);
         return;
+      }
+
+      // Persist the password via OS-level encrypted storage when remembering is
+      // supported, opted-in, and a password is present. Best-effort: failures
+      // here must not block entering the app.
+      if (rememberSupported && rememberChecked && credentials.password) {
+        try {
+          await window.electronAPI?.storeCredential?.(credentials.password);
+        } catch {
+          // ignore — login itself succeeded; remembered password is optional
+        }
       }
 
       setAuth(data.schoolId, data.userId || credentials.username || "");
@@ -232,27 +260,66 @@ export default function SetupPage() {
               </div>
 
               <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-4">
-                {selectedSchool?.loginFields.map((field) => (
-                  <div key={field.key} className="space-y-1.5">
-                    <label htmlFor={field.key} className="block text-[11px] font-medium tracking-[0.12em] text-muted-foreground/70 uppercase">
-                      {field.label}
+                {selectedSchool?.loginFields.map((field) => {
+                  const isPassword = field.type === "password";
+                  const isRevealed = revealedFields[field.key];
+                  const inputType = isPassword && isRevealed ? "text" : field.type;
+                  return (
+                    <div key={field.key} className="space-y-1.5">
+                      <label htmlFor={field.key} className="block text-[11px] font-medium tracking-[0.12em] text-muted-foreground/70 uppercase">
+                        {field.label}
+                      </label>
+                      <div className="relative">
+                        <Input
+                          id={field.key}
+                          type={inputType}
+                          placeholder={field.placeholder || ""}
+                          value={credentials[field.key] || ""}
+                          onChange={(e) => setCredentials({ ...credentials, [field.key]: e.target.value })}
+                          className={cn(
+                            "h-10 px-4 rounded-xl text-sm bg-secondary/50 border-border/60 text-foreground placeholder:text-muted-foreground/40 focus-visible:border-primary/40 focus-visible:ring-primary/20",
+                            isPassword && "pr-11"
+                          )}
+                          required={field.required}
+                        />
+                        {isPassword && (
+                          <button
+                            type="button"
+                            onClick={() => setRevealedFields((prev) => ({ ...prev, [field.key]: !prev[field.key] }))}
+                            aria-label={isRevealed ? "隐藏密码" : "显示密码"}
+                            aria-pressed={isRevealed}
+                            tabIndex={-1}
+                            className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/60 hover:text-foreground hover:bg-secondary transition-colors"
+                          >
+                            {isRevealed ? <Eye className="w-4 h-4" /> : <EyeClosed className="w-4 h-4" />}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Remember password */}
+                {rememberSupported ? (
+                  <div className="space-y-1">
+                    <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={rememberChecked}
+                        onChange={(e) => setRememberChecked(e.target.checked)}
+                        className="h-4 w-4 shrink-0 rounded border-border/60 bg-secondary/50 text-primary accent-primary focus-visible:ring-2 focus-visible:ring-primary/20"
+                      />
+                      <span className="text-[13px] text-foreground">记住密码</span>
                     </label>
-                    <Input
-                      id={field.key}
-                      type={field.type}
-                      placeholder={field.placeholder || ""}
-                      value={credentials[field.key] || ""}
-                      onChange={(e) => setCredentials({ ...credentials, [field.key]: e.target.value })}
-                      className="h-10 px-4 rounded-xl text-sm bg-secondary/50 border-border/60 text-foreground placeholder:text-muted-foreground/40 focus-visible:border-primary/40 focus-visible:ring-primary/20"
-                      required={field.required}
-                    />
-                    {field.key === "libraryJwt" && (
-                      <p className="text-[11px] text-muted-foreground/40">
-                        用于查看图书馆座位信息，不填则跳过
-                      </p>
-                    )}
+                    <p className="pl-[26px] text-[11px] text-muted-foreground/50 leading-relaxed">
+                      密码将加密存储在本地，仅用于自动更新
+                    </p>
                   </div>
-                ))}
+                ) : (
+                  <p className="text-[11px] text-muted-foreground/40 leading-relaxed">
+                    当前形态不支持记住密码
+                  </p>
+                )}
 
                 {/* Error message */}
                 {loginError && (

@@ -12,19 +12,19 @@ describe("calculateGPA", () => {
     expect(calculateGPA(courses).semesterGPA).toBe(4.0);
   });
 
-  it("单课程60分=1.0", () => {
+  it("单课程60分=1.3", () => {
     const courses: Course[] = [{ id: "1", name: "高数", credit: 3, score: 60, semester: "2025-2026-2" }];
-    expect(calculateGPA(courses).semesterGPA).toBe(1.0);
+    expect(calculateGPA(courses).semesterGPA).toBe(1.3);
   });
 
   it("多课程加权平均", () => {
     const courses: Course[] = [
-      { id: "1", name: "A", credit: 3, score: 90, semester: "x" },  // 3.8 * 3 = 11.4
-      { id: "2", name: "B", credit: 2, score: 80, semester: "x" },  // 3.2 * 2 = 6.4
+      { id: "1", name: "A", credit: 3, score: 90, semester: "x" },  // 4.0 * 3 = 12.0
+      { id: "2", name: "B", credit: 2, score: 80, semester: "x" },  // 3.0 * 2 = 6.0 (80 在 79-81 区间)
     ];
     const gpa = calculateGPA(courses);
-    // (11.4 + 6.4) / 5 = 3.56
-    expect(gpa.semesterGPA).toBe(3.56);
+    // (12.0 + 6.0) / 5 = 3.6
+    expect(gpa.semesterGPA).toBe(3.6);
   });
 
   it("未出分课程不计入", () => {
@@ -32,7 +32,7 @@ describe("calculateGPA", () => {
       { id: "1", name: "A", credit: 3, score: 90, semester: "x" },
       { id: "2", name: "B", credit: 2, semester: "x" },  // no score
     ];
-    expect(calculateGPA(courses).semesterGPA).toBe(3.8);
+    expect(calculateGPA(courses).semesterGPA).toBe(4.0);
     expect(calculateGPA(courses).remaining).toBe(1);
   });
 });

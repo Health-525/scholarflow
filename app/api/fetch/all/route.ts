@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { resolveUserId } from "@/lib/account-prefix";
 import { buildDashboardSummary } from "@/lib/dashboard/summary";
 import { NJTECH_PERIOD_TIMES } from "@/lib/schools/njtech/jwgl";
 import { getAdapter } from "@/lib/schools/registry";
@@ -9,6 +10,14 @@ import { getServerDB } from "@/lib/server-db";
  * POST /api/fetch/all
  * 一次性抓取所有数据（课表、考试、成绩、通知）
  * 图书馆需要单独的 JWT，不在此处抓取
+ *
+ * 凭证生命周期(local-first-sync):
+ * - 有有效 JWC_Cookie → 直接抓取(行为不变)。
+ * - JWC_Cookie 过期/不存在(getCredentials 返回 null,内部已校验 expiresAt):
+ *   - 若调用方(调度器/记住密码)传入 password → 用学校 adapter 静默重登,
+ *     拿到新凭证后保存并继续抓取(R8.3)。
+ *   - 否则返回结构化 needsManualLogin 错误,提示手动重新登录(R8.4)。
+ * - 任意抓取项失败时仅标记为「失败」,绝不删除/覆盖 Local_Store 既有数据(R2.5/6.5/8.5)。
  */
 export async function POST(request: Request) {
   try {
@@ -16,8 +25,10 @@ export async function POST(request: Request) {
       schoolId?: string;
       cookie?: string;
       username?: string;
+      /** 可选:供调度器/记住密码静默重登使用的教务密码 */
+      password?: string;
     };
-    const { schoolId, username } = body;
+    const { schoolId, username, password } = body;
 
     if (!schoolId) {
       return NextResponse.json({ error: "missing schoolId" }, { status: 400 });
@@ -29,12 +40,34 @@ export async function POST(request: Request) {
     }
 
     // 从数据库读取已保存的凭证（login 时保存的 cookie）
+    // getCredentials 内部已校验 expires_at —— 过期时返回 null,因此 null 同时覆盖
+    //「凭证不存在」与「JWC_Cookie 过期」两种情况。
     const db = getServerDB();
-    const userId = username || "default";
-    const savedCreds = db.getCredentials(schoolId, userId);
+    const userId = resolveUserId(username);
+    let savedCreds = db.getCredentials(schoolId, userId);
 
+    // JWC_Cookie 过期或不存在 → 尝试静默重登(有 password)或提示手动登录。
     if (!savedCreds) {
-      return NextResponse.json({ error: "凭证已过期或不存在，请重新登录" }, { status: 401 });
+      if (password && username) {
+        try {
+          // 用记住的密码静默重新登录教务系统,拿到新 cookie 后保存(R8.3)。
+          const session = await adapter.login({ username, password });
+          db.saveCredentials(schoolId, userId, session.data, session.expiresAt);
+          savedCreds = session.data;
+        } catch {
+          // 静默重登失败(如密码失效)→ 需要手动重新登录,且不触碰本地缓存。
+          return NextResponse.json(
+            { ok: false, needsManualLogin: true, error: "凭证已过期，请重新登录" },
+            { status: 401 }
+          );
+        }
+      } else {
+        // 无可用密码 → 提示用户手动重新登录(R8.4),保留本地缓存不变。
+        return NextResponse.json(
+          { ok: false, needsManualLogin: true, error: "凭证已过期，请重新登录" },
+          { status: 401 }
+        );
+      }
     }
 
     const credentials = {

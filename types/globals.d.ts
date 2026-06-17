@@ -38,6 +38,11 @@ interface ElectronAPI {
   petShow: () => Promise<{ ok: boolean }>;
   petHide: () => Promise<{ ok: boolean }>;
   setTitleBarOverlay: (options: { color?: string; symbolColor?: string; height?: number }) => Promise<boolean>;
+  // Local-first-sync credential APIs (exposed by preload, task 6.2)
+  storeCredential?: (plaintext: string) => Promise<boolean>;
+  retrieveCredential?: () => Promise<string | null>;
+  clearCredential?: () => Promise<boolean>;
+  secureStorageAvailable?: () => Promise<boolean>;
 }
 
 interface Window {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, Trash2, Clock } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import { parseExamDate } from "@/lib/parse-exam-date";
 import { useAuthStore } from "@/store/auth";
@@ -46,13 +46,13 @@ async function importJWGLExams(schoolId: string, userId: string): Promise<Exam[]
 function useExamStorage(schoolId: string | null, userId: string | null) {
   const accountKey = schoolId && userId ? `${schoolId}:${userId}` : "default";
   const lsKey = `sf_exams:${accountKey}`;
-  const load = (): Exam[] => {
+  const load = useCallback((): Exam[] => {
     try { const raw = localStorage.getItem(lsKey); if (raw) return JSON.parse(raw); } catch { /* ignore */ }
     return [];
-  };
-  const save = (exams: Exam[]) => {
+  }, [lsKey]);
+  const save = useCallback((exams: Exam[]) => {
     try { localStorage.setItem(lsKey, JSON.stringify(exams)); } catch { /* ignore */ }
-  };
+  }, [lsKey]);
   return { load, save };
 }
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { resolveAccountPrefix, resolveSchoolId, resolveUserId } from "@/lib/account-prefix";
 import { getDashboardSummary } from "@/lib/dashboard/summary";
 import { getServerDB } from "@/lib/server-db";
 
@@ -12,11 +13,13 @@ import { getServerDB } from "@/lib/server-db";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type") || "dashboard";
-  const schoolId = searchParams.get("schoolId") || "njtech";
-  const userId = searchParams.get("userId") || "default";
+  const schoolIdParam = searchParams.get("schoolId");
+  const userIdParam = searchParams.get("userId");
 
   const db = getServerDB();
-  const prefix = `${schoolId}:${userId}`;
+  const active = db.findActiveCredentials();
+  const prefix = resolveAccountPrefix({ schoolId: schoolIdParam, userId: userIdParam }, active);
+  const schoolId = resolveSchoolId({ schoolId: schoolIdParam }, active);
 
   // Auto-seed missing data from timetable on first access
   db.seedFromTimetable(prefix);
@@ -112,6 +115,11 @@ export async function GET(request: Request) {
     }
 
     case "credentials": {
+      // userId 单独解析:显式提供则用之，否则回退有效凭证的 userId，再否则默认
+      const userId =
+        userIdParam && userIdParam.trim()
+          ? resolveUserId(userIdParam)
+          : active?.userId ?? resolveUserId(userIdParam);
       const creds = db.getCredentials(schoolId, userId);
       return NextResponse.json(creds || {});
     }

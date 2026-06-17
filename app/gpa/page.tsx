@@ -8,6 +8,7 @@ import {
   scoreToGPA, gpaColor, gpaColorRGB, getScoreBadgeStyle, getScoreDisplay, getSemesterLabel,
 } from "@/lib/gpa";
 import { getScoreRanges, getGPARef } from "@/lib/theme-colors";
+import { useAuthStore } from "@/store/auth";
 
 interface JwglCourse {
   course: string;
@@ -55,6 +56,7 @@ function calcCredits(courses: JwglCourse[]): number {
 
 // ── 主页面 ──
 export default function GPAPage() {
+  const { schoolId, userId, username } = useAuthStore((s) => s);
   const [grades, setGrades] = useState<JwglGrades | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeSemester, setActiveSemester] = useState<string>("all");
@@ -64,12 +66,14 @@ export default function GPAPage() {
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    fetch("/api/local-data?type=grades")
+    const sid = schoolId || "njtech";
+    const uid = userId || username || "default";
+    fetch(`/api/local-data?type=grades&schoolId=${sid}&userId=${uid}`)
       .then(r => r.json())
       .then(d => { if (d?.allCourses?.length > 0) setGrades(d); })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [schoolId, userId, username]);
 
   const toggleSemester = (sem: string) => {
     setExpandedSemesters(prev => ({ ...prev, [sem]: !prev[sem] }));
@@ -137,7 +141,7 @@ export default function GPAPage() {
         <div className="rounded-2xl p-8 text-center border border-border bg-card">
           <BookOpen className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
           <p className="text-[13px] mb-1 text-muted-foreground">暂未同步教务系统成绩</p>
-          <p className="text-[11px] text-muted-foreground/60">运行 timetable/scripts/fetch_grades_all.js 导入成绩</p>
+          <p className="text-[11px] text-muted-foreground/60">在仪表盘或设置页点击「刷新」从教务系统获取成绩</p>
         </div>
       </div>
     );

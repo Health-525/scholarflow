@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { resolveAccountPrefix } from "@/lib/account-prefix";
 import { getServerDB } from "@/lib/server-db";
 
 export async function POST(request: Request) {
@@ -7,9 +8,10 @@ export async function POST(request: Request) {
     const body = await request.json() as { file?: string; content?: string; action?: string; schoolId?: string; userId?: string };
     const { file, content, action, schoolId, userId } = body;
 
+    const db = getServerDB();
+
     // Special action: view data history (from SQLite timestamps)
     if (action === "view-history" && !file) {
-      const db = getServerDB();
       const keys = db.listKeys();
       const history = keys.map(key => {
         const updatedAt = db.getUpdatedAt(key);
@@ -23,9 +25,8 @@ export async function POST(request: Request) {
     }
 
     // Prefix key with schoolId:userId for account isolation
-    const prefix = schoolId && userId ? `${schoolId}:${userId}` : "njtech:default";
-
-    const db = getServerDB();
+    const active = db.findActiveCredentials();
+    const prefix = resolveAccountPrefix({ schoolId, userId }, active);
 
     // Special-case report markdown files to match local-data read keys
     const dailyMatch = file.match(/^日报\/(.+)\.md$/);

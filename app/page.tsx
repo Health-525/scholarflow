@@ -7,6 +7,7 @@ import { ExamCountdownCard } from "@/components/dashboard/ExamCountdownCard";
 import { JwcNewsCard } from "@/components/dashboard/JwcNewsCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { RecentDailyCard } from "@/components/dashboard/RecentDailyCard";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { RunningCard } from "@/components/dashboard/RunningCard";
 import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
 import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
@@ -98,6 +99,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="relative shrink-0 flex items-center gap-3" suppressHydrationWarning>
+              <RefreshButton />
               <div className="relative flex h-12 w-12 items-center justify-center rounded-[18px] bg-white/80 text-[28px] backdrop-blur-xl shadow-sm dark:bg-[#1a1a20]/60">
                 {greetingEmoji}
               </div>

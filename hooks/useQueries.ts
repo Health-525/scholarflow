@@ -279,7 +279,22 @@ export function useRefreshData() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ schoolId, cookie, username }),
       });
-      return await res.json();
+      const data = await res.json().catch(() => ({}));
+      // 规整为调用方统一消费的结构:
+      // /api/fetch/all 成功返回 { ok:true, results:{schedule,exams,grades,jwcNews} },
+      // 失败返回 { ok:false, needsManualLogin?, error }。
+      const fetched = data?.results
+        ? Object.entries(data.results)
+            .filter(([, v]) => typeof v === "string" && !String(v).startsWith("失败"))
+            .map(([, v]) => String(v))
+        : [];
+      return {
+        success: res.ok && data?.ok === true,
+        fetched,
+        needsManualLogin: data?.needsManualLogin === true,
+        error: data?.error as string | undefined,
+        results: data?.results,
+      };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.schedule });

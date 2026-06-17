@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 
+import { resolveUserId, resolveAccountPrefix, buildDataKey } from "@/lib/account-prefix";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { schoolId?: string; libraryJwt?: string };
-    const { schoolId, libraryJwt } = body;
+    const body = await request.json() as { schoolId?: string; libraryJwt?: string; username?: string };
+    const { schoolId, libraryJwt, username } = body;
 
     if (!schoolId) {
       return NextResponse.json({ error: "missing schoolId" }, { status: 400 });
@@ -29,7 +30,12 @@ export async function POST(request: Request) {
     }
 
     const db = getServerDB();
-    db.writeData("library", library);
+    const userId = resolveUserId(username);
+    // username 缺失时用 active 凭证兜底,保证与 local-data 读取端落同一 key
+    const prefix = username
+      ? `${schoolId}:${userId}`
+      : resolveAccountPrefix({ schoolId, userId: undefined }, db.findActiveCredentials());
+    db.writeData(buildDataKey("library", prefix), library);
 
     return NextResponse.json({ ok: true, rooms: library.libs.length });
   } catch (e: unknown) {

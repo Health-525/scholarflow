@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 
+import { resolveUserId, resolveAccountPrefix, buildDataKey } from "@/lib/account-prefix";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { schoolId?: string; cookie?: string };
-    const { schoolId, cookie } = body;
+    const body = await request.json() as { schoolId?: string; cookie?: string; username?: string };
+    const { schoolId, cookie, username } = body;
 
     if (!schoolId || !cookie) {
       return NextResponse.json({ error: "missing schoolId or cookie" }, { status: 400 });
@@ -21,7 +22,12 @@ export async function POST(request: Request) {
     const exams = await adapter.fetchExams(credentials);
 
     const db = getServerDB();
-    db.writeData("exams", exams);
+    const userId = resolveUserId(username);
+    // username 缺失时用 active 凭证兜底,保证与 local-data 读取端落同一 key
+    const prefix = username
+      ? `${schoolId}:${userId}`
+      : resolveAccountPrefix({ schoolId, userId: undefined }, db.findActiveCredentials());
+    db.writeData(buildDataKey("exams", prefix), exams);
 
     return NextResponse.json({ ok: true, count: exams.length });
   } catch (e: unknown) {

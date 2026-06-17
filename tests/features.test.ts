@@ -26,14 +26,14 @@ describe("GPA Engine", () => {
       { id: "2", name: "英语", credit: 2, score: 95, semester: "x" },
     ];
     const gpa = calculateGPA(courses);
-    // 85→3.6*4=14.4, 95→4.0*2=8.0, total 22.4/6=3.73
-    expect(gpa.semesterGPA).toBeCloseTo(3.73, 1);
+    // 85→3.3*4=13.2, 95→4.0*2=8.0, total 21.2/6=3.53
+    expect(gpa.semesterGPA).toBeCloseTo(3.53, 1);
   });
 
   it("目标预测可达", async () => {
     const { predictTarget } = await import("@/lib/gpa");
     const courses = [
-      { id: "1", name: "A", credit: 3, score: 80, semester: "x" }, // 3.2
+      { id: "1", name: "A", credit: 3, score: 80, semester: "x" }, // 80→3.0 (仅作占位，currentGPA 直接传参)
       { id: "2", name: "B", credit: 3, semester: "x" },
     ];
     const r = predictTarget(courses, 3.2, 3.6);

@@ -13,6 +13,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
   retrieveToken: () => ipcRenderer.invoke("token:retrieve"),
   clearToken: () => ipcRenderer.invoke("token:clear"),
 
+  // ── 凭证(教务密码)安全存储 — local-first-sync 记住密码 ──
+  /** 加密存储教务密码(safeStorage) */
+  storeCredential: (plaintext) => ipcRenderer.invoke("credential:store", plaintext),
+  /** 读取并解密教务密码,失败/不存在返回 null */
+  retrieveCredential: () => ipcRenderer.invoke("credential:retrieve"),
+  /** 清除已记住的教务密码 */
+  clearCredential: () => ipcRenderer.invoke("credential:clear"),
+  /** 查询 OS 级加密是否可用 */
+  secureStorageAvailable: () => ipcRenderer.invoke("credential:secure-available"),
+
   // ── 活动窗口追踪 ──
   /** 获取当前活动窗口信息 */
   getActiveWindow: () => ipcRenderer.invoke("activity:get-current-window"),

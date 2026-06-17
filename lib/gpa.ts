@@ -50,14 +50,15 @@ export interface GPATableEntry {
 }
 
 export const GPA_TABLE: readonly GPATableEntry[] = [
-  { min: 95, max: 101, gpa: 4.0, range: "≥95" },
-  { min: 90, max: 95, gpa: 3.8, range: "90-94" },
-  { min: 85, max: 90, gpa: 3.6, range: "85-89" },
-  { min: 80, max: 85, gpa: 3.2, range: "80-84" },
-  { min: 75, max: 80, gpa: 2.8, range: "75-79" },
-  { min: 70, max: 75, gpa: 2.4, range: "70-74" },
-  { min: 65, max: 70, gpa: 1.8, range: "65-69" },
-  { min: 60, max: 65, gpa: 1.0, range: "60-64" },
+  { min: 90, max: 101, gpa: 4.0, range: "≥90" },
+  { min: 86, max: 90, gpa: 3.7, range: "86-89" },
+  { min: 82, max: 86, gpa: 3.3, range: "82-85" },
+  { min: 79, max: 82, gpa: 3.0, range: "79-81" },
+  { min: 75, max: 79, gpa: 2.7, range: "75-78" },
+  { min: 71, max: 75, gpa: 2.3, range: "71-74" },
+  { min: 68, max: 71, gpa: 2.0, range: "68-70" },
+  { min: 64, max: 68, gpa: 1.7, range: "64-67" },
+  { min: 60, max: 64, gpa: 1.3, range: "60-63" },
   { min: 0, max: 60, gpa: 0, range: "<60" },
 ];
 

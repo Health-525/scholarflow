@@ -5,28 +5,33 @@ import {
   Calendar, ClipboardList, Activity, Database,
   BarChart3, Trash2, Download, RefreshCw,
   GraduationCap, ShieldCheck, Clock, User,
-  School, Info,
+  School, Info, KeyRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { SettingsSection } from "@/components/ui/settings-section";
 import { useScheduleQuery, useAssignmentsQuery, useRunningQuery, useRefreshData } from "@/hooks/useQueries";
 import { downloadActivityCSV, clearActivityData } from "@/lib/activity-tracker-v3";
 import { exportAssignmentsCSV, exportRunningCSV, buildWeekICS, downloadICS } from "@/lib/export";
+import { isElectron } from "@/lib/runtime-env";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 import { useThemeStore } from "@/store/theme";
 import type { ThemeValue } from "@/types";
 
-function confirmAction(message: string): boolean {
-  // eslint-disable-next-line no-alert
-  return window.confirm(message);
+interface ConfirmState {
+  title: string;
+  description?: string;
+  confirmText?: string;
+  danger?: boolean;
+  action: () => void;
 }
 
 const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = [
@@ -52,22 +57,42 @@ export default function SettingsPage() {
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
   const [mounted, setMounted] = useState(false);
   const [fetchMessage, setFetchMessage] = useState<string | null>(null);
+  const [showClearPassword, setShowClearPassword] = useState(false);
+  const [clearingPassword, setClearingPassword] = useState(false);
+  const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
 
   const refreshData = useRefreshData();
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+    setShowClearPassword(isElectron());
+  }, []);
+
+  // 复用的学生信息(GPA/学分/课程)加载器,刷新成功后可再次调用以更新卡片。
+  const loadStudentInfo = useCallback(() => {
+    const sid = schoolId || "njtech";
+    const uid = userId || username || "default";
+    fetch(`/api/local-data?type=student&schoolId=${sid}&userId=${uid}`)
+      .then(r => r.json())
+      .then(d => { if (d?.studentId) setStudentInfo(d); })
+      .catch(() => {});
+  }, [schoolId, userId, username]);
 
   useEffect(() => {
-    if (mounted) {
-      fetch(`/api/local-data?type=student&schoolId=${schoolId || "njtech"}&userId=${userId || username || "default"}`)
-        .then(r => r.json())
-        .then(d => { if (d?.studentId) setStudentInfo(d); })
-        .catch(() => {});
+    if (mounted) loadStudentInfo();
+  }, [mounted, loadStudentInfo]);
+
+  // 通过 Secure_Storage 删除已记住的加密密码（Electron 专用，Web 形态为 no-op）。
+  const clearRememberedCredential = async () => {
+    try {
+      await window.electronAPI?.clearCredential?.();
+    } catch {
+      // 加密存储不可用 / IPC 缺失时静默忽略，不阻断主流程。
     }
-  }, [mounted, schoolId, userId, username]);
+  };
 
   const handleLogout = async () => {
-    // 1. Call logout API to clear credentials from DB
+    // 1. Call logout API to clear credentials from DB（并关闭记住密码偏好）
     try {
       await fetch("/api/auth/logout", {
         method: "POST",
@@ -75,10 +100,59 @@ export default function SettingsPage() {
         body: JSON.stringify({ schoolId: schoolId || "njtech", userId: userId || username || "default" }),
       });
     } catch {}
-    // 2. Clear Zustand auth state
+    // 2. 清除已记住的加密密码（Req 4.4）
+    await clearRememberedCredential();
+    // 3. Clear Zustand auth state
     clearToken();
-    // 3. Navigate to setup page
+    // 4. Navigate to setup page
     router.replace("/setup");
+  };
+
+  // 退出登录 — 经二次确认(破坏性操作,清凭证并跳转登录页)。
+  const confirmLogout = () => {
+    setConfirmState({
+      title: "退出登录",
+      description: "将清除本地登录凭证并返回登录页。已同步的课表、成绩等本地数据会保留。",
+      confirmText: "退出登录",
+      danger: true,
+      action: handleLogout,
+    });
+  };
+
+  // 「清除已记住的密码」控件：删除加密密码并将偏好开关置为关闭（Req 4.1/4.2/4.3）。
+  const handleClearPassword = async () => {
+    setClearingPassword(true);
+    setFetchMessage(null);
+    await clearRememberedCredential();
+    try {
+      await fetch("/api/auth/remember", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ schoolId: schoolId || "njtech", userId: userId || username || "default" }),
+      });
+    } catch {}
+    setClearingPassword(false);
+    setFetchMessage("已清除记住的密码");
+  };
+
+  const confirmClearPassword = () => {
+    setConfirmState({
+      title: "清除已记住的密码",
+      description: "清除后自动刷新将停止,下次需要手动重新登录。",
+      confirmText: "清除",
+      danger: true,
+      action: handleClearPassword,
+    });
+  };
+
+  const confirmClearActivity = () => {
+    setConfirmState({
+      title: "清除屏幕时间数据",
+      description: "将永久删除本地记录的屏幕使用时间数据,此操作不可撤销。",
+      confirmText: "清除",
+      danger: true,
+      action: clearActivityData,
+    });
   };
 
   function handleExportICS() {
@@ -94,13 +168,13 @@ export default function SettingsPage() {
     }
     setFetchMessage(null);
     try {
-      const sessionRes = await fetch("/api/auth/session");
-      const sessionData = await sessionRes.json();
-      const cookie = sessionData?.cookie || "";
-
-      const result = await refreshData.mutateAsync({ schoolId, cookie, username });
+      // 凭证由服务端从本地数据库读取(含 cookie 过期静默重登),无需前端传 cookie。
+      const result = await refreshData.mutateAsync({ schoolId, cookie: "", username });
       if (result.success) {
         setFetchMessage(`数据刷新成功：${result.fetched?.join("、") || "全部"}`);
+        loadStudentInfo(); // 刷新成功后更新用户卡片的 GPA/学分/课程
+      } else if (result.needsManualLogin) {
+        setFetchMessage("登录已过期，请退出后重新登录再刷新");
       } else {
         setFetchMessage(`刷新失败：${result.error || "未知错误"}`);
       }
@@ -165,7 +239,7 @@ export default function SettingsPage() {
           <Button
             variant="destructive"
             size="sm"
-            onClick={handleLogout}
+            onClick={confirmLogout}
             className="shrink-0 rounded-xl px-3 py-2 h-auto text-[12px] font-medium gap-1.5 bg-destructive/8 border-destructive/15 text-destructive hover:bg-destructive/15 hover:border-destructive/25 active:translate-y-0.5"
             aria-label="退出登录"
           >
@@ -227,13 +301,30 @@ export default function SettingsPage() {
         </Button>
       </SettingsSection>
 
+      {/* ── 账户安全：清除已记住的密码（仅 Electron） ──────────── */}
+      {showClearPassword && (
+        <SettingsSection icon={<KeyRound className="w-4 h-4" />} title="账户安全">
+          <p className="text-[11px] mb-3 text-muted-foreground">
+            清除本地加密存储的教务密码，并停止后台自动刷新
+          </p>
+          <Button
+            onClick={confirmClearPassword}
+            disabled={clearingPassword}
+            className="w-full justify-start gap-3 px-4 py-3 h-auto rounded-xl text-left text-[13px] font-medium bg-destructive/8 text-destructive hover:bg-destructive/15 active:translate-y-0.5 disabled:opacity-60"
+          >
+            <KeyRound className="w-4 h-4 shrink-0" />
+            <span>{clearingPassword ? "清除中..." : "清除已记住的密码"}</span>
+          </Button>
+        </SettingsSection>
+      )}
+
       {/* ── 数据导出 ──────────────────────────────────────────── */}
       <SettingsSection icon={<Download className="w-4 h-4" />} title="数据导出">
         <MenuItem icon={Calendar} label="导出课表 (ICS)" onClick={handleExportICS} disabled={!scheduleData?.schedule} />
         <MenuItem icon={ClipboardList} label="导出作业 (CSV)" onClick={() => exportAssignmentsCSV(assignments)} disabled={!assignments.length} />
         <MenuItem icon={Activity} label="导出跑步 (CSV)" onClick={() => exportRunningCSV(records)} disabled={!records.length} />
         <MenuItem icon={BarChart3} label="导出屏幕时间 (CSV)" onClick={downloadActivityCSV} />
-        <MenuItem icon={Trash2} label="清除屏幕时间数据" onClick={() => { if (confirmAction("确定清除？")) clearActivityData(); }} danger last />
+        <MenuItem icon={Trash2} label="清除屏幕时间数据" onClick={confirmClearActivity} danger last />
       </SettingsSection>
 
       {/* ── 存储信息 ──────────────────────────────────────────── */}
@@ -252,7 +343,6 @@ export default function SettingsPage() {
           <div className="text-[11px] text-muted-foreground">v2.0 · Electron + Next.js</div>
           <div className="text-[10px] mt-0.5 text-muted-foreground">独立学习管理中枢</div>
           <div className="mt-3 flex flex-wrap gap-1.5 justify-center">
-            <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium hover:bg-primary/10">AI 助手</Badge>
             <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--status-success)]/10 text-[var(--status-success)] font-medium hover:bg-[var(--status-success)]/10">PWA</Badge>
             <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 font-medium hover:bg-amber-500/10">离线优先</Badge>
             <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 font-medium hover:bg-purple-500/10">SQLite</Badge>
@@ -263,15 +353,16 @@ export default function SettingsPage() {
         </div>
       </SettingsSection>
 
-      {/* ── 底部退出登录（大按钮，始终可见） ───────────────────── */}
-      <Button
-        variant="outline"
-        onClick={handleLogout}
-        className="w-full rounded-[28px] p-4 h-auto flex items-center justify-center gap-2 text-[13px] font-medium mb-6 bg-card border-destructive/15 text-destructive shadow-sm hover:bg-destructive/8 hover:text-destructive hover:border-destructive/25 hover:shadow-md active:translate-y-0.5"
-      >
-        <LogOut className="w-4 h-4" />
-        退出登录
-      </Button>
+      {/* ── 确认对话框(替代原生 confirm) ─────────────────────── */}
+      <ConfirmDialog
+        open={confirmState !== null}
+        onOpenChange={(open) => { if (!open) setConfirmState(null); }}
+        title={confirmState?.title ?? ""}
+        description={confirmState?.description}
+        confirmText={confirmState?.confirmText}
+        danger={confirmState?.danger ?? true}
+        onConfirm={() => { confirmState?.action(); setConfirmState(null); }}
+      />
     </div>
   );
 }

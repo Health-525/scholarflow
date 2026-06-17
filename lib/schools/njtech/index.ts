@@ -37,13 +37,6 @@ export const njtechAdapter: SchoolAdapter = {
       placeholder: "正方教务系统密码",
       required: true,
     },
-    {
-      key: "libraryJwt",
-      label: "图书馆 JWT（可选）",
-      type: "password",
-      placeholder: "从浏览器登录图书馆后提取",
-      required: false,
-    },
   ],
 
   async login(credentials): Promise<SchoolCredentials> {

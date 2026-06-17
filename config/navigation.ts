@@ -3,7 +3,6 @@ import {
   Activity,
   BarChart3,
   BookOpen,
-  Bot,
   Brain,
   Calculator,
   CalendarDays,
@@ -72,7 +71,6 @@ export const SIDE_NAV_GROUPS: NavGroupConfig[] = [
       { id: "running", href: "/running", label: "跑步", icon: Activity, keywords: ["跑步", "运动"], searchTitle: "阳光长跑" },
       { id: "activity", href: "/activity", label: "屏幕时间", icon: Monitor, keywords: ["屏幕时间", "使用统计"] },
       { id: "library", href: "/library", label: "图书馆", icon: Library, keywords: ["图书馆", "座位", "选座"] },
-      { id: "chat", href: "/chat", label: "AI 助手", icon: Bot, keywords: ["AI", "聊天", "助手"], shortLabel: "AI" },
       { id: "wrinkle", href: "/wrinkle", label: "皮肤检测", icon: Sparkles, keywords: ["皮肤", "检测"] },
       { id: "monitoring", href: "/monitoring", label: "Agent", icon: HeartPulse, keywords: ["Agent", "监控"] },
     ],
@@ -96,7 +94,6 @@ export const BOTTOM_NAV_CORE: NavItemConfig[] = [
   { id: "running", href: "/running", label: "跑步", icon: Activity, keywords: ["跑步", "运动"], shortLabel: "跑步" },
   { id: "notes", href: "/notes", label: "笔记", icon: FileText, keywords: ["笔记", "知识库"] },
   { id: "library", href: "/library", label: "图书馆", icon: Library, keywords: ["图书馆", "座位", "选座"] },
-  { id: "chat", href: "/chat", label: "AI 助手", icon: Bot, keywords: ["AI", "聊天", "助手"], shortLabel: "AI" },
 ];
 
 // 底部导航“更多”抽屉分组
@@ -146,7 +143,6 @@ export const GLOBAL_SEARCH_ITEMS: NavItemConfig[] = [
   { id: "daily", href: "/reports/daily", label: "日报", icon: Newspaper, keywords: ["日报", "报告"] },
   { id: "weekly", href: "/reports/weekly", label: "周报", icon: Flag, keywords: ["周报", "总结"], searchTitle: "周报" },
   { id: "library", href: "/library", label: "图书馆", icon: Library, keywords: ["图书馆", "座位", "选座"] },
-  { id: "chat", href: "/chat", label: "AI 助手", icon: Bot, keywords: ["AI", "聊天", "助手"] },
   { id: "pomodoro", href: "/pomodoro", label: "番茄钟", icon: Timer, keywords: ["番茄钟", "专注", "计时器"] },
   { id: "progress", href: "/progress", label: "学习进度", icon: TrendingUp, keywords: ["进度", "统计"] },
   { id: "knowledge", href: "/knowledge", label: "知识画像", icon: Brain, keywords: ["知识", "画像", "技能"] },

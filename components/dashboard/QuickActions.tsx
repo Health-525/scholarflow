@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  CalendarDays, ClipboardList, Activity, Clock, Bot,
+  CalendarDays, ClipboardList, Activity, Clock,
   FileText, Timer, TrendingUp, Library, Brain,
 } from "lucide-react";
 import Link from "next/link";
@@ -12,7 +12,6 @@ const QUICK_ACTIONS = [
   { href: "/running",       label: "跑步",   Icon: Activity,      color: "#f59e0b", darkColor: "#d29922" },
   { href: "/exams",         label: "考试",   Icon: Clock,         color: "#ef4444", darkColor: "#f85149" },
   { href: "/pomodoro",      label: "番茄钟", Icon: Timer,         color: "#8b5cf6", darkColor: "#a78bfa" },
-  { href: "/chat",          label: "AI",     Icon: Bot,           color: "#06b6d4", darkColor: "#2dd4bf" },
   { href: "/notes",         label: "笔记",   Icon: FileText,      color: "#64748b", darkColor: "#c9d1d9" },
   { href: "/progress",      label: "进度",   Icon: TrendingUp,    color: "#2a4494", darkColor: "#7c8edb" },
   { href: "/library",       label: "图书馆", Icon: Library,       color: "#f59e0b", darkColor: "#d29922" },
