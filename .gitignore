@@ -40,6 +40,10 @@ next-env.d.ts
 
 # SQLite runtime data
 data/
+.data/
+
+# build log
+build_log.txt
 
 # PWA generated files
 public/sw.js
