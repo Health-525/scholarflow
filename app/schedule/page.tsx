@@ -7,6 +7,7 @@ import { TodayView } from "@/components/schedule/TodayView";
 import { WeekGrid } from "@/components/schedule/WeekGrid";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { MobileSchedule } from "@/components/ximi/MobileSchedule";
 import { useScheduleQuery } from "@/hooks/useQueries";
 
 type Tab = "today" | "week" | "query";
@@ -24,7 +25,12 @@ export default function SchedulePage() {
   const adjustments = data?.adjustments ?? [];
 
   return (
-    <div className="max-w-5xl mx-auto min-h-screen bg-background text-foreground flex flex-col animate-page">
+    <>
+      {/* 移动端：萌系「小咪」课表 */}
+      <MobileSchedule />
+
+      {/* 桌面端：原版课表（保持不变） */}
+      <div className="hidden md:flex max-w-5xl mx-auto min-h-screen bg-background text-foreground flex-col animate-page">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6 py-4 animate-fade-up">
         <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
@@ -106,5 +112,6 @@ export default function SchedulePage() {
         )}
       </div>
     </div>
+    </>
   );
 }

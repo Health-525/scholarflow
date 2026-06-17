@@ -6,6 +6,7 @@
 @import './theme.css';
 @import './animations.css';
 @import './markdown.css';
+@import './ximi-theme.css'; /* 移动端「小咪」皮肤,需在 theme.css 之后以覆盖 token */
 
 /* ── Base Reset ── */
 *, *::before, *::after {
@@ -141,6 +142,10 @@ h1, h2, h3 { letter-spacing: 0; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+/* 隐藏滚动条(萌系聊天输入框等) */
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
 
 /* ── Safe Area ── */
 @supports (padding: env(safe-area-inset-bottom)) {

@@ -11,6 +11,7 @@ import { RunningCard } from "@/components/dashboard/RunningCard";
 import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
 import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
 import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
+import { MobileHome } from "@/components/ximi/MobileHome";
 
 function useGreeting() {
   const [greeting, setGreeting] = useState({
@@ -61,7 +62,12 @@ export default function DashboardPage() {
   const { text: greeting, emoji: greetingEmoji, date: dateStr } = useGreeting();
 
   return (
-    <div className="mx-auto max-w-5xl py-5 pb-32 md:py-8 md:pb-12 space-y-4 md:space-y-5 animate-page">
+    <>
+      {/* 移动端:萌系「小咪」首页 */}
+      <MobileHome />
+
+      {/* 桌面端:原版仪表盘(保持不变) */}
+      <div className="hidden md:block mx-auto max-w-5xl py-5 pb-32 md:py-8 md:pb-12 space-y-4 md:space-y-5 animate-page">
       <header className="animate-fade-up">
         <div className="flex items-end justify-between gap-4 border-b border-border pb-4 md:pb-5">
           <div className="min-w-0 flex-1" suppressHydrationWarning>
@@ -125,6 +131,7 @@ export default function DashboardPage() {
           <JwcNewsCard />
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

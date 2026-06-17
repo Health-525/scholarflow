@@ -40,7 +40,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#faf7f2",
+  themeColor: [
+    { media: "(max-width: 767px)", color: "#fef8fa" },
+    { color: "#faf7f2" },
+  ],
 };
 
 export default function RootLayout({
@@ -77,6 +80,11 @@ export default function RootLayout({
                   document.documentElement.setAttribute('data-theme', effective);
                   if (effective === 'dark') {
                     document.documentElement.classList.add('dark');
+                  }
+                  var isMobile = window.matchMedia('(max-width: 767px)').matches;
+                  if (isMobile) {
+                    document.documentElement.style.backgroundColor = '#fef8fa';
+                  } else if (effective === 'dark') {
                     document.documentElement.style.backgroundColor = '#171717';
                   } else {
                     document.documentElement.style.backgroundColor = '#f7f7f5';
