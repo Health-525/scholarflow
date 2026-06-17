@@ -41,6 +41,28 @@ ScholarFlow 把散落在各处的大学生日常工具整合进一个 **本地�
 
 ---
 
+## 平台能力矩阵
+
+ScholarFlow 以 **Electron 桌面端**为第一公民，PWA 和移动端为轻量模式。
+
+| 功能 | Electron (Windows/macOS) | Web / PWA | Android (Capacitor) |
+|------|:---:|:---:|:---:|
+| 课表 / 考试 / 成绩同步 | ✅ | ✅ | ⚠️ 实验性 |
+| 作业、目标、番茄钟 | ✅ | ✅ | ⚠️ 实验性 |
+| 图书馆座位预约 | ✅ | ✅ | ⚠️ 实验性 |
+| 桌面通知 | ✅ | ⚠️ 浏览器权限 | ⚠️ |
+| 教务密码加密存储（记住密码） | ✅ DPAPI / Keychain | ❌ 不保存 | ❌ |
+| 本地 SQLite 数据库 | ✅ | ✅ standalone | ❌ |
+| 活动窗口分析 | ✅ | ❌ | ❌ |
+| 摄像头皱眉检测 | ✅ 本地推理 | ❌ | ❌ |
+| 桌面宠物 | ✅ | ❌ | ❌ |
+| 后台自动刷新（关窗运行） | ✅ | ❌ | ❌ |
+| PWA 离线访问 | — | ✅ | — |
+
+> ⚠️ = 功能可用但未经完整测试 / 存在平台限制
+
+---
+
 ## 技术亮点
 
 **本地优先，数据不出设备**
@@ -179,13 +201,21 @@ CI 在每次 push / PR 时自动运行全部检查（见 `.github/workflows/ci.y
 2. 在 `lib/schools/registry.ts` 注册适配器
 3. 提交 PR，欢迎添加更多学校支持
 
+详细开发指南（含登录协议分析、测试规范、PR 检查清单）见 [docs/school-adapter-guide.md](docs/school-adapter-guide.md)。
+
+没有真实学校账号？用内置的 `mockAdapter` 即可跑通完整流程，见适配器指南的"快速开始"章节。
+
 ---
 
 ## 贡献
 
 欢迎 Issue 和 PR！请先阅读 [CONTRIBUTING.md](./CONTRIBUTING.md)。
 
+接入新学校教务系统请参考 [docs/school-adapter-guide.md](docs/school-adapter-guide.md)。
+
 安全漏洞请参考 [SECURITY.md](./SECURITY.md) 私信报告，不要直接开 Issue。
+
+数据存储结构和演进计划见 [docs/DATA_MODEL.md](docs/DATA_MODEL.md)。
 
 ---
 

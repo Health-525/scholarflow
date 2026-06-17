@@ -12,6 +12,17 @@ npm run dev          # Web 开发模式
 npm run electron:dev # Electron 桌面开发模式
 ```
 
+## 如何贡献学校适配器
+
+接入你的学校是对项目最有价值的贡献之一。完整指南见 [docs/school-adapter-guide.md](./docs/school-adapter-guide.md)，包含：
+
+- 最小实现示例
+- 正方 / CAS / 验证码等常见登录协议说明
+- 返回数据格式规范
+- 测试要求和 PR 检查清单
+
+没有真实学校账号也可以贡献：先用内置 `mockAdapter` 跑通流程，再对照抓包结果接入真实系统。
+
 ## 代码规范
 
 - **TypeScript strict mode** — 所有新代码必须通过 `tsc --noEmit`
