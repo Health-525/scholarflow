@@ -14,6 +14,7 @@ import { useScheduleQuery, useAssignmentsQuery, useRunningQuery, useSyncFromGitH
 import { downloadActivityCSV, clearActivityData } from "@/lib/activity-tracker-v3";
 import { getDB } from "@/lib/db";
 import { exportAssignmentsCSV, exportRunningCSV, buildWeekICS, downloadICS } from "@/lib/export";
+import { applySkin, getSkin, setSkin, type SkinValue } from "@/lib/skin";
 import { useAuthStore } from "@/store/auth";
 import { useThemeStore } from "@/store/theme";
 import type { ThemeValue } from "@/types";
@@ -22,6 +23,11 @@ const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = 
   { value: "light", label: "浅色", Icon: Sun },
   { value: "dark", label: "深色", Icon: Moon },
   { value: "system", label: "跟随系统", Icon: Monitor },
+];
+
+const SKIN_OPTIONS: { value: SkinValue; label: string; dot: string }[] = [
+  { value: "ximi", label: "粉色小咪", dot: "#ffb7ce" },
+  { value: "blue", label: "清新青", dot: "#0d9488" },
 ];
 
 interface StudentInfo {
@@ -42,6 +48,7 @@ export default function SettingsPage() {
   const [cacheSize, setCacheSize] = useState<number | null>(null);
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [skin, setSkinState] = useState<SkinValue>("ximi");
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [historyMessage, setHistoryMessage] = useState<string | null>(null);
 
@@ -49,6 +56,13 @@ export default function SettingsPage() {
   const syncToGitHub = useSyncToGitHub();
 
   useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { setSkinState(getSkin()); }, []);
+
+  const changeSkin = (s: SkinValue) => {
+    setSkinState(s);
+    setSkin(s);
+    applySkin(s);
+  };
 
   useEffect(() => {
     if (mounted) {
@@ -150,6 +164,30 @@ export default function SettingsPage() {
               {theme === opt.value && <span className="w-1 h-1 rounded-full bg-primary" />}
             </button>
           ))}
+        </div>
+
+        {/* 配色 / 皮肤(仅移动端生效) */}
+        <div className="mt-3">
+          <div className="mb-1.5 flex items-center gap-2">
+            <span className="text-[11px] font-medium text-muted-foreground">配色</span>
+            <span className="text-[10px] text-muted-foreground/70">仅手机端生效</span>
+          </div>
+          <div className="flex gap-1.5 p-1 rounded-xl bg-secondary">
+            {SKIN_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => changeSkin(opt.value)}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-medium transition-all duration-200 ${
+                  skin === opt.value ? "bg-card text-primary shadow-sm" : "text-muted-foreground"
+                }`}
+                aria-pressed={skin === opt.value}
+              >
+                <span className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: opt.dot }} />
+                <span>{opt.label}</span>
+                {skin === opt.value && <span className="w-1 h-1 rounded-full bg-primary" />}
+              </button>
+            ))}
+          </div>
         </div>
       </SettingsSection>
 

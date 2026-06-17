@@ -58,6 +58,14 @@ export default function RootLayout({
       className={cn(geistSans.variable)}
     >
       <head>
+        {/* 萌系大标题字体(站酷快乐体)— Google Fonts;加载不出则回退黑体,不影响功能 */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap"
+          rel="stylesheet"
+        />
+
         {/* iOS / PWA */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -81,9 +89,12 @@ export default function RootLayout({
                   if (effective === 'dark') {
                     document.documentElement.classList.add('dark');
                   }
+                  var skin = localStorage.getItem('sf_skin');
+                  if (skin !== 'blue' && skin !== 'ximi') skin = 'ximi';
+                  document.documentElement.setAttribute('data-skin', skin);
                   var isMobile = window.matchMedia('(max-width: 767px)').matches;
                   if (isMobile) {
-                    document.documentElement.style.backgroundColor = '#fef8fa';
+                    document.documentElement.style.backgroundColor = skin === 'blue' ? '#f2faf8' : '#fef8fa';
                   } else if (effective === 'dark') {
                     document.documentElement.style.backgroundColor = '#171717';
                   } else {

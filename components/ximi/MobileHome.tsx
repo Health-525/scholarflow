@@ -46,7 +46,7 @@ function TodayTasks() {
   const pending = assignments.filter((a) => !a.done).slice(0, 4);
 
   return (
-    <section className="relative w-full overflow-hidden rounded-[32px] bg-surface-container-lowest p-5 shadow-[0_20px_40px_-20px_rgba(255,183,206,0.25)]">
+    <section className="relative w-full overflow-hidden rounded-[32px] bg-surface-container-lowest p-5 shadow-[0_20px_40px_-20px_rgba(var(--ximi-glow),0.25)]">
       <div className="pointer-events-none absolute inset-0 rounded-[32px] border-[1.5px] border-white/60" />
       <div className="relative z-10 mb-4 flex items-center justify-between">
         <h2 className="text-[20px] font-bold text-on-surface">今日任务</h2>
@@ -119,15 +119,15 @@ export function MobileHome() {
       {/* Hero：小咪 */}
       <section className="relative flex flex-col items-center">
         <div className="absolute left-1/2 top-10 -z-10 h-56 w-56 -translate-x-1/2 rounded-full bg-primary-container/30 blur-[42px]" />
-        <div className="flex h-40 w-40 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-surface-container-lowest shadow-[0_20px_40px_-15px_rgba(255,183,206,0.4)]">
+        <div className="flex h-40 w-40 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-surface-container-lowest shadow-[0_20px_40px_-15px_rgba(var(--ximi-glow),0.4)]">
           <Mascot size="xl" eager float className="!drop-shadow-none" />
         </div>
         <div className="z-10 -mt-5 flex gap-3">
-          <span className="flex items-center gap-1.5 rounded-full border border-white/60 bg-white/90 px-4 py-1.5 shadow-[0_8px_16px_-4px_rgba(255,183,206,0.25)] backdrop-blur-md">
+          <span className="flex items-center gap-1.5 rounded-full border border-white/60 bg-white/90 px-4 py-1.5 shadow-[0_8px_16px_-4px_rgba(var(--ximi-glow),0.25)] backdrop-blur-md">
             <Smile className="h-4 w-4 text-primary" />
             <span className="text-[12px] font-semibold text-on-surface">元气满满</span>
           </span>
-          <span className="flex items-center gap-1.5 rounded-full border border-white/60 bg-white/90 px-4 py-1.5 shadow-[0_8px_16px_-4px_rgba(255,183,206,0.25)] backdrop-blur-md">
+          <span className="flex items-center gap-1.5 rounded-full border border-white/60 bg-white/90 px-4 py-1.5 shadow-[0_8px_16px_-4px_rgba(var(--ximi-glow),0.25)] backdrop-blur-md">
             <BatteryCharging className="h-4 w-4 text-secondary" />
             <span className="text-[12px] font-semibold text-on-surface">准备学习</span>
           </span>
@@ -138,7 +138,7 @@ export function MobileHome() {
       {/* 开始专注 */}
       <Link
         href="/pomodoro"
-        className="flex w-full items-center justify-center gap-3 rounded-[2rem] bg-primary-container py-4 text-on-primary-container shadow-[0_12px_24px_-8px_rgba(255,183,206,0.5)] transition-transform active:scale-[0.98]"
+        className="flex w-full items-center justify-center gap-3 rounded-[2rem] bg-primary-container py-4 text-on-primary-container shadow-[0_12px_24px_-8px_rgba(var(--ximi-glow),0.5)] transition-transform active:scale-[0.98]"
       >
         <Timer className="h-7 w-7" />
         <span className="text-[18px] font-bold">开始专注</span>

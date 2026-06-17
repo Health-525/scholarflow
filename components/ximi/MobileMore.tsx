@@ -90,10 +90,10 @@ export function MobileMore() {
       </div>
 
       {/* 个人资料卡 */}
-      <section className="relative overflow-hidden rounded-[28px] border border-white/60 bg-white/80 p-5 shadow-[0_20px_40px_-20px_rgba(255,183,206,0.3)] backdrop-blur-md">
+      <section className="relative overflow-hidden rounded-[28px] border border-white/60 bg-white/80 p-5 shadow-[0_20px_40px_-20px_rgba(var(--ximi-glow),0.3)] backdrop-blur-md">
         <div className="flex flex-col items-center text-center">
           <div className="relative">
-            <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-surface-container-lowest shadow-[0_12px_24px_-8px_rgba(255,183,206,0.4)]">
+            <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-surface-container-lowest shadow-[0_12px_24px_-8px_rgba(var(--ximi-glow),0.4)]">
               <Mascot size="lg" float className="!drop-shadow-none" />
             </div>
             <span className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-primary-container text-on-primary-container shadow-md">
@@ -114,7 +114,7 @@ export function MobileMore() {
       </section>
 
       {/* 学习数据 */}
-      <section className="rounded-[28px] bg-surface-container-lowest p-5 shadow-[0_20px_40px_-20px_rgba(255,183,206,0.25)]">
+      <section className="rounded-[28px] bg-surface-container-lowest p-5 shadow-[0_20px_40px_-20px_rgba(var(--ximi-glow),0.25)]">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-[18px] font-bold text-on-surface">
             <BarChart3 className="h-5 w-5 text-primary" />
@@ -133,7 +133,7 @@ export function MobileMore() {
       </section>
 
       {/* 小咪衣橱 */}
-      <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-primary-fixed to-primary-container p-5 shadow-[0_20px_40px_-20px_rgba(255,183,206,0.3)]">
+      <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-primary-fixed to-primary-container p-5 shadow-[0_20px_40px_-20px_rgba(var(--ximi-glow),0.3)]">
         <div className="pointer-events-none absolute -bottom-6 -right-4 opacity-20">
           <Mascot size="xl" className="!drop-shadow-none" />
         </div>
@@ -160,7 +160,7 @@ export function MobileMore() {
       </section>
 
       {/* 账号设置 */}
-      <section className="overflow-hidden rounded-[28px] bg-surface-container-lowest shadow-[0_20px_40px_-20px_rgba(255,183,206,0.25)]">
+      <section className="overflow-hidden rounded-[28px] bg-surface-container-lowest shadow-[0_20px_40px_-20px_rgba(var(--ximi-glow),0.25)]">
         <ul className="divide-y divide-outline-variant/40">
           {SETTINGS_ROWS.map((row) => (
             <li key={row.label}>
@@ -195,7 +195,7 @@ export function MobileMore() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex min-h-[80px] flex-col items-center justify-center gap-2 rounded-[20px] bg-surface-container-lowest px-2 py-3 text-center text-on-surface shadow-[0_8px_20px_-12px_rgba(255,183,206,0.3)] transition-all hover:bg-surface-container-low active:scale-95"
+                  className="flex min-h-[80px] flex-col items-center justify-center gap-2 rounded-[20px] bg-surface-container-lowest px-2 py-3 text-center text-on-surface shadow-[0_8px_20px_-12px_rgba(var(--ximi-glow),0.3)] transition-all hover:bg-surface-container-low active:scale-95"
                 >
                   <item.Icon className="h-[22px] w-[22px] shrink-0" strokeWidth={1.9} />
                   <span className="text-[11px] font-semibold leading-tight">{item.label}</span>
@@ -207,7 +207,7 @@ export function MobileMore() {
       </section>
 
       {/* 关于我们 */}
-      <section className="rounded-[28px] bg-surface-container-lowest p-5 shadow-[0_20px_40px_-20px_rgba(255,183,206,0.25)]">
+      <section className="rounded-[28px] bg-surface-container-lowest p-5 shadow-[0_20px_40px_-20px_rgba(var(--ximi-glow),0.25)]">
         <h3 className="mb-2 flex items-center gap-2 text-[18px] font-bold text-on-surface">
           <Info className="h-5 w-5 text-primary" />
           关于我们

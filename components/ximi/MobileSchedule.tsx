@@ -84,7 +84,7 @@ function TodayPane({
   return (
     <div className="flex flex-col gap-4">
       {/* Hero：下节课 / 全部结束 */}
-      <section className="relative overflow-hidden rounded-[28px] bg-surface-container-lowest p-5 shadow-[0_20px_40px_-20px_rgba(255,183,206,0.3)]">
+      <section className="relative overflow-hidden rounded-[28px] bg-surface-container-lowest p-5 shadow-[0_20px_40px_-20px_rgba(var(--ximi-glow),0.3)]">
         <div className="pointer-events-none absolute inset-0 rounded-[28px] border-[1.5px] border-white/60" />
         <div className="relative z-10 flex items-center gap-4">
           <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 border-white bg-primary-container/25">
@@ -235,7 +235,7 @@ function WeekPane({
           type="button"
           onClick={() => setWeekOffset((w) => w - 1)}
           aria-label="上一周"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-lowest text-primary shadow-[0_4px_12px_rgba(255,183,206,0.16)] transition active:scale-90"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-lowest text-primary shadow-[0_4px_12px_rgba(var(--ximi-glow),0.16)] transition active:scale-90"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -260,14 +260,14 @@ function WeekPane({
           type="button"
           onClick={() => setWeekOffset((w) => w + 1)}
           aria-label="下一周"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-lowest text-primary shadow-[0_4px_12px_rgba(255,183,206,0.16)] transition active:scale-90"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-lowest text-primary shadow-[0_4px_12px_rgba(var(--ximi-glow),0.16)] transition active:scale-90"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
 
       {/* 网格卡片 */}
-      <div className="overflow-hidden rounded-[28px] bg-surface-container-lowest p-2 shadow-[0_12px_32px_-8px_rgba(255,183,206,0.28)]">
+      <div className="overflow-hidden rounded-[28px] bg-surface-container-lowest p-2 shadow-[0_12px_32px_-8px_rgba(var(--ximi-glow),0.28)]">
         <div className="overflow-x-auto">
           <div className="min-w-[600px]">
             {/* 表头 */}
@@ -506,7 +506,7 @@ export function MobileSchedule() {
           {tab === "today" && <TodayPane schedule={schedule} adjustments={adjustments} />}
           {tab === "week" && <WeekPane schedule={schedule} adjustments={adjustments} />}
           {tab === "query" && (
-            <div className="rounded-[28px] bg-surface-container-lowest p-4 shadow-[0_12px_32px_-8px_rgba(255,183,206,0.28)]">
+            <div className="rounded-[28px] bg-surface-container-lowest p-4 shadow-[0_12px_32px_-8px_rgba(var(--ximi-glow),0.28)]">
               <QueryView schedule={schedule} adjustments={adjustments} />
             </div>
           )}

@@ -58,7 +58,7 @@ export function Mascot({
       decoding="async"
       onError={() => setFailed(true)}
       className={cn(
-        "inline-block shrink-0 select-none object-contain drop-shadow-[0_8px_16px_rgba(255,183,206,0.35)]",
+        "inline-block shrink-0 select-none object-contain drop-shadow-[0_8px_16px_rgba(var(--ximi-glow),0.35)]",
         float && "ximi-float",
         className,
       )}
