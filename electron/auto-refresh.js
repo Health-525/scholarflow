@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * AutoRefreshScheduler — Electron 主进程定时自动刷新调度器(CommonJS)。
  *

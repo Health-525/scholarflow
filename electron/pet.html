@@ -95,24 +95,16 @@ body {
 <body>
 <div class="pet-wrap">
   <div class="bubble" id="bubble"></div>
-  <img class="pet-img breathe" id="petImg" src="/pet/normal.png" alt="pet" />
+  <img class="pet-img breathe" id="petImg" src="" alt="pet" />
 </div>
 
 <script>
-const { ipcRenderer } = require('electron');
-const path = require('path');
-
-// 图片路径：从 electron/ 目录往上找 public/pet/
-const petDir = path.join(__dirname, '..', 'public', 'pet');
-const NORMAL = path.join(petDir, 'normal.png');
-const ANGRY = path.join(petDir, 'angry.png');
-const SLEEPING = path.join(petDir, 'sleeping.png');
-
+// petAPI 由 pet-preload.js 通过 contextBridge 注入，无需 require()
 const petImg = document.getElementById('petImg');
 const bubble = document.getElementById('bubble');
 
-// 设置初始图片
-petImg.src = NORMAL;
+// 设置初始图片（使用 preload 注入的绝对路径）
+petImg.src = petAPI.paths.normal;
 
 const ANGRY_MESSAGES = [
   "别皱眉！放松额头！",
@@ -132,7 +124,7 @@ function setAngry(score) {
   if (isAngry) return;
   isAngry = true;
 
-  petImg.src = ANGRY;
+  petImg.src = petAPI.paths.angry;
   petImg.className = 'pet-img shake bounce';
 
   bubble.textContent = ANGRY_MESSAGES[Math.floor(Math.random() * ANGRY_MESSAGES.length)] + ` (${Math.round(score)})`;
@@ -144,70 +136,52 @@ function setAngry(score) {
 
 function setNormal() {
   isAngry = false;
-  petImg.src = NORMAL;
+  petImg.src = petAPI.paths.normal;
   petImg.className = 'pet-img breathe';
   bubble.classList.remove('show', 'angry');
 }
 
 function setSleeping() {
   isAngry = false;
-  petImg.src = SLEEPING;
+  petImg.src = petAPI.paths.sleeping;
   petImg.className = 'pet-img breathe';
   bubble.textContent = 'zzZ';
   bubble.classList.add('show');
   bubble.classList.remove('angry');
 }
 
-// Listen for brow alerts from main process
-ipcRenderer.on('brow-alert', (_event, data) => {
+// 订阅来自主进程的抬眉警报（IPC 推送）
+petAPI.onBrowAlert((data) => {
   setAngry(data.score || 50);
 });
 
-// Poll alerts via Node.js http (file:// 协议下 fetch 不可靠)
-const http = require('http');
-// 动态检测端口：优先3456(生产), 备用3000(开发)
+// 轮询 wrinkle-alert（降级方案，file:// 下 fetch 不可靠，通过 preload 封装的 http 模块轮询）
 let SF_PORT = 3456;
 let pollInterval = 3000;
 let failCount = 0;
 let pollTimer = null;
 
-function detectPort(callback) {
-  // 先试3456，不通再试3000
-  const tryPort = (port) => {
-    const req = http.get(`http://localhost:${port}/api/wrinkle-alert`, (res) => {
-      res.resume(); // consume body
-      callback(port);
-    });
-    req.on('error', () => {
-      if (port === 3456) tryPort(3000);
-      else callback(3456); // default
-    });
-    req.setTimeout(1500, () => { req.destroy(); if (port === 3456) tryPort(3000); else callback(3456); });
-  };
-  tryPort(3456);
+async function detectPort() {
+  // 先试 3456，不通再试 3000
+  const result = await petAPI.pollWrinkleAlert(3456, 1500);
+  if (result !== null) return 3456;
+  const result2 = await petAPI.pollWrinkleAlert(3000, 1500);
+  if (result2 !== null) return 3000;
+  return 3456; // 默认值
 }
 
-function checkAlert() {
-  const req = http.get(`http://localhost:${SF_PORT}/api/wrinkle-alert`, (res) => {
-    let data = '';
-    res.on('data', chunk => data += chunk);
-    res.on('end', () => {
-      failCount = 0;
-      pollInterval = 3000;
-      try {
-        const obj = JSON.parse(data);
-        if (obj.rising) setAngry(obj.score || 50);
-      } catch {}
-      scheduleNext();
-    });
-  });
-  req.on('error', () => {
+async function checkAlert() {
+  const obj = await petAPI.pollWrinkleAlert(SF_PORT, 2000);
+  if (obj !== null) {
+    failCount = 0;
+    pollInterval = 3000;
+    if (obj.rising) setAngry(obj.score || 50);
+  } else {
     failCount++;
     // 连续失败时逐步降低频率：3s → 6s → 10s → 30s
     pollInterval = Math.min(30000, 3000 * Math.pow(2, Math.min(failCount, 3)));
-    scheduleNext();
-  });
-  req.setTimeout(2000, () => req.destroy());
+  }
+  scheduleNext();
 }
 
 function scheduleNext() {
@@ -215,14 +189,14 @@ function scheduleNext() {
   pollTimer = setTimeout(checkAlert, pollInterval);
 }
 
-detectPort((port) => {
+detectPort().then((port) => {
   SF_PORT = port;
   checkAlert();
 });
 
-// Right-click to close
+// 右键关闭（通过 preload 桥接，不直接调用 ipcRenderer）
 document.addEventListener('contextmenu', () => {
-  ipcRenderer.send('pet:close');
+  petAPI.close();
 });
 </script>
 </body>

@@ -53,7 +53,7 @@ function graphql<T = unknown>(jwt: string, query: string) {
   });
 }
 
-// GET /api/library/layout?lib_id=123
+// GET /api/library/seat-layout?lib_id=123
 export async function GET(request: Request) {
   const jwt = getCachedJWT();
   if (!jwt) return NextResponse.json({ error: "JWT未配置或已过期" }, { status: 401 });

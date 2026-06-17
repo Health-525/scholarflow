@@ -274,8 +274,9 @@ ipcMain.handle('pet:show', async () => {
     skipTaskbar: true,
     hasShadow: false,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'pet-preload.js'),
     },
   });
 
@@ -557,10 +558,15 @@ async function openLibraryLoginWindow() {
     },
   });
 
-  // 忽略VPN证书错误（VPN代理可能有自签名证书）
+  // 信任南京工业大学校内 / VPN 域名的自签名证书。
+  // 使用严格的后缀校验（endsWith）而非 includes，防止 evil-njtech.edu.cn.attacker.com 绕过。
+  const TRUSTED_SUFFIXES = ['.njtech.edu.cn', 'njtech.edu.cn'];
   loginSession.setCertificateVerifyProc((request, callback) => {
     const { hostname } = request;
-    if (hostname.includes('njtech.edu.cn')) {
+    const trusted = TRUSTED_SUFFIXES.some(
+      (suffix) => hostname === suffix || hostname.endsWith('.' + suffix.replace(/^\./, ''))
+    );
+    if (trusted) {
       callback(0); // 信任
     } else {
       callback(-2); // 使用默认验证

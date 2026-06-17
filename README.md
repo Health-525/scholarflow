@@ -1,269 +1,194 @@
-# 📚 ScholarFlow — 统一学习管理中枢
+<div align="center">
+
+<img src="public/icons/icon-512.png" alt="ScholarFlow" width="96" />
+
+# ScholarFlow
+
+**专为大学生打造的一体化学习管理桌面应用**
 
 [![CI](https://github.com/Health-525/scholarflow/actions/workflows/ci.yml/badge.svg)](https://github.com/Health-525/scholarflow/actions/workflows/ci.yml)
-![License](https://img.shields.io/github/license/Health-525/scholarflow)
-![Node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)
+[![License: MIT](https://img.shields.io/github/license/Health-525/scholarflow)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
+[![Release](https://img.shields.io/github/v/release/Health-525/scholarflow?include_prereleases)](https://github.com/Health-525/scholarflow/releases)
 
-> Electron + Next.js 桌面应用 · PWA 离线支持 · AI 学习助手
+[**下载**](https://github.com/Health-525/scholarflow/releases) · [报告问题](https://github.com/Health-525/scholarflow/issues/new?template=bug_report.md) · [提交建议](https://github.com/Health-525/scholarflow/issues/new?template=feature_request.md)
 
-ScholarFlow 是一个面向大学生的一体化学习管理平台，提供课表、作业、跑步、日报、知识库管理，并内置本地 AI 助手（Ollama）。支持 Windows/macOS 桌面端和移动端 PWA。
-
-**核心仓库：[timetable](https://github.com/Health-525/timetable)（执行层） · [jiangshu-study](https://github.com/Health-525/jiangshu-study)（内容层） · [ScholarFlow](https://github.com/Health-525/scholarflow)（前端层）**
-
+</div>
 
 ---
 
-## 🏗 架构总览
+## 它能做什么
 
-```
-┌──────────────────────────────────────────────────────┐
-│                  ScholarFlow (Electron + Next.js)    │
-│                                                      │
-│  ┌──────────┐  ┌──────────┐  ┌────────────────────┐ │
-│  │ Dashboard │  │ Schedule │  │ Assignments        │ │
-│  │ 5 Cards   │  │          │  │ (CRUD + Undo)      │ │
-│  └──────────┘  └──────────┘  └────────────────────┘ │
-│                                                      │
-│  ┌──────────┐  ┌──────────┐  ┌────────────────────┐ │
-│  │ Running  │  │ Reports  │  │ AI Chat (Ollama)   │ │
-│  │          │  │ Daily/   │  │ 本地 LLM 对话       │ │
-│  └──────────┘  │ Weekly   │  └────────────────────┘ │
-│                 └──────────┘                         │
-│                                                      │
-│  ═══════════════ Data Layer ═══════════════         │
-│  ┌─────────────────────────────────────────────┐    │
-│  │ TanStack Query v5  (SWR, dedup, cache)      │    │
-│  │  ↕                                          │    │
-│  │ Next.js API Routes                          │    │
-│  │  ↕                                          │    │
-│  │ SQLite (better-sqlite3) 本地优先            │    │
-│  └─────────────────────────────────────────────┘    │
-│                                                      │
-│  ═══════════════ Security ═══════════════           │
-│  ┌─────────────────────────────────────────────┐    │
-│  │ Electron: safeStorage (DPAPI/Keychain)       │    │
-│  │ PWA/Web: 服务端 SQLite 凭证表                │    │
-│  └─────────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────────┘
-         ↕ 学校适配器
-┌──────────────────────────────────────────────────────┐
-│  NJTECH 教务系统 / 图书馆等学校服务                    │
-└──────────────────────────────────────────────────────┘
-```
+ScholarFlow 把散落在各处的大学生日常工具整合进一个 **本地优先** 的桌面应用——教务数据自动同步、课表作业一览无余、还能用摄像头提醒你别皱眉。
 
-## 📦 技术栈
+| 模块 | 功能要点 |
+|------|---------|
+| 🗓 **课表** | 自动拉取教务系统课表，支持调课合并，一键导出 ICS 到日历 |
+| 📝 **作业** | CRUD + 乐观更新 + 撤销，完成进度实时显示 |
+| 📚 **图书馆** | 查座位实时空位、可视化座位图、一键预约/取消（需校园 VPN） |
+| 🎓 **成绩 & GPA** | 从教务系统同步成绩，自动计算 GPA，环形图按学期展示 |
+| ⏱ **番茄钟** | 专注/休息循环计时，支持自定义时长 |
+| 🏃 **跑步打卡** | 跑步记录与进度追踪，Goal 环形进度 |
+| 🎯 **每日目标** | 当日目标 + 连续完成 Streak + 历史日历 |
+| 📊 **数据统计** | 课程/作业/跑步多维图表，一页看清学期进展 |
+| 🖥️ **活动分析** | Electron 独占：自动统计各应用使用时长，分类饼图 |
+| 🧠 **抬头纹监控** | 摄像头实时检测皱眉，桌面宠物出来提醒你放松额头 |
+| 📰 **教务公告** | 教务处新闻自动推送到仪表板 |
+| 📓 **笔记 & 知识库** | Markdown 全功能渲染，支持 GFM 语法 |
+| 🔔 **智能提醒** | 考试倒计时、作业 DDL 桌面通知 |
 
-| 层级 | 技术 | 版本 |
-|------|------|------|
-| 框架 | Next.js (App Router) | ^15.0 |
-| UI | React | ^19.0 |
-| 语言 | TypeScript | ^5 (strict) |
-| 样式 | Tailwind CSS + 自定义 CSS 变量 | ^3.4 |
-| 状态管理 | Zustand (persist) | ^5.0 |
-| 数据请求 | TanStack Query | ^5 |
-| 本地数据库 | SQLite (better-sqlite3) | ^12 |
-| 学校适配器 | 插件化 Adapter (目前 NJTECH) | - |
-| AI | Ollama (本地 LLM) | ^0.5 |
-| 桌面端 | Electron + electron-builder | ^42 |
-| PWA | next-pwa / Workbox | ^5.6 |
-| Markdown | unified + remark-gfm + rehype | ^11 |
-| 测试 | Vitest + Testing Library | ^2 |
+![仪表板截图](docs/dashboard.png)
 
-## 🚀 快速开始
+---
 
-### 环境要求
+## 技术亮点
 
-- Node.js 20+
-- npm 10+
-- (可选) Ollama 本地 LLM 服务
+**本地优先，数据不出设备**
+所有数据落 SQLite（better-sqlite3），教务密码走 OS 级加密（Windows DPAPI / macOS Keychain），不经任何第三方服务器。
 
-### 安装
+**Electron × Next.js 同构架构**
+同一份代码跑 Electron 桌面端和 Web PWA，桌面端独享 safeStorage 加密、活动窗口追踪、摄像头皱眉检测。
+
+**学校适配器插件化**
+`lib/schools/` 下按学校注册适配器，接入新学校教务系统只需实现一套接口，目前内置南京工业大学（NJTECH）。
+
+**自动刷新调度器**
+主进程后台调度器（12h 基准 + 6h jitter + 指数退避），记住密码后静默同步，关窗也能跑。
+
+---
+
+## 快速开始
+
+### 直接下载
+
+前往 [Releases](https://github.com/Health-525/scholarflow/releases) 下载最新 Windows 安装包（`.exe`）或免安装便携版。
+
+### 从源码运行
+
+**环境要求：** Node.js 20+，npm 10+
 
 ```bash
-# 克隆仓库
+git clone https://github.com/Health-525/scholarflow.git
 cd scholarflow
-
-# 安装依赖
 npm install
 ```
-
-### 开发
 
 ```bash
 # Web 开发模式
 npm run dev
 # → http://localhost:3000
 
-# Electron 开发模式
+# Electron 桌面开发模式（需先切换 ABI）
+npm run abi:node
 npm run electron:dev
 ```
 
-### 构建
-
 ```bash
-# Web 生产构建
+# 生产构建（Web）
 npm run build
 
-# Electron Windows 安装包
+# 打包 Electron Windows 安装包
 npm run electron:build
 ```
 
-### 本地 AI 助手
-
-```bash
-# 安装 Ollama
-# 访问 https://ollama.com 下载
-
-# 拉取中文友好模型
-ollama pull qwen2.5
-
-# 启动后，ScholarFlow 右下角点击 🤖 即可使用
-```
-
-## 📂 项目结构
-
-```
-scholarflow/
-├── app/                    # Next.js App Router
-│   ├── layout.tsx          # 根布局（主题、字体、QueryProvider）
-│   ├── page.tsx            # 仪表板主页
-│   ├── ClientShell.tsx     # 认证守卫 + 安全Token恢复
-│   ├── QueryProvider.tsx   # TanStack Query 提供者
-│   ├── globals.css         # 完整设计系统（~400行）
-│   ├── schedule/           # 课表页
-│   ├── assignments/        # 作业管理页
-│   ├── running/            # 跑步管理页
-│   ├── reports/            # 日报/周报
-│   ├── notes/              # 笔记系统
-│   ├── knowledge/          # 知识库
-│   ├── settings/           # 设置
-│   └── setup/              # 初始设置向导
-├── components/
-│   ├── layout/             # AppShell, SideNav, BottomNav
-│   ├── dashboard/          # 5张仪表板卡片
-│   ├── chat/               # AI 聊天组件
-│   ├── markdown/           # Markdown 渲染组件
-│   ├── ui/                 # 通用 UI 组件
-│   └── ...                 # 各模块组件
-├── lib/
-│   ├── server-db.ts        # SQLite 数据层（ServerDB 单例）
-│   ├── dashboard/          # Dashboard summary 计算
-│   ├── schools/            # 学校适配器注册表与实现
-│   │   ├── registry.ts     # 学校适配器注册
-│   │   ├── types.ts        # 适配器接口
-│   │   └── njtech/         # 南京工业大学适配器
-│   ├── schedule/           # 课表解析引擎
-│   │   ├── schedule.ts     # 核心：课程/周次/日期计算
-│   │   └── adjustments.ts  # 调课合并逻辑
-│   ├── markdown/           # Markdown 渲染管道
-│   └── theme.ts            # 主题系统（亮/暗/跟随系统）
-├── store/
-│   ├── auth.ts             # 认证状态（Zustand persist）
-│   ├── assignments.ts      # 作业状态（乐观更新+回滚）
-│   ├── running.ts          # 跑步状态
-│   └── theme.ts            # 主题状态（Zustand persist）
-├── hooks/
-│   ├── useQueries.ts       # TanStack Query 数据钩子
-│   ├── useNotifications.ts # 浏览器通知
-│   └── ...                 # 各模块自定义 Hooks
-├── types/
-│   ├── index.ts            # 全局类型定义
-│   └── globals.d.ts        # Electron API 类型声明
-├── electron/
-│   ├── main.js             # Electron 主进程 + safeStorage IPC
-│   ├── preload.js          # 安全 IPC 桥接
-│   └── postbuild.js        # 构建后处理
-├── tests/
-│   └── setup.ts            # 测试配置
-├── public/
-│   └── icons/              # PWA 图标
-└── package.json
-```
-
-## 🔐 安全设计
-
-### 学校凭证存储
-
-| 环境 | 存储方式 | 安全性 |
-|------|----------|--------|
-| **Electron** | `safeStorage` → DPAPI (Windows) / Keychain (macOS) | 🔒 系统级加密 |
-| **Web / PWA** | 服务端 SQLite `credentials` 表 | ⚠️ 本地数据库，建议配合设备加密 |
-
-### 数据流安全
-
-```
-用户输入 Token
-  → setup 页面
-  → validateTokenFormat() 格式校验
-  → verifyToken() GitHub API 验证
-  → secureStoreToken() 安全持久化
-      ├─ Electron: safeStorage.encryptString() → 写入加密文件
-      └─ Web: localStorage + base64
-  → Zustand store (内存，session 级别)
-  → GitHub API 请求（Bearer Token）
-```
-
-## 📱 PWA 支持
-
-ScholarFlow 是一等 PWA 公民，支持：
-
-- 安装到桌面/主屏幕
-- 离线访问（Service Worker + IndexedDB 缓存）
-- 推送通知（待实现）
-- 响应式布局（移动端底部导航栏）
-
-Service Worker 缓存策略：
-
-| 资源 | 策略 | TTL |
-|------|------|-----|
-| `/_next/static/*` | CacheFirst | 365天 |
-| `schedule.json` | CacheFirst | 5分钟 |
-| `assignments.json` | StaleWhileRevalidate | - |
-| GitHub API GET | NetworkFirst | 10秒超时 |
-
-## 🎨 设计系统
-
-项目拥有精心设计的纸质感设计系统，不依赖第三方 UI 库：
-
-- **亮色/暗色主题**：自动检测 `prefers-color-scheme` + 手动切换
-- **纸质感**：SVG 噪点纹理、柔和阴影、米色基调
-- **主题色**：深靛蓝墨水色 `#2a4494`
-- **自定义 CSS 变量**：`--accent`, `--surface`, `--text-primary` 等
-- **动画**：`fadeSlideUp`, `breathe`, `shimmer`（带交错延迟）
-- **响应式**：移动端底部 TabBar → 桌面端侧边栏
-
-## 📊 数据来源
-
-| 数据 | GitHub 仓库 | 路径 | 刷新策略 |
-|------|------------|------|---------|
-| 课表 | `timetable` | `data/schedule.json` | SWR 2min |
-| 调课 | `timetable` | `data/adjustments.json` | SWR 2min |
-| 作业 | `timetable` | `data/assignments.json` | SWR 1min |
-| 跑步 | `timetable` | `data/running.json` | SWR 1min |
-| 教务新闻 | `jiangshu-study` | `_data/jwc_news.json` | SWR 10min |
-| 日报 | `jiangshu-study` | `日报/*.md` | Directory listing |
-| 笔记 | `jiangshu-study` | `0*-*/**/*.md` | Directory listing |
-
-## 🧪 测试
-
-```bash
-# 运行所有测试
-npm test
-
-# Watch 模式
-npm run test:watch
-```
-
-## 🤝 贡献
-
-欢迎贡献代码！请先阅读 [CONTRIBUTING.md](./CONTRIBUTING.md) 了解开发规范和提交流程。
-
-安全问题请参考 [SECURITY.md](./SECURITY.md)。
-
-## 📄 许可证
-
-MIT License · Copyright © 2026 Health-525
+> **注意：** 项目使用自定义 ABI 切换脚本管理 better-sqlite3 原生模块。
+> 开发时用 `npm run abi:node`，打包时构建脚本自动处理。
 
 ---
 
-*最后更新：2026-06-05*
+## 项目结构
+
+```
+scholarflow/
+├── app/                    # Next.js App Router 页面
+│   ├── schedule/           # 课表
+│   ├── assignments/        # 作业
+│   ├── library/            # 图书馆座位
+│   ├── gpa/                # 成绩 & GPA
+│   ├── exams/              # 考试管理
+│   ├── goals/              # 每日目标
+│   ├── pomodoro/           # 番茄钟
+│   ├── running/            # 跑步打卡
+│   ├── stats/              # 数据统计
+│   ├── activity/           # 活动分析（Electron）
+│   ├── monitoring/         # 数据同步监控
+│   ├── wrinkle/            # 抬头纹检测
+│   ├── notes/              # 笔记
+│   ├── knowledge/          # 知识库
+│   └── reports/            # 日报 / 周报
+├── components/             # UI 组件
+│   ├── dashboard/          # 仪表板卡片
+│   ├── layout/             # AppShell, SideNav, BottomNav
+│   └── ui/                 # 通用组件
+├── lib/
+│   ├── server-db.ts        # SQLite 数据层（ServerDB 单例）
+│   ├── schools/            # 学校适配器注册表
+│   │   └── njtech/         # 南京工业大学适配器
+│   ├── schedule/           # 课表解析引擎
+│   ├── auto-refresh/       # 后台刷新调度状态
+│   └── auth/               # 认证生命周期
+├── electron/
+│   ├── main.js             # 主进程（safeStorage IPC、调度器）
+│   ├── preload.js          # 主窗口 contextBridge
+│   ├── pet-preload.js      # 宠物窗口最小权限 preload
+│   ├── auto-refresh.js     # 后台刷新调度器
+│   └── pet.html            # 桌面宠物窗口
+├── store/                  # Zustand 状态（auth, assignments, theme）
+├── hooks/                  # TanStack Query 数据钩子
+├── types/                  # TypeScript 类型 & Electron API 声明
+└── tests/                  # Vitest 单元测试（75 个）
+```
+
+---
+
+## 安全设计
+
+| 内容 | 方案 |
+|------|------|
+| 教务密码 | Electron `safeStorage` → DPAPI (Windows) / Keychain (macOS)，明文不落磁盘 |
+| 会话凭证 | SQLite `credentials` 表，建议配合系统磁盘加密 |
+| Electron 渲染层 | `nodeIntegration: false` + `contextIsolation: true`，全部页面（含宠物窗口）均通过 preload 最小化暴露 |
+| 证书校验 | 仅严格后缀匹配 `*.njtech.edu.cn` 信任自签名证书，防止子域名绕过 |
+| API 身份校验 | `/api/auth/remember` 等写操作接口均校验当前登录凭证，防止越权操作 |
+
+---
+
+## 开发
+
+```bash
+# 类型检查
+npm run typecheck
+
+# Lint
+npm run lint
+
+# 单元测试
+npm test
+
+# 一键三连（typecheck + lint + test）
+npm run check
+```
+
+CI 在每次 push / PR 时自动运行全部检查（见 `.github/workflows/ci.yml`）。
+
+---
+
+## 接入新学校
+
+1. 在 `lib/schools/` 下新建目录，实现 `SchoolAdapter` 接口（参考 `lib/schools/njtech/`）
+2. 在 `lib/schools/registry.ts` 注册适配器
+3. 提交 PR，欢迎添加更多学校支持
+
+---
+
+## 贡献
+
+欢迎 Issue 和 PR！请先阅读 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+
+安全漏洞请参考 [SECURITY.md](./SECURITY.md) 私信报告，不要直接开 Issue。
+
+---
+
+## License
+
+MIT © 2026 [Health-525](https://github.com/Health-525)

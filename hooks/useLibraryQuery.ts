@@ -76,7 +76,7 @@ export function useLibraryReserveStatus(enabled = true) {
 export function useLibraryLayout(libId: string | null) {
   return useQuery<LibraryLayoutInput, Error>({
     queryKey: libraryQueryKeys.layout(libId ?? ""),
-    queryFn: () => fetch(`/api/library/layout?lib_id=${libId}`).then((r) => handleResponse(r, libraryLayoutSchema)),
+    queryFn: () => fetch(`/api/library/seat-layout?lib_id=${libId}`).then((r) => handleResponse(r, libraryLayoutSchema)),
     enabled: !!libId,
     staleTime: 30 * 1000,
     refetchInterval: 30 * 1000,

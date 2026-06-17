@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { getRememberSetting } from "@/lib/auto-refresh/state";
 import {
-  isForceReloginDue,
   DEFAULT_FORCE_RELOGIN_INTERVAL_MS,
+  isForceReloginDue,
 } from "@/lib/auth/lifecycle";
+import { getRememberSetting } from "@/lib/auto-refresh/state";
 import { getServerDB } from "@/lib/server-db";
 
 /**
@@ -48,7 +48,10 @@ export async function GET() {
     }
 
     return NextResponse.json({ authenticated: false, schoolId: null });
-  } catch {
+  } catch (err) {
+    // DB 异常时记录日志，避免静默掩盖问题；仍返回未登录状态，不暴露错误细节给前端
+    // eslint-disable-next-line no-console
+    console.error("[/api/auth/session] unexpected error:", (err as Error)?.message ?? err);
     return NextResponse.json({ authenticated: false, schoolId: null });
   }
 }

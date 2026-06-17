@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
 
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { GlobalSearch } from "@/components/ui/GlobalSearch";
@@ -26,13 +25,6 @@ function ShortcutActivator() {
 
 export function AppShell({ children, isOnline }: AppShellProps) {
   const online = isOnline ?? true;
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isElectron = mounted && typeof window !== "undefined" && !!window.electronAPI?.isElectron;
 
   return (
     <div className="relative flex min-h-screen bg-background">
