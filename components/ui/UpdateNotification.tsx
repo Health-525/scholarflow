@@ -123,8 +123,8 @@ export function UpdateNotification() {
       {state === "downloaded" && (
         <div className="p-4">
           <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-green-500/10">
-              <Sparkles className="w-4 h-4 text-green-500" />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[var(--status-success)]/10">
+              <Sparkles className="w-4 h-4 text-[var(--status-success)]" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-[13px] font-semibold text-foreground">
@@ -137,7 +137,7 @@ export function UpdateNotification() {
           </div>
           <button
             onClick={handleInstall}
-            className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-medium transition-colors bg-green-600 text-white"
+            className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-medium transition-colors bg-[var(--status-success)] text-primary-foreground"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             重启并安装

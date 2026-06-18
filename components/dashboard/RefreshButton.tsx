@@ -55,8 +55,8 @@ export function RefreshButton({ className }: { className?: string }) {
       title={isPending ? "刷新中…" : "从教务系统刷新数据"}
       className={cn(
         "relative flex h-12 w-12 items-center justify-center rounded-[18px]",
-        "bg-white/80 text-foreground backdrop-blur-xl shadow-sm transition-all duration-200",
-        "hover:bg-white active:scale-95 dark:bg-[#1a1a20]/60 dark:hover:bg-[#222230]/80",
+        "bg-card/80 text-foreground backdrop-blur-xl shadow-sm transition-all duration-200",
+        "hover:bg-card active:scale-95 dark:bg-card/60 dark:hover:bg-card/80",
         "disabled:cursor-not-allowed disabled:opacity-70",
         className
       )}

@@ -6,8 +6,9 @@ import { useEffect, useState } from "react";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { applyTheme } from "@/lib/theme";
+import { applyTheme, watchSystemTheme } from "@/lib/theme";
 import { useAuthStore } from "@/store/auth";
+import { useThemeStore } from "@/store/theme";
 
 const PUBLIC_PATHS = ["/setup"];
 
@@ -20,13 +21,19 @@ export default function ClientShell({ children }: ClientShellProps) {
   const pathname = usePathname();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const setAuth = useAuthStore((s) => s.setAuth);
+  const currentTheme = useThemeStore((s) => s.theme);
   const isOnline = useOnlineStatus();
   const [isRestoring, setIsRestoring] = useState(true);
 
-  // Apply theme + restore auth state on mount
+  // Apply theme and watch system theme changes
   useEffect(() => {
-    applyTheme();
+    applyTheme(currentTheme);
+    const unwatch = watchSystemTheme(() => applyTheme("system"));
+    return () => unwatch();
+  }, [currentTheme]);
 
+  // Restore auth state on mount / route change
+  useEffect(() => {
     async function restoreAuth() {
       // Server-side session is the source of truth.
       // Zustand persist already provides a synchronous fallback.

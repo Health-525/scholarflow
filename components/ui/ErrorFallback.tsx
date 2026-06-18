@@ -1,5 +1,7 @@
 "use client";
 
+import { semanticBg, semanticBorder } from "@/lib/theme-colors";
+
 interface ErrorFallbackProps {
   message?: string;
   onRetry?: () => void;
@@ -11,7 +13,8 @@ export function ErrorFallback({
 }: ErrorFallbackProps) {
   return (
     <div
-      className="rounded-2xl p-4 flex flex-col items-center gap-3 text-center bg-red-500/6 border border-red-500/18"
+      className="rounded-2xl p-4 flex flex-col items-center gap-3 text-center border"
+      style={{ backgroundColor: semanticBg("error"), borderColor: semanticBorder("error") }}
       role="alert"
     >
       <span className="text-2xl" aria-hidden="true">

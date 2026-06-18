@@ -17,8 +17,8 @@ export function RunningCard() {
       <CardContent>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-green-600/10">
-              <svg className="w-3.5 h-3.5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-[var(--status-success)]/10">
+              <svg className="w-3.5 h-3.5 text-[var(--status-success)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
@@ -45,11 +45,11 @@ export function RunningCard() {
                 {stats.total}
               </span>
               <span className="text-[12px] text-muted-foreground">/ {RUNNING_GOAL} 次</span>
-              {pct >= 100 && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-green-600/10 text-green-600 ml-1">达标 ✓</span>}
+              {pct >= 100 && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-[var(--status-success)]/10 text-[var(--status-success)] ml-1">达标 ✓</span>}
             </div>
 
             <div className="h-2 rounded-full overflow-hidden bg-secondary" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`跑步进度 ${pct.toFixed(0)}%`}>
-              <div className="h-full rounded-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%` }} />
+              <div className="h-full rounded-full bg-gradient-to-r from-[var(--chart-success)] to-[var(--status-success)] transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%` }} />
             </div>
 
             <div className="flex items-center justify-between">

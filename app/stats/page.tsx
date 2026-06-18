@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { StatsDashboard } from "@/components/dashboard/StatsDashboard";
 import { useScheduleQuery, useAssignmentsQuery, useRunningQuery } from "@/hooks/useQueries";
 import { calculateRunStats, RUNNING_GOAL } from "@/lib/running-utils";
+import { semanticColor } from "@/lib/theme-colors";
 
 export default function StatsPage() {
   const { data: scheduleData } = useScheduleQuery();
@@ -25,10 +26,10 @@ export default function StatsPage() {
 
       {/* 概览卡片 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <StatCard label="课程数" value={totalCourses} unit="门" color="#2a4494" />
-        <StatCard label="作业完成" value={completedAssignments} unit={`/ ${assignments.length}`} color="#2d7a4f" />
-        <StatCard label="跑步次数" value={stats.total} unit={`/ ${RUNNING_GOAL}`} color="#068ca0" />
-        <StatCard label="跑步进度" value={Math.round(stats.progressPercent)} unit="%" color="#6446a0" />
+        <StatCard label="课程数" value={totalCourses} unit="门" color={semanticColor("primary")} />
+        <StatCard label="作业完成" value={completedAssignments} unit={`/ ${assignments.length}`} color={semanticColor("success")} />
+        <StatCard label="跑步次数" value={stats.total} unit={`/ ${RUNNING_GOAL}`} color={semanticColor("info")} />
+        <StatCard label="跑步进度" value={Math.round(stats.progressPercent)} unit="%" color={semanticColor("warning")} />
       </div>
 
       {/* 图表 */}

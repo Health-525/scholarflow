@@ -3,6 +3,8 @@
 import { TrendingUp, BookOpen, Code2, FlaskConical, Languages, Wrench, Target, CheckCircle2, Clock, Flame, Plus } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 
+import { semanticColor, semanticBg } from "@/lib/theme-colors";
+
 interface ProgressEntry {
   date: string;
   subject: string;
@@ -20,11 +22,11 @@ interface SubjectProgress {
 }
 
 const TYPE_META = {
-  note:     { label: "笔记", icon: BookOpen,     color: "#2a4494", bg: "rgba(42,68,148,0.08)" },
-  code:     { label: "代码", icon: Code2,        color: "#16a34a", bg: "rgba(22,163,74,0.08)" },
-  exercise: { label: "练习", icon: FlaskConical,  color: "#f59e0b", bg: "rgba(245,158,11,0.08)" },
-  reading:  { label: "阅读", icon: Languages,    color: "#8b5cf6", bg: "rgba(139,92,246,0.08)" },
-  review:   { label: "复习", icon: Wrench,       color: "#06b6d4", bg: "rgba(6,182,212,0.08)" },
+  note:     { label: "笔记", icon: BookOpen,     type: "info" as const },
+  code:     { label: "代码", icon: Code2,        type: "success" as const },
+  exercise: { label: "练习", icon: FlaskConical, type: "warning" as const },
+  reading:  { label: "阅读", icon: Languages,    type: "info" as const },
+  review:   { label: "复习", icon: Wrench,       type: "info" as const },
 };
 
 const TYPE_KEYS = Object.keys(TYPE_META) as ProgressEntry["type"][];
@@ -118,20 +120,20 @@ export default function ProgressPage() {
           <div className="text-2xl font-bold tabular-nums text-primary animate-count">{totalHours}h</div>
           <div className="text-[10px] text-muted-foreground">{totalMinutes} 分钟</div>
         </div>
-        <div className="rounded-2xl p-4 bg-card border border-green-500/20 shadow-sm animate-fade-up stagger-2">
+        <div className="rounded-2xl p-4 bg-card border border-[var(--status-success)]/20 shadow-sm animate-fade-up stagger-2">
           <div className="flex items-center gap-2 mb-2">
-            <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-[var(--status-success)]" />
             <span className="text-[10px] font-semibold text-muted-foreground">活跃天数</span>
           </div>
-          <div className="text-2xl font-bold tabular-nums text-green-500 animate-count">{activeDays}</div>
+          <div className="text-2xl font-bold tabular-nums text-[var(--status-success)] animate-count">{activeDays}</div>
           <div className="text-[10px] text-muted-foreground">近 {entries.length} 条记录</div>
         </div>
-        <div className="rounded-2xl p-4 bg-card border border-amber-500/20 shadow-sm animate-fade-up stagger-3">
+        <div className="rounded-2xl p-4 bg-card border border-[var(--status-warning)]/20 shadow-sm animate-fade-up stagger-3">
           <div className="flex items-center gap-2 mb-2">
-            <Flame className="w-3.5 h-3.5 text-amber-500" />
+            <Flame className="w-3.5 h-3.5 text-[var(--status-warning)]" />
             <span className="text-[10px] font-semibold text-muted-foreground">日均投入</span>
           </div>
-          <div className="text-2xl font-bold tabular-nums text-amber-500 animate-count">{avgMinutesPerDay}m</div>
+          <div className="text-2xl font-bold tabular-nums text-[var(--status-warning)] animate-count">{avgMinutesPerDay}m</div>
           <div className="text-[10px] text-muted-foreground">分钟/天</div>
         </div>
         <div className="rounded-2xl p-4 bg-card border border-border shadow-sm animate-fade-up stagger-4">
@@ -312,13 +314,13 @@ export default function ProgressPage() {
               const meta = TYPE_META[e.type];
               return (
                 <div key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/30 transition-colors animate-fade-up" style={{ animationDelay: `${i * 0.03}s` }}>
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: meta.bg }}>
-                    <meta.icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: semanticBg(meta.type) }}>
+                    <meta.icon className="w-3.5 h-3.5" style={{ color: semanticColor(meta.type) }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-[12px] font-medium truncate text-foreground">{e.title}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0" style={{ backgroundColor: meta.bg, color: meta.color }}>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0" style={{ backgroundColor: semanticBg(meta.type), color: semanticColor(meta.type) }}>
                         {meta.label}
                       </span>
                     </div>

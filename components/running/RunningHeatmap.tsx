@@ -11,10 +11,10 @@ interface RunningHeatmapProps {
 const WEEKDAY_LABELS = ["一", "二", "三", "四", "五", "六", "日"];
 
 function getCellColor(day: HeatmapDay): string {
-  if (day.hasMorning && day.hasFree) return "#22c55e";
-  if (day.hasMorning) return "rgba(52,199,89,0.5)";
-  if (day.hasFree) return "rgba(37,99,235,0.5)";
-  return "hsl(var(--border))";
+  if (day.hasMorning && day.hasFree) return "rgb(var(--status-success-rgb))";
+  if (day.hasMorning) return "rgba(var(--status-success-rgb), 0.5)";
+  if (day.hasFree) return "rgba(var(--primary-rgb), 0.5)";
+  return "hsl(var(--muted))";
 }
 
 function getCellLabel(day: HeatmapDay): string {
@@ -72,7 +72,7 @@ export function RunningHeatmap({ records }: RunningHeatmapProps) {
                 backgroundColor: getCellColor(day),
                 outline: isToday ? "2px solid hsl(var(--primary))" : "none",
                 outlineOffset: "1px",
-                color: day.hasMorning || day.hasFree ? "#fff" : "hsl(var(--muted-foreground))",
+                color: day.hasMorning || day.hasFree ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))",
               }}
               title={getCellLabel(day)}
               aria-label={getCellLabel(day)}
@@ -85,15 +85,15 @@ export function RunningHeatmap({ records }: RunningHeatmapProps) {
 
       <div className="flex items-center gap-3 mt-3 text-[10px] text-muted-foreground">
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "rgba(52,199,89,0.5)" }} />
+          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "rgba(var(--status-success-rgb), 0.5)" }} />
           <span>晨跑</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "rgba(37,99,235,0.5)" }} />
+          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "rgba(var(--primary-rgb), 0.5)" }} />
           <span>自由跑</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-sm bg-green-500" />
+          <div className="w-3 h-3 rounded-sm bg-[var(--status-success)]" />
           <span>双打卡</span>
         </div>
       </div>

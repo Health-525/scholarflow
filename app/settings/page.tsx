@@ -1,11 +1,26 @@
 "use client";
 
 import {
-  Sun, Moon, Monitor, LogOut, ChevronRight,
-  Calendar, ClipboardList, Activity, Database,
-  BarChart3, Trash2, Download, RefreshCw,
-  GraduationCap, ShieldCheck, Clock, User,
-  School, Info, KeyRound,
+  Sun,
+  Moon,
+  Monitor,
+  LogOut,
+  ChevronRight,
+  Calendar,
+  ClipboardList,
+  Activity,
+  Database,
+  BarChart3,
+  Trash2,
+  Download,
+  RefreshCw,
+  GraduationCap,
+  ShieldCheck,
+  Clock,
+  User,
+  School,
+  Info,
+  KeyRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
@@ -17,9 +32,22 @@ import { Card } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { SettingsSection } from "@/components/ui/settings-section";
-import { useScheduleQuery, useAssignmentsQuery, useRunningQuery, useRefreshData } from "@/hooks/useQueries";
-import { downloadActivityCSV, clearActivityData } from "@/lib/activity-tracker-v3";
-import { exportAssignmentsCSV, exportRunningCSV, buildWeekICS, downloadICS } from "@/lib/export";
+import {
+  useScheduleQuery,
+  useAssignmentsQuery,
+  useRunningQuery,
+  useRefreshData,
+} from "@/hooks/useQueries";
+import {
+  downloadActivityCSV,
+  clearActivityData,
+} from "@/lib/activity-tracker-v3";
+import {
+  exportAssignmentsCSV,
+  exportRunningCSV,
+  buildWeekICS,
+  downloadICS,
+} from "@/lib/export";
 import { isElectron } from "@/lib/runtime-env";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
@@ -34,11 +62,12 @@ interface ConfirmState {
   action: () => void;
 }
 
-const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = [
-  { value: "light", label: "浅色", Icon: Sun },
-  { value: "dark", label: "深色", Icon: Moon },
-  { value: "system", label: "跟随系统", Icon: Monitor },
-];
+const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] =
+  [
+    { value: "light", label: "浅色", Icon: Sun },
+    { value: "dark", label: "深色", Icon: Moon },
+    { value: "system", label: "跟随系统", Icon: Monitor },
+  ];
 
 interface StudentInfo {
   studentId: string;
@@ -73,8 +102,10 @@ export default function SettingsPage() {
     const sid = schoolId || "njtech";
     const uid = userId || username || "default";
     fetch(`/api/local-data?type=student&schoolId=${sid}&userId=${uid}`)
-      .then(r => r.json())
-      .then(d => { if (d?.studentId) setStudentInfo(d); })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.studentId) setStudentInfo(d);
+      })
       .catch(() => {});
   }, [schoolId, userId, username]);
 
@@ -97,7 +128,10 @@ export default function SettingsPage() {
       await fetch("/api/auth/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ schoolId: schoolId || "njtech", userId: userId || username || "default" }),
+        body: JSON.stringify({
+          schoolId: schoolId || "njtech",
+          userId: userId || username || "default",
+        }),
       });
     } catch {}
     // 2. 清除已记住的加密密码（Req 4.4）
@@ -112,7 +146,8 @@ export default function SettingsPage() {
   const confirmLogout = () => {
     setConfirmState({
       title: "退出登录",
-      description: "将清除本地登录凭证并返回登录页。已同步的课表、成绩等本地数据会保留。",
+      description:
+        "将清除本地登录凭证并返回登录页。已同步的课表、成绩等本地数据会保留。",
       confirmText: "退出登录",
       danger: true,
       action: handleLogout,
@@ -128,7 +163,10 @@ export default function SettingsPage() {
       await fetch("/api/auth/remember", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ schoolId: schoolId || "njtech", userId: userId || username || "default" }),
+        body: JSON.stringify({
+          schoolId: schoolId || "njtech",
+          userId: userId || username || "default",
+        }),
       });
     } catch {}
     setClearingPassword(false);
@@ -169,9 +207,15 @@ export default function SettingsPage() {
     setFetchMessage(null);
     try {
       // 凭证由服务端从本地数据库读取(含 cookie 过期静默重登),无需前端传 cookie。
-      const result = await refreshData.mutateAsync({ schoolId, cookie: "", username });
+      const result = await refreshData.mutateAsync({
+        schoolId,
+        cookie: "",
+        username,
+      });
       if (result.success) {
-        setFetchMessage(`数据刷新成功：${result.fetched?.join("、") || "全部"}`);
+        setFetchMessage(
+          `数据刷新成功：${result.fetched?.join("、") || "全部"}`,
+        );
         loadStudentInfo(); // 刷新成功后更新用户卡片的 GPA/学分/课程
       } else if (result.needsManualLogin) {
         setFetchMessage("登录已过期，请退出后重新登录再刷新");
@@ -179,14 +223,18 @@ export default function SettingsPage() {
         setFetchMessage(`刷新失败：${result.error || "未知错误"}`);
       }
     } catch (e) {
-      setFetchMessage(`刷新失败：${e instanceof Error ? e.message : "未知错误"}`);
+      setFetchMessage(
+        `刷新失败：${e instanceof Error ? e.message : "未知错误"}`,
+      );
     }
   };
 
   // ── Derived display values ──────────────────────────────────
-  const displayName = studentInfo?.studentId || userId || username || "ScholarFlow 用户";
+  const displayName =
+    studentInfo?.studentId || userId || username || "ScholarFlow 用户";
   const avatarLetter = displayName[0]?.toUpperCase() || "S";
-  const schoolName = schoolId === "njtech" ? "南京工业大学" : schoolId || "未绑定";
+  const schoolName =
+    schoolId === "njtech" ? "南京工业大学" : schoolId || "未绑定";
   const isSynced = !!studentInfo?.studentId || !!schoolId;
 
   return (
@@ -199,7 +247,10 @@ export default function SettingsPage() {
       {/* ── 用户卡片 ──────────────────────────────────────────── */}
       <Card className="rounded-[28px] p-6 mb-5 relative overflow-hidden animate-fade-up hover:translate-y-0 hover:shadow-sm">
         {/* Background decoration */}
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div
+          className="pointer-events-none absolute inset-0"
+          aria-hidden="true"
+        >
           <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/6 blur-3xl" />
           <div className="absolute -left-8 -bottom-8 h-24 w-24 rounded-full bg-primary/4 blur-2xl" />
         </div>
@@ -207,7 +258,10 @@ export default function SettingsPage() {
         <div className="relative flex items-center gap-4">
           {/* Avatar */}
           <div className="relative shrink-0">
-            <div className="absolute inset-0 rounded-[22px] bg-primary/10 blur-xl" aria-hidden="true" />
+            <div
+              className="absolute inset-0 rounded-[22px] bg-primary/10 blur-xl"
+              aria-hidden="true"
+            />
             <div className="relative w-14 h-14 rounded-[22px] flex items-center justify-center bg-primary text-primary-foreground font-display text-[22px] font-bold shadow-sm">
               {avatarLetter}
             </div>
@@ -219,10 +273,14 @@ export default function SettingsPage() {
               {displayName}
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className={cn(
-                "w-1.5 h-1.5 rounded-full",
-                isSynced ? "bg-[var(--status-success)]" : "bg-muted-foreground/40"
-              )} />
+              <span
+                className={cn(
+                  "w-1.5 h-1.5 rounded-full",
+                  isSynced
+                    ? "bg-[var(--status-success)]"
+                    : "bg-muted-foreground/40",
+                )}
+              />
               <span className="text-[12px] text-muted-foreground">
                 {isSynced ? "已同步教务系统" : "未同步教务系统"}
               </span>
@@ -230,7 +288,9 @@ export default function SettingsPage() {
             {schoolId && (
               <div className="flex items-center gap-1.5 mt-0.5">
                 <School className="w-3 h-3 text-primary/60" />
-                <span className="text-[11px] text-muted-foreground">{schoolName}</span>
+                <span className="text-[11px] text-muted-foreground">
+                  {schoolName}
+                </span>
               </div>
             )}
           </div>
@@ -258,8 +318,14 @@ export default function SettingsPage() {
             </>
           ) : (
             <>
-              <StatChip value={String(scheduleData?.schedule?.courses?.length ?? 0)} label="课程" />
-              <StatChip value={String(assignments.filter(a => !a.done).length)} label="待办" />
+              <StatChip
+                value={String(scheduleData?.schedule?.courses?.length ?? 0)}
+                label="课程"
+              />
+              <StatChip
+                value={String(assignments.filter((a) => !a.done).length)}
+                label="待办"
+              />
             </>
           )}
           <StatChip value={String(records.length)} label="跑步" />
@@ -269,24 +335,33 @@ export default function SettingsPage() {
       {/* ── 外观 ──────────────────────────────────────────────── */}
       <SettingsSection icon={<Sun className="w-4 h-4" />} title="外观">
         <SegmentedControl
-          options={THEME_OPTIONS.map(opt => ({ id: opt.value, label: opt.label, icon: opt.Icon }))}
+          options={THEME_OPTIONS.map((opt) => ({
+            id: opt.value,
+            label: opt.label,
+            icon: opt.Icon,
+          }))}
           value={theme}
           onChange={(id) => setTheme(id as ThemeValue)}
         />
       </SettingsSection>
 
       {/* ── 数据刷新 ──────────────────────────────────────────── */}
-      <SettingsSection icon={<RefreshCw className="w-4 h-4" />} title="数据刷新">
+      <SettingsSection
+        icon={<RefreshCw className="w-4 h-4" />}
+        title="数据刷新"
+      >
         <p className="text-[11px] mb-3 text-muted-foreground">
           从学校教务系统重新抓取课表、成绩、考试等数据
         </p>
         {fetchMessage && (
-          <div className={cn(
-            "mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line",
-            fetchMessage.includes("失败") || fetchMessage.includes("错误")
-              ? "bg-destructive/8 border border-destructive/15 text-destructive"
-              : "bg-[var(--status-success)]/8 border border-[var(--status-success)]/15 text-[var(--status-success)]"
-          )}>
+          <div
+            className={cn(
+              "mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line",
+              fetchMessage.includes("失败") || fetchMessage.includes("错误")
+                ? "bg-destructive/8 border border-destructive/15 text-destructive"
+                : "bg-[var(--status-success)]/8 border border-[var(--status-success)]/15 text-[var(--status-success)]",
+            )}
+          >
             {fetchMessage}
           </div>
         )}
@@ -295,15 +370,27 @@ export default function SettingsPage() {
           disabled={refreshData.isPending}
           className="w-full justify-start gap-3 px-4 py-3 h-auto rounded-xl text-left text-[13px] font-medium bg-primary/10 text-primary hover:bg-primary/15 active:translate-y-0.5 disabled:opacity-60"
         >
-          <RefreshCw className={cn("w-4 h-4 shrink-0", refreshData.isPending && "animate-spin")} />
-          <span>{refreshData.isPending ? "刷新中..." : "从教务系统刷新数据"}</span>
-          <span className="text-[10px] ml-auto text-muted-foreground">课表 · 成绩 · 考试</span>
+          <RefreshCw
+            className={cn(
+              "w-4 h-4 shrink-0",
+              refreshData.isPending && "animate-spin",
+            )}
+          />
+          <span>
+            {refreshData.isPending ? "刷新中..." : "从教务系统刷新数据"}
+          </span>
+          <span className="text-[10px] ml-auto text-muted-foreground">
+            课表 · 成绩 · 考试
+          </span>
         </Button>
       </SettingsSection>
 
       {/* ── 账户安全：清除已记住的密码（仅 Electron） ──────────── */}
       {showClearPassword && (
-        <SettingsSection icon={<KeyRound className="w-4 h-4" />} title="账户安全">
+        <SettingsSection
+          icon={<KeyRound className="w-4 h-4" />}
+          title="账户安全"
+        >
           <p className="text-[11px] mb-3 text-muted-foreground">
             清除本地加密存储的教务密码，并停止后台自动刷新
           </p>
@@ -320,35 +407,97 @@ export default function SettingsPage() {
 
       {/* ── 数据导出 ──────────────────────────────────────────── */}
       <SettingsSection icon={<Download className="w-4 h-4" />} title="数据导出">
-        <MenuItem icon={Calendar} label="导出课表 (ICS)" onClick={handleExportICS} disabled={!scheduleData?.schedule} />
-        <MenuItem icon={ClipboardList} label="导出作业 (CSV)" onClick={() => exportAssignmentsCSV(assignments)} disabled={!assignments.length} />
-        <MenuItem icon={Activity} label="导出跑步 (CSV)" onClick={() => exportRunningCSV(records)} disabled={!records.length} />
-        <MenuItem icon={BarChart3} label="导出屏幕时间 (CSV)" onClick={downloadActivityCSV} />
-        <MenuItem icon={Trash2} label="清除屏幕时间数据" onClick={confirmClearActivity} danger last />
+        <MenuItem
+          icon={Calendar}
+          label="导出课表 (ICS)"
+          onClick={handleExportICS}
+          disabled={!scheduleData?.schedule}
+        />
+        <MenuItem
+          icon={ClipboardList}
+          label="导出作业 (CSV)"
+          onClick={() => exportAssignmentsCSV(assignments)}
+          disabled={!assignments.length}
+        />
+        <MenuItem
+          icon={Activity}
+          label="导出跑步 (CSV)"
+          onClick={() => exportRunningCSV(records)}
+          disabled={!records.length}
+        />
+        <MenuItem
+          icon={BarChart3}
+          label="导出屏幕时间 (CSV)"
+          onClick={downloadActivityCSV}
+        />
+        <MenuItem
+          icon={Trash2}
+          label="清除屏幕时间数据"
+          onClick={confirmClearActivity}
+          danger
+          last
+        />
       </SettingsSection>
 
       {/* ── 存储信息 ──────────────────────────────────────────── */}
       <SettingsSection icon={<Database className="w-4 h-4" />} title="存储信息">
         <div className="space-y-2 text-[11px]">
-          <InfoRow icon={<ShieldCheck className="w-3 h-3" />} label="数据存储" value="SQLite 本地数据库" />
-          <InfoRow icon={<Clock className="w-3 h-3" />} label="课表/作业/跑步" value="本地优先，自动持久化" />
-          <InfoRow icon={<GraduationCap className="w-3 h-3" />} label="学校凭证" value="安全加密存储" />
+          <InfoRow
+            icon={<ShieldCheck className="w-3 h-3" />}
+            label="数据存储"
+            value="SQLite 本地数据库"
+          />
+          <InfoRow
+            icon={<Clock className="w-3 h-3" />}
+            label="课表/作业/跑步"
+            value="本地优先，自动持久化"
+          />
+          <InfoRow
+            icon={<GraduationCap className="w-3 h-3" />}
+            label="学校凭证"
+            value="安全加密存储"
+          />
         </div>
       </SettingsSection>
 
       {/* ── 关于 ──────────────────────────────────────────────── */}
       <SettingsSection icon={<Info className="w-4 h-4" />} title="关于">
         <div className="text-center">
-          <div className="text-[14px] font-semibold mb-1 text-primary font-display">ScholarFlow</div>
-          <div className="text-[11px] text-muted-foreground">v2.0 · Electron + Next.js</div>
-          <div className="text-[10px] mt-0.5 text-muted-foreground">独立学习管理中枢</div>
+          <div className="text-[14px] font-semibold mb-1 text-primary font-display">
+            ScholarFlow
+          </div>
+          <div className="text-[11px] text-muted-foreground">
+            v2.0 · Electron + Next.js
+          </div>
+          <div className="text-[10px] mt-0.5 text-muted-foreground">
+            独立学习管理中枢
+          </div>
           <div className="mt-3 flex flex-wrap gap-1.5 justify-center">
-            <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--status-success)]/10 text-[var(--status-success)] font-medium hover:bg-[var(--status-success)]/10">PWA</Badge>
-            <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 font-medium hover:bg-amber-500/10">离线优先</Badge>
-            <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 font-medium hover:bg-purple-500/10">SQLite</Badge>
+            <Badge
+              variant="secondary"
+              className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--status-success)]/10 text-[var(--status-success)] font-medium hover:bg-[var(--status-success)]/10"
+            >
+              PWA
+            </Badge>
+            <Badge
+              variant="secondary"
+              className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--status-warning)]/10 text-[var(--status-warning)] font-medium hover:bg-[var(--status-warning)]/10"
+            >
+              离线优先
+            </Badge>
+            <Badge
+              variant="secondary"
+              className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium hover:bg-primary/10"
+            >
+              SQLite
+            </Badge>
           </div>
           <div className="mt-3 text-[10px] text-muted-foreground">
-            按 <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-secondary border border-border">?</kbd> 查看快捷键
+            按{" "}
+            <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-secondary border border-border">
+              ?
+            </kbd>{" "}
+            查看快捷键
           </div>
         </div>
       </SettingsSection>
@@ -356,12 +505,17 @@ export default function SettingsPage() {
       {/* ── 确认对话框(替代原生 confirm) ─────────────────────── */}
       <ConfirmDialog
         open={confirmState !== null}
-        onOpenChange={(open) => { if (!open) setConfirmState(null); }}
+        onOpenChange={(open) => {
+          if (!open) setConfirmState(null);
+        }}
         title={confirmState?.title ?? ""}
         description={confirmState?.description}
         confirmText={confirmState?.confirmText}
         danger={confirmState?.danger ?? true}
-        onConfirm={() => { confirmState?.action(); setConfirmState(null); }}
+        onConfirm={() => {
+          confirmState?.action();
+          setConfirmState(null);
+        }}
       />
     </div>
   );
@@ -369,13 +523,23 @@ export default function SettingsPage() {
 
 // ── 子组件 ──────────────────────────────────────────────────────
 
-function StatChip({ value, label, accent }: { value: string; label: string; accent?: boolean }) {
+function StatChip({
+  value,
+  label,
+  accent,
+}: {
+  value: string;
+  label: string;
+  accent?: boolean;
+}) {
   return (
     <div className="rounded-xl p-2.5 text-center bg-secondary/60">
-      <div className={cn(
-        "text-[16px] font-semibold tabular-nums",
-        accent ? "text-[var(--status-success)]" : "text-foreground"
-      )}>
+      <div
+        className={cn(
+          "text-[16px] font-semibold tabular-nums",
+          accent ? "text-[var(--status-success)]" : "text-foreground",
+        )}
+      >
         {value}
       </div>
       <div className="text-[10px] text-muted-foreground">{label}</div>
@@ -384,9 +548,19 @@ function StatChip({ value, label, accent }: { value: string; label: string; acce
 }
 
 function MenuItem({
-  icon: Icon, label, onClick, disabled, danger, last,
+  icon: Icon,
+  label,
+  onClick,
+  disabled,
+  danger,
+  last,
 }: {
-  icon: typeof Sun; label: string; onClick: () => void; disabled?: boolean; danger?: boolean; last?: boolean;
+  icon: typeof Sun;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+  last?: boolean;
 }) {
   return (
     <Button
@@ -396,19 +570,30 @@ function MenuItem({
       className={cn(
         "w-full justify-start gap-3 px-2 py-3 h-auto text-left text-[13px] font-normal rounded-none",
         !last && "border-b border-border",
-        disabled && "text-muted-foreground opacity-50 cursor-default hover:bg-transparent",
+        disabled &&
+          "text-muted-foreground opacity-50 cursor-default hover:bg-transparent",
         danger && !disabled && "text-destructive hover:bg-destructive/8",
-        !danger && !disabled && "text-foreground hover:bg-secondary/40"
+        !danger && !disabled && "text-foreground hover:bg-secondary/40",
       )}
     >
       <Icon className="w-4 h-4 shrink-0" />
       <span>{label}</span>
-      {!disabled && <ChevronRight className="w-3.5 h-3.5 ml-auto shrink-0 text-muted-foreground" />}
+      {!disabled && (
+        <ChevronRight className="w-3.5 h-3.5 ml-auto shrink-0 text-muted-foreground" />
+      )}
     </Button>
   );
 }
 
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function InfoRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
     <div className="flex items-center gap-2">
       <span className="text-primary/60 shrink-0">{icon}</span>

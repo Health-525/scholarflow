@@ -295,7 +295,7 @@ function NoteContent({
             {path.replace(`/${fileName}`, "") || "/"}
           </span>
           {saveSuccess && (
-            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded animate-fade-up bg-green-500/10 text-green-600 flex items-center gap-1">
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded animate-fade-up bg-green-500/10 dark:bg-green-500/15 text-green-600 dark:text-green-400 flex items-center gap-1">
               <CheckCircle2 className="w-3 h-3" /> 已保存
             </span>
           )}
@@ -339,7 +339,7 @@ function NoteContent({
           <button
             type="button"
             onClick={onDelete}
-            className="ml-1 p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+            className="ml-1 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
             title="删除笔记"
             aria-label="删除笔记"
           >
@@ -362,7 +362,7 @@ function NoteContent({
         )}
         {error && !isLoading && (
           <div className="text-center py-20">
-            <p className="text-[13px] mb-2 text-red-500">加载失败</p>
+            <p className="text-[13px] mb-2 text-destructive">加载失败</p>
             <p className="text-[11px] text-muted-foreground">{error.message}</p>
             <button
               onClick={reload}

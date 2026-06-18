@@ -1,7 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Activity, CheckCircle2, XCircle, Clock, AlertTriangle } from "lucide-react";
+import {
+  Activity,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  AlertTriangle,
+} from "lucide-react";
 
 import { queryKeys } from "@/hooks/useQueries";
 
@@ -66,13 +72,11 @@ function AgentCard({ agent }: { agent: AgentStatus }) {
       }`}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="font-semibold text-sm text-foreground">
-          {label}
-        </span>
+        <span className="font-semibold text-sm text-foreground">{label}</span>
         {agent.success ? (
-          <CheckCircle2 size={18} className="text-green-500" />
+          <CheckCircle2 size={18} className="text-[var(--status-success)]" />
         ) : (
-          <XCircle size={18} className="text-red-500" />
+          <XCircle size={18} className="text-destructive" />
         )}
       </div>
 
@@ -96,9 +100,11 @@ function AgentCard({ agent }: { agent: AgentStatus }) {
           </div>
         )}
         {agent.errors.length > 0 && (
-          <div className="mt-2 pt-2 border-t border-border dark:border-t-transparent text-red-500">
+          <div className="mt-2 pt-2 border-t border-border dark:border-t-transparent text-destructive">
             {agent.errors.map((e, i) => (
-              <div key={i} className="truncate">{e}</div>
+              <div key={i} className="truncate">
+                {e}
+              </div>
             ))}
           </div>
         )}
@@ -116,7 +122,11 @@ async function fetchHealth(): Promise<HealthData> {
 }
 
 export default function MonitoringPage() {
-  const { data: health, isLoading, error } = useQuery({
+  const {
+    data: health,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: queryKeys.health,
     queryFn: fetchHealth,
     refetchInterval: 30_000,
@@ -158,13 +168,20 @@ export default function MonitoringPage() {
           <Activity className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h1 className="text-xl font-bold font-display text-foreground">Agent 运行状态</h1>
+          <h1 className="text-xl font-bold font-display text-foreground">
+            Agent 运行状态
+          </h1>
           <p className="text-[12px] text-muted-foreground">
             更新于 {new Date(health.updatedAt).toLocaleString("zh-CN")}
             {" · "}
-            <span className="text-green-500">{health.summary.healthy} 正常</span>
+            <span className="text-[var(--status-success)]">
+              {health.summary.healthy} 正常
+            </span>
             {health.summary.failing > 0 && (
-              <span className="text-red-500"> · {health.summary.failing} 异常</span>
+              <span className="text-destructive">
+                {" "}
+                · {health.summary.failing} 异常
+              </span>
             )}
           </p>
         </div>
@@ -174,14 +191,18 @@ export default function MonitoringPage() {
       <div className="mb-6 h-2 rounded-full overflow-hidden flex bg-secondary">
         {health.summary.healthy > 0 && (
           <div
-            className="h-full bg-green-500 transition-all"
-            style={{ width: `${(health.summary.healthy / health.summary.total) * 100}%` }}
+            className="h-full bg-[var(--status-success)] transition-all"
+            style={{
+              width: `${(health.summary.healthy / health.summary.total) * 100}%`,
+            }}
           />
         )}
         {health.summary.failing > 0 && (
           <div
-            className="h-full bg-red-500 transition-all"
-            style={{ width: `${(health.summary.failing / health.summary.total) * 100}%` }}
+            className="h-full bg-destructive transition-all"
+            style={{
+              width: `${(health.summary.failing / health.summary.total) * 100}%`,
+            }}
           />
         )}
       </div>

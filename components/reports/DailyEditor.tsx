@@ -70,13 +70,13 @@ export function DailyEditor({ existingDate, existingContent, onSaved, onCancel }
         />
 
         {error && (
-          <p className="text-sm text-red-500">{error}</p>
+          <p className="text-sm text-destructive">{error}</p>
         )}
 
         <div className="flex gap-2 justify-end">
           <button
             onClick={onCancel}
-            className="px-4 py-2 rounded-xl text-sm border border-border text-muted-foreground"
+            className="px-4 py-2 rounded-xl text-sm bg-secondary border border-border text-muted-foreground hover:text-foreground transition-colors"
           >
             取消
           </button>

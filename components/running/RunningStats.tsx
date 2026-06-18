@@ -12,12 +12,12 @@ export function RunningStats({ stats }: RunningStatsProps) {
   return (
     <div className="rounded-2xl p-5 bg-card border border-border shadow-sm">
       <div className="flex items-center gap-2 mb-4">
-        <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg className="w-4 h-4 text-[var(--status-success)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
         <span className="text-[13px] font-semibold text-foreground">阳光长跑进度</span>
         {stats.progressPercent >= 100 && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-600 border border-green-500/20">已达标</span>
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--status-success)]/10 text-[var(--status-success)] border border-[var(--status-success)]/20">已达标</span>
         )}
       </div>
 
@@ -38,8 +38,8 @@ export function RunningStats({ stats }: RunningStatsProps) {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-xl p-3 text-center bg-green-500/8 border border-green-500/20">
-          <div className="text-xl font-bold text-green-600">
+        <div className="rounded-xl p-3 text-center bg-[var(--status-success)]/8 border border-[var(--status-success)]/20">
+          <div className="text-xl font-bold text-[var(--status-success)]">
             {stats.morning}
           </div>
           <div className="text-xs mt-0.5 text-muted-foreground">

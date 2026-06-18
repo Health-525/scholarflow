@@ -37,17 +37,17 @@ function AddAssignmentForm({ onAdd, onCancel }: { onAdd: (d: AssignmentDraft) =>
       <div>
         <input {...register("subject")} placeholder="课程名"
           className="w-full px-3 py-2 rounded-lg text-sm bg-secondary border border-border text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/30" />
-        {errors.subject && <p className="mt-1 text-[11px] text-red-500">{errors.subject.message}</p>}
+        {errors.subject && <p className="mt-1 text-[11px] text-destructive">{errors.subject.message}</p>}
       </div>
       <div>
         <input {...register("title")} placeholder="作业内容"
           className="w-full px-3 py-2 rounded-lg text-sm bg-secondary border border-border text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/30" />
-        {errors.title && <p className="mt-1 text-[11px] text-red-500">{errors.title.message}</p>}
+        {errors.title && <p className="mt-1 text-[11px] text-destructive">{errors.title.message}</p>}
       </div>
       <div>
         <input type="datetime-local" {...register("deadline")}
           className="w-full px-3 py-2 rounded-lg text-sm bg-secondary border border-border text-foreground outline-none focus:border-primary/30" />
-        {errors.deadline && <p className="mt-1 text-[11px] text-red-500">{errors.deadline.message}</p>}
+        {errors.deadline && <p className="mt-1 text-[11px] text-destructive">{errors.deadline.message}</p>}
       </div>
       <button type="submit" disabled={isSubmitting}
         className={`w-full py-2 rounded-lg text-sm font-medium text-primary-foreground bg-primary transition-opacity ${isSubmitting ? "opacity-60" : ""}`}>
@@ -83,9 +83,9 @@ function AssignmentList({ assignments, onMarkDone, onReorder, undoBuffer, onUndo
     <div className="space-y-4">
       {/* Undo toast */}
       {undoBuffer && Date.now() < undoBuffer.expiresAt && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm animate-fade-up bg-emerald-500/10 text-emerald-600">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm animate-fade-up bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
           <span className="flex-1">已完成「{undoBuffer.assignment.title}」</span>
-          <button onClick={onUndo} className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg bg-emerald-500/15">
+          <button onClick={onUndo} className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg bg-emerald-500/15 dark:bg-emerald-500/20">
             <RotateCcw size={12} />撤销
           </button>
         </div>
@@ -106,9 +106,9 @@ function AssignmentList({ assignments, onMarkDone, onReorder, undoBuffer, onUndo
               const isUrgent = a.deadline && new Date(a.deadline).getTime() - now < 86400000;
               const daysLeft = a.deadline ? Math.ceil((new Date(a.deadline).getTime() - now) / 86400000) : null;
               return (
-                <div className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-card ${isUrgent ? "border border-rose-500/30" : "border border-border"}`}>
+                <div className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-card ${isUrgent ? "border border-destructive/30" : "border border-border"}`}>
                   <button onClick={() => onMarkDone(a.id)}
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isUrgent ? "border-rose-500" : "border-muted-foreground/40 hover:border-primary"}`}
+                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isUrgent ? "border-destructive" : "border-muted-foreground/40 hover:border-primary"}`}
                     aria-label="标记完成">
                     <Check size={12} className="opacity-0 group-hover:opacity-50" />
                   </button>
@@ -119,7 +119,7 @@ function AssignmentList({ assignments, onMarkDone, onReorder, undoBuffer, onUndo
                         <BookOpen size={10} />{a.subject}
                       </span>
                       {a.deadline && (
-                        <span className={`text-[11px] flex items-center gap-1 ${daysLeft !== null && daysLeft < 0 ? "text-red-500 font-medium" : isUrgent ? "text-rose-500" : "text-muted-foreground"}`}>
+                        <span className={`text-[11px] flex items-center gap-1 ${daysLeft !== null && daysLeft < 0 ? "text-destructive font-medium" : isUrgent ? "text-destructive" : "text-muted-foreground"}`}>
                           <Calendar size={10} />{daysLeft !== null ? (daysLeft < 0 ? `逾期${Math.abs(daysLeft)}天` : daysLeft === 0 ? "今天截止" : `${daysLeft}天`) : ""}
                         </span>
                       )}
@@ -131,7 +131,7 @@ function AssignmentList({ assignments, onMarkDone, onReorder, undoBuffer, onUndo
             renderDragOverlay={(a) => {
               const isUrgent = a.deadline && new Date(a.deadline).getTime() - now < 86400000;
               return (
-                <div className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-card shadow-lg ${isUrgent ? "border border-rose-500/30" : "border border-border"}`}>
+                <div className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-card shadow-lg ${isUrgent ? "border border-destructive/30" : "border border-border"}`}>
                   <GripVertical className="w-4 h-4 text-muted-foreground" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate text-foreground">{a.title}</p>
@@ -149,8 +149,8 @@ function AssignmentList({ assignments, onMarkDone, onReorder, undoBuffer, onUndo
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">已完成 ({completed.length})</h3>
           {completed.map(a => (
             <div key={a.id} className="flex items-center gap-3 px-4 py-3 rounded-xl opacity-50 bg-card border border-border">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 bg-emerald-500/15">
-                <Check size={12} className="text-emerald-500" />
+              <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 bg-emerald-500/15 dark:bg-emerald-500/20">
+                <Check size={12} className="text-emerald-600 dark:text-emerald-400" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm line-through truncate text-muted-foreground">{a.title}</p>
@@ -173,8 +173,8 @@ export default function AssignmentsPage() {
     <div className="max-w-5xl mx-auto min-h-screen bg-background text-foreground animate-page">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6 py-4">
-        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-amber-500/10">
-          <ClipboardList className="w-5 h-5 text-amber-600" />
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-amber-500/10 dark:bg-amber-500/15">
+          <ClipboardList className="w-5 h-5 text-amber-600 dark:text-amber-400" />
         </div>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold font-display text-foreground">作业</h1>

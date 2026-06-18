@@ -28,20 +28,34 @@ function useGreeting() {
       const hour = now.getHours();
 
       const text =
-        hour < 6 ? "夜深了" :
-        hour < 9 ? "早安" :
-        hour < 12 ? "上午好" :
-        hour < 14 ? "中午好" :
-        hour < 18 ? "下午好" :
-        hour < 22 ? "晚上好" : "夜深了";
+        hour < 6
+          ? "夜深了"
+          : hour < 9
+            ? "早安"
+            : hour < 12
+              ? "上午好"
+              : hour < 14
+                ? "中午好"
+                : hour < 18
+                  ? "下午好"
+                  : hour < 22
+                    ? "晚上好"
+                    : "夜深了";
 
       const emoji =
-        hour < 6 ? "🌙" :
-        hour < 9 ? "☀️" :
-        hour < 12 ? "🌤️" :
-        hour < 14 ? "🍜" :
-        hour < 18 ? "⚡" :
-        hour < 22 ? "🌃" : "🌙";
+        hour < 6
+          ? "🌙"
+          : hour < 9
+            ? "☀️"
+            : hour < 12
+              ? "🌤️"
+              : hour < 14
+                ? "🍜"
+                : hour < 18
+                  ? "⚡"
+                  : hour < 22
+                    ? "🌃"
+                    : "🌙";
 
       const date = now.toLocaleDateString("zh-CN", {
         month: "long",
@@ -62,7 +76,8 @@ function useGreeting() {
 
 export default function DashboardPage() {
   const { text: greeting, emoji: greetingEmoji, date: dateStr } = useGreeting();
-  const { data: dashboardData, loading: dashboardLoading } = useDashboardSummary();
+  const { data: dashboardData, loading: dashboardLoading } =
+    useDashboardSummary();
 
   const heroStats = dashboardData?.overview
     ? {
@@ -75,9 +90,12 @@ export default function DashboardPage() {
   return (
     <div className="max-w-[1280px] mx-auto py-5 pb-24 md:pb-10 space-y-6 animate-page">
       {/* Hero + Quick Actions — unified header */}
-      <header className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#E8EAFF] to-[#F5F3FF] dark:from-primary/[0.08] dark:to-primary/[0.03] shadow-sm animate-fade-up">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/8 blur-3xl" />
+      <header className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[var(--hero-from)] to-[var(--hero-to)] border border-border shadow-sm animate-fade-up">
+        <div
+          className="pointer-events-none absolute inset-0"
+          aria-hidden="true"
+        >
+          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/8 dark:bg-primary/[0.03] blur-3xl" />
         </div>
 
         <div className="relative px-6 pt-4 pb-2">
@@ -98,9 +116,12 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <div className="relative shrink-0 flex items-center gap-3" suppressHydrationWarning>
+            <div
+              className="relative shrink-0 flex items-center gap-3"
+              suppressHydrationWarning
+            >
               <RefreshButton />
-              <div className="relative flex h-12 w-12 items-center justify-center rounded-[18px] bg-white/80 text-[28px] backdrop-blur-xl shadow-sm dark:bg-[#1a1a20]/60">
+              <div className="relative flex h-12 w-12 items-center justify-center rounded-[18px] bg-card/80 text-[28px] backdrop-blur-xl shadow-sm dark:bg-secondary/80">
                 {greetingEmoji}
               </div>
             </div>

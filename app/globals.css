@@ -1,14 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
-@import './theme.css';
-@import './animations.css';
-@import './markdown.css';
+@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap");
+@import "./theme.css";
+@import "./animations.css";
+@import "./markdown.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ── Base Reset ── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -22,7 +24,9 @@ body {
   background: var(--bg-gradient);
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Noto Sans SC', var(--font-noto-sans-sc), ui-sans-serif, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-family:
+    "Noto Sans SC", var(--font-noto-sans-sc), ui-sans-serif, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   font-size: 15px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
@@ -32,7 +36,7 @@ body {
 
 /* Grain texture overlay */
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   z-index: 0;
@@ -44,14 +48,22 @@ body::before {
 }
 
 [data-theme="dark"] body::after {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 70% 50% at 15% 8%, rgba(132, 150, 240, 0.04), transparent 30%),
-    radial-gradient(ellipse 50% 40% at 88% 94%, rgba(80, 100, 140, 0.025), transparent 28%);
+    radial-gradient(
+      ellipse 70% 50% at 15% 8%,
+      rgba(124, 142, 219, 0.05),
+      transparent 30%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 88% 94%,
+      rgba(80, 100, 140, 0.03),
+      transparent 28%
+    );
 }
 
 #__next,
@@ -61,21 +73,33 @@ main,
   z-index: 1;
 }
 
-input, button, textarea, select {
+input,
+button,
+textarea,
+select {
   font-family: inherit;
 }
 
-::placeholder { color: var(--text-muted); }
-button, input { touch-action: manipulation; }
+::placeholder {
+  color: var(--text-muted);
+}
+button,
+input {
+  touch-action: manipulation;
+}
 
 /* ── Typography ── */
 .font-display {
-  font-family: 'Noto Serif SC', Georgia, serif;
+  font-family: "Noto Serif SC", Georgia, serif;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
-h1, h2, h3 { letter-spacing: -0.01em; }
+h1,
+h2,
+h3 {
+  letter-spacing: -0.01em;
+}
 
 :focus-visible {
   outline: 2px solid var(--accent);
@@ -112,78 +136,127 @@ h1, h2, h3 { letter-spacing: -0.01em; }
 }
 
 .card-glow::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -1px;
   z-index: 0;
   pointer-events: none;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.08) 0%, transparent 50%);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--primary-rgb), 0.08) 0%,
+    transparent 50%
+  );
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
-.card-glow:hover::before { opacity: 1; }
+.card-glow:hover::before {
+  opacity: 1;
+}
 
 [data-theme="dark"] .card-glow::before {
-  background: linear-gradient(135deg, rgba(132, 150, 240, 0.07) 0%, rgba(132, 150, 240, 0.015) 38%, transparent 70%);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--primary-rgb), 0.08) 0%,
+    rgba(var(--primary-rgb), 0.02) 38%,
+    transparent 70%
+  );
 }
 
 [data-theme="dark"] .card-glow::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 [data-theme="dark"] .dark-panel {
-  background: linear-gradient(180deg, rgba(13, 13, 18, 0.96) 0%, rgba(10, 10, 14, 0.95) 100%);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(
+    180deg,
+    rgba(26, 26, 34, 0.96) 0%,
+    rgba(19, 19, 26, 0.95) 100%
+  );
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(20px) saturate(120%);
 }
 
 [data-theme="dark"] .dark-nav-panel {
-  background: linear-gradient(180deg, rgba(7, 7, 11, 0.98) 0%, rgba(5, 5, 8, 0.96) 100%);
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(
+    180deg,
+    rgba(19, 19, 26, 0.98) 0%,
+    rgba(13, 13, 18, 0.96) 100%
+  );
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(20px) saturate(120%);
 }
 
-[data-theme="dark"] .dark-shell-grid { display: none; }
+[data-theme="dark"] .dark-shell-grid {
+  display: none;
+}
 
 /* ── Skeleton ── */
 .skeleton {
-  background: linear-gradient(90deg, var(--border-subtle) 25%, var(--border) 50%, var(--border-subtle) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--border-subtle) 25%,
+    var(--border) 50%,
+    var(--border-subtle) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite;
   border-radius: var(--radius-sm);
 }
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
 
 /* ── Safe Area ── */
 @supports (padding: env(safe-area-inset-bottom)) {
-  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
 }
 
 /* ── Responsive / Accessibility ── */
 @media (pointer: coarse) {
-  * { -webkit-tap-highlight-color: transparent; }
-  html { -webkit-overflow-scrolling: touch; }
-  button, a, [role="button"], input[type="submit"] {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  html {
+    -webkit-overflow-scrolling: touch;
+  }
+  button,
+  a,
+  [role="button"],
+  input[type="submit"] {
     min-width: 44px;
     min-height: 44px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

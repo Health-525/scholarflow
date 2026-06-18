@@ -3,6 +3,8 @@
 import { BookOpen, Clock, TrendingUp, CheckCircle2, ChevronRight, Lightbulb } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { semanticColor, semanticBg } from "@/lib/theme-colors";
+
 interface Topic {
   id: string;
   title: string;
@@ -32,10 +34,10 @@ interface RoadmapData {
   phases: Phase[];
 }
 
-const PRIORITY_COLORS: Record<number, string> = {
-  1: "#ef4444",
-  2: "#f59e0b",
-  3: "#3b82f6",
+const PRIORITY_TYPES: Record<number, "error" | "warning" | "info"> = {
+  1: "error",
+  2: "warning",
+  3: "info",
 };
 
 export default function KnowledgeRoadmapPage() {
@@ -86,15 +88,15 @@ export default function KnowledgeRoadmapPage() {
       {/* Overview cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         <StatCard icon={BookOpen} label="总空白" value={roadmap.overview.totalGaps} />
-        <StatCard icon={CheckCircle2} label="已填补" value={roadmap.overview.completed} color="#22c55e" />
-        <StatCard icon={TrendingUp} label="待学习" value={roadmap.overview.remaining} color="#2a4494" />
-        <StatCard icon={Clock} label="预计耗时" value={`${roadmap.overview.totalHours}h`} color="#f59e0b" />
+        <StatCard icon={CheckCircle2} label="已填补" value={roadmap.overview.completed} color={semanticColor("success")} />
+        <StatCard icon={TrendingUp} label="待学习" value={roadmap.overview.remaining} color={semanticColor("info")} />
+        <StatCard icon={Clock} label="预计耗时" value={`${roadmap.overview.totalHours}h`} color={semanticColor("warning")} />
       </div>
 
       {/* Progress bar */}
       <div className="mb-8 h-2 rounded-full overflow-hidden flex bg-secondary">
         {roadmap.overview.completed > 0 && (
-          <div className="h-full bg-green-500" style={{ width: `${(roadmap.overview.completed / roadmap.overview.totalGaps) * 100}%` }} />
+          <div className="h-full bg-[var(--status-success)]" style={{ width: `${(roadmap.overview.completed / roadmap.overview.totalGaps) * 100}%` }} />
         )}
       </div>
 
@@ -116,14 +118,14 @@ export default function KnowledgeRoadmapPage() {
               <div
                 key={topic.id}
                 className="rounded-xl p-4 border bg-card border-border"
-                style={{ borderLeftWidth: 3, borderLeftColor: PRIORITY_COLORS[topic.priority] || "#2a4494" }}
+                style={{ borderLeftWidth: 3, borderLeftColor: semanticColor(PRIORITY_TYPES[topic.priority] || "info") }}
               >
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <h3 className="font-semibold text-sm leading-snug text-foreground">{topic.title}</h3>
                   <span className="shrink-0 text-xs px-2 py-0.5 rounded-full font-medium"
                     style={{
-                      background: `${PRIORITY_COLORS[topic.priority]}20`,
-                      color: PRIORITY_COLORS[topic.priority],
+                      background: semanticBg(PRIORITY_TYPES[topic.priority] || "info"),
+                      color: semanticColor(PRIORITY_TYPES[topic.priority] || "info"),
                     }}>
                     {topic.effort.label} · {topic.effort.hours}h
                   </span>
@@ -144,7 +146,7 @@ export default function KnowledgeRoadmapPage() {
                       className="h-full rounded-full transition-all"
                       style={{
                         width: `${topic.readiness}%`,
-                        background: topic.readiness >= 70 ? "#22c55e" : topic.readiness >= 40 ? "#f59e0b" : "#ef4444",
+                        background: semanticColor(topic.readiness >= 70 ? "success" : topic.readiness >= 40 ? "warning" : "error"),
                       }}
                     />
                   </div>

@@ -44,7 +44,7 @@ export function DateRangeFilter({
         <button
           type="button"
           onClick={onReset}
-          className="px-3 py-1.5 rounded-xl text-xs bg-border text-muted-foreground"
+          className="px-3 py-1.5 rounded-xl text-xs bg-secondary text-muted-foreground hover:text-foreground transition-colors"
           aria-label="清除日期筛选"
         >
           清除

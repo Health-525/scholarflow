@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, Trash2, Clock, CheckCircle2, RotateCcw, RefreshCw } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 import { parseExamDate } from "@/lib/parse-exam-date";
 import { useAuthStore } from "@/store/auth";
@@ -119,15 +119,15 @@ function formatCountdown(dateStr: string): { text: string; urgency: "today" | "s
 }
 
 const urgencyColor = {
-  today: "text-rose-500",
-  soon: "text-amber-500",
+  today: "text-destructive",
+  soon: "text-amber-600 dark:text-amber-400",
   normal: "text-muted-foreground",
   past: "text-muted-foreground",
 };
 
 const urgencyBg = {
-  today: "bg-rose-500/10",
-  soon: "bg-amber-500/10",
+  today: "bg-destructive/10",
+  soon: "bg-amber-500/10 dark:bg-amber-500/15",
   normal: "bg-primary/10",
   past: "bg-secondary",
 };
@@ -141,6 +141,7 @@ export default function ExamsPage() {
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState<string | null>(null);
+  const autoImportedRef = useRef(false);
 
   // 表单字段
   const [subject, setSubject] = useState("");
@@ -157,8 +158,31 @@ export default function ExamsPage() {
 
   useEffect(() => {
     setLoading(true);
-    refresh().finally(() => setLoading(false));
-  }, [refresh]);
+    refresh()
+      .then(async () => {
+        // 首次进入页面时自动尝试从教务同步考试数据
+        // 延迟到下一帧执行，避免阻塞首屏渲染和导航交互
+        if (autoImportedRef.current) return;
+        autoImportedRef.current = true;
+        requestAnimationFrame(() => {
+          setImporting(true);
+          apiImportJwgl(schoolId, userId)
+            .then(async ({ added }) => {
+              if (added > 0) {
+                await refresh();
+                setImportMsg(`已自动导入 ${added} 场考试`);
+                setTimeout(() => setImportMsg(null), 3000);
+              }
+            })
+            .catch(() => {
+              setImportMsg("教务数据同步失败");
+              setTimeout(() => setImportMsg(null), 3000);
+            })
+            .finally(() => setImporting(false));
+        });
+      })
+      .finally(() => setLoading(false));
+  }, [refresh, schoolId, userId]);
 
   // ── 操作 ─────────────────────────────────────────────────
 
@@ -243,7 +267,7 @@ export default function ExamsPage() {
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${importing ? "animate-spin" : ""}`} />
-          {importing ? "导入中…" : "导入教务数据"}
+          {importing ? "同步中…" : "同步教务数据"}
         </button>
       </div>
 
@@ -352,7 +376,7 @@ export default function ExamsPage() {
                 {/* 删除 */}
                 <button
                   onClick={() => handleDelete(exam.id)}
-                  className="p-1.5 rounded-lg text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-rose-500 transition-all"
+                  className="p-1.5 rounded-lg text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-all"
                   aria-label={`删除「${exam.subject}」`}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -413,7 +437,7 @@ export default function ExamsPage() {
                 {exam.source === "manual" && (
                   <button
                     onClick={() => handleDelete(exam.id)}
-                    className="p-1.5 rounded-lg text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-rose-500 transition-all"
+                    className="p-1.5 rounded-lg text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-all"
                     aria-label={`删除「${exam.subject}」`}
                   >
                     <Trash2 className="w-3.5 h-3.5" />

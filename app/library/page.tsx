@@ -227,8 +227,8 @@ export default function LibraryPage() {
     const isRefreshing = jwtStatus === "refreshing";
     return (
       <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-        <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
-          <KeyRound className="w-6 h-6 text-red-500" />
+        <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-destructive/10">
+          <KeyRound className="w-6 h-6 text-destructive" />
         </div>
         <h1 className="text-[16px] font-bold mb-2 text-foreground">
           凭证已过期
@@ -239,7 +239,7 @@ export default function LibraryPage() {
             : "请在浏览器中重新登录图书馆系统"}
         </p>
         {refreshError && (
-          <p className="text-[11px] mt-1 mb-3 text-red-500">{refreshError}</p>
+          <p className="text-[11px] mt-1 mb-3 text-destructive">{refreshError}</p>
         )}
         <button
           type="button"
@@ -267,8 +267,8 @@ export default function LibraryPage() {
   if (queryError && !data) {
     return (
       <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-        <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
-          <AlertCircle className="w-6 h-6 text-red-500" />
+        <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-destructive/10">
+          <AlertCircle className="w-6 h-6 text-destructive" />
         </div>
         <h1 className="text-[16px] font-bold mb-2 text-foreground">加载失败</h1>
         <p className="text-[12px] mb-4 text-muted-foreground">{queryError}</p>
@@ -383,17 +383,17 @@ export default function LibraryPage() {
             · 自动刷新
           </span>
           {Date.now() - new Date(data.updated).getTime() > 5 * 60 * 1000 && (
-            <span className="text-amber-500">· 数据可能已过期</span>
+            <span className="text-[var(--status-warning)]">· 数据可能已过期</span>
           )}
         </div>
       )}
 
       {/* Blacklist warning */}
       {blacklisted && (
-        <div className="rounded-2xl p-4 mb-4 bg-red-500/5 border border-red-500/20 shadow-sm animate-fade-up">
+        <div className="rounded-2xl p-4 mb-4 bg-destructive/5 border border-destructive/20 shadow-sm animate-fade-up">
           <div className="flex items-center gap-2 mb-1">
-            <AlertCircle className="w-4 h-4 text-red-500" />
-            <span className="text-[13px] font-semibold text-red-500">
+            <AlertCircle className="w-4 h-4 text-destructive" />
+            <span className="text-[13px] font-semibold text-destructive">
               账号受限
             </span>
           </div>
@@ -521,7 +521,7 @@ export default function LibraryPage() {
                     type="button"
                     onClick={handleCancelReserve}
                     disabled={cancelReserve.isPending}
-                    className="min-h-9 px-3 py-2 rounded-xl text-[12px] font-medium inline-flex items-center gap-1.5 bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50 cursor-pointer transition-colors"
+                    className="min-h-9 px-3 py-2 rounded-xl text-[12px] font-medium inline-flex items-center gap-1.5 bg-destructive/10 text-destructive hover:bg-destructive/20 disabled:opacity-50 cursor-pointer transition-colors"
                     aria-label="取消当前预约"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -533,7 +533,7 @@ export default function LibraryPage() {
                     type="button"
                     onClick={handleHoldSeat}
                     disabled={holdSeat.isPending}
-                    className="min-h-9 px-3 py-2 rounded-xl text-[12px] font-medium inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 disabled:opacity-50 cursor-pointer transition-colors"
+                    className="min-h-9 px-3 py-2 rounded-xl text-[12px] font-medium inline-flex items-center gap-1.5 bg-[var(--status-warning)]/10 text-[var(--status-warning)] hover:bg-[var(--status-warning)]/20 disabled:opacity-50 cursor-pointer transition-colors"
                     aria-label="暂离座位"
                   >
                     <LogOut className="w-3.5 h-3.5" />
@@ -580,7 +580,7 @@ export default function LibraryPage() {
             <div className="relative w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
               <Bell className="w-4 h-4 text-primary" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-primary-foreground text-[10px] font-bold flex items-center justify-center">
                   {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
               )}
@@ -591,7 +591,7 @@ export default function LibraryPage() {
                   消息通知
                 </span>
                 {unreadCount > 0 && (
-                  <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-500 font-medium">
+                  <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive font-medium">
                     {unreadCount} 条未读
                   </span>
                 )}

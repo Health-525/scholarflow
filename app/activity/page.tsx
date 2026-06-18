@@ -3,8 +3,19 @@
 import { ChevronLeft, Trash2, Monitor } from "lucide-react";
 import Link from "next/link";
 
-import { useActivityTrackerV3, downloadActivityCSV, clearActivityData, CATEGORY_COLORS, CATEGORY_LABELS } from "@/lib/activity-tracker-v3";
+import { useActivityTrackerV3, downloadActivityCSV, clearActivityData, CATEGORY_LABELS } from "@/lib/activity-tracker-v3";
 import type { Category } from "@/lib/activity-tracker-v3";
+import { semanticColor } from "@/lib/theme-colors";
+
+const CATEGORY_SEMANTIC: Record<Category, Parameters<typeof semanticColor>[0]> = {
+  coding: "success",
+  browsing: "info",
+  study: "primary",
+  entertainment: "warning",
+  communication: "info",
+  system: "warning",
+  other: "info",
+};
 
 function confirmClear(message: string): boolean {
   // eslint-disable-next-line no-alert
@@ -44,7 +55,7 @@ export default function ActivityPage() {
 
       {/* ── Big stats ── */}
       <div className="grid grid-cols-1 gap-3 mb-5">
-        <StatCard value={activeMins} label="活跃 min（今日）" colorClass="text-green-600" icon="🟢" />
+        <StatCard value={activeMins} label="活跃 min（今日）" colorClass="text-[var(--status-success)]" icon="🟢" />
       </div>
 
       {/* ── Category breakdown ── */}
@@ -54,14 +65,14 @@ export default function ActivityPage() {
           {/* Stacked bar */}
           <div className="h-3 rounded-full overflow-hidden flex mb-3 bg-secondary">
             {state.categoryBreakdown.map(c => (
-              <div key={c.category} className="h-full transition-all" style={{ width: `${(c.minutes / Math.max(activeMins, 1)) * 100}%`, background: c.color, minWidth: c.minutes > 0 ? 3 : 0 }} title={`${CATEGORY_LABELS[c.category as Category]}: ${c.minutes}min`} />
+              <div key={c.category} className="h-full transition-all" style={{ width: `${(c.minutes / Math.max(activeMins, 1)) * 100}%`, background: semanticColor(CATEGORY_SEMANTIC[c.category]), minWidth: c.minutes > 0 ? 3 : 0 }} title={`${CATEGORY_LABELS[c.category as Category]}: ${c.minutes}min`} />
             ))}
           </div>
           {/* Category list */}
           <div className="space-y-1.5">
             {state.categoryBreakdown.map(c => (
               <div key={c.category} className="flex items-center gap-2 text-[12px]">
-                <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: c.color }} />
+                <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: semanticColor(CATEGORY_SEMANTIC[c.category]) }} />
                 <span className="text-foreground">{CATEGORY_LABELS[c.category as Category]}</span>
                 <div className="flex-1" />
                 <span className="font-medium tabular-nums text-muted-foreground">{c.minutes}分</span>
@@ -82,7 +93,7 @@ export default function ActivityPage() {
             {state.appBreakdown.map(b => {
               const pct = Math.round((b.minutes / Math.max(activeMins, 1)) * 100);
               const seg = state.todayLog.segments.find(s => s.app === b.app);
-              const catColor = seg ? CATEGORY_COLORS[seg.category] : CATEGORY_COLORS.other;
+              const catColor = seg ? semanticColor(CATEGORY_SEMANTIC[seg.category]) : semanticColor(CATEGORY_SEMANTIC.other);
               return (
                 <div key={b.app} className="flex items-center gap-3">
                   <span className="text-[11px] w-24 shrink-0 truncate font-medium text-foreground" title={b.app}>{b.app}</span>
@@ -102,7 +113,7 @@ export default function ActivityPage() {
       <div className="rounded-2xl p-5 mb-4 border border-border bg-card">
         <h3 className="text-[13px] font-semibold mb-3 text-muted-foreground">实时状态</h3>
         <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+          <div className="w-2.5 h-2.5 rounded-full bg-[var(--status-success)] animate-pulse" />
           <span className="text-[13px] text-foreground">{state.currentApp}</span>
           {state.currentTitle && (
             <span className="text-[11px] truncate text-muted-foreground" title={state.currentTitle}>
@@ -117,7 +128,7 @@ export default function ActivityPage() {
         <button onClick={downloadActivityCSV} className="flex-1 py-3 rounded-xl text-[13px] font-medium bg-card border border-border text-foreground">
           导出 CSV
         </button>
-        <button onClick={() => { if (confirmClear("确定清除所有活动记录？")) { clearActivityData(); window.location.reload(); } }} className="flex items-center justify-center gap-1 py-3 px-4 rounded-xl text-[13px] font-medium bg-card border border-border text-red-500">
+        <button onClick={() => { if (confirmClear("确定清除所有活动记录？")) { clearActivityData(); window.location.reload(); } }} className="flex items-center justify-center gap-1 py-3 px-4 rounded-xl text-[13px] font-medium bg-card border border-border text-destructive">
           <Trash2 className="w-4 h-4" />清除
         </button>
       </div>

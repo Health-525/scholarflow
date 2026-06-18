@@ -1,6 +1,16 @@
 "use client";
 
-import { Save, X, Bold, Italic, Heading2, List, Code, Link, Quote } from "lucide-react";
+import {
+  Save,
+  X,
+  Bold,
+  Italic,
+  Heading2,
+  List,
+  Code,
+  Link,
+  Quote,
+} from "lucide-react";
 import { useState, useRef, useCallback } from "react";
 
 interface NoteEditorProps {
@@ -15,10 +25,13 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
   const [dirty, setDirty] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(e.target.value);
-    setDirty(true);
-  }, []);
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setValue(e.target.value);
+      setDirty(true);
+    },
+    [],
+  );
 
   const handleSave = async () => {
     if (saving || !dirty) return;
@@ -61,14 +74,19 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
     const end = textarea.selectionEnd;
     const selected = value.substring(start, end);
     const replacement = `${prefix}${selected || "文本"}${suffix}`;
-    const newValue = value.substring(0, start) + replacement + value.substring(end);
+    const newValue =
+      value.substring(0, start) + replacement + value.substring(end);
     setValue(newValue);
     setDirty(true);
 
     requestAnimationFrame(() => {
-      const cursorPos = selected ? start + replacement.length : start + prefix.length;
+      const cursorPos = selected
+        ? start + replacement.length
+        : start + prefix.length;
       textarea.selectionStart = start + prefix.length;
-      textarea.selectionEnd = selected ? cursorPos : start + prefix.length + (selected || "文本").length;
+      textarea.selectionEnd = selected
+        ? cursorPos
+        : start + prefix.length + (selected || "文本").length;
       textarea.focus();
     });
   };
@@ -101,7 +119,7 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
         <div className="flex-1" />
 
         {dirty && (
-          <span className="text-[10px] mr-2 text-amber-500">
+          <span className="text-[10px] mr-2 text-[var(--status-warning)]">
             未保存
           </span>
         )}
@@ -117,7 +135,9 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
           onClick={handleSave}
           disabled={!dirty || saving}
           className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
-            dirty ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
+            dirty
+              ? "bg-primary text-primary-foreground"
+              : "bg-secondary text-muted-foreground"
           }`}
         >
           <Save className="w-3 h-3" />
@@ -139,7 +159,9 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
 
       {/* Bottom bar */}
       <div className="flex items-center justify-between px-4 py-2 text-[10px] shrink-0 border-t border-border text-muted-foreground">
-        <span>{value.length} 字符 · {value.split("\n").length} 行</span>
+        <span>
+          {value.length} 字符 · {value.split("\n").length} 行
+        </span>
         <span>Ctrl+S 保存 · Esc 取消</span>
       </div>
     </div>

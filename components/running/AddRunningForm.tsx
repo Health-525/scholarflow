@@ -83,7 +83,7 @@ export function AddRunningForm({ records, onAdd, onCancel }: AddRunningFormProps
               type="button"
               onClick={() => { setType(t); setError(null); }}
               className={`flex-1 py-2 rounded-xl text-sm font-medium ${
-                type === t ? "bg-primary text-primary-foreground" : "bg-border text-muted-foreground"
+                type === t ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
               }`}
               aria-pressed={type === t}
               aria-label={t === "morning" ? "晨跑" : "自由跑"}
@@ -95,13 +95,13 @@ export function AddRunningForm({ records, onAdd, onCancel }: AddRunningFormProps
       </div>
 
       {isDuplicate && !error && (
-        <p className="text-xs text-amber-500">
+        <p className="text-xs text-[var(--status-warning)]">
           ⚠️ 该日期已有{type === "morning" ? "晨跑" : "自由跑"}记录
         </p>
       )}
 
       {error && (
-        <p className="text-xs text-red-500" role="alert">
+        <p className="text-xs text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -121,7 +121,7 @@ export function AddRunningForm({ records, onAdd, onCancel }: AddRunningFormProps
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-border text-muted-foreground"
+            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-secondary text-muted-foreground"
             aria-label="取消"
           >
             取消

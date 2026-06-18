@@ -1,34 +1,20 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
 
-import { applyTheme } from "@/lib/theme";
+import { applyTheme, getTheme, setTheme } from "@/lib/theme";
 import type { ThemeValue } from "@/types";
-
-const safeStorage = {
-  getItem: (name: string) => typeof window !== 'undefined' ? window.localStorage.getItem(name) : null,
-  setItem: (name: string, value: string) => { if (typeof window !== 'undefined') window.localStorage.setItem(name, value); },
-  removeItem: (name: string) => { if (typeof window !== 'undefined') window.localStorage.removeItem(name); },
-};
 
 interface ThemeState {
   theme: ThemeValue;
   setTheme: (theme: ThemeValue) => void;
 }
 
-export const useThemeStore = create<ThemeState>()(
-  persist(
-    (set) => ({
-      theme: "system" as ThemeValue,
+export const useThemeStore = create<ThemeState>()((set) => ({
+  // 客户端创建 store 时读取 localStorage；SSR 时 getTheme 返回 "system"
+  theme: getTheme(),
 
-      setTheme: (theme: ThemeValue) => {
-        set({ theme });
-        applyTheme(theme);
-      },
-    }),
-    {
-      name: "sf_theme",
-      storage: createJSONStorage(() => safeStorage),
-      partialize: (state) => ({ theme: state.theme }),
-    }
-  )
-);
+  setTheme: (theme) => {
+    set({ theme });
+    setTheme(theme); // 持久化为纯字符串，与 layout 内联脚本格式一致
+    applyTheme(theme);
+  },
+}));

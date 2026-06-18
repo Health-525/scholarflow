@@ -51,7 +51,7 @@ export function BottomNav() {
                 key={item.href}
                 href={item.href}
                 className={`relative flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
-                  active ? "text-primary dark:text-white" : "text-muted-foreground/75 active:text-muted-foreground"
+                  active ? "text-primary" : "text-muted-foreground/75 active:text-muted-foreground"
                 }`}
                 aria-label={label}
                 aria-current={active ? "page" : undefined}
@@ -80,7 +80,7 @@ export function BottomNav() {
             ref={triggerRef}
             onClick={() => setDrawerOpen(true)}
             className={`relative flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
-              drawerOpen ? "text-primary dark:text-white" : "text-muted-foreground/75 active:text-muted-foreground"
+              drawerOpen ? "text-primary" : "text-muted-foreground/75 active:text-muted-foreground"
             }`}
             aria-label="更多功能"
             aria-expanded={drawerOpen}
@@ -102,7 +102,7 @@ export function BottomNav() {
           onClick={handleClose}
           onKeyDown={(e) => { if (e.key === "Escape") handleClose(); }}
         >
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-in" />
+          <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in" />
           {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
           <div
             className="absolute bottom-0 left-0 right-0 bg-card border-t border-border rounded-t-[24px] shadow-lg max-h-[65vh] overflow-y-auto pb-safe animate-fade-up"
@@ -120,7 +120,7 @@ export function BottomNav() {
           >
             {/* Handle bar */}
             <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full bg-border" />
+              <div className="w-10 h-1 rounded-full bg-secondary" />
             </div>
 
             {/* Header */}
@@ -152,7 +152,7 @@ export function BottomNav() {
                           onClick={handleClose}
                           className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl text-center transition-colors ${
                             active
-                              ? "bg-primary/10 text-primary dark:text-white"
+                              ? "bg-primary/10 text-primary"
                               : "text-foreground hover:bg-secondary"
                           }`}
                         >

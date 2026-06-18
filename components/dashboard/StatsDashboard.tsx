@@ -34,7 +34,7 @@ const TOOLTIP_STYLE = {
   borderRadius: "12px",
   fontSize: "12px",
   color: "var(--chart-foreground)",
-  boxShadow: "0 4px 12px rgba(var(--chart-foreground-rgb), 0.08)",
+  boxShadow: "var(--shadow-md)",
 };
 
 // ── 作业完成统计 ──────────────────────────────────────────
@@ -158,8 +158,8 @@ function RunningTrendChart() {
   return (
       <div className="rounded-2xl p-4 md:col-span-2 bg-card border border-border shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-green-600/10">
-          <svg className="w-3 h-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-[var(--status-success)]/10">
+          <svg className="w-3 h-3 text-[var(--status-success)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
@@ -191,7 +191,7 @@ function UrgencyChart() {
     return [
       { name: "已逾期", value: counts.overdue, color: colors.error },
       { name: "紧急(24h)", value: counts.urgent, color: colors.warning },
-      { name: "即将(72h)", value: counts.reminder, color: "#f1c40f" },
+      { name: "即将(72h)", value: counts.reminder, color: colors.warning },
       { name: "正常", value: counts.normal, color: colors.success },
     ].filter((d) => d.value > 0);
   }, [assignments, colors]);
@@ -204,8 +204,8 @@ function UrgencyChart() {
   return (
       <div className="rounded-2xl p-4 bg-card border border-border shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-amber-500/10">
-          <svg className="w-3 h-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-[var(--status-warning)]/10">
+          <svg className="w-3 h-3 text-[var(--status-warning)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
         </div>

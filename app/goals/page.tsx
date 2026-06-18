@@ -294,9 +294,9 @@ export default function DailyGoalsPage() {
 
       {/* All-done celebration */}
       {allDone && (
-        <div className="rounded-2xl p-5 mb-4 bg-green-500/5 border border-green-500/20 shadow-sm text-center">
+        <div className="rounded-2xl p-5 mb-4 bg-green-500/5 dark:bg-green-500/10 border border-green-500/20 dark:border-green-500/30 shadow-sm text-center">
           <div className="text-[28px] mb-2">🎉</div>
-          <div className="text-[14px] font-semibold text-green-600">今日目标全部完成！</div>
+          <div className="text-[14px] font-semibold text-green-600 dark:text-green-400">今日目标全部完成！</div>
           <div className="text-[11px] text-muted-foreground mt-1">
             {streak > 0 ? `连续 ${streak} 天达成，继续保持` : "明天继续设定新目标"}
           </div>
@@ -335,7 +335,7 @@ export default function DailyGoalsPage() {
                 aria-label={`目标：${g.text}`}
                 className={`w-full text-left flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-sm ${
                   g.done
-                    ? "opacity-70 bg-green-500/5 border border-green-500/30"
+                    ? "opacity-70 bg-green-500/5 dark:bg-green-500/10 border border-green-500/30 dark:border-green-500/40"
                     : "bg-card border border-border hover:border-primary/20"
                 }`}
               >
@@ -346,10 +346,10 @@ export default function DailyGoalsPage() {
                   aria-label={g.done ? "标记为未完成" : "标记为完成"}
                   onClick={() => toggle(g.id)}
                   className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${
-                    g.done ? "bg-green-600 border-2 border-green-600" : "border-2 border-border hover:border-primary/30"
+                    g.done ? "bg-green-600 dark:bg-green-500 border-2 border-green-600 dark:border-green-500" : "border-2 border-border hover:border-primary/30"
                   }`}
                 >
-                  {g.done && <Check className="w-3 h-3 text-white" />}
+                  {g.done && <Check className="w-3 h-3 text-primary-foreground" />}
                 </button>
                 <button
                   type="button"
@@ -365,7 +365,7 @@ export default function DailyGoalsPage() {
                   type="button"
                   onClick={() => del(g.id)}
                   aria-label={`删除目标：${g.text}`}
-                  className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/5 transition-all"
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -373,12 +373,12 @@ export default function DailyGoalsPage() {
             )}
             renderDragOverlay={(g) => (
               <div className={`flex items-center gap-3 p-4 rounded-xl ${
-                g.done ? "opacity-70 bg-green-500/5 border border-green-500/30" : "bg-card border border-border"
+                g.done ? "opacity-70 bg-green-500/5 dark:bg-green-500/10 border border-green-500/30 dark:border-green-500/40" : "bg-card border border-border"
               }`}>
                 <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${
-                  g.done ? "bg-green-600 border-2 border-green-600" : "border-2 border-border"
+                  g.done ? "bg-green-600 dark:bg-green-500 border-2 border-green-600 dark:border-green-500" : "border-2 border-border"
                 }`}>
-                  {g.done && <Check className="w-3 h-3 text-white" />}
+                  {g.done && <Check className="w-3 h-3 text-primary-foreground" />}
                 </div>
                 <span className={`flex-1 text-[13px] ${
                   g.done ? "line-through text-muted-foreground" : "text-foreground font-medium"
@@ -415,7 +415,7 @@ export default function DailyGoalsPage() {
               return (
                 <div key={i} className="text-center">
                   <div className={`w-8 h-8 mx-auto rounded-lg flex items-center justify-center text-[10px] font-bold ${
-                    isFull ? "bg-green-500 text-white" : rate > 0 ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"
+                    isFull ? "bg-green-500 dark:bg-green-600 text-primary-foreground" : rate > 0 ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"
                   }`}>
                     {rate}%
                   </div>

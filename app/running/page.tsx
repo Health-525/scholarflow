@@ -20,8 +20,8 @@ export default function RunningPage() {
     <div className="max-w-5xl mx-auto min-h-screen bg-background text-foreground animate-page">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6 py-4">
-        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-green-600/10">
-          <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-[var(--status-success)]/10">
+          <svg className="w-5 h-5 text-[var(--status-success)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>

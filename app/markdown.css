@@ -116,23 +116,14 @@
 
 .callout-icon { font-style: normal; }
 
-/* Light callout variants */
-.callout-info { background: rgba(42, 68, 148, 0.06); border-left-color: #2a4494; border-color: rgba(42, 68, 148, 0.15); }
-.callout-tip { background: rgba(45, 122, 79, 0.06); border-left-color: #2d7a4f; border-color: rgba(45, 122, 79, 0.15); }
-.callout-warning { background: rgba(184, 92, 0, 0.07); border-left-color: #b85c00; border-color: rgba(184, 92, 0, 0.18); }
-.callout-danger { background: rgba(192, 57, 43, 0.07); border-left-color: #c0392b; border-color: rgba(192, 57, 43, 0.18); }
-.callout-note { background: rgba(100, 116, 139, 0.06); border-left-color: #64748b; border-color: rgba(100, 116, 139, 0.15); }
-.callout-summary { background: rgba(100, 70, 150, 0.06); border-left-color: #6446a0; border-color: rgba(100, 70, 150, 0.15); }
-.callout-abstract { background: rgba(6, 140, 160, 0.06); border-left-color: #068ca0; border-color: rgba(6, 140, 160, 0.15); }
-
-/* Dark callout variants */
-[data-theme="dark"] .callout-info { background: rgba(124, 199, 255, 0.1); border-left-color: #7cc7ff; border-color: rgba(124, 199, 255, 0.18); }
-[data-theme="dark"] .callout-tip { background: rgba(54, 230, 165, 0.1); border-left-color: #36e6a5; border-color: rgba(54, 230, 165, 0.18); }
-[data-theme="dark"] .callout-warning { background: rgba(255, 191, 105, 0.1); border-left-color: #ffbf69; border-color: rgba(255, 191, 105, 0.2); }
-[data-theme="dark"] .callout-danger { background: rgba(255, 95, 122, 0.1); border-left-color: #ff5f7a; border-color: rgba(255, 95, 122, 0.2); }
-[data-theme="dark"] .callout-note { background: rgba(138, 180, 255, 0.08); border-left-color: #8ab4ff; border-color: rgba(138, 180, 255, 0.14); }
-[data-theme="dark"] .callout-summary { background: rgba(117, 88, 255, 0.1); border-left-color: #7558ff; border-color: rgba(117, 88, 255, 0.16); }
-[data-theme="dark"] .callout-abstract { background: rgba(0, 230, 210, 0.08); border-left-color: #00e6d2; border-color: rgba(0, 230, 210, 0.14); }
+/* Callout variants (colors are theme-tokenized in app/theme.css) */
+.callout-info { background: var(--callout-info-bg); border-left-color: var(--callout-info-accent); border-color: var(--callout-info-border); }
+.callout-tip { background: var(--callout-tip-bg); border-left-color: var(--callout-tip-accent); border-color: var(--callout-tip-border); }
+.callout-warning { background: var(--callout-warning-bg); border-left-color: var(--callout-warning-accent); border-color: var(--callout-warning-border); }
+.callout-danger { background: var(--callout-danger-bg); border-left-color: var(--callout-danger-accent); border-color: var(--callout-danger-border); }
+.callout-note { background: var(--callout-note-bg); border-left-color: var(--callout-note-accent); border-color: var(--callout-note-border); }
+.callout-summary { background: var(--callout-summary-bg); border-left-color: var(--callout-summary-accent); border-color: var(--callout-summary-border); }
+.callout-abstract { background: var(--callout-abstract-bg); border-left-color: var(--callout-abstract-accent); border-color: var(--callout-abstract-border); }
 
 /* Wiki links & images */
 .wiki-link-unresolved {

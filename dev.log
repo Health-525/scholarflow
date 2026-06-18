@@ -3,10 +3,10 @@
 > node scripts/switch-abi.js node && set ELECTRON_DEV=1 && concurrently "next dev" "electron ."
 
 [switch-abi] better-sqlite3 → 系统 Node ABI
-(node:30592) [DEP0176] DeprecationWarning: fs.R_OK is deprecated, use fs.constants.R_OK instead
+(node:16376) [DEP0176] DeprecationWarning: fs.R_OK is deprecated, use fs.constants.R_OK instead
 (Use `node --trace-deprecation ...` to show where the warning was created)
 [switch-abi] 完成
-(node:33084) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:15504) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 [1] 
 [1] [SF] Starting...
@@ -21,1901 +21,1047 @@
 [0]  ✓ Starting...
 [0] > [PWA] PWA support is disabled
 [0] > [PWA] PWA support is disabled
-[0]  ✓ Ready in 3.7s
+[0]  ✓ Ready in 3.9s
 [0]  ○ Compiling / ...
 [1] [SF] Vision-Model already running on :8000
 [1] [SF] Vision-Model launch: success
-[0]  ✓ Compiled / in 1856ms (2054 modules)
+[0]  ✓ Compiled / in 2.1s (2054 modules)
 [0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 2106ms
-[0]  GET / 200 in 2708ms
-[0]  GET /api/auth/session 200 in 30ms
+[0]  GET /api/auth/session 200 in 2396ms
+[0]  GET / 200 in 2940ms
+[0]  GET /api/auth/session 200 in 36ms
 [0]  ○ Compiling /api/local-data ...
-[0]  ✓ Compiled /api/auth/jwt in 1570ms (2063 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 1743ms
-[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 1743ms
-[0]  GET /api/local-data?type=exams 200 in 1736ms
-[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 1735ms
-[0]  GET /api/local-data?type=jwc-news 200 in 1734ms
-[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 1748ms
-[0]  GET /api/auth/jwt 200 in 860ms
 [1] [SF] Library JWT expired, user needs to login
-[0]  GET /api/local-data?type=dashboard 200 in 49ms
-[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 75ms
-[0]  GET /api/local-data?type=dashboard 200 in 54ms
-[0]  ○ Compiling /library ...
-[0]  ✓ Compiled /library in 851ms (2246 modules)
-[0]  GET /library 200 in 997ms
+[0]  ✓ Compiled /api/auth/jwt in 3.8s (2063 modules)
 [0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 45ms
-[0]  ○ Compiling /api/library/user-status ...
-[0]  ✓ Compiled /api/library/user-status in 745ms (2254 modules)
-[0]  GET /api/library/reserve-status 401 in 784ms
-[0]  GET /api/library/user-status 401 in 796ms
-[0]  GET /api/vpn-proxy 401 in 804ms
-[0]  GET /api/library/reserve-status 401 in 27ms
-[0]  GET /api/library/user-status 401 in 33ms
-[0]  GET /api/vpn-proxy 401 in 36ms
-[0]  GET /api/library/reserve-status 401 in 23ms
-[0]  GET /api/library/user-status 401 in 30ms
-[0]  GET /api/vpn-proxy 401 in 35ms
-[1] [SF] Library login session cache cleared
-[0]  POST /api/auth/jwt 200 in 54ms
-[1] [SF] Library JWT from document.cookie, expires: 2026-06-18T06:30:36.000Z
-[0]  POST /api/auth/jwt 200 in 80ms
-[0]  POST /api/auth/jwt 200 in 80ms
-[1] [SF] Library JWT from document.cookie, expires: 2026-06-18T06:30:36.000Z
-[1] [SF] Library JWT from document.cookie, expires: 2026-06-18T06:30:36.000Z
-[0]  GET /api/library/reserve-status 200 in 89ms
-[0]  GET /api/library/user-status 200 in 90ms
-[0]  GET /api/vpn-proxy 200 in 106ms
-[0]  GET /api/vpn-proxy 200 in 51ms
-[0]  GET /api/vpn-proxy 200 in 47ms
-[0]  ✓ Compiled in 1894ms (2256 modules)
-[0]  GET /library 200 in 99ms
-[0]  ✓ Compiled in 579ms (2228 modules)
-[0]  GET /library 200 in 161ms
-[0]  ○ Compiling /api/library/reserve-status ...
-[0]  ✓ Compiled /api/library/reserve-status in 1130ms (2254 modules)
-[0]  GET /api/library/reserve-status 200 in 865ms
-[0]  GET /api/library/user-status 200 in 868ms
-[0]  GET /api/vpn-proxy 200 in 942ms
-[0]  GET /library 200 in 228ms
-[0]  ✓ Compiled in 834ms (2254 modules)
-[0]  GET /library 200 in 115ms
-[0]  ✓ Compiled in 567ms (2228 modules)
-[0]  ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
-[0]  GET /library 200 in 164ms
-[0]  GET /library 200 in 277ms
-[0]  ○ Compiling /api/auth/session ...
-[0]  ✓ Compiled /api/auth/session in 571ms (1205 modules)
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 3969ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 3969ms
+[0]  GET /api/local-data?type=exams 200 in 3969ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 3969ms
+[0]  GET /api/local-data?type=jwc-news 200 in 3969ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 3972ms
+[0]  GET /api/local-data?type=dashboard 200 in 66ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 104ms
+[0]  GET /api/local-data?type=dashboard 200 in 166ms
+[0]  GET / 200 in 246ms
+[0]  ○ Compiling /schedule ...
+[0]  ✓ Compiled /schedule in 992ms (2088 modules)
+[0]  GET /schedule 200 in 1162ms
+[0]  GET /schedule 200 in 44ms
 [0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 672ms
-[0]  ✓ Compiled /api/local-data in 252ms (1212 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 323ms
-[0]  ✓ Compiled in 653ms (2261 modules)
-[0]  GET /library 200 in 115ms
-[0]  ○ Compiling /api/vpn-proxy ...
-[0]  ✓ Compiled /api/vpn-proxy in 515ms (1200 modules)
-[0]  GET /api/vpn-proxy 200 in 683ms
-[0]  GET /api/vpn-proxy 200 in 60ms
-[0]  ✓ Compiled /api/local-data in 264ms (1211 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 385ms
-[0]  GET /library 200 in 125ms
-[0]  GET /api/vpn-proxy 200 in 77ms
-[0]  ✓ Compiled /api/library/user-status in 249ms (1214 modules)
-[0]  ✓ Compiled (1216 modules)
-[0]  GET /api/library/user-status 200 in 581ms
-[0]  GET /api/library/reserve-status 200 in 591ms
-[0]  ○ Compiling /library/layout ...
-[0]  ✓ Compiled /library/layout in 1678ms (2269 modules)
-[0]  GET /library/layout?lib_id=122783 200 in 1833ms
-[0]  ○ Compiling /api/auth/session ...
-[0]  ✓ Compiled /api/auth/session in 973ms (2275 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 1059ms
-[0]  GET /api/library/seat-layout?lib_id=122783 200 in 1113ms
-[0]  ○ Compiling /api/library/reserve ...
-[0]  ✓ Compiled /api/library/reserve in 666ms (2277 modules)
-[0]  POST /api/library/reserve 200 in 846ms
-[0]  GET /api/library/seat-layout?lib_id=122783 200 in 63ms
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 111ms
-[0]  GET /api/vpn-proxy 200 in 119ms
-[0]  GET /api/library/reserve-status 200 in 147ms
-[0]  GET /api/library/user-status 200 in 150ms
-[0]  GET /api/library/reserve-status 200 in 32ms
-[0]  GET /api/library/user-status 200 in 59ms
-[0]  GET /api/library/reserve-status 200 in 71ms
-[0]  GET /api/vpn-proxy 200 in 74ms
-[0]  GET /api/library/user-status 200 in 56ms
-[0]  GET /api/library/reserve-status 200 in 62ms
-[0]  GET /api/vpn-proxy 200 in 65ms
-[0]  GET /api/library/reserve-status 200 in 37ms
-[0]  GET /library 200 in 449ms
-[0]  GET /api/auth/session 200 in 31ms
-[0]  GET /api/library/user-status 200 in 90ms
-[0]  GET /api/vpn-proxy 200 in 93ms
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 110ms
-[0]  GET /api/library/reserve-status 200 in 113ms
-[0]  GET /api/library/reserve-status 200 in 35ms
-[0]  GET /library/layout?lib_id=122783 200 in 52ms
-[0]  GET /api/auth/session 200 in 54ms
-[0]  GET /api/library/seat-layout?lib_id=122783 200 in 71ms
-[0]  GET /api/auth/session 200 in 65ms
-[0]  GET /api/library/reserve-status 200 in 84ms
-[0]  GET /api/library/reserve-status 200 in 40ms
-[0]  GET /api/library/reserve-status 200 in 35ms
-[0]  GET /api/library/user-status 200 in 131ms
-[0]  GET /api/library/reserve-status 200 in 139ms
-[0]  GET /api/vpn-proxy 200 in 148ms
-[0]  ✓ Compiled in 1250ms (2294 modules)
-[0]  GET /api/library/reserve-status 200 in 99ms
-[0]  GET /library 200 in 122ms
-[0]  ✓ Compiled in 1079ms (2275 modules)
-[0]  ✓ Compiled in 0ms (1217 modules)
-[0]  ✓ Compiled in 1ms (1217 modules)
-[0]  GET /api/library/reserve-status 200 in 743ms
-[0]  GET /api/library/user-status 200 in 745ms
-[0]  ✓ Compiled in 0ms (1217 modules)
-[0]  GET /api/vpn-proxy 200 in 1328ms
-[0]  GET /library 200 in 1574ms
-[0]  ○ Compiling /api/local-data ...
-[0]  ✓ Compiled /api/local-data in 1056ms (1228 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 1456ms
-[0]  GET /api/library/reserve-status 200 in 1490ms
-[0]  GET /api/library/reserve-status 200 in 50ms
-[0]  GET /api/library/reserve-status 200 in 99ms
-[0]  GET /api/library/user-status 200 in 101ms
-[0]  GET /api/vpn-proxy 200 in 114ms
-[0]  GET /api/library/user-status 200 in 56ms
-[0]  GET /api/vpn-proxy 200 in 66ms
-[0]  GET /api/library/user-status 200 in 55ms
-[0]  GET /api/vpn-proxy 200 in 71ms
-[0]  GET /api/library/reserve-status 200 in 36ms
-[0]  GET /library 200 in 499ms
-[0]  ✓ Compiled /api/auth/session in 515ms (1232 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 592ms
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 116ms
-[0]  GET /api/vpn-proxy 200 in 123ms
-[0]  GET /api/library/user-status 200 in 124ms
-[0]  GET /api/library/reserve-status 200 in 125ms
-[0]  GET /api/library/reserve-status 200 in 36ms
-[0]  GET /library/layout?lib_id=122783 200 in 92ms
-[0]  ✓ Compiled /api/library/seat-layout in 436ms (1234 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 819ms
-[0]  GET /api/library/seat-layout?lib_id=122783 200 in 827ms
-[0]  GET /api/auth/session 200 in 54ms
-[0]  GET /api/library/reserve-status 200 in 58ms
-[0]  GET /api/library/reserve-status 200 in 36ms
-[0]  GET /api/library/reserve-status 200 in 33ms
-[0]  GET /api/library/reserve-status 200 in 85ms
-[0]  GET /api/library/user-status 200 in 48ms
-[0]  ✓ Compiled in 978ms (2292 modules)
-[0]  ✓ Compiled in 0ms (1234 modules)
-[0]  ✓ Compiled in 0ms (1234 modules)
-[0]  ✓ Compiled in 0ms (1234 modules)
-[0]  GET /api/library/reserve-status 200 in 1065ms
-[0]  GET /api/library/user-status 200 in 1069ms
-[0]  GET /api/vpn-proxy 200 in 1085ms
-[0]  GET /library 200 in 973ms
-[0]  ✓ Compiled in 863ms (2275 modules)
-[0]  GET /api/library/reserve-status 200 in 564ms
-[0]  GET /library 200 in 94ms
-[0]  ✓ Compiled /api/local-data in 329ms (1228 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 782ms
-[0]  GET /api/library/reserve-status 200 in 787ms
-[0]  GET /api/library/user-status 200 in 791ms
-[0]  GET /api/vpn-proxy 200 in 794ms
-[0]  GET /api/library/user-status 200 in 45ms
-[0]  GET /api/library/reserve-status 200 in 47ms
-[0]  GET /api/vpn-proxy 200 in 63ms
-[0]  GET /api/library/user-status 200 in 56ms
-[0]  GET /api/library/reserve-status 200 in 58ms
-[0]  GET /api/vpn-proxy 200 in 67ms
-[1] [SF] Library login session cache cleared
-[0]  ○ Compiling /api/auth/jwt ...
-[0]  ⨯ ./app/library/page.tsx
-[0] Error:   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:168:1]
-[0]  [2m165[0m |     
-[0]  [2m166[0m |       // Loading
-[0]  [2m167[0m |       if (dataLoading && !data) {
-[0]  [2m168[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m169[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 py-16 text-center">
-[0]  [2m170[0m | [35;1m|[0m           <div className="text-[13px] text-muted-foreground">加载中...</div>
-[0]  [2m171[0m | [35;1m|[0m         </div>
-[0]  [2m172[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m173[0m |       }
-[0]  [2m174[0m |     
-[0]  [2m175[0m |       // JWT expired
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:178:1]
-[0]  [2m175[0m |       // JWT expired
-[0]  [2m176[0m |       if (jwtStatus === "expired" || jwtStatus === "refreshing") {
-[0]  [2m177[0m |         const isRefreshing = jwtStatus === "refreshing";
-[0]  [2m178[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m179[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-[0]  [2m180[0m | [35;1m|[0m           <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
-[0]  [2m181[0m | [35;1m|[0m             <KeyRound className="w-6 h-6 text-red-500" />
-[0]  [2m182[0m | [35;1m|[0m           </div>
-[0]  [2m183[0m | [35;1m|[0m           <h1 className="text-[16px] font-bold mb-2 text-foreground">凭证已过期</h1>
-[0]  [2m184[0m | [35;1m|[0m           <p className="text-[12px] mb-1 text-muted-foreground">
-[0]  [2m185[0m | [35;1m|[0m             {isElectron ? "点击下方按钮登录智慧南工，自动同步凭证" : "请在浏览器中重新登录图书馆系统"}
-[0]  [2m186[0m | [35;1m|[0m           </p>
-[0]  [2m187[0m | [35;1m|[0m           {refreshError && <p className="text-[11px] mt-1 mb-3 text-red-500">{refreshError}</p>}
-[0]  [2m188[0m | [35;1m|[0m           <button
-[0]  [2m189[0m | [35;1m|[0m             type="button"
-[0]  [2m190[0m | [35;1m|[0m             onClick={handleRefreshJWT}
-[0]  [2m191[0m | [35;1m|[0m             className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-[0]  [2m192[0m | [35;1m|[0m           >
-[0]  [2m193[0m | [35;1m|[0m             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
-[0]  [2m194[0m | [35;1m|[0m             {isRefreshing ? "登录中...（如窗口已关闭请重试）" : "登录刷新"}
-[0]  [2m195[0m | [35;1m|[0m           </button>
-[0]  [2m196[0m | [35;1m|[0m           {!isElectron && (
-[0]  [2m197[0m | [35;1m|[0m             <p className="text-[11px] mt-3 text-muted-foreground">提示：使用 ScholarFlow 桌面版可自动刷新凭证</p>
-[0]  [2m198[0m | [35;1m|[0m           )}
-[0]  [2m199[0m | [35;1m|[0m         </div>
-[0]  [2m200[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m201[0m |       }
-[0]  [2m202[0m |     
-[0]  [2m203[0m |       // Error
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:208:1]
-[0]  [2m205[0m |         ? dataError.message
-[0]  [2m206[0m |         : null;
-[0]  [2m207[0m |       if (queryError && !data) {
-[0]  [2m208[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m209[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-[0]  [2m210[0m | [35;1m|[0m           <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
-[0]  [2m211[0m | [35;1m|[0m             <AlertCircle className="w-6 h-6 text-red-500" />
-[0]  [2m212[0m | [35;1m|[0m           </div>
-[0]  [2m213[0m | [35;1m|[0m           <h1 className="text-[16px] font-bold mb-2 text-foreground">加载失败</h1>
-[0]  [2m214[0m | [35;1m|[0m           <p className="text-[12px] mb-4 text-muted-foreground">{queryError}</p>
-[0]  [2m215[0m | [35;1m|[0m           <button
-[0]  [2m216[0m | [35;1m|[0m             type="button"
-[0]  [2m217[0m | [35;1m|[0m             onClick={fetchData}
-[0]  [2m218[0m | [35;1m|[0m             className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-[0]  [2m219[0m | [35;1m|[0m           >
-[0]  [2m220[0m | [35;1m|[0m             <RefreshCw className="w-3.5 h-3.5" />重试
-[0]  [2m221[0m | [35;1m|[0m           </button>
-[0]  [2m222[0m | [35;1m|[0m         </div>
-[0]  [2m223[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m224[0m |       }
-[0]  [2m225[0m |     
-[0]  [2m226[0m |       // No data
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:228:1]
-[0]  [2m225[0m |     
-[0]  [2m226[0m |       // No data
-[0]  [2m227[0m |       if (!data) {
-[0]  [2m228[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m229[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-[0]  [2m230[0m | [35;1m|[0m           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
-[0]  [2m231[0m | [35;1m|[0m             <Library className="w-8 h-8 text-primary" />
-[0]  [2m232[0m | [35;1m|[0m           </div>
-[0]  [2m233[0m | [35;1m|[0m           <h1 className="text-[16px] font-bold mb-2 text-foreground">图书馆座位</h1>
-[0]  [2m234[0m | [35;1m|[0m           <p className="text-[12px] mb-4 text-muted-foreground">需要先同步图书馆登录凭证</p>
-[0]  [2m235[0m | [35;1m|[0m           <button
-[0]  [2m236[0m | [35;1m|[0m             type="button"
-[0]  [2m237[0m | [35;1m|[0m             onClick={handleRefreshJWT}
-[0]  [2m238[0m | [35;1m|[0m             className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-[0]  [2m239[0m | [35;1m|[0m           >
-[0]  [2m240[0m | [35;1m|[0m             <KeyRound className="w-3.5 h-3.5" />刷新凭证
-[0]  [2m241[0m | [35;1m|[0m           </button>
-[0]  [2m242[0m | [35;1m|[0m         </div>
-[0]  [2m243[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m244[0m |       }
-[0]  [2m245[0m |     
-[0]  [2m246[0m |       if (!data?.libs?.length) {
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:247:1]
-[0]  [2m244[0m |       }
-[0]  [2m245[0m |     
-[0]  [2m246[0m |       if (!data?.libs?.length) {
-[0]  [2m247[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m248[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 py-8 text-center">
-[0]  [2m249[0m | [35;1m|[0m           <p className="text-[13px] text-muted-foreground">暂无数据</p>
-[0]  [2m250[0m | [35;1m|[0m         </div>
-[0]  [2m251[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m252[0m |       }
-[0]  [2m253[0m |     
-[0]  [2m254[0m |       const summary = data.summary ?? DEFAULT_SUMMARY;
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:262:1]
-[0]  [2m259[0m |       const c = statusColor;
-[0]  [2m260[0m |       const currentReserve = reserveData?.reserve ?? null;
-[0]  [2m261[0m |     
-[0]  [2m262[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m   return (
-[0]  [2m263[0m | [35;1m|[0m       <div className="max-w-5xl mx-auto pb-20 md:pb-0 py-6 animate-page">
-[0]  [2m264[0m | [35;1m|[0m         {/* Header */}
-[0]  [2m265[0m | [35;1m|[0m         <div className="flex items-center gap-3 mb-6">
-[0]  [2m266[0m | [35;1m|[0m           <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
-[0]  [2m267[0m | [35;1m|[0m             <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-[0]  [2m268[0m | [35;1m|[0m               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.092.14-3.126.39A12.025 12.025 0 003.75 6c0 1.052.14 2.092.39 3.126A8.967 8.967 0 0012 12.042a8.967 8.967 0 006 2.25c1.052 0 2.092-.14 3.126-.39A12.025 12.025 0 0018.75 12c0-1.052-.14-2.092-.39-3.126A8.967 8.967 0 0012 6.042z" />
-[0]  [2m269[0m | [35;1m|[0m             </svg>
-[0]  [2m270[0m | [35;1m|[0m           </div>
-[0]  [2m271[0m | [35;1m|[0m           <div className="flex-1 min-w-0">
-[0]  [2m272[0m | [35;1m|[0m             <h1 className="text-xl font-bold font-display text-foreground">图书馆座位</h1>
-[0]  [2m273[0m | [35;1m|[0m             <p className="text-[12px] text-muted-foreground">实时座位查询与预约</p>
-[0]  [2m274[0m | [35;1m|[0m             {userStatus?.rank && (
-[0]  [2m275[0m | [35;1m|[0m               <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary font-medium ml-1">
-[0]  [2m276[0m | [35;1m|[0m                 排名 #{userStatus.rank}
-[0]  [2m277[0m | [35;1m|[0m               </span>
-[0]  [2m278[0m | [35;1m|[0m             )}
-[0]  [2m279[0m | [35;1m|[0m           </div>
-[0]  [2m280[0m | [35;1m|[0m           <div className="flex items-center gap-2 shrink-0">
-[0]  [2m281[0m | [35;1m|[0m             {isElectron && (
-[0]  [2m282[0m | [35;1m|[0m               <button
-[0]  [2m283[0m | [35;1m|[0m                 type="button"
-[0]  [2m284[0m | [35;1m|[0m                 onClick={handleRefreshJWT}
-[0]  [2m285[0m | [35;1m|[0m                 title="刷新登录凭证"
-[0]  [2m286[0m | [35;1m|[0m                 className="min-h-9 min-w-9 px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center justify-center gap-1 bg-card text-muted-foreground border border-border cursor-pointer"
-[0]  [2m287[0m | [35;1m|[0m                 aria-label="刷新登录凭证"
-[0]  [2m288[0m | [35;1m|[0m               >
-[0]  [2m289[0m | [35;1m|[0m                 <KeyRound className="w-3.5 h-3.5" />
-[0]  [2m290[0m | [35;1m|[0m               </button>
-[0]  [2m291[0m | [35;1m|[0m             )}
-[0]  [2m292[0m | [35;1m|[0m             <button
-[0]  [2m293[0m | [35;1m|[0m               type="button"
-[0]  [2m294[0m | [35;1m|[0m               onClick={fetchData}
-[0]  [2m295[0m | [35;1m|[0m               className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-card text-muted-foreground border border-border cursor-pointer"
-[0]  [2m296[0m | [35;1m|[0m             >
-[0]  [2m297[0m | [35;1m|[0m               <RefreshCw className="w-3.5 h-3.5" />刷新
-[0]  [2m298[0m | [35;1m|[0m             </button>
-[0]  [2m299[0m | [35;1m|[0m           </div>
-[0]  [2m300[0m | [35;1m|[0m         </div>
-[0]  [2m301[0m | [35;1m|[0m   
-[0]  [2m302[0m | [35;1m|[0m         {/* Data freshness */}
-[0]  [2m303[0m | [35;1m|[0m         {data.updated && (
-[0]  [2m304[0m | [35;1m|[0m           <div className="mb-4 text-[11px] flex items-center gap-1.5 text-muted-foreground">
-[0]  [2m305[0m | [35;1m|[0m             <Clock className="w-3.5 h-3.5" />
-[0]  [2m306[0m | [35;1m|[0m             <span>上次更新：{new Date(data.updated).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })} · 自动刷新</span>
-[0]  [2m307[0m | [35;1m|[0m             {Date.now() - new Date(data.updated).getTime() > 5 * 60 * 1000 && (
-[0]  [2m308[0m | [35;1m|[0m               <span className="text-amber-500">· 数据可能已过期</span>
-[0]  [2m309[0m | [35;1m|[0m             )}
-[0]  [2m310[0m | [35;1m|[0m           </div>
-[0]  [2m311[0m | [35;1m|[0m         )}
-[0]  [2m312[0m | [35;1m|[0m   
-[0]  [2m313[0m | [35;1m|[0m         {/* Blacklist warning */}
-[0]  [2m314[0m | [35;1m|[0m         {blacklisted && (
-[0]  [2m315[0m | [35;1m|[0m           <div className="rounded-2xl p-4 mb-4 bg-red-500/5 border border-red-500/20 shadow-sm animate-fade-up">
-[0]  [2m316[0m | [35;1m|[0m             <div className="flex items-center gap-2 mb-1">
-[0]  [2m317[0m | [35;1m|[0m               <AlertCircle className="w-4 h-4 text-red-500" />
-[0]  [2m318[0m | [35;1m|[0m               <span className="text-[13px] font-semibold text-red-500">账号受限</span>
-[0]  [2m319[0m | [35;1m|[0m             </div>
-[0]  [2m320[0m | [35;1m|[0m             <p className="text-[12px] text-muted-foreground">当前账号处于黑名单状态，无法进行预约操作。请联系图书馆管理员解除限制。</p>
-[0]  [2m321[0m | [35;1m|[0m           </div>
-[0]  [2m322[0m | [35;1m|[0m         )}
-[0]  [2m323[0m | [35;1m|[0m   
-[0]  [2m324[0m | [35;1m|[0m         {/* Summary */}
-[0]  [2m325[0m | [35;1m|[0m         <div className="rounded-2xl p-5 mb-4 bg-card border border-border shadow-sm">
-[0]  [2m326[0m | [35;1m|[0m           <div className="flex items-center gap-6">
-[0]  [2m327[0m | [35;1m|[0m             <div className="text-center">
-[0]  [2m328[0m | [35;1m|[0m               <div className="text-3xl font-bold" style={{ color: c((1 - summary.rate) * 100) }}>{summary.avail}</div>
-[0]  [2m329[0m | [35;1m|[0m               <div className="text-xs mt-1 text-muted-foreground">可用座位</div>
-[0]  [2m330[0m | [35;1m|[0m             </div>
-[0]  [2m331[0m | [35;1m|[0m             <div className="text-center">
-[0]  [2m332[0m | [35;1m|[0m               <div className="text-3xl font-bold text-foreground">{summary.used}</div>
-[0]  [2m333[0m | [35;1m|[0m               <div className="text-xs mt-1 text-muted-foreground">已用</div>
-[0]  [2m334[0m | [35;1m|[0m             </div>
-[0]  [2m335[0m | [35;1m|[0m             <div className="text-center">
-[0]  [2m336[0m | [35;1m|[0m               <div className="text-3xl font-bold text-muted-foreground">{summary.total}</div>
-[0]  [2m337[0m | [35;1m|[0m               <div className="text-xs mt-1 text-muted-foreground">总计</div>
-[0]  [2m338[0m | [35;1m|[0m             </div>
-[0]  [2m339[0m | [35;1m|[0m             <div className="flex-1">
-[0]  [2m340[0m | [35;1m|[0m               <div className="h-3 rounded-full overflow-hidden bg-secondary">
-[0]  [2m341[0m | [35;1m|[0m                 <div className="h-full rounded-full transition-all" style={{ width: `${((1 - summary.rate) * 100).toFixed(0)}%`, backgroundColor: c((1 - summary.rate) * 100) }} />
-[0]  [2m342[0m | [35;1m|[0m               </div>
-[0]  [2m343[0m | [35;1m|[0m               <div className="text-xs mt-2 text-muted-foreground">
-[0]  [2m344[0m | [35;1m|[0m                 空闲率 {(summary.rate * 100).toFixed(1)}% · {String(data.updated ?? "").slice(11, 19)}
-[0]  [2m345[0m | [35;1m|[0m               </div>
-[0]  [2m346[0m | [35;1m|[0m             </div>
-[0]  [2m347[0m | [35;1m|[0m           </div>
-[0]  [2m348[0m | [35;1m|[0m         </div>
-[0]  [2m349[0m | [35;1m|[0m   
-[0]  [2m350[0m | [35;1m|[0m         {/* Current reservation + Messages row */}
-[0]  [2m351[0m | [35;1m|[0m         <div className="grid gap-3 mb-6 sm:grid-cols-2">
-[0]  [2m352[0m | [35;1m|[0m           {/* 当前预约 */}
-[0]  [2m353[0m | [35;1m|[0m           <div className="rounded-xl p-4 bg-card border border-border shadow-sm">
-[0]  [2m354[0m | [35;1m|[0m             <div className="flex items-center gap-1.5 mb-2">
-[0]  [2m355[0m | [35;1m|[0m               <BookmarkCheck className="w-4 h-4 text-primary" />
-[0]  [2m356[0m | [35;1m|[0m               <span className="font-medium text-sm text-foreground">当前预约</span>
-[0]  [2m357[0m | [35;1m|[0m             </div>
-[0]  [2m358[0m | [35;1m|[0m             {currentReserve ? (
-[0]  [2m359[0m | [35;1m|[0m               <div>
-[0]  [2m360[0m | [35;1m|[0m                 <div className="flex items-center gap-2 mb-1">
-[0]  [2m361[0m | [35;1m|[0m                   <span className="text-sm font-medium text-foreground">{currentReserve.seat_name}</span>
-[0]  [2m362[0m | [35;1m|[0m                   <span className="text-[11px] px-1.5 py-0.5 rounded-md font-medium" style={{
-[0]  [2m363[0m | [35;1m|[0m                     backgroundColor: (reserveStatusMap[currentReserve.status]?.color || "#94a3b8") + "20",
-[0]  [2m364[0m | [35;1m|[0m                     color: reserveStatusMap[currentReserve.status]?.color || "#94a3b8",
-[0]  [2m365[0m | [35;1m|[0m                   }}>
-[0]  [2m366[0m | [35;1m|[0m                     {reserveStatusMap[currentReserve.status]?.label || `状态${currentReserve.status}`}
-[0]  [2m367[0m | [35;1m|[0m                   </span>
-[0]  [2m368[0m | [35;1m|[0m                 </div>
-[0]  [2m369[0m | [35;1m|[0m                 <p className="text-[12px] text-muted-foreground mb-2">{currentReserve.lib_name} · {currentReserve.date}</p>
-[0]  [2m370[0m | [35;1m|[0m                 {countdown && currentReserve.status === 1 && (
-[0]  [2m371[0m | [35;1m|[0m                   <p className="text-[11px] mb-2 text-amber-500 font-medium flex items-center gap-1">
-[0]  [2m372[0m | [35;1m|[0m                     <Clock className="w-3 h-3" /> {countdown}
-[0]  [2m373[0m | [35;1m|[0m                   </p>
-[0]  [2m374[0m | [35;1m|[0m                 )}
-[0]  [2m375[0m | [35;1m|[0m                 <div className="flex gap-2">
-[0]  [2m376[0m | [35;1m|[0m                   {(currentReserve.status === 1 || currentReserve.status === 2) && (
-[0]  [2m377[0m | [35;1m|[0m                     <button
-[0]  [2m378[0m | [35;1m|[0m                       type="button"
-[0]  [2m379[0m | [35;1m|[0m                       onClick={handleCancelReserve}
-[0]  [2m380[0m | [35;1m|[0m                       disabled={cancelReserve.isPending}
-[0]  [2m381[0m | [35;1m|[0m                       className="min-h-8 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50 cursor-pointer"
-[0]  [2m382[0m | [35;1m|[0m                       aria-label="取消当前预约"
-[0]  [2m383[0m | [35;1m|[0m                     >
-[0]  [2m384[0m | [35;1m|[0m                       {cancelReserve.isPending ? "取消中..." : "取消预约"}
-[0]  [2m385[0m | [35;1m|[0m                     </button>
-[0]  [2m386[0m | [35;1m|[0m                   )}
-[0]  [2m387[0m | [35;1m|[0m                   {currentReserve.status === 2 && (
-[0]  [2m388[0m | [35;1m|[0m                     <button
-[0]  [2m389[0m | [35;1m|[0m                       type="button"
-[0]  [2m390[0m | [35;1m|[0m                       onClick={handleHoldSeat}
-[0]  [2m391[0m | [35;1m|[0m                       disabled={holdSeat.isPending}
-[0]  [2m392[0m | [35;1m|[0m                       className="min-h-8 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 disabled:opacity-50 cursor-pointer"
-[0]  [2m393[0m | [35;1m|[0m                       aria-label="暂离座位"
-[0]  [2m394[0m | [35;1m|[0m                     >
-[0]  [2m395[0m | [35;1m|[0m                       {holdSeat.isPending ? "处理中..." : "暂离"}
-[0]  [2m396[0m | [35;1m|[0m                     </button>
-[0]  [2m397[0m | [35;1m|[0m                   )}
-[0]  [2m398[0m | [35;1m|[0m                 </div>
-[0]  [2m399[0m | [35;1m|[0m               </div>
-[0]  [2m400[0m | [35;1m|[0m             ) : (
-[0]  [2m401[0m | [35;1m|[0m               <p className="text-[12px] text-muted-foreground">暂无预约</p>
-[0]  [2m402[0m | [35;1m|[0m             )}
-[0]  [2m403[0m | [35;1m|[0m           </div>
-[0]  [2m404[0m | [35;1m|[0m   
-[0]  [2m405[0m | [35;1m|[0m           {/* 消息通知入口 */}
-[0]  [2m406[0m | [35;1m|[0m           <button
-[0]  [2m407[0m | [35;1m|[0m             type="button"
-[0]  [2m408[0m | [35;1m|[0m             onClick={() => router.push("/library/messages")}
-[0]  [2m409[0m | [35;1m|[0m             className="w-full text-left rounded-xl p-4 bg-card border border-border shadow-sm cursor-pointer hover:opacity-80 transition-opacity"
-[0]  [2m410[0m | [35;1m|[0m             aria-label="查看图书馆消息通知"
-[0]  [2m411[0m | [35;1m|[0m           >
-[0]  [2m412[0m | [35;1m|[0m             <div className="flex items-center justify-between">
-[0]  [2m413[0m | [35;1m|[0m               <div className="flex items-center gap-1.5">
-[0]  [2m414[0m | [35;1m|[0m                 <Bell className="w-4 h-4 text-primary" />
-[0]  [2m415[0m | [35;1m|[0m                 <span className="font-medium text-sm text-foreground">消息通知</span>
-[0]  [2m416[0m | [35;1m|[0m               </div>
-[0]  [2m417[0m | [35;1m|[0m               <span className="text-xs text-muted-foreground">查看 →</span>
-[0]  [2m418[0m | [35;1m|[0m             </div>
-[0]  [2m419[0m | [35;1m|[0m             <p className="text-[12px] text-muted-foreground mt-2">预约提醒、违规通知等</p>
-[0]  [2m420[0m | [35;1m|[0m           </button>
-[0]  [2m421[0m | [35;1m|[0m         </div>
-[0]  [2m422[0m | [35;1m|[0m   
-[0]  [2m423[0m | [35;1m|[0m         {/* Room cards */}
-[0]  [2m424[0m | [35;1m|[0m         <div className="grid gap-3 sm:grid-cols-2">
-[0]  [2m425[0m | [35;1m|[0m           {openLibs.map((lib: LibraryRoom) => {
-[0]  [2m426[0m | [35;1m|[0m             const rt = lib.lib_rt, pct = rt.seats_total > 0 ? (rt.seats_used / rt.seats_total) * 100 : 0;
-[0]  [2m427[0m | [35;1m|[0m             return (
-[0]  [2m428[0m | [35;1m|[0m               <button
-[0]  [2m429[0m | [35;1m|[0m                 key={lib.lib_id}
-[0]  [2m430[0m | [35;1m|[0m                 type="button"
-[0]  [2m431[0m | [35;1m|[0m                 onClick={() => router.push(`/library/layout?lib_id=${lib.lib_id}`)}
-[0]  [2m432[0m | [35;1m|[0m                 className="w-full text-left rounded-xl p-4 cursor-pointer hover:opacity-80 transition-opacity bg-card border border-border shadow-sm"
-[0]  [2m433[0m | [35;1m|[0m                 aria-label={`进入 ${lib.lib_name} 座位图`}
-[0]  [2m434[0m | [35;1m|[0m               >
-[0]  [2m435[0m | [35;1m|[0m                 <div className="flex items-center justify-between mb-2">
-[0]  [2m436[0m | [35;1m|[0m                   <div className="flex items-center gap-1.5">
-[0]  [2m437[0m | [35;1m|[0m                     <MapPin className="w-3.5 h-3.5 text-primary" />
-[0]  [2m438[0m | [35;1m|[0m                     <span className="font-medium text-sm text-foreground">{lib.lib_name}</span>
-[0]  [2m439[0m | [35;1m|[0m                   </div>
-[0]  [2m440[0m | [35;1m|[0m                   <span className="text-xs text-muted-foreground">{lib.lib_floor}</span>
-[0]  [2m441[0m | [35;1m|[0m                 </div>
-[0]  [2m442[0m | [35;1m|[0m                 <div className="h-2 rounded-full mb-2 bg-secondary">
-[0]  [2m443[0m | [35;1m|[0m                   <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: c(pct) }} />
-[0]  [2m444[0m | [35;1m|[0m                 </div>
-[0]  [2m445[0m | [35;1m|[0m                 <div className="flex justify-between text-xs text-muted-foreground">
-[0]  [2m446[0m | [35;1m|[0m                   <span style={{ color: c(pct), fontWeight: 600 }}>{rt.seats_has} 可用</span>
-[0]  [2m447[0m | [35;1m|[0m                   <span>{rt.seats_used}/{rt.seats_total}{rt.seats_booking > 0 ? ` · ${rt.seats_booking}预约中` : ""}</span>
-[0]  [2m448[0m | [35;1m|[0m                   <span>{rt.open_time_str}-{rt.close_time_str}</span>
-[0]  [2m449[0m | [35;1m|[0m                 </div>
-[0]  [2m450[0m | [35;1m|[0m                 {rt.advance_booking && (
-[0]  [2m451[0m | [35;1m|[0m                   <p className="text-[10px] text-muted-foreground/60 mt-1">
-[0]  [2m452[0m | [35;1m|[0m                     提前{rt.advance_booking}可约 · 签到限时{rt.reserve_ttl ? Math.floor(rt.reserve_ttl / 60) : 30}分钟
-[0]  [2m453[0m | [35;1m|[0m                   </p>
-[0]  [2m454[0m | [35;1m|[0m                 )}
-[0]  [2m455[0m | [35;1m|[0m               </button>
-[0]  [2m456[0m | [35;1m|[0m             );
-[0]  [2m457[0m | [35;1m|[0m           })}
-[0]  [2m458[0m | [35;1m|[0m         </div>
-[0]  [2m459[0m | [35;1m|[0m         {closedCount > 0 && (
-[0]  [2m460[0m | [35;1m|[0m           <p className="text-[11px] text-muted-foreground mt-3 text-center">
-[0]  [2m461[0m | [35;1m|[0m             另有 {closedCount} 个阅览室未开放
-[0]  [2m462[0m | [35;1m|[0m           </p>
-[0]  [2m463[0m | [35;1m|[0m         )}
-[0]  [2m464[0m | [35;1m|[0m       </div>
-[0]  [2m465[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m   );
-[0]  [2m466[0m |     }
-[0]      `----
-[0]   [31mx[0m Expression expected
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:466:1]
-[0]  [2m463[0m |       )}
-[0]  [2m464[0m |     </div>
-[0]  [2m465[0m |   );
-[0]  [2m466[0m | }
-[0]      : [35;1m^[0m
-[0]      `----
-[0] 
-[0] Caused by:
-[0]     Syntax Error
-[0] 
-[0] Import trace for requested module:
-[0] ./app/library/page.tsx
-[0]  ⨯ ./app/library/page.tsx
-[0] Error:   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:168:1]
-[0]  [2m165[0m |     
-[0]  [2m166[0m |       // Loading
-[0]  [2m167[0m |       if (dataLoading && !data) {
-[0]  [2m168[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m169[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 py-16 text-center">
-[0]  [2m170[0m | [35;1m|[0m           <div className="text-[13px] text-muted-foreground">加载中...</div>
-[0]  [2m171[0m | [35;1m|[0m         </div>
-[0]  [2m172[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m173[0m |       }
-[0]  [2m174[0m |     
-[0]  [2m175[0m |       // JWT expired
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:178:1]
-[0]  [2m175[0m |       // JWT expired
-[0]  [2m176[0m |       if (jwtStatus === "expired" || jwtStatus === "refreshing") {
-[0]  [2m177[0m |         const isRefreshing = jwtStatus === "refreshing";
-[0]  [2m178[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m179[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-[0]  [2m180[0m | [35;1m|[0m           <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
-[0]  [2m181[0m | [35;1m|[0m             <KeyRound className="w-6 h-6 text-red-500" />
-[0]  [2m182[0m | [35;1m|[0m           </div>
-[0]  [2m183[0m | [35;1m|[0m           <h1 className="text-[16px] font-bold mb-2 text-foreground">凭证已过期</h1>
-[0]  [2m184[0m | [35;1m|[0m           <p className="text-[12px] mb-1 text-muted-foreground">
-[0]  [2m185[0m | [35;1m|[0m             {isElectron ? "点击下方按钮登录智慧南工，自动同步凭证" : "请在浏览器中重新登录图书馆系统"}
-[0]  [2m186[0m | [35;1m|[0m           </p>
-[0]  [2m187[0m | [35;1m|[0m           {refreshError && <p className="text-[11px] mt-1 mb-3 text-red-500">{refreshError}</p>}
-[0]  [2m188[0m | [35;1m|[0m           <button
-[0]  [2m189[0m | [35;1m|[0m             type="button"
-[0]  [2m190[0m | [35;1m|[0m             onClick={handleRefreshJWT}
-[0]  [2m191[0m | [35;1m|[0m             className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-[0]  [2m192[0m | [35;1m|[0m           >
-[0]  [2m193[0m | [35;1m|[0m             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
-[0]  [2m194[0m | [35;1m|[0m             {isRefreshing ? "登录中...（如窗口已关闭请重试）" : "登录刷新"}
-[0]  [2m195[0m | [35;1m|[0m           </button>
-[0]  [2m196[0m | [35;1m|[0m           {!isElectron && (
-[0]  [2m197[0m | [35;1m|[0m             <p className="text-[11px] mt-3 text-muted-foreground">提示：使用 ScholarFlow 桌面版可自动刷新凭证</p>
-[0]  [2m198[0m | [35;1m|[0m           )}
-[0]  [2m199[0m | [35;1m|[0m         </div>
-[0]  [2m200[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m201[0m |       }
-[0]  [2m202[0m |     
-[0]  [2m203[0m |       // Error
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:208:1]
-[0]  [2m205[0m |         ? dataError.message
-[0]  [2m206[0m |         : null;
-[0]  [2m207[0m |       if (queryError && !data) {
-[0]  [2m208[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m209[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-[0]  [2m210[0m | [35;1m|[0m           <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
-[0]  [2m211[0m | [35;1m|[0m             <AlertCircle className="w-6 h-6 text-red-500" />
-[0]  [2m212[0m | [35;1m|[0m           </div>
-[0]  [2m213[0m | [35;1m|[0m           <h1 className="text-[16px] font-bold mb-2 text-foreground">加载失败</h1>
-[0]  [2m214[0m | [35;1m|[0m           <p className="text-[12px] mb-4 text-muted-foreground">{queryError}</p>
-[0]  [2m215[0m | [35;1m|[0m           <button
-[0]  [2m216[0m | [35;1m|[0m             type="button"
-[0]  [2m217[0m | [35;1m|[0m             onClick={fetchData}
-[0]  [2m218[0m | [35;1m|[0m             className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-[0]  [2m219[0m | [35;1m|[0m           >
-[0]  [2m220[0m | [35;1m|[0m             <RefreshCw className="w-3.5 h-3.5" />重试
-[0]  [2m221[0m | [35;1m|[0m           </button>
-[0]  [2m222[0m | [35;1m|[0m         </div>
-[0]  [2m223[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m224[0m |       }
-[0]  [2m225[0m |     
-[0]  [2m226[0m |       // No data
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:228:1]
-[0]  [2m225[0m |     
-[0]  [2m226[0m |       // No data
-[0]  [2m227[0m |       if (!data) {
-[0]  [2m228[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m229[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-[0]  [2m230[0m | [35;1m|[0m           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
-[0]  [2m231[0m | [35;1m|[0m             <Library className="w-8 h-8 text-primary" />
-[0]  [2m232[0m | [35;1m|[0m           </div>
-[0]  [2m233[0m | [35;1m|[0m           <h1 className="text-[16px] font-bold mb-2 text-foreground">图书馆座位</h1>
-[0]  [2m234[0m | [35;1m|[0m           <p className="text-[12px] mb-4 text-muted-foreground">需要先同步图书馆登录凭证</p>
-[0]  [2m235[0m | [35;1m|[0m           <button
-[0]  [2m236[0m | [35;1m|[0m             type="button"
-[0]  [2m237[0m | [35;1m|[0m             onClick={handleRefreshJWT}
-[0]  [2m238[0m | [35;1m|[0m             className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-[0]  [2m239[0m | [35;1m|[0m           >
-[0]  [2m240[0m | [35;1m|[0m             <KeyRound className="w-3.5 h-3.5" />刷新凭证
-[0]  [2m241[0m | [35;1m|[0m           </button>
-[0]  [2m242[0m | [35;1m|[0m         </div>
-[0]  [2m243[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m244[0m |       }
-[0]  [2m245[0m |     
-[0]  [2m246[0m |       if (!data?.libs?.length) {
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:247:1]
-[0]  [2m244[0m |       }
-[0]  [2m245[0m |     
-[0]  [2m246[0m |       if (!data?.libs?.length) {
-[0]  [2m247[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m248[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 py-8 text-center">
-[0]  [2m249[0m | [35;1m|[0m           <p className="text-[13px] text-muted-foreground">暂无数据</p>
-[0]  [2m250[0m | [35;1m|[0m         </div>
-[0]  [2m251[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m252[0m |       }
-[0]  [2m253[0m |     
-[0]  [2m254[0m |       const summary = data.summary ?? DEFAULT_SUMMARY;
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:262:1]
-[0]  [2m259[0m |       const c = statusColor;
-[0]  [2m260[0m |       const currentReserve = reserveData?.reserve ?? null;
-[0]  [2m261[0m |     
-[0]  [2m262[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m   return (
-[0]  [2m263[0m | [35;1m|[0m       <div className="max-w-5xl mx-auto pb-20 md:pb-0 py-6 animate-page">
-[0]  [2m264[0m | [35;1m|[0m         {/* Header */}
-[0]  [2m265[0m | [35;1m|[0m         <div className="flex items-center gap-3 mb-6">
-[0]  [2m266[0m | [35;1m|[0m           <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
-[0]  [2m267[0m | [35;1m|[0m             <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-[0]  [2m268[0m | [35;1m|[0m               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.092.14-3.126.39A12.025 12.025 0 003.75 6c0 1.052.14 2.092.39 3.126A8.967 8.967 0 0012 12.042a8.967 8.967 0 006 2.25c1.052 0 2.092-.14 3.126-.39A12.025 12.025 0 0018.75 12c0-1.052-.14-2.092-.39-3.126A8.967 8.967 0 0012 6.042z" />
-[0]  [2m269[0m | [35;1m|[0m             </svg>
-[0]  [2m270[0m | [35;1m|[0m           </div>
-[0]  [2m271[0m | [35;1m|[0m           <div className="flex-1 min-w-0">
-[0]  [2m272[0m | [35;1m|[0m             <h1 className="text-xl font-bold font-display text-foreground">图书馆座位</h1>
-[0]  [2m273[0m | [35;1m|[0m             <p className="text-[12px] text-muted-foreground">实时座位查询与预约</p>
-[0]  [2m274[0m | [35;1m|[0m             {userStatus?.rank && (
-[0]  [2m275[0m | [35;1m|[0m               <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary font-medium ml-1">
-[0]  [2m276[0m | [35;1m|[0m                 排名 #{userStatus.rank}
-[0]  [2m277[0m | [35;1m|[0m               </span>
-[0]  [2m278[0m | [35;1m|[0m             )}
-[0]  [2m279[0m | [35;1m|[0m           </div>
-[0]  [2m280[0m | [35;1m|[0m           <div className="flex items-center gap-2 shrink-0">
-[0]  [2m281[0m | [35;1m|[0m             {isElectron && (
-[0]  [2m282[0m | [35;1m|[0m               <button
-[0]  [2m283[0m | [35;1m|[0m                 type="button"
-[0]  [2m284[0m | [35;1m|[0m                 onClick={handleRefreshJWT}
-[0]  [2m285[0m | [35;1m|[0m                 title="刷新登录凭证"
-[0]  [2m286[0m | [35;1m|[0m                 className="min-h-9 min-w-9 px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center justify-center gap-1 bg-card text-muted-foreground border border-border cursor-pointer"
-[0]  [2m287[0m | [35;1m|[0m                 aria-label="刷新登录凭证"
-[0]  [2m288[0m | [35;1m|[0m               >
-[0]  [2m289[0m | [35;1m|[0m                 <KeyRound className="w-3.5 h-3.5" />
-[0]  [2m290[0m | [35;1m|[0m               </button>
-[0]  [2m291[0m | [35;1m|[0m             )}
-[0]  [2m292[0m | [35;1m|[0m             <button
-[0]  [2m293[0m | [35;1m|[0m               type="button"
-[0]  [2m294[0m | [35;1m|[0m               onClick={fetchData}
-[0]  [2m295[0m | [35;1m|[0m               className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-card text-muted-foreground border border-border cursor-pointer"
-[0]  [2m296[0m | [35;1m|[0m             >
-[0]  [2m297[0m | [35;1m|[0m               <RefreshCw className="w-3.5 h-3.5" />刷新
-[0]  [2m298[0m | [35;1m|[0m             </button>
-[0]  [2m299[0m | [35;1m|[0m           </div>
-[0]  [2m300[0m | [35;1m|[0m         </div>
-[0]  [2m301[0m | [35;1m|[0m   
-[0]  [2m302[0m | [35;1m|[0m         {/* Data freshness */}
-[0]  [2m303[0m | [35;1m|[0m         {data.updated && (
-[0]  [2m304[0m | [35;1m|[0m           <div className="mb-4 text-[11px] flex items-center gap-1.5 text-muted-foreground">
-[0]  [2m305[0m | [35;1m|[0m             <Clock className="w-3.5 h-3.5" />
-[0]  [2m306[0m | [35;1m|[0m             <span>上次更新：{new Date(data.updated).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })} · 自动刷新</span>
-[0]  [2m307[0m | [35;1m|[0m             {Date.now() - new Date(data.updated).getTime() > 5 * 60 * 1000 && (
-[0]  [2m308[0m | [35;1m|[0m               <span className="text-amber-500">· 数据可能已过期</span>
-[0]  [2m309[0m | [35;1m|[0m             )}
-[0]  [2m310[0m | [35;1m|[0m           </div>
-[0]  [2m311[0m | [35;1m|[0m         )}
-[0]  [2m312[0m | [35;1m|[0m   
-[0]  [2m313[0m | [35;1m|[0m         {/* Blacklist warning */}
-[0]  [2m314[0m | [35;1m|[0m         {blacklisted && (
-[0]  [2m315[0m | [35;1m|[0m           <div className="rounded-2xl p-4 mb-4 bg-red-500/5 border border-red-500/20 shadow-sm animate-fade-up">
-[0]  [2m316[0m | [35;1m|[0m             <div className="flex items-center gap-2 mb-1">
-[0]  [2m317[0m | [35;1m|[0m               <AlertCircle className="w-4 h-4 text-red-500" />
-[0]  [2m318[0m | [35;1m|[0m               <span className="text-[13px] font-semibold text-red-500">账号受限</span>
-[0]  [2m319[0m | [35;1m|[0m             </div>
-[0]  [2m320[0m | [35;1m|[0m             <p className="text-[12px] text-muted-foreground">当前账号处于黑名单状态，无法进行预约操作。请联系图书馆管理员解除限制。</p>
-[0]  [2m321[0m | [35;1m|[0m           </div>
-[0]  [2m322[0m | [35;1m|[0m         )}
-[0]  [2m323[0m | [35;1m|[0m   
-[0]  [2m324[0m | [35;1m|[0m         {/* Summary */}
-[0]  [2m325[0m | [35;1m|[0m         <div className="rounded-2xl p-5 mb-4 bg-card border border-border shadow-sm">
-[0]  [2m326[0m | [35;1m|[0m           <div className="flex items-center gap-6">
-[0]  [2m327[0m | [35;1m|[0m             <div className="text-center">
-[0]  [2m328[0m | [35;1m|[0m               <div className="text-3xl font-bold" style={{ color: c((1 - summary.rate) * 100) }}>{summary.avail}</div>
-[0]  [2m329[0m | [35;1m|[0m               <div className="text-xs mt-1 text-muted-foreground">可用座位</div>
-[0]  [2m330[0m | [35;1m|[0m             </div>
-[0]  [2m331[0m | [35;1m|[0m             <div className="text-center">
-[0]  [2m332[0m | [35;1m|[0m               <div className="text-3xl font-bold text-foreground">{summary.used}</div>
-[0]  [2m333[0m | [35;1m|[0m               <div className="text-xs mt-1 text-muted-foreground">已用</div>
-[0]  [2m334[0m | [35;1m|[0m             </div>
-[0]  [2m335[0m | [35;1m|[0m             <div className="text-center">
-[0]  [2m336[0m | [35;1m|[0m               <div className="text-3xl font-bold text-muted-foreground">{summary.total}</div>
-[0]  [2m337[0m | [35;1m|[0m               <div className="text-xs mt-1 text-muted-foreground">总计</div>
-[0]  [2m338[0m | [35;1m|[0m             </div>
-[0]  [2m339[0m | [35;1m|[0m             <div className="flex-1">
-[0]  [2m340[0m | [35;1m|[0m               <div className="h-3 rounded-full overflow-hidden bg-secondary">
-[0]  [2m341[0m | [35;1m|[0m                 <div className="h-full rounded-full transition-all" style={{ width: `${((1 - summary.rate) * 100).toFixed(0)}%`, backgroundColor: c((1 - summary.rate) * 100) }} />
-[0]  [2m342[0m | [35;1m|[0m               </div>
-[0]  [2m343[0m | [35;1m|[0m               <div className="text-xs mt-2 text-muted-foreground">
-[0]  [2m344[0m | [35;1m|[0m                 空闲率 {(summary.rate * 100).toFixed(1)}% · {String(data.updated ?? "").slice(11, 19)}
-[0]  [2m345[0m | [35;1m|[0m               </div>
-[0]  [2m346[0m | [35;1m|[0m             </div>
-[0]  [2m347[0m | [35;1m|[0m           </div>
-[0]  [2m348[0m | [35;1m|[0m         </div>
-[0]  [2m349[0m | [35;1m|[0m   
-[0]  [2m350[0m | [35;1m|[0m         {/* Current reservation + Messages row */}
-[0]  [2m351[0m | [35;1m|[0m         <div className="grid gap-3 mb-6 sm:grid-cols-2">
-[0]  [2m352[0m | [35;1m|[0m           {/* 当前预约 */}
-[0]  [2m353[0m | [35;1m|[0m           <div className="rounded-xl p-4 bg-card border border-border shadow-sm">
-[0]  [2m354[0m | [35;1m|[0m             <div className="flex items-center gap-1.5 mb-2">
-[0]  [2m355[0m | [35;1m|[0m               <BookmarkCheck className="w-4 h-4 text-primary" />
-[0]  [2m356[0m | [35;1m|[0m               <span className="font-medium text-sm text-foreground">当前预约</span>
-[0]  [2m357[0m | [35;1m|[0m             </div>
-[0]  [2m358[0m | [35;1m|[0m             {currentReserve ? (
-[0]  [2m359[0m | [35;1m|[0m               <div>
-[0]  [2m360[0m | [35;1m|[0m                 <div className="flex items-center gap-2 mb-1">
-[0]  [2m361[0m | [35;1m|[0m                   <span className="text-sm font-medium text-foreground">{currentReserve.seat_name}</span>
-[0]  [2m362[0m | [35;1m|[0m                   <span className="text-[11px] px-1.5 py-0.5 rounded-md font-medium" style={{
-[0]  [2m363[0m | [35;1m|[0m                     backgroundColor: (reserveStatusMap[currentReserve.status]?.color || "#94a3b8") + "20",
-[0]  [2m364[0m | [35;1m|[0m                     color: reserveStatusMap[currentReserve.status]?.color || "#94a3b8",
-[0]  [2m365[0m | [35;1m|[0m                   }}>
-[0]  [2m366[0m | [35;1m|[0m                     {reserveStatusMap[currentReserve.status]?.label || `状态${currentReserve.status}`}
-[0]  [2m367[0m | [35;1m|[0m                   </span>
-[0]  [2m368[0m | [35;1m|[0m                 </div>
-[0]  [2m369[0m | [35;1m|[0m                 <p className="text-[12px] text-muted-foreground mb-2">{currentReserve.lib_name} · {currentReserve.date}</p>
-[0]  [2m370[0m | [35;1m|[0m                 {countdown && currentReserve.status === 1 && (
-[0]  [2m371[0m | [35;1m|[0m                   <p className="text-[11px] mb-2 text-amber-500 font-medium flex items-center gap-1">
-[0]  [2m372[0m | [35;1m|[0m                     <Clock className="w-3 h-3" /> {countdown}
-[0]  [2m373[0m | [35;1m|[0m                   </p>
-[0]  [2m374[0m | [35;1m|[0m                 )}
-[0]  [2m375[0m | [35;1m|[0m                 <div className="flex gap-2">
-[0]  [2m376[0m | [35;1m|[0m                   {(currentReserve.status === 1 || currentReserve.status === 2) && (
-[0]  [2m377[0m | [35;1m|[0m                     <button
-[0]  [2m378[0m | [35;1m|[0m                       type="button"
-[0]  [2m379[0m | [35;1m|[0m                       onClick={handleCancelReserve}
-[0]  [2m380[0m | [35;1m|[0m                       disabled={cancelReserve.isPending}
-[0]  [2m381[0m | [35;1m|[0m                       className="min-h-8 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50 cursor-pointer"
-[0]  [2m382[0m | [35;1m|[0m                       aria-label="取消当前预约"
-[0]  [2m383[0m | [35;1m|[0m                     >
-[0]  [2m384[0m | [35;1m|[0m                       {cancelReserve.isPending ? "取消中..." : "取消预约"}
-[0]  [2m385[0m | [35;1m|[0m                     </button>
-[0]  [2m386[0m | [35;1m|[0m                   )}
-[0]  [2m387[0m | [35;1m|[0m                   {currentReserve.status === 2 && (
-[0]  [2m388[0m | [35;1m|[0m                     <button
-[0]  [2m389[0m | [35;1m|[0m                       type="button"
-[0]  [2m390[0m | [35;1m|[0m                       onClick={handleHoldSeat}
-[0]  [2m391[0m | [35;1m|[0m                       disabled={holdSeat.isPending}
-[0]  [2m392[0m | [35;1m|[0m                       className="min-h-8 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 disabled:opacity-50 cursor-pointer"
-[0]  [2m393[0m | [35;1m|[0m                       aria-label="暂离座位"
-[0]  [2m394[0m | [35;1m|[0m                     >
-[0]  [2m395[0m | [35;1m|[0m                       {holdSeat.isPending ? "处理中..." : "暂离"}
-[0]  [2m396[0m | [35;1m|[0m                     </button>
-[0]  [2m397[0m | [35;1m|[0m                   )}
-[0]  [2m398[0m | [35;1m|[0m                 </div>
-[0]  [2m399[0m | [35;1m|[0m               </div>
-[0]  [2m400[0m | [35;1m|[0m             ) : (
-[0]  [2m401[0m | [35;1m|[0m               <p className="text-[12px] text-muted-foreground">暂无预约</p>
-[0]  [2m402[0m | [35;1m|[0m             )}
-[0]  [2m403[0m | [35;1m|[0m           </div>
-[0]  [2m404[0m | [35;1m|[0m   
-[0]  [2m405[0m | [35;1m|[0m           {/* 消息通知入口 */}
-[0]  [2m406[0m | [35;1m|[0m           <button
-[0]  [2m407[0m | [35;1m|[0m             type="button"
-[0]  [2m408[0m | [35;1m|[0m             onClick={() => router.push("/library/messages")}
-[0]  [2m409[0m | [35;1m|[0m             className="w-full text-left rounded-xl p-4 bg-card border border-border shadow-sm cursor-pointer hover:opacity-80 transition-opacity"
-[0]  [2m410[0m | [35;1m|[0m             aria-label="查看图书馆消息通知"
-[0]  [2m411[0m | [35;1m|[0m           >
-[0]  [2m412[0m | [35;1m|[0m             <div className="flex items-center justify-between">
-[0]  [2m413[0m | [35;1m|[0m               <div className="flex items-center gap-1.5">
-[0]  [2m414[0m | [35;1m|[0m                 <Bell className="w-4 h-4 text-primary" />
-[0]  [2m415[0m | [35;1m|[0m                 <span className="font-medium text-sm text-foreground">消息通知</span>
-[0]  [2m416[0m | [35;1m|[0m               </div>
-[0]  [2m417[0m | [35;1m|[0m               <span className="text-xs text-muted-foreground">查看 →</span>
-[0]  [2m418[0m | [35;1m|[0m             </div>
-[0]  [2m419[0m | [35;1m|[0m             <p className="text-[12px] text-muted-foreground mt-2">预约提醒、违规通知等</p>
-[0]  [2m420[0m | [35;1m|[0m           </button>
-[0]  [2m421[0m | [35;1m|[0m         </div>
-[0]  [2m422[0m | [35;1m|[0m   
-[0]  [2m423[0m | [35;1m|[0m         {/* Room cards */}
-[0]  [2m424[0m | [35;1m|[0m         <div className="grid gap-3 sm:grid-cols-2">
-[0]  [2m425[0m | [35;1m|[0m           {openLibs.map((lib: LibraryRoom) => {
-[0]  [2m426[0m | [35;1m|[0m             const rt = lib.lib_rt, pct = rt.seats_total > 0 ? (rt.seats_used / rt.seats_total) * 100 : 0;
-[0]  [2m427[0m | [35;1m|[0m             return (
-[0]  [2m428[0m | [35;1m|[0m               <button
-[0]  [2m429[0m | [35;1m|[0m                 key={lib.lib_id}
-[0]  [2m430[0m | [35;1m|[0m                 type="button"
-[0]  [2m431[0m | [35;1m|[0m                 onClick={() => router.push(`/library/layout?lib_id=${lib.lib_id}`)}
-[0]  [2m432[0m | [35;1m|[0m                 className="w-full text-left rounded-xl p-4 cursor-pointer hover:opacity-80 transition-opacity bg-card border border-border shadow-sm"
-[0]  [2m433[0m | [35;1m|[0m                 aria-label={`进入 ${lib.lib_name} 座位图`}
-[0]  [2m434[0m | [35;1m|[0m               >
-[0]  [2m435[0m | [35;1m|[0m                 <div className="flex items-center justify-between mb-2">
-[0]  [2m436[0m | [35;1m|[0m                   <div className="flex items-center gap-1.5">
-[0]  [2m437[0m | [35;1m|[0m                     <MapPin className="w-3.5 h-3.5 text-primary" />
-[0]  [2m438[0m | [35;1m|[0m                     <span className="font-medium text-sm text-foreground">{lib.lib_name}</span>
-[0]  [2m439[0m | [35;1m|[0m                   </div>
-[0]  [2m440[0m | [35;1m|[0m                   <span className="text-xs text-muted-foreground">{lib.lib_floor}</span>
-[0]  [2m441[0m | [35;1m|[0m                 </div>
-[0]  [2m442[0m | [35;1m|[0m                 <div className="h-2 rounded-full mb-2 bg-secondary">
-[0]  [2m443[0m | [35;1m|[0m                   <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: c(pct) }} />
-[0]  [2m444[0m | [35;1m|[0m                 </div>
-[0]  [2m445[0m | [35;1m|[0m                 <div className="flex justify-between text-xs text-muted-foreground">
-[0]  [2m446[0m | [35;1m|[0m                   <span style={{ color: c(pct), fontWeight: 600 }}>{rt.seats_has} 可用</span>
-[0]  [2m447[0m | [35;1m|[0m                   <span>{rt.seats_used}/{rt.seats_total}{rt.seats_booking > 0 ? ` · ${rt.seats_booking}预约中` : ""}</span>
-[0]  [2m448[0m | [35;1m|[0m                   <span>{rt.open_time_str}-{rt.close_time_str}</span>
-[0]  [2m449[0m | [35;1m|[0m                 </div>
-[0]  [2m450[0m | [35;1m|[0m                 {rt.advance_booking && (
-[0]  [2m451[0m | [35;1m|[0m                   <p className="text-[10px] text-muted-foreground/60 mt-1">
-[0]  [2m452[0m | [35;1m|[0m                     提前{rt.advance_booking}可约 · 签到限时{rt.reserve_ttl ? Math.floor(rt.reserve_ttl / 60) : 30}分钟
-[0]  [2m453[0m | [35;1m|[0m                   </p>
-[0]  [2m454[0m | [35;1m|[0m                 )}
-[0]  [2m455[0m | [35;1m|[0m               </button>
-[0]  [2m456[0m | [35;1m|[0m             );
-[0]  [2m457[0m | [35;1m|[0m           })}
-[0]  [2m458[0m | [35;1m|[0m         </div>
-[0]  [2m459[0m | [35;1m|[0m         {closedCount > 0 && (
-[0]  [2m460[0m | [35;1m|[0m           <p className="text-[11px] text-muted-foreground mt-3 text-center">
-[0]  [2m461[0m | [35;1m|[0m             另有 {closedCount} 个阅览室未开放
-[0]  [2m462[0m | [35;1m|[0m           </p>
-[0]  [2m463[0m | [35;1m|[0m         )}
-[0]  [2m464[0m | [35;1m|[0m       </div>
-[0]  [2m465[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m   );
-[0]  [2m466[0m |     }
-[0]      `----
-[0]   [31mx[0m Expression expected
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:466:1]
-[0]  [2m463[0m |       )}
-[0]  [2m464[0m |     </div>
-[0]  [2m465[0m |   );
-[0]  [2m466[0m | }
-[0]      : [35;1m^[0m
-[0]      `----
-[0] 
-[0] Caused by:
-[0]     Syntax Error
-[0] 
-[0] Import trace for requested module:
-[0] ./app/library/page.tsx
-[0]  ⨯ ./app/library/page.tsx
-[0] Error:   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:166:1]
-[0]  [2m163[0m |     
-[0]  [2m164[0m |       // Loading
-[0]  [2m165[0m |       if (dataLoading && !data) {
-[0]  [2m166[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m167[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 py-16 text-center">
-[0]  [2m168[0m | [35;1m|[0m           <div className="text-[13px] text-muted-foreground">加载中...</div>
-[0]  [2m169[0m | [35;1m|[0m         </div>
-[0]  [2m170[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m171[0m |       }
-[0]  [2m172[0m |     
-[0]  [2m173[0m |       // JWT expired
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:176:1]
-[0]  [2m173[0m |       // JWT expired
-[0]  [2m174[0m |       if (jwtStatus === "expired" || jwtStatus === "refreshing") {
-[0]  [2m175[0m |         const isRefreshing = jwtStatus === "refreshing";
-[0]  [2m176[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m177[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-[0]  [2m178[0m | [35;1m|[0m           <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
-[0]  [2m179[0m | [35;1m|[0m             <KeyRound className="w-6 h-6 text-red-500" />
-[0]  [2m180[0m | [35;1m|[0m           </div>
-[0]  [2m181[0m | [35;1m|[0m           <h1 className="text-[16px] font-bold mb-2 text-foreground">凭证已过期</h1>
-[0]  [2m182[0m | [35;1m|[0m           <p className="text-[12px] mb-1 text-muted-foreground">
-[0]  [2m183[0m | [35;1m|[0m             {isElectron ? "点击下方按钮登录智慧南工，自动同步凭证" : "请在浏览器中重新登录图书馆系统"}
-[0]  [2m184[0m | [35;1m|[0m           </p>
-[0]  [2m185[0m | [35;1m|[0m           {refreshError && <p className="text-[11px] mt-1 mb-3 text-red-500">{refreshError}</p>}
-[0]  [2m186[0m | [35;1m|[0m           <button
-[0]  [2m187[0m | [35;1m|[0m             type="button"
-[0]  [2m188[0m | [35;1m|[0m             onClick={handleRefreshJWT}
-[0]  [2m189[0m | [35;1m|[0m             className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-[0]  [2m190[0m | [35;1m|[0m           >
-[0]  [2m191[0m | [35;1m|[0m             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
-[0]  [2m192[0m | [35;1m|[0m             {isRefreshing ? "登录中...（如窗口已关闭请重试）" : "登录刷新"}
-[0]  [2m193[0m | [35;1m|[0m           </button>
-[0]  [2m194[0m | [35;1m|[0m           {!isElectron && (
-[0]  [2m195[0m | [35;1m|[0m             <p className="text-[11px] mt-3 text-muted-foreground">提示：使用 ScholarFlow 桌面版可自动刷新凭证</p>
-[0]  [2m196[0m | [35;1m|[0m           )}
-[0]  [2m197[0m | [35;1m|[0m         </div>
-[0]  [2m198[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m199[0m |       }
-[0]  [2m200[0m |     
-[0]  [2m201[0m |       // Error
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:206:1]
-[0]  [2m203[0m |         ? dataError.message
-[0]  [2m204[0m |         : null;
-[0]  [2m205[0m |       if (queryError && !data) {
-[0]  [2m206[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m207[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-[0]  [2m208[0m | [35;1m|[0m           <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
-[0]  [2m209[0m | [35;1m|[0m             <AlertCircle className="w-6 h-6 text-red-500" />
-[0]  [2m210[0m | [35;1m|[0m           </div>
-[0]  [2m211[0m | [35;1m|[0m           <h1 className="text-[16px] font-bold mb-2 text-foreground">加载失败</h1>
-[0]  [2m212[0m | [35;1m|[0m           <p className="text-[12px] mb-4 text-muted-foreground">{queryError}</p>
-[0]  [2m213[0m | [35;1m|[0m           <button
-[0]  [2m214[0m | [35;1m|[0m             type="button"
-[0]  [2m215[0m | [35;1m|[0m             onClick={fetchData}
-[0]  [2m216[0m | [35;1m|[0m             className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-[0]  [2m217[0m | [35;1m|[0m           >
-[0]  [2m218[0m | [35;1m|[0m             <RefreshCw className="w-3.5 h-3.5" />重试
-[0]  [2m219[0m | [35;1m|[0m           </button>
-[0]  [2m220[0m | [35;1m|[0m         </div>
-[0]  [2m221[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m222[0m |       }
-[0]  [2m223[0m |     
-[0]  [2m224[0m |       // No data
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:226:1]
-[0]  [2m223[0m |     
-[0]  [2m224[0m |       // No data
-[0]  [2m225[0m |       if (!data) {
-[0]  [2m226[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m227[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-[0]  [2m228[0m | [35;1m|[0m           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
-[0]  [2m229[0m | [35;1m|[0m             <Library className="w-8 h-8 text-primary" />
-[0]  [2m230[0m | [35;1m|[0m           </div>
-[0]  [2m231[0m | [35;1m|[0m           <h1 className="text-[16px] font-bold mb-2 text-foreground">图书馆座位</h1>
-[0]  [2m232[0m | [35;1m|[0m           <p className="text-[12px] mb-4 text-muted-foreground">需要先同步图书馆登录凭证</p>
-[0]  [2m233[0m | [35;1m|[0m           <button
-[0]  [2m234[0m | [35;1m|[0m             type="button"
-[0]  [2m235[0m | [35;1m|[0m             onClick={handleRefreshJWT}
-[0]  [2m236[0m | [35;1m|[0m             className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-[0]  [2m237[0m | [35;1m|[0m           >
-[0]  [2m238[0m | [35;1m|[0m             <KeyRound className="w-3.5 h-3.5" />刷新凭证
-[0]  [2m239[0m | [35;1m|[0m           </button>
-[0]  [2m240[0m | [35;1m|[0m         </div>
-[0]  [2m241[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m242[0m |       }
-[0]  [2m243[0m |     
-[0]  [2m244[0m |       if (!data?.libs?.length) {
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:245:1]
-[0]  [2m242[0m |       }
-[0]  [2m243[0m |     
-[0]  [2m244[0m |       if (!data?.libs?.length) {
-[0]  [2m245[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m246[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 py-8 text-center">
-[0]  [2m247[0m | [35;1m|[0m           <p className="text-[13px] text-muted-foreground">暂无数据</p>
-[0]  [2m248[0m | [35;1m|[0m         </div>
-[0]  [2m249[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m250[0m |       }
-[0]  [2m251[0m |     
-[0]  [2m252[0m |       const summary = data.summary ?? DEFAULT_SUMMARY;
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:260:1]
-[0]  [2m257[0m |       const c = statusColor;
-[0]  [2m258[0m |       const currentReserve = reserveData?.reserve ?? null;
-[0]  [2m259[0m |     
-[0]  [2m260[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m   return (
-[0]  [2m261[0m | [35;1m|[0m       <div className="max-w-5xl mx-auto pb-20 md:pb-0 py-6 animate-page">
-[0]  [2m262[0m | [35;1m|[0m         {/* Header */}
-[0]  [2m263[0m | [35;1m|[0m         <div className="flex items-center gap-3 mb-6">
-[0]  [2m264[0m | [35;1m|[0m           <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
-[0]  [2m265[0m | [35;1m|[0m             <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-[0]  [2m266[0m | [35;1m|[0m               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.092.14-3.126.39A12.025 12.025 0 003.75 6c0 1.052.14 2.092.39 3.126A8.967 8.967 0 0012 12.042a8.967 8.967 0 006 2.25c1.052 0 2.092-.14 3.126-.39A12.025 12.025 0 0018.75 12c0-1.052-.14-2.092-.39-3.126A8.967 8.967 0 0012 6.042z" />
-[0]  [2m267[0m | [35;1m|[0m             </svg>
-[0]  [2m268[0m | [35;1m|[0m           </div>
-[0]  [2m269[0m | [35;1m|[0m           <div className="flex-1 min-w-0">
-[0]  [2m270[0m | [35;1m|[0m             <h1 className="text-xl font-bold font-display text-foreground">图书馆座位</h1>
-[0]  [2m271[0m | [35;1m|[0m             <p className="text-[12px] text-muted-foreground">实时座位查询与预约</p>
-[0]  [2m272[0m | [35;1m|[0m             {userStatus?.rank && (
-[0]  [2m273[0m | [35;1m|[0m               <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary font-medium ml-1">
-[0]  [2m274[0m | [35;1m|[0m                 排名 #{userStatus.rank}
-[0]  [2m275[0m | [35;1m|[0m               </span>
-[0]  [2m276[0m | [35;1m|[0m             )}
-[0]  [2m277[0m | [35;1m|[0m           </div>
-[0]  [2m278[0m | [35;1m|[0m           <div className="flex items-center gap-2 shrink-0">
-[0]  [2m279[0m | [35;1m|[0m             {isElectron && (
-[0]  [2m280[0m | [35;1m|[0m               <button
-[0]  [2m281[0m | [35;1m|[0m                 type="button"
-[0]  [2m282[0m | [35;1m|[0m                 onClick={handleRefreshJWT}
-[0]  [2m283[0m | [35;1m|[0m                 title="刷新登录凭证"
-[0]  [2m284[0m | [35;1m|[0m                 className="min-h-9 min-w-9 px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center justify-center gap-1 bg-card text-muted-foreground border border-border cursor-pointer"
-[0]  [2m285[0m | [35;1m|[0m                 aria-label="刷新登录凭证"
-[0]  [2m286[0m | [35;1m|[0m               >
-[0]  [2m287[0m | [35;1m|[0m                 <KeyRound className="w-3.5 h-3.5" />
-[0]  [2m288[0m | [35;1m|[0m               </button>
-[0]  [2m289[0m | [35;1m|[0m             )}
-[0]  [2m290[0m | [35;1m|[0m             <button
-[0]  [2m291[0m | [35;1m|[0m               type="button"
-[0]  [2m292[0m | [35;1m|[0m               onClick={fetchData}
-[0]  [2m293[0m | [35;1m|[0m               className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-card text-muted-foreground border border-border cursor-pointer"
-[0]  [2m294[0m | [35;1m|[0m             >
-[0]  [2m295[0m | [35;1m|[0m               <RefreshCw className="w-3.5 h-3.5" />刷新
-[0]  [2m296[0m | [35;1m|[0m             </button>
-[0]  [2m297[0m | [35;1m|[0m           </div>
-[0]  [2m298[0m | [35;1m|[0m         </div>
-[0]  [2m299[0m | [35;1m|[0m   
-[0]  [2m300[0m | [35;1m|[0m         {/* Data freshness */}
-[0]  [2m301[0m | [35;1m|[0m         {data.updated && (
-[0]  [2m302[0m | [35;1m|[0m           <div className="mb-4 text-[11px] flex items-center gap-1.5 text-muted-foreground">
-[0]  [2m303[0m | [35;1m|[0m             <Clock className="w-3.5 h-3.5" />
-[0]  [2m304[0m | [35;1m|[0m             <span>上次更新：{new Date(data.updated).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })} · 自动刷新</span>
-[0]  [2m305[0m | [35;1m|[0m             {Date.now() - new Date(data.updated).getTime() > 5 * 60 * 1000 && (
-[0]  [2m306[0m | [35;1m|[0m               <span className="text-amber-500">· 数据可能已过期</span>
-[0]  [2m307[0m | [35;1m|[0m             )}
-[0]  [2m308[0m | [35;1m|[0m           </div>
-[0]  [2m309[0m | [35;1m|[0m         )}
-[0]  [2m310[0m | [35;1m|[0m   
-[0]  [2m311[0m | [35;1m|[0m         {/* Blacklist warning */}
-[0]  [2m312[0m | [35;1m|[0m         {blacklisted && (
-[0]  [2m313[0m | [35;1m|[0m           <div className="rounded-2xl p-4 mb-4 bg-red-500/5 border border-red-500/20 shadow-sm animate-fade-up">
-[0]  [2m314[0m | [35;1m|[0m             <div className="flex items-center gap-2 mb-1">
-[0]  [2m315[0m | [35;1m|[0m               <AlertCircle className="w-4 h-4 text-red-500" />
-[0]  [2m316[0m | [35;1m|[0m               <span className="text-[13px] font-semibold text-red-500">账号受限</span>
-[0]  [2m317[0m | [35;1m|[0m             </div>
-[0]  [2m318[0m | [35;1m|[0m             <p className="text-[12px] text-muted-foreground">当前账号处于黑名单状态，无法进行预约操作。请联系图书馆管理员解除限制。</p>
-[0]  [2m319[0m | [35;1m|[0m           </div>
-[0]  [2m320[0m | [35;1m|[0m         )}
-[0]  [2m321[0m | [35;1m|[0m   
-[0]  [2m322[0m | [35;1m|[0m         {/* Summary */}
-[0]  [2m323[0m | [35;1m|[0m         <div className="rounded-2xl p-5 mb-4 bg-card border border-border shadow-sm">
-[0]  [2m324[0m | [35;1m|[0m           <div className="flex items-center gap-6">
-[0]  [2m325[0m | [35;1m|[0m             <div className="text-center">
-[0]  [2m326[0m | [35;1m|[0m               <div className="text-3xl font-bold" style={{ color: c((1 - summary.rate) * 100) }}>{summary.avail}</div>
-[0]  [2m327[0m | [35;1m|[0m               <div className="text-xs mt-1 text-muted-foreground">可用座位</div>
-[0]  [2m328[0m | [35;1m|[0m             </div>
-[0]  [2m329[0m | [35;1m|[0m             <div className="text-center">
-[0]  [2m330[0m | [35;1m|[0m               <div className="text-3xl font-bold text-foreground">{summary.used}</div>
-[0]  [2m331[0m | [35;1m|[0m               <div className="text-xs mt-1 text-muted-foreground">已用</div>
-[0]  [2m332[0m | [35;1m|[0m             </div>
-[0]  [2m333[0m | [35;1m|[0m             <div className="text-center">
-[0]  [2m334[0m | [35;1m|[0m               <div className="text-3xl font-bold text-muted-foreground">{summary.total}</div>
-[0]  [2m335[0m | [35;1m|[0m               <div className="text-xs mt-1 text-muted-foreground">总计</div>
-[0]  [2m336[0m | [35;1m|[0m             </div>
-[0]  [2m337[0m | [35;1m|[0m             <div className="flex-1">
-[0]  [2m338[0m | [35;1m|[0m               <div className="h-3 rounded-full overflow-hidden bg-secondary">
-[0]  [2m339[0m | [35;1m|[0m                 <div className="h-full rounded-full transition-all" style={{ width: `${((1 - summary.rate) * 100).toFixed(0)}%`, backgroundColor: c((1 - summary.rate) * 100) }} />
-[0]  [2m340[0m | [35;1m|[0m               </div>
-[0]  [2m341[0m | [35;1m|[0m               <div className="text-xs mt-2 text-muted-foreground">
-[0]  [2m342[0m | [35;1m|[0m                 空闲率 {(summary.rate * 100).toFixed(1)}% · {String(data.updated ?? "").slice(11, 19)}
-[0]  [2m343[0m | [35;1m|[0m               </div>
-[0]  [2m344[0m | [35;1m|[0m             </div>
-[0]  [2m345[0m | [35;1m|[0m           </div>
-[0]  [2m346[0m | [35;1m|[0m         </div>
-[0]  [2m347[0m | [35;1m|[0m   
-[0]  [2m348[0m | [35;1m|[0m         {/* Current reservation + Messages row */}
-[0]  [2m349[0m | [35;1m|[0m         <div className="grid gap-3 mb-6 sm:grid-cols-2">
-[0]  [2m350[0m | [35;1m|[0m           {/* 当前预约 */}
-[0]  [2m351[0m | [35;1m|[0m           <div className="rounded-xl p-4 bg-card border border-border shadow-sm">
-[0]  [2m352[0m | [35;1m|[0m             <div className="flex items-center gap-1.5 mb-2">
-[0]  [2m353[0m | [35;1m|[0m               <BookmarkCheck className="w-4 h-4 text-primary" />
-[0]  [2m354[0m | [35;1m|[0m               <span className="font-medium text-sm text-foreground">当前预约</span>
-[0]  [2m355[0m | [35;1m|[0m             </div>
-[0]  [2m356[0m | [35;1m|[0m             {currentReserve ? (
-[0]  [2m357[0m | [35;1m|[0m               <div>
-[0]  [2m358[0m | [35;1m|[0m                 <div className="flex items-center gap-2 mb-1">
-[0]  [2m359[0m | [35;1m|[0m                   <span className="text-sm font-medium text-foreground">{currentReserve.seat_name}</span>
-[0]  [2m360[0m | [35;1m|[0m                   <span className="text-[11px] px-1.5 py-0.5 rounded-md font-medium" style={{
-[0]  [2m361[0m | [35;1m|[0m                     backgroundColor: (reserveStatusMap[currentReserve.status]?.color || "#94a3b8") + "20",
-[0]  [2m362[0m | [35;1m|[0m                     color: reserveStatusMap[currentReserve.status]?.color || "#94a3b8",
-[0]  [2m363[0m | [35;1m|[0m                   }}>
-[0]  [2m364[0m | [35;1m|[0m                     {reserveStatusMap[currentReserve.status]?.label || `状态${currentReserve.status}`}
-[0]  [2m365[0m | [35;1m|[0m                   </span>
-[0]  [2m366[0m | [35;1m|[0m                 </div>
-[0]  [2m367[0m | [35;1m|[0m                 <p className="text-[12px] text-muted-foreground mb-2">{currentReserve.lib_name} · {currentReserve.date}</p>
-[0]  [2m368[0m | [35;1m|[0m                 {countdown && currentReserve.status === 1 && (
-[0]  [2m369[0m | [35;1m|[0m                   <p className="text-[11px] mb-2 text-amber-500 font-medium flex items-center gap-1">
-[0]  [2m370[0m | [35;1m|[0m                     <Clock className="w-3 h-3" /> {countdown}
-[0]  [2m371[0m | [35;1m|[0m                   </p>
-[0]  [2m372[0m | [35;1m|[0m                 )}
-[0]  [2m373[0m | [35;1m|[0m                 <div className="flex gap-2">
-[0]  [2m374[0m | [35;1m|[0m                   {(currentReserve.status === 1 || currentReserve.status === 2) && (
-[0]  [2m375[0m | [35;1m|[0m                     <button
-[0]  [2m376[0m | [35;1m|[0m                       type="button"
-[0]  [2m377[0m | [35;1m|[0m                       onClick={handleCancelReserve}
-[0]  [2m378[0m | [35;1m|[0m                       disabled={cancelReserve.isPending}
-[0]  [2m379[0m | [35;1m|[0m                       className="min-h-8 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50 cursor-pointer"
-[0]  [2m380[0m | [35;1m|[0m                       aria-label="取消当前预约"
-[0]  [2m381[0m | [35;1m|[0m                     >
-[0]  [2m382[0m | [35;1m|[0m                       {cancelReserve.isPending ? "取消中..." : "取消预约"}
-[0]  [2m383[0m | [35;1m|[0m                     </button>
-[0]  [2m384[0m | [35;1m|[0m                   )}
-[0]  [2m385[0m | [35;1m|[0m                   {currentReserve.status === 2 && (
-[0]  [2m386[0m | [35;1m|[0m                     <button
-[0]  [2m387[0m | [35;1m|[0m                       type="button"
-[0]  [2m388[0m | [35;1m|[0m                       onClick={handleHoldSeat}
-[0]  [2m389[0m | [35;1m|[0m                       disabled={holdSeat.isPending}
-[0]  [2m390[0m | [35;1m|[0m                       className="min-h-8 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 disabled:opacity-50 cursor-pointer"
-[0]  [2m391[0m | [35;1m|[0m                       aria-label="暂离座位"
-[0]  [2m392[0m | [35;1m|[0m                     >
-[0]  [2m393[0m | [35;1m|[0m                       {holdSeat.isPending ? "处理中..." : "暂离"}
-[0]  [2m394[0m | [35;1m|[0m                     </button>
-[0]  [2m395[0m | [35;1m|[0m                   )}
-[0]  [2m396[0m | [35;1m|[0m                 </div>
-[0]  [2m397[0m | [35;1m|[0m               </div>
-[0]  [2m398[0m | [35;1m|[0m             ) : (
-[0]  [2m399[0m | [35;1m|[0m               <p className="text-[12px] text-muted-foreground">暂无预约</p>
-[0]  [2m400[0m | [35;1m|[0m             )}
-[0]  [2m401[0m | [35;1m|[0m           </div>
-[0]  [2m402[0m | [35;1m|[0m   
-[0]  [2m403[0m | [35;1m|[0m           {/* 消息通知入口 */}
-[0]  [2m404[0m | [35;1m|[0m           <button
-[0]  [2m405[0m | [35;1m|[0m             type="button"
-[0]  [2m406[0m | [35;1m|[0m             onClick={() => router.push("/library/messages")}
-[0]  [2m407[0m | [35;1m|[0m             className="w-full text-left rounded-xl p-4 bg-card border border-border shadow-sm cursor-pointer hover:opacity-80 transition-opacity"
-[0]  [2m408[0m | [35;1m|[0m             aria-label="查看图书馆消息通知"
-[0]  [2m409[0m | [35;1m|[0m           >
-[0]  [2m410[0m | [35;1m|[0m             <div className="flex items-center justify-between">
-[0]  [2m411[0m | [35;1m|[0m               <div className="flex items-center gap-1.5">
-[0]  [2m412[0m | [35;1m|[0m                 <Bell className="w-4 h-4 text-primary" />
-[0]  [2m413[0m | [35;1m|[0m                 <span className="font-medium text-sm text-foreground">消息通知</span>
-[0]  [2m414[0m | [35;1m|[0m               </div>
-[0]  [2m415[0m | [35;1m|[0m               <span className="text-xs text-muted-foreground">查看 →</span>
-[0]  [2m416[0m | [35;1m|[0m             </div>
-[0]  [2m417[0m | [35;1m|[0m             <p className="text-[12px] text-muted-foreground mt-2">预约提醒、违规通知等</p>
-[0]  [2m418[0m | [35;1m|[0m           </button>
-[0]  [2m419[0m | [35;1m|[0m         </div>
-[0]  [2m420[0m | [35;1m|[0m   
-[0]  [2m421[0m | [35;1m|[0m         {/* Room cards */}
-[0]  [2m422[0m | [35;1m|[0m         <div className="grid gap-3 sm:grid-cols-2">
-[0]  [2m423[0m | [35;1m|[0m           {openLibs.map((lib: LibraryRoom) => {
-[0]  [2m424[0m | [35;1m|[0m             const rt = lib.lib_rt, pct = rt.seats_total > 0 ? (rt.seats_used / rt.seats_total) * 100 : 0;
-[0]  [2m425[0m | [35;1m|[0m             return (
-[0]  [2m426[0m | [35;1m|[0m               <button
-[0]  [2m427[0m | [35;1m|[0m                 key={lib.lib_id}
-[0]  [2m428[0m | [35;1m|[0m                 type="button"
-[0]  [2m429[0m | [35;1m|[0m                 onClick={() => router.push(`/library/layout?lib_id=${lib.lib_id}`)}
-[0]  [2m430[0m | [35;1m|[0m                 className="w-full text-left rounded-xl p-4 cursor-pointer hover:opacity-80 transition-opacity bg-card border border-border shadow-sm"
-[0]  [2m431[0m | [35;1m|[0m                 aria-label={`进入 ${lib.lib_name} 座位图`}
-[0]  [2m432[0m | [35;1m|[0m               >
-[0]  [2m433[0m | [35;1m|[0m                 <div className="flex items-center justify-between mb-2">
-[0]  [2m434[0m | [35;1m|[0m                   <div className="flex items-center gap-1.5">
-[0]  [2m435[0m | [35;1m|[0m                     <MapPin className="w-3.5 h-3.5 text-primary" />
-[0]  [2m436[0m | [35;1m|[0m                     <span className="font-medium text-sm text-foreground">{lib.lib_name}</span>
-[0]  [2m437[0m | [35;1m|[0m                   </div>
-[0]  [2m438[0m | [35;1m|[0m                   <span className="text-xs text-muted-foreground">{lib.lib_floor}</span>
-[0]  [2m439[0m | [35;1m|[0m                 </div>
-[0]  [2m440[0m | [35;1m|[0m                 <div className="h-2 rounded-full mb-2 bg-secondary">
-[0]  [2m441[0m | [35;1m|[0m                   <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: c(pct) }} />
-[0]  [2m442[0m | [35;1m|[0m                 </div>
-[0]  [2m443[0m | [35;1m|[0m                 <div className="flex justify-between text-xs text-muted-foreground">
-[0]  [2m444[0m | [35;1m|[0m                   <span style={{ color: c(pct), fontWeight: 600 }}>{rt.seats_has} 可用</span>
-[0]  [2m445[0m | [35;1m|[0m                   <span>{rt.seats_used}/{rt.seats_total}{rt.seats_booking > 0 ? ` · ${rt.seats_booking}预约中` : ""}</span>
-[0]  [2m446[0m | [35;1m|[0m                   <span>{rt.open_time_str}-{rt.close_time_str}</span>
-[0]  [2m447[0m | [35;1m|[0m                 </div>
-[0]  [2m448[0m | [35;1m|[0m                 {rt.advance_booking && (
-[0]  [2m449[0m | [35;1m|[0m                   <p className="text-[10px] text-muted-foreground/60 mt-1">
-[0]  [2m450[0m | [35;1m|[0m                     提前{rt.advance_booking}可约 · 签到限时{rt.reserve_ttl ? Math.floor(rt.reserve_ttl / 60) : 30}分钟
-[0]  [2m451[0m | [35;1m|[0m                   </p>
-[0]  [2m452[0m | [35;1m|[0m                 )}
-[0]  [2m453[0m | [35;1m|[0m               </button>
-[0]  [2m454[0m | [35;1m|[0m             );
-[0]  [2m455[0m | [35;1m|[0m           })}
-[0]  [2m456[0m | [35;1m|[0m         </div>
-[0]  [2m457[0m | [35;1m|[0m         {closedCount > 0 && (
-[0]  [2m458[0m | [35;1m|[0m           <p className="text-[11px] text-muted-foreground mt-3 text-center">
-[0]  [2m459[0m | [35;1m|[0m             另有 {closedCount} 个阅览室未开放
-[0]  [2m460[0m | [35;1m|[0m           </p>
-[0]  [2m461[0m | [35;1m|[0m         )}
-[0]  [2m462[0m | [35;1m|[0m       </div>
-[0]  [2m463[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m   );
-[0]  [2m464[0m |     }
-[0]      `----
-[0]   [31mx[0m Expression expected
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:464:1]
-[0]  [2m461[0m |       )}
-[0]  [2m462[0m |     </div>
-[0]  [2m463[0m |   );
-[0]  [2m464[0m | }
-[0]      : [35;1m^[0m
-[0]      `----
-[0] 
-[0] Caused by:
-[0]     Syntax Error
-[0] 
-[0] Import trace for requested module:
-[0] ./app/library/page.tsx
-[1] [SF] Library login: no JWT found. cookies: SESSION(sfgl.njtech.edu.cn), SOURCEID_TGC(sfgl.njtech.edu.cn), rg_objectid(sfgl.njtech.edu.cn), GUESTSESSIONID(vpnlib.njtech.edu.cn), ENSSESSIONID(vpnlib.njtech.edu.cn), clientInfo(vpnlib.njtech.edu.cn), vpn_timestamp(vpnlib.njtech.edu.cn) hasUser: true
-[0]  POST /api/auth/jwt 500 in 12282ms
-[0]  GET /library 500 in 11387ms
-[0]  GET /api/auth/session 500 in 1750ms
-[0]  GET /library 500 in 71ms
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 500 in 88ms
-[0]  GET /library 500 in 126ms
-[0]  GET /library 500 in 60ms
-[0]  ✓ Compiled /api/auth/session in 862ms (2623 modules)
-[0]  GET /library 200 in 247ms
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 62ms
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 133ms
-[0]  GET /api/library/user-status 200 in 157ms
-[0]  GET /api/library/reserve-status 200 in 164ms
-[0]  GET /api/vpn-proxy 200 in 172ms
-[0] <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'D:\A\scholarflow\.next\cache\webpack\client-development-fallback\0.pack.gz_' -> 'D:\A\scholarflow\.next\cache\webpack\client-development-fallback\0.pack.gz'
-[0]  ⨯ ./app/library/page.tsx
-[0] Error:   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:168:1]
-[0]  [2m165[0m |     
-[0]  [2m166[0m |       // Loading
-[0]  [2m167[0m |       if (dataLoading && !data) {
-[0]  [2m168[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m169[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 py-16 text-center">
-[0]  [2m170[0m | [35;1m|[0m           <div className="text-[13px] text-muted-foreground">加载中...</div>
-[0]  [2m171[0m | [35;1m|[0m         </div>
-[0]  [2m172[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m173[0m |       }
-[0]  [2m174[0m |     
-[0]  [2m175[0m |       // JWT expired
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:178:1]
-[0]  [2m175[0m |       // JWT expired
-[0]  [2m176[0m |       if (jwtStatus === "expired" || jwtStatus === "refreshing") {
-[0]  [2m177[0m |         const isRefreshing = jwtStatus === "refreshing";
-[0]  [2m178[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m179[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-[0]  [2m180[0m | [35;1m|[0m           <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
-[0]  [2m181[0m | [35;1m|[0m             <KeyRound className="w-6 h-6 text-red-500" />
-[0]  [2m182[0m | [35;1m|[0m           </div>
-[0]  [2m183[0m | [35;1m|[0m           <h1 className="text-[16px] font-bold mb-2 text-foreground">凭证已过期</h1>
-[0]  [2m184[0m | [35;1m|[0m           <p className="text-[12px] mb-1 text-muted-foreground">
-[0]  [2m185[0m | [35;1m|[0m             {isElectron ? "点击下方按钮登录智慧南工，自动同步凭证" : "请在浏览器中重新登录图书馆系统"}
-[0]  [2m186[0m | [35;1m|[0m           </p>
-[0]  [2m187[0m | [35;1m|[0m           {refreshError && <p className="text-[11px] mt-1 mb-3 text-red-500">{refreshError}</p>}
-[0]  [2m188[0m | [35;1m|[0m           <button
-[0]  [2m189[0m | [35;1m|[0m             type="button"
-[0]  [2m190[0m | [35;1m|[0m             onClick={handleRefreshJWT}
-[0]  [2m191[0m | [35;1m|[0m             className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-[0]  [2m192[0m | [35;1m|[0m           >
-[0]  [2m193[0m | [35;1m|[0m             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
-[0]  [2m194[0m | [35;1m|[0m             {isRefreshing ? "登录中...（如窗口已关闭请重试）" : "登录刷新"}
-[0]  [2m195[0m | [35;1m|[0m           </button>
-[0]  [2m196[0m | [35;1m|[0m           {!isElectron && (
-[0]  [2m197[0m | [35;1m|[0m             <p className="text-[11px] mt-3 text-muted-foreground">提示：使用 ScholarFlow 桌面版可自动刷新凭证</p>
-[0]  [2m198[0m | [35;1m|[0m           )}
-[0]  [2m199[0m | [35;1m|[0m         </div>
-[0]  [2m200[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m201[0m |       }
-[0]  [2m202[0m |     
-[0]  [2m203[0m |       // Error
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:208:1]
-[0]  [2m205[0m |         ? dataError.message
-[0]  [2m206[0m |         : null;
-[0]  [2m207[0m |       if (queryError && !data) {
-[0]  [2m208[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m209[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-[0]  [2m210[0m | [35;1m|[0m           <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-red-500/10">
-[0]  [2m211[0m | [35;1m|[0m             <AlertCircle className="w-6 h-6 text-red-500" />
-[0]  [2m212[0m | [35;1m|[0m           </div>
-[0]  [2m213[0m | [35;1m|[0m           <h1 className="text-[16px] font-bold mb-2 text-foreground">加载失败</h1>
-[0]  [2m214[0m | [35;1m|[0m           <p className="text-[12px] mb-4 text-muted-foreground">{queryError}</p>
-[0]  [2m215[0m | [35;1m|[0m           <button
-[0]  [2m216[0m | [35;1m|[0m             type="button"
-[0]  [2m217[0m | [35;1m|[0m             onClick={fetchData}
-[0]  [2m218[0m | [35;1m|[0m             className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-[0]  [2m219[0m | [35;1m|[0m           >
-[0]  [2m220[0m | [35;1m|[0m             <RefreshCw className="w-3.5 h-3.5" />重试
-[0]  [2m221[0m | [35;1m|[0m           </button>
-[0]  [2m222[0m | [35;1m|[0m         </div>
-[0]  [2m223[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m224[0m |       }
-[0]  [2m225[0m |     
-[0]  [2m226[0m |       // No data
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:228:1]
-[0]  [2m225[0m |     
-[0]  [2m226[0m |       // No data
-[0]  [2m227[0m |       if (!data) {
-[0]  [2m228[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m229[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-[0]  [2m230[0m | [35;1m|[0m           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
-[0]  [2m231[0m | [35;1m|[0m             <Library className="w-8 h-8 text-primary" />
-[0]  [2m232[0m | [35;1m|[0m           </div>
-[0]  [2m233[0m | [35;1m|[0m           <h1 className="text-[16px] font-bold mb-2 text-foreground">图书馆座位</h1>
-[0]  [2m234[0m | [35;1m|[0m           <p className="text-[12px] mb-4 text-muted-foreground">需要先同步图书馆登录凭证</p>
-[0]  [2m235[0m | [35;1m|[0m           <button
-[0]  [2m236[0m | [35;1m|[0m             type="button"
-[0]  [2m237[0m | [35;1m|[0m             onClick={handleRefreshJWT}
-[0]  [2m238[0m | [35;1m|[0m             className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-[0]  [2m239[0m | [35;1m|[0m           >
-[0]  [2m240[0m | [35;1m|[0m             <KeyRound className="w-3.5 h-3.5" />刷新凭证
-[0]  [2m241[0m | [35;1m|[0m           </button>
-[0]  [2m242[0m | [35;1m|[0m         </div>
-[0]  [2m243[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m244[0m |       }
-[0]  [2m245[0m |     
-[0]  [2m246[0m |       if (!data?.libs?.length) {
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:247:1]
-[0]  [2m244[0m |       }
-[0]  [2m245[0m |     
-[0]  [2m246[0m |       if (!data?.libs?.length) {
-[0]  [2m247[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     return (
-[0]  [2m248[0m | [35;1m|[0m         <div className="pb-20 md:pb-0 py-8 text-center">
-[0]  [2m249[0m | [35;1m|[0m           <p className="text-[13px] text-muted-foreground">暂无数据</p>
-[0]  [2m250[0m | [35;1m|[0m         </div>
-[0]  [2m251[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m     );
-[0]  [2m252[0m |       }
-[0]  [2m253[0m |     
-[0]  [2m254[0m |       const summary = data.summary ?? DEFAULT_SUMMARY;
-[0]      `----
-[0]   [31mx[0m Return statement is not allowed here
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:262:1]
-[0]  [2m259[0m |       const c = statusColor;
-[0]  [2m260[0m |       const currentReserve = reserveData?.reserve ?? null;
-[0]  [2m261[0m |     
-[0]  [2m262[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m   return (
-[0]  [2m263[0m | [35;1m|[0m       <div className="max-w-5xl mx-auto pb-20 md:pb-0 py-6 animate-page">
-[0]  [2m264[0m | [35;1m|[0m         {/* Header */}
-[0]  [2m265[0m | [35;1m|[0m         <div className="flex items-center gap-3 mb-6">
-[0]  [2m266[0m | [35;1m|[0m           <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
-[0]  [2m267[0m | [35;1m|[0m             <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-[0]  [2m268[0m | [35;1m|[0m               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.092.14-3.126.39A12.025 12.025 0 003.75 6c0 1.052.14 2.092.39 3.126A8.967 8.967 0 0012 12.042a8.967 8.967 0 006 2.25c1.052 0 2.092-.14 3.126-.39A12.025 12.025 0 0018.75 12c0-1.052-.14-2.092-.39-3.126A8.967 8.967 0 0012 6.042z" />
-[0]  [2m269[0m | [35;1m|[0m             </svg>
-[0]  [2m270[0m | [35;1m|[0m           </div>
-[0]  [2m271[0m | [35;1m|[0m           <div className="flex-1 min-w-0">
-[0]  [2m272[0m | [35;1m|[0m             <h1 className="text-xl font-bold font-display text-foreground">图书馆座位</h1>
-[0]  [2m273[0m | [35;1m|[0m             <p className="text-[12px] text-muted-foreground">实时座位查询与预约</p>
-[0]  [2m274[0m | [35;1m|[0m             {userStatus?.rank && (
-[0]  [2m275[0m | [35;1m|[0m               <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary font-medium ml-1">
-[0]  [2m276[0m | [35;1m|[0m                 排名 #{userStatus.rank}
-[0]  [2m277[0m | [35;1m|[0m               </span>
-[0]  [2m278[0m | [35;1m|[0m             )}
-[0]  [2m279[0m | [35;1m|[0m           </div>
-[0]  [2m280[0m | [35;1m|[0m           <div className="flex items-center gap-2 shrink-0">
-[0]  [2m281[0m | [35;1m|[0m             {isElectron && (
-[0]  [2m282[0m | [35;1m|[0m               <button
-[0]  [2m283[0m | [35;1m|[0m                 type="button"
-[0]  [2m284[0m | [35;1m|[0m                 onClick={handleRefreshJWT}
-[0]  [2m285[0m | [35;1m|[0m                 title="刷新登录凭证"
-[0]  [2m286[0m | [35;1m|[0m                 className="min-h-9 min-w-9 px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center justify-center gap-1 bg-card text-muted-foreground border border-border cursor-pointer"
-[0]  [2m287[0m | [35;1m|[0m                 aria-label="刷新登录凭证"
-[0]  [2m288[0m | [35;1m|[0m               >
-[0]  [2m289[0m | [35;1m|[0m                 <KeyRound className="w-3.5 h-3.5" />
-[0]  [2m290[0m | [35;1m|[0m               </button>
-[0]  [2m291[0m | [35;1m|[0m             )}
-[0]  [2m292[0m | [35;1m|[0m             <button
-[0]  [2m293[0m | [35;1m|[0m               type="button"
-[0]  [2m294[0m | [35;1m|[0m               onClick={fetchData}
-[0]  [2m295[0m | [35;1m|[0m               className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-card text-muted-foreground border border-border cursor-pointer"
-[0]  [2m296[0m | [35;1m|[0m             >
-[0]  [2m297[0m | [35;1m|[0m               <RefreshCw className="w-3.5 h-3.5" />刷新
-[0]  [2m298[0m | [35;1m|[0m             </button>
-[0]  [2m299[0m | [35;1m|[0m           </div>
-[0]  [2m300[0m | [35;1m|[0m         </div>
-[0]  [2m301[0m | [35;1m|[0m   
-[0]  [2m302[0m | [35;1m|[0m         {/* Data freshness */}
-[0]  [2m303[0m | [35;1m|[0m         {data.updated && (
-[0]  [2m304[0m | [35;1m|[0m           <div className="mb-4 text-[11px] flex items-center gap-1.5 text-muted-foreground">
-[0]  [2m305[0m | [35;1m|[0m             <Clock className="w-3.5 h-3.5" />
-[0]  [2m306[0m | [35;1m|[0m             <span>上次更新：{new Date(data.updated).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })} · 自动刷新</span>
-[0]  [2m307[0m | [35;1m|[0m             {Date.now() - new Date(data.updated).getTime() > 5 * 60 * 1000 && (
-[0]  [2m308[0m | [35;1m|[0m               <span className="text-amber-500">· 数据可能已过期</span>
-[0]  [2m309[0m | [35;1m|[0m             )}
-[0]  [2m310[0m | [35;1m|[0m           </div>
-[0]  [2m311[0m | [35;1m|[0m         )}
-[0]  [2m312[0m | [35;1m|[0m   
-[0]  [2m313[0m | [35;1m|[0m         {/* Blacklist warning */}
-[0]  [2m314[0m | [35;1m|[0m         {blacklisted && (
-[0]  [2m315[0m | [35;1m|[0m           <div className="rounded-2xl p-4 mb-4 bg-red-500/5 border border-red-500/20 shadow-sm animate-fade-up">
-[0]  [2m316[0m | [35;1m|[0m             <div className="flex items-center gap-2 mb-1">
-[0]  [2m317[0m | [35;1m|[0m               <AlertCircle className="w-4 h-4 text-red-500" />
-[0]  [2m318[0m | [35;1m|[0m               <span className="text-[13px] font-semibold text-red-500">账号受限</span>
-[0]  [2m319[0m | [35;1m|[0m             </div>
-[0]  [2m320[0m | [35;1m|[0m             <p className="text-[12px] text-muted-foreground">当前账号处于黑名单状态，无法进行预约操作。请联系图书馆管理员解除限制。</p>
-[0]  [2m321[0m | [35;1m|[0m           </div>
-[0]  [2m322[0m | [35;1m|[0m         )}
-[0]  [2m323[0m | [35;1m|[0m   
-[0]  [2m324[0m | [35;1m|[0m         {/* Summary */}
-[0]  [2m325[0m | [35;1m|[0m         <div className="rounded-2xl p-5 mb-4 bg-card border border-border shadow-sm">
-[0]  [2m326[0m | [35;1m|[0m           <div className="flex items-center gap-6">
-[0]  [2m327[0m | [35;1m|[0m             <div className="text-center">
-[0]  [2m328[0m | [35;1m|[0m               <div className="text-3xl font-bold" style={{ color: c((1 - summary.rate) * 100) }}>{summary.avail}</div>
-[0]  [2m329[0m | [35;1m|[0m               <div className="text-xs mt-1 text-muted-foreground">可用座位</div>
-[0]  [2m330[0m | [35;1m|[0m             </div>
-[0]  [2m331[0m | [35;1m|[0m             <div className="text-center">
-[0]  [2m332[0m | [35;1m|[0m               <div className="text-3xl font-bold text-foreground">{summary.used}</div>
-[0]  [2m333[0m | [35;1m|[0m               <div className="text-xs mt-1 text-muted-foreground">已用</div>
-[0]  [2m334[0m | [35;1m|[0m             </div>
-[0]  [2m335[0m | [35;1m|[0m             <div className="text-center">
-[0]  [2m336[0m | [35;1m|[0m               <div className="text-3xl font-bold text-muted-foreground">{summary.total}</div>
-[0]  [2m337[0m | [35;1m|[0m               <div className="text-xs mt-1 text-muted-foreground">总计</div>
-[0]  [2m338[0m | [35;1m|[0m             </div>
-[0]  [2m339[0m | [35;1m|[0m             <div className="flex-1">
-[0]  [2m340[0m | [35;1m|[0m               <div className="h-3 rounded-full overflow-hidden bg-secondary">
-[0]  [2m341[0m | [35;1m|[0m                 <div className="h-full rounded-full transition-all" style={{ width: `${((1 - summary.rate) * 100).toFixed(0)}%`, backgroundColor: c((1 - summary.rate) * 100) }} />
-[0]  [2m342[0m | [35;1m|[0m               </div>
-[0]  [2m343[0m | [35;1m|[0m               <div className="text-xs mt-2 text-muted-foreground">
-[0]  [2m344[0m | [35;1m|[0m                 空闲率 {(summary.rate * 100).toFixed(1)}% · {String(data.updated ?? "").slice(11, 19)}
-[0]  [2m345[0m | [35;1m|[0m               </div>
-[0]  [2m346[0m | [35;1m|[0m             </div>
-[0]  [2m347[0m | [35;1m|[0m           </div>
-[0]  [2m348[0m | [35;1m|[0m         </div>
-[0]  [2m349[0m | [35;1m|[0m   
-[0]  [2m350[0m | [35;1m|[0m         {/* Current reservation + Messages row */}
-[0]  [2m351[0m | [35;1m|[0m         <div className="grid gap-3 mb-6 sm:grid-cols-2">
-[0]  [2m352[0m | [35;1m|[0m           {/* 当前预约 */}
-[0]  [2m353[0m | [35;1m|[0m           <div className="rounded-xl p-4 bg-card border border-border shadow-sm">
-[0]  [2m354[0m | [35;1m|[0m             <div className="flex items-center gap-1.5 mb-2">
-[0]  [2m355[0m | [35;1m|[0m               <BookmarkCheck className="w-4 h-4 text-primary" />
-[0]  [2m356[0m | [35;1m|[0m               <span className="font-medium text-sm text-foreground">当前预约</span>
-[0]  [2m357[0m | [35;1m|[0m             </div>
-[0]  [2m358[0m | [35;1m|[0m             {currentReserve ? (
-[0]  [2m359[0m | [35;1m|[0m               <div>
-[0]  [2m360[0m | [35;1m|[0m                 <div className="flex items-center gap-2 mb-1">
-[0]  [2m361[0m | [35;1m|[0m                   <span className="text-sm font-medium text-foreground">{currentReserve.seat_name}</span>
-[0]  [2m362[0m | [35;1m|[0m                   <span className="text-[11px] px-1.5 py-0.5 rounded-md font-medium" style={{
-[0]  [2m363[0m | [35;1m|[0m                     backgroundColor: (reserveStatusMap[currentReserve.status]?.color || "#94a3b8") + "20",
-[0]  [2m364[0m | [35;1m|[0m                     color: reserveStatusMap[currentReserve.status]?.color || "#94a3b8",
-[0]  [2m365[0m | [35;1m|[0m                   }}>
-[0]  [2m366[0m | [35;1m|[0m                     {reserveStatusMap[currentReserve.status]?.label || `状态${currentReserve.status}`}
-[0]  [2m367[0m | [35;1m|[0m                   </span>
-[0]  [2m368[0m | [35;1m|[0m                 </div>
-[0]  [2m369[0m | [35;1m|[0m                 <p className="text-[12px] text-muted-foreground mb-2">{currentReserve.lib_name} · {currentReserve.date}</p>
-[0]  [2m370[0m | [35;1m|[0m                 {countdown && currentReserve.status === 1 && (
-[0]  [2m371[0m | [35;1m|[0m                   <p className="text-[11px] mb-2 text-amber-500 font-medium flex items-center gap-1">
-[0]  [2m372[0m | [35;1m|[0m                     <Clock className="w-3 h-3" /> {countdown}
-[0]  [2m373[0m | [35;1m|[0m                   </p>
-[0]  [2m374[0m | [35;1m|[0m                 )}
-[0]  [2m375[0m | [35;1m|[0m                 <div className="flex gap-2">
-[0]  [2m376[0m | [35;1m|[0m                   {(currentReserve.status === 1 || currentReserve.status === 2) && (
-[0]  [2m377[0m | [35;1m|[0m                     <button
-[0]  [2m378[0m | [35;1m|[0m                       type="button"
-[0]  [2m379[0m | [35;1m|[0m                       onClick={handleCancelReserve}
-[0]  [2m380[0m | [35;1m|[0m                       disabled={cancelReserve.isPending}
-[0]  [2m381[0m | [35;1m|[0m                       className="min-h-8 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50 cursor-pointer"
-[0]  [2m382[0m | [35;1m|[0m                       aria-label="取消当前预约"
-[0]  [2m383[0m | [35;1m|[0m                     >
-[0]  [2m384[0m | [35;1m|[0m                       {cancelReserve.isPending ? "取消中..." : "取消预约"}
-[0]  [2m385[0m | [35;1m|[0m                     </button>
-[0]  [2m386[0m | [35;1m|[0m                   )}
-[0]  [2m387[0m | [35;1m|[0m                   {currentReserve.status === 2 && (
-[0]  [2m388[0m | [35;1m|[0m                     <button
-[0]  [2m389[0m | [35;1m|[0m                       type="button"
-[0]  [2m390[0m | [35;1m|[0m                       onClick={handleHoldSeat}
-[0]  [2m391[0m | [35;1m|[0m                       disabled={holdSeat.isPending}
-[0]  [2m392[0m | [35;1m|[0m                       className="min-h-8 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 disabled:opacity-50 cursor-pointer"
-[0]  [2m393[0m | [35;1m|[0m                       aria-label="暂离座位"
-[0]  [2m394[0m | [35;1m|[0m                     >
-[0]  [2m395[0m | [35;1m|[0m                       {holdSeat.isPending ? "处理中..." : "暂离"}
-[0]  [2m396[0m | [35;1m|[0m                     </button>
-[0]  [2m397[0m | [35;1m|[0m                   )}
-[0]  [2m398[0m | [35;1m|[0m                 </div>
-[0]  [2m399[0m | [35;1m|[0m               </div>
-[0]  [2m400[0m | [35;1m|[0m             ) : (
-[0]  [2m401[0m | [35;1m|[0m               <p className="text-[12px] text-muted-foreground">暂无预约</p>
-[0]  [2m402[0m | [35;1m|[0m             )}
-[0]  [2m403[0m | [35;1m|[0m           </div>
-[0]  [2m404[0m | [35;1m|[0m   
-[0]  [2m405[0m | [35;1m|[0m           {/* 消息通知入口 */}
-[0]  [2m406[0m | [35;1m|[0m           <button
-[0]  [2m407[0m | [35;1m|[0m             type="button"
-[0]  [2m408[0m | [35;1m|[0m             onClick={() => router.push("/library/messages")}
-[0]  [2m409[0m | [35;1m|[0m             className="w-full text-left rounded-xl p-4 bg-card border border-border shadow-sm cursor-pointer hover:opacity-80 transition-opacity"
-[0]  [2m410[0m | [35;1m|[0m             aria-label="查看图书馆消息通知"
-[0]  [2m411[0m | [35;1m|[0m           >
-[0]  [2m412[0m | [35;1m|[0m             <div className="flex items-center justify-between">
-[0]  [2m413[0m | [35;1m|[0m               <div className="flex items-center gap-1.5">
-[0]  [2m414[0m | [35;1m|[0m                 <Bell className="w-4 h-4 text-primary" />
-[0]  [2m415[0m | [35;1m|[0m                 <span className="font-medium text-sm text-foreground">消息通知</span>
-[0]  [2m416[0m | [35;1m|[0m               </div>
-[0]  [2m417[0m | [35;1m|[0m               <span className="text-xs text-muted-foreground">查看 →</span>
-[0]  [2m418[0m | [35;1m|[0m             </div>
-[0]  [2m419[0m | [35;1m|[0m             <p className="text-[12px] text-muted-foreground mt-2">预约提醒、违规通知等</p>
-[0]  [2m420[0m | [35;1m|[0m           </button>
-[0]  [2m421[0m | [35;1m|[0m         </div>
-[0]  [2m422[0m | [35;1m|[0m   
-[0]  [2m423[0m | [35;1m|[0m         {/* Room cards */}
-[0]  [2m424[0m | [35;1m|[0m         <div className="grid gap-3 sm:grid-cols-2">
-[0]  [2m425[0m | [35;1m|[0m           {openLibs.map((lib: LibraryRoom) => {
-[0]  [2m426[0m | [35;1m|[0m             const rt = lib.lib_rt, pct = rt.seats_total > 0 ? (rt.seats_used / rt.seats_total) * 100 : 0;
-[0]  [2m427[0m | [35;1m|[0m             return (
-[0]  [2m428[0m | [35;1m|[0m               <button
-[0]  [2m429[0m | [35;1m|[0m                 key={lib.lib_id}
-[0]  [2m430[0m | [35;1m|[0m                 type="button"
-[0]  [2m431[0m | [35;1m|[0m                 onClick={() => router.push(`/library/layout?lib_id=${lib.lib_id}`)}
-[0]  [2m432[0m | [35;1m|[0m                 className="w-full text-left rounded-xl p-4 cursor-pointer hover:opacity-80 transition-opacity bg-card border border-border shadow-sm"
-[0]  [2m433[0m | [35;1m|[0m                 aria-label={`进入 ${lib.lib_name} 座位图`}
-[0]  [2m434[0m | [35;1m|[0m               >
-[0]  [2m435[0m | [35;1m|[0m                 <div className="flex items-center justify-between mb-2">
-[0]  [2m436[0m | [35;1m|[0m                   <div className="flex items-center gap-1.5">
-[0]  [2m437[0m | [35;1m|[0m                     <MapPin className="w-3.5 h-3.5 text-primary" />
-[0]  [2m438[0m | [35;1m|[0m                     <span className="font-medium text-sm text-foreground">{lib.lib_name}</span>
-[0]  [2m439[0m | [35;1m|[0m                   </div>
-[0]  [2m440[0m | [35;1m|[0m                   <span className="text-xs text-muted-foreground">{lib.lib_floor}</span>
-[0]  [2m441[0m | [35;1m|[0m                 </div>
-[0]  [2m442[0m | [35;1m|[0m                 <div className="h-2 rounded-full mb-2 bg-secondary">
-[0]  [2m443[0m | [35;1m|[0m                   <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: c(pct) }} />
-[0]  [2m444[0m | [35;1m|[0m                 </div>
-[0]  [2m445[0m | [35;1m|[0m                 <div className="flex justify-between text-xs text-muted-foreground">
-[0]  [2m446[0m | [35;1m|[0m                   <span style={{ color: c(pct), fontWeight: 600 }}>{rt.seats_has} 可用</span>
-[0]  [2m447[0m | [35;1m|[0m                   <span>{rt.seats_used}/{rt.seats_total}{rt.seats_booking > 0 ? ` · ${rt.seats_booking}预约中` : ""}</span>
-[0]  [2m448[0m | [35;1m|[0m                   <span>{rt.open_time_str}-{rt.close_time_str}</span>
-[0]  [2m449[0m | [35;1m|[0m                 </div>
-[0]  [2m450[0m | [35;1m|[0m                 {rt.advance_booking && (
-[0]  [2m451[0m | [35;1m|[0m                   <p className="text-[10px] text-muted-foreground/60 mt-1">
-[0]  [2m452[0m | [35;1m|[0m                     提前{rt.advance_booking}可约 · 签到限时{rt.reserve_ttl ? Math.floor(rt.reserve_ttl / 60) : 30}分钟
-[0]  [2m453[0m | [35;1m|[0m                   </p>
-[0]  [2m454[0m | [35;1m|[0m                 )}
-[0]  [2m455[0m | [35;1m|[0m               </button>
-[0]  [2m456[0m | [35;1m|[0m             );
-[0]  [2m457[0m | [35;1m|[0m           })}
-[0]  [2m458[0m | [35;1m|[0m         </div>
-[0]  [2m459[0m | [35;1m|[0m         {closedCount > 0 && (
-[0]  [2m460[0m | [35;1m|[0m           <p className="text-[11px] text-muted-foreground mt-3 text-center">
-[0]  [2m461[0m | [35;1m|[0m             另有 {closedCount} 个阅览室未开放
-[0]  [2m462[0m | [35;1m|[0m           </p>
-[0]  [2m463[0m | [35;1m|[0m         )}
-[0]  [2m464[0m | [35;1m|[0m       </div>
-[0]  [2m465[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m   );
-[0]  [2m466[0m |     }
-[0]      `----
-[0]   [31mx[0m Expression expected
-[0]      ,-[[36;1;4mD:\A\scholarflow\app\library\page.tsx[0m:466:1]
-[0]  [2m463[0m |       )}
-[0]  [2m464[0m |     </div>
-[0]  [2m465[0m |   );
-[0]  [2m466[0m | }
-[0]      : [35;1m^[0m
-[0]      `----
-[0] 
-[0] Caused by:
-[0]     Syntax Error
-[0] 
-[0] Import trace for requested module:
-[0] ./app/library/page.tsx
-[0]  GET /library 500 in 56ms
-[0]  ✓ Compiled in 1215ms (2640 modules)
-[0]  GET /library 200 in 137ms
-[0]  ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
-[0]  GET /library 200 in 338ms
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 68ms
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 88ms
-[0]  GET /api/library/user-status 200 in 112ms
-[0]  GET /api/library/reserve-status 200 in 119ms
-[0]  GET /api/vpn-proxy 200 in 129ms
-[0]  ✓ Compiled in 1073ms (2640 modules)
-[0]  GET /library 200 in 256ms
-[0]  GET /api/library/reserve-status 200 in 77ms
-[0]  GET /api/vpn-proxy 200 in 93ms
-[0]  GET /api/library/reserve-status 200 in 92ms
-[0]  GET /api/library/user-status 200 in 95ms
-[0]  GET /api/library/user-status 200 in 49ms
-[0]  GET /api/library/reserve-status 200 in 52ms
-[0]  GET /api/vpn-proxy 200 in 60ms
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 143ms
-[0]  GET /api/vpn-proxy 200 in 165ms
-[0]  GET /api/library/user-status 200 in 177ms
-[0]  GET /api/library/reserve-status 200 in 181ms
-[0]  ✓ Compiled in 345ms (1210 modules)
-[0]  GET /library 200 in 33ms
-[0]  ✓ Compiled in 203ms (1210 modules)
-[0]  GET /library 200 in 35ms
-[0]  ✓ Compiled in 260ms (1210 modules)
-[0]  GET /library 200 in 33ms
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 90ms
-[0]  GET /api/vpn-proxy 200 in 95ms
-[0]  GET /api/library/reserve-status 200 in 110ms
-[0]  GET /api/library/user-status 200 in 113ms
-[0]  ✓ Compiled /api/library/seat-layout in 381ms (1329 modules)
-[0]  GET /api/library/seat-layout?lib_id=abc 400 in 483ms
-[0]  GET /library 200 in 166ms
-[0]  GET /api/library/seat-layout 400 in 20ms
-[0]  GET /api/library/seat-layout?lib_id=122783 200 in 55ms
-[0]  ✓ Compiled /api/library/cancel-reserve in 409ms (2541 modules)
-[0]  POST /api/library/cancel-reserve 400 in 476ms
-[0]  GET /library 200 in 122ms
-[0]  POST /api/library/cancel-reserve 500 in 31ms
-[0]  ✓ Compiled /api/library/release-seat in 447ms (2526 modules)
-[0]  POST /api/library/release-seat 400 in 495ms
-[0]  POST /api/library/release-seat 400 in 16ms
-[0]  GET /api/library/user-status 200 in 103ms
-[0]  GET /api/library/reserve-status 200 in 107ms
-[0]  GET /api/vpn-proxy 200 in 125ms
-[0]  ✓ Compiled /api/library/hold-seat in 350ms (2528 modules)
-[0]  POST /api/library/hold-seat 500 in 410ms
-[0]  POST /api/library/hold-seat 500 in 26ms
-[0]  POST /api/library/cancel-reserve 500 in 54ms
-[0]  POST /api/library/cancel-reserve 500 in 29ms
-[0]  POST /api/library/cancel-reserve 500 in 46ms
-[0]  POST /api/library/cancel-reserve 500 in 23ms
-[0]  GET /api/library/reserve-status 200 in 37ms
-[0]  ✓ Compiled /api/library/reserve-status in 1178ms (2500 modules)
-[0]  ✓ Compiled in 0ms (1316 modules)
-[0]  GET /library 200 in 565ms
-[0]  GET /api/library/reserve-status 200 in 707ms
-[0]  GET /api/library/user-status 200 in 710ms
-[0]  GET /api/vpn-proxy 200 in 723ms
-[0]  ✓ Compiled in 860ms (2526 modules)
-[0]  ✓ Compiled in 0ms (1316 modules)
-[0]  ✓ Compiled in 0ms (1316 modules)
-[0]  ✓ Compiled in 0ms (1316 modules)
-[0]  GET /api/library/reserve-status 200 in 1159ms
-[0]  GET /library 200 in 823ms
-[0]  ✓ Compiled in 552ms (2526 modules)
-[0]  ✓ Compiled in 1ms (1316 modules)
-[0]  ✓ Compiled in 0ms (1316 modules)
-[0]  ✓ Compiled in 0ms (1316 modules)
-[0]  GET /api/library/user-status 200 in 906ms
-[0]  GET /api/vpn-proxy 200 in 924ms
-[0]  GET /library 200 in 908ms
-[0]  ○ Compiling /api/local-data ...
-[0]  ✓ Compiled /api/local-data in 534ms (1327 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 842ms
-[0]  GET /api/library/reserve-status 200 in 869ms
-[0]  GET /api/library/reserve-status 200 in 40ms
-[0]  ✓ Compiled /api/library/cancel-reserve in 409ms (1329 modules)
-[0]  POST /api/library/cancel-reserve 500 in 484ms
-[0]  GET /api/library/reserve-status 200 in 27ms
-[0]  POST /api/library/cancel-reserve 500 in 24ms
-[0]  GET /library 200 in 411ms
-[0]  ✓ Compiled /api/auth/session in 308ms (1333 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 373ms
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 102ms
-[0]  GET /api/vpn-proxy 200 in 116ms
-[0]  GET /api/library/reserve-status 200 in 120ms
-[0]  GET /api/library/user-status 200 in 126ms
-[0]  GET /api/library/reserve-status 200 in 38ms
-[0]  POST /api/library/cancel-reserve 500 in 42ms
-[0]  GET /api/library/reserve-status 200 in 36ms
-[0]  POST /api/library/cancel-reserve 500 in 33ms
-[0]  GET /api/library/reserve-status 200 in 167ms
-[0]  POST /api/library/cancel-reserve 400 in 21ms
-[0]  GET /api/library/reserve-status 200 in 50ms
-[0]  POST /api/library/cancel-reserve 500 in 48ms
-[0]  POST /api/library/cancel-reserve 500 in 41ms
-[0]  GET /api/library/reserve-status 200 in 50ms
-[0]  ✓ Compiled /api/library/release-seat in 373ms (1316 modules)
-[0]  POST /api/library/release-seat 500 in 492ms
-[0]  GET /api/library/reserve-status 200 in 41ms
-[0]  POST /api/library/cancel-reserve 500 in 29ms
-[0]  GET /api/library/reserve-status 200 in 41ms
-[0]  ✓ Compiled /api/library/hold-seat in 201ms (1318 modules)
-[0]  POST /api/library/hold-seat 500 in 257ms
-[0]  POST /api/library/hold-seat 500 in 29ms
-[0]  GET /api/library/reserve-status 200 in 34ms
-[0]  POST /api/library/cancel-reserve 500 in 34ms
-[0]  ✓ Compiled in 377ms (1210 modules)
-[0]  GET /library 200 in 75ms
-[0]  ✓ Compiled in 712ms (2500 modules)
-[0]  GET /library 200 in 213ms
-[0]  ✓ Compiled /api/library/reserve-status in 182ms (1311 modules)
-[0]  ✓ Compiled (1316 modules)
-[0]  GET /api/library/reserve-status 200 in 611ms
-[0]  GET /api/library/user-status 200 in 613ms
-[0]  GET /api/vpn-proxy 200 in 617ms
-[0]  ✓ Compiled in 457ms (2526 modules)
-[0]  GET /library 200 in 96ms
-[0]  GET /api/vpn-proxy 200 in 128ms
-[0]  ○ Compiling /api/local-data ...
-[0]  ✓ Compiled /api/local-data in 624ms (1327 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 872ms
-[0]  GET /api/library/reserve-status 200 in 874ms
-[0]  GET /api/library/user-status 200 in 926ms
-[0]  GET /api/library/user-status 200 in 46ms
-[0]  GET /api/library/reserve-status 200 in 56ms
-[0]  GET /api/vpn-proxy 200 in 63ms
-[0]  GET /library 200 in 316ms
-[0]  ✓ Compiled /api/auth/session in 183ms (1331 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 238ms
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 69ms
-[0]  GET /api/vpn-proxy 200 in 71ms
-[0]  GET /api/library/user-status 200 in 72ms
-[0]  GET /api/library/reserve-status 200 in 73ms
-[0]  GET /api/library/reserve-status 200 in 50ms
-[0]  GET /api/library/user-status 200 in 44ms
-[0]  GET /api/vpn-proxy 200 in 94ms
-[0]  GET /api/library/reserve-status 200 in 30ms
-[0]  GET /library/layout?lib_id=122790 200 in 81ms
-[0]  ✓ Compiled /api/auth/session in 430ms (1318 modules)
-[0]  ✓ Compiled (1326 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 662ms
-[0]  GET /api/library/seat-layout?lib_id=122790 200 in 733ms
-[0]  ✓ Compiled /api/library/reserve in 176ms (1328 modules)
-[0]  POST /api/library/reserve 400 in 237ms
-[0]  GET /library/layout?lib_id=122790 200 in 105ms
-[0]  POST /api/library/reserve 400 in 27ms
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 61ms
-[0]  GET /api/library/reserve-status 200 in 73ms
-[0]  GET /api/library/reserve-status 200 in 49ms
-[0]  GET / 200 in 84ms
-[0]  GET /api/auth/session 200 in 24ms
-[0]  ✓ Compiled /api/local-data in 339ms (1335 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 429ms
-[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 428ms
-[0]  GET /api/local-data?type=jwc-news 200 in 427ms
-[0]  GET /api/local-data?type=exams 200 in 427ms
-[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 426ms
-[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 432ms
+[0]  GET /api/auth/session 200 in 52ms
+[0]  GET / 200 in 38ms
+[0]  GET /api/local-data?type=exams 200 in 47ms
+[0]  GET /api/auth/session 200 in 60ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 77ms
+[0]  GET /api/local-data?type=dashboard 200 in 75ms
 [0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 30ms
-[0]  GET /api/local-data?type=dashboard 200 in 44ms
-[0]  GET /api/local-data?type=dashboard 200 in 26ms
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 58ms
-[0]  GET /api/local-data?type=exams 200 in 72ms
-[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 70ms
-[0]  GET /library 200 in 119ms
-[0]  GET /api/auth/session 200 in 125ms
-[0]  GET /api/library/reserve-status 200 in 161ms
-[0]  GET /api/vpn-proxy 200 in 175ms
-[0]  GET /api/library/user-status 200 in 186ms
-[0]  ✓ Compiled in 3.1s (2543 modules)
-[0]  GET /api/library/reserve-status 200 in 2017ms
-[0]  GET /api/library/user-status 200 in 2019ms
-[0]  GET /api/vpn-proxy 200 in 2022ms
-[0]  GET /library 200 in 325ms
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 76ms
-[0]  GET /api/library/reserve-status 200 in 44ms
-[0]  GET /api/library/user-status 200 in 277ms
-[0]  GET /api/library/reserve-status 200 in 98ms
-[0]  GET /api/vpn-proxy 200 in 300ms
-[0]  ✓ Compiled in 903ms (2539 modules)
-[0]  GET /library 200 in 158ms
-[0]  GET /api/library/reserve-status 200 in 53ms
-[0]  ○ Compiling /api/library/messages ...
-[0]  ✓ Compiled /api/library/messages in 618ms (2513 modules)
-[0]  GET /api/library/messages?page=1&num=5&type=1 200 in 697ms
-[0]  ○ Compiling /library/messages ...
-[0]  ✓ Compiled /library/messages in 1409ms (2522 modules)
-[0]  GET /library/messages 200 in 1555ms
-[0]  GET /library/messages 200 in 50ms
-[0]  GET /library/messages 200 in 45ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 118ms
-[0]  ✓ Compiled /api/auth/session in 361ms (1331 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 720ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 617ms
-[0]  GET /api/library/messages?page=1&num=50&type=2 200 in 51ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 36ms
-[0]  GET /library 200 in 117ms
-[0]  ○ Compiling /api/library/user-status ...
-[0]  ✓ Compiled /api/library/user-status in 565ms (1333 modules)
-[0]  ✓ Compiled (1335 modules)
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 1371ms
-[0]  GET /api/vpn-proxy 200 in 1432ms
-[0]  GET /api/library/user-status 200 in 1483ms
-[0]  GET /api/library/reserve-status 200 in 1483ms
-[0]  ○ Compiling /api/auth/jwt ...
-[0]  ✓ Compiled /api/auth/jwt in 722ms (1337 modules)
-[0]  GET /api/auth/jwt 200 in 789ms
-[0]  ✓ Compiled in 792ms (2553 modules)
-[0]  GET /library 200 in 105ms
-[0]  GET /api/library/reserve-status 200 in 125ms
-[0]  ✓ Compiled in 1482ms (2553 modules)
-[0]  ✓ Compiled in 0ms (1337 modules)
-[0]  ✓ Compiled in 0ms (1337 modules)
-[0]  ✓ Compiled in 1ms (1337 modules)
-[0]  GET /api/library/messages?page=1&num=20&type=1 200 in 1895ms
-[0]  GET /api/library/user-status 200 in 1872ms
-[0]  GET /api/vpn-proxy 200 in 1892ms
-[0]  GET /library 200 in 1433ms
-[0]  GET /api/library/messages?page=1&num=5&type=1 200 in 42ms
-[0]  GET /library/messages 200 in 37ms
-[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 50ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 66ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 56ms
-[0]  GET /library 200 in 43ms
-[0]  GET /api/auth/session 200 in 109ms
-[0]  GET /api/library/user-status 200 in 133ms
-[0]  GET /api/library/reserve-status 200 in 135ms
-[0]  GET /api/vpn-proxy 200 in 151ms
-[0]  GET /library/messages 200 in 30ms
-[0]  GET /api/auth/session 200 in 37ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 42ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 34ms
-[0]  GET /api/library/messages?page=1&num=50&type=2 200 in 30ms
-[0]  GET /api/library/messages?page=1&num=50&type=0 200 in 31ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 31ms
-[0]  GET /library 200 in 46ms
+[0]  GET /api/local-data?type=dashboard 200 in 45ms
+[0]  GET /schedule 200 in 30ms
 [0]  GET /api/auth/session 200 in 24ms
-[0]  GET /library/messages 200 in 27ms
-[0]  GET /api/auth/session 200 in 31ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 52ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 32ms
-[0]  GET /library 200 in 30ms
-[0]  GET /api/auth/session 200 in 22ms
-[0]  ✓ Compiled in 1527ms (2551 modules)
-[0]  GET /library 200 in 350ms
-[0]  GET /api/library/reserve-status 200 in 40ms
-[0]  ✓ Compiled in 576ms (2551 modules)
-[0]  GET /library 200 in 85ms
-[0]  GET /library/messages 200 in 59ms
+[0]  ○ Compiling /exams ...
+[0]  ✓ Compiled /exams in 846ms (2105 modules)
+[0]  GET /exams 200 in 932ms
 [0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 62ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 83ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 38ms
-[0]  GET /library 200 in 27ms
-[0]  GET /api/auth/session 200 in 68ms
-[0]  GET /api/vpn-proxy 200 in 79ms
-[0]  GET /api/library/reserve-status 200 in 85ms
-[0]  GET /api/library/messages?page=1&num=20&type=1 200 in 89ms
-[0]  GET /api/library/user-status 200 in 95ms
-[0]  ✓ Compiled in 951ms (2551 modules)
-[0]  GET /library 200 in 247ms
-[0]  GET /api/vpn-proxy 200 in 113ms
-[0]  ○ Compiling /api/library/messages ...
-[0]  ✓ Compiled /api/library/messages in 607ms (1334 modules)
-[0]  ✓ Compiled (1338 modules)
-[0]  GET /api/library/reserve-status 200 in 1042ms
+[0]  GET /api/auth/session 200 in 46ms
+[0]  ✓ Compiled /api/exams in 411ms (2107 modules)
 [0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 1202ms
-[0]  GET /api/library/user-status 200 in 1247ms
-[0]  GET /api/library/messages?page=1&num=20&type=1 200 in 1285ms
-[0]  GET /library/messages 200 in 66ms
-[0]  ✓ Compiled /api/auth/session in 254ms (1342 modules)
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 489ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 24ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 38ms
+[0]  POST /api/exams 200 in 24ms
+[0]  GET / 200 in 133ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 59ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 119ms
+[0]  GET /api/local-data?type=exams 200 in 118ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 118ms
+[0]  GET /api/local-data?type=dashboard 200 in 118ms
+[0]  GET /api/auth/session 200 in 154ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 77ms
+[0]  GET /api/local-data?type=dashboard 200 in 102ms
+[0]  GET /schedule 200 in 103ms
+[0]  GET /api/auth/session 200 in 47ms
+[0]  ○ Compiling /assignments ...
+[0]  ✓ Compiled /assignments in 2.1s (2296 modules)
+[0]  GET /assignments 200 in 2392ms
+[0]  GET /assignments 200 in 68ms
+[0]  GET /assignments 200 in 72ms
+[0]  GET /assignments 200 in 62ms
+[0]  GET /assignments 200 in 80ms
+[0]  GET /assignments 200 in 77ms
+[0]  GET /assignments 200 in 54ms
 [0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 534ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 561ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 29ms
-[0]  GET /library 200 in 54ms
-[0]  GET /api/auth/session 200 in 22ms
-[0]  GET /api/library/reserve-status 200 in 52ms
-[0]  ✓ Compiled in 1373ms (2558 modules)
-[0]  GET /library 200 in 141ms
-[0]  ✓ Compiled in 686ms (2558 modules)
-[0]  GET /library 200 in 127ms
-[0]  GET /api/vpn-proxy 200 in 100ms
-[0]  GET /api/library/user-status 200 in 102ms
-[0]  GET /api/library/reserve-status 200 in 56ms
-[0]  GET /library/messages 200 in 66ms
+[0]  GET /api/auth/session 200 in 65ms
+[0]  GET /exams 200 in 57ms
+[0]  ✓ Compiled /api/exams in 402ms (1243 modules)
 [0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 68ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 79ms
-[0]  GET /api/library/messages?page=1&num=50&type=1 200 in 38ms
-[0]  GET /library 200 in 31ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 879ms
+[0]  GET /api/auth/session 200 in 886ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 40ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 52ms
+[0]  POST /api/exams 200 in 26ms
+[0]  PATCH /api/exams 200 in 32ms
+[0]  PATCH /api/exams 200 in 22ms
+[0]  ○ Compiling /gpa ...
+[0]  ✓ Compiled /gpa in 1462ms (2280 modules)
+[0]  GET /gpa 200 in 1681ms
+[0]  ✓ Compiled /api/local-data in 349ms (1244 modules)
+[0]  ✓ Compiled (1251 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=grades&schoolId=njtech&userId=202321144057 200 in 770ms
+[0]  GET /api/auth/session 200 in 786ms
+[0]  GET /api/local-data?type=grades&schoolId=njtech&userId=202321144057 200 in 27ms
+[0]  ○ Compiling /goals ...
+[0]  ✓ Compiled /goals in 851ms (2328 modules)
+[0]  GET /goals 200 in 993ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 94ms
+[0]  ○ Compiling /api/goals ...
+[0]  ✓ Compiled /api/goals in 654ms (2330 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/goals?schoolId=njtech&userId=202321144057 200 in 748ms
+[0]  GET /api/goals?schoolId=njtech&userId=202321144057 200 in 29ms
+[0]  POST /api/goals 200 in 28ms
+[0]  ○ Compiling /knowledge ...
+[0]  ✓ Compiled /knowledge in 1197ms (3237 modules)
+[0]  GET /knowledge 200 in 1365ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 39ms
+[0]  GET /gpa 200 in 48ms
+[0]  GET /api/local-data?type=grades&schoolId=njtech&userId=202321144057 200 in 44ms
+[0]  GET /api/auth/session 200 in 57ms
+[0]  GET /api/local-data?type=grades&schoolId=njtech&userId=202321144057 200 in 31ms
+[0]  GET / 200 in 57ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 46ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 82ms
+[0]  GET /api/local-data?type=exams 200 in 81ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 81ms
+[0]  GET /api/local-data?type=dashboard 200 in 80ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 86ms
+[0]  GET /api/auth/session 200 in 83ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 48ms
+[0]  GET /api/local-data?type=dashboard 200 in 64ms
+[0]  ✓ Compiled in 1747ms (3254 modules)
+[0]  ✓ Compiled in 0ms (1717 modules)
+[0]  ✓ Compiled in 1ms (1717 modules)
+[0]  ✓ Compiled in 0ms (1717 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 2365ms
+[0]  ✓ Compiled in 0ms (1717 modules)
+[0]  GET / 200 in 2507ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 1242ms
+[0]  GET /api/local-data?type=dashboard 200 in 1242ms
+[0]  GET /api/local-data?type=exams 200 in 1243ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 38ms
+[0]  GET /api/local-data?type=dashboard 200 in 60ms
+[0]  ✓ Compiled in 1985ms (3256 modules)
+[0]  ✓ Compiled in 0ms (1718 modules)
+[0]  ✓ Compiled in 0ms (1718 modules)
+[0]  ✓ Compiled in 0ms (1718 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 2204ms
+[0]  ✓ Compiled in 0ms (1718 modules)
+[0]  GET / 200 in 2048ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 1567ms
+[0]  GET /api/local-data?type=dashboard 200 in 1567ms
+[0]  GET /api/local-data?type=exams 200 in 1568ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 59ms
+[0]  GET /api/local-data?type=dashboard 200 in 80ms
+[0]  ✓ Compiled in 1679ms (2790 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 161ms
+[0]  GET / 200 in 311ms
+[0]  ✓ Compiled in 559ms (1538 modules)
+[0]  GET /api/local-data?type=exams 200 in 130ms
+[0]  GET /api/local-data?type=dashboard 200 in 130ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 177ms
+[0]  GET /api/local-data?type=dashboard 200 in 101ms
+[0]  GET / 200 in 151ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 81ms
+[0]  ○ Compiling /settings ...
+[0]  ✓ Compiled /settings in 1789ms (2914 modules)
+[0]  GET /settings 200 in 2283ms
+[0]  GET / 200 in 1035ms
+[0]  GET /settings 200 in 52ms
+[0]  GET /settings 200 in 39ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 54ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 48ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 73ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 43ms
+[0]  GET / 200 in 35ms
+[0]  GET /api/local-data?type=exams 200 in 34ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 59ms
+[0]  GET /api/local-data?type=dashboard 200 in 59ms
 [0]  GET /api/auth/session 200 in 64ms
-[0]  GET /api/library/messages?page=1&num=20&type=1 200 in 67ms
-[0]  GET /api/library/reserve-status 200 in 64ms
-[0]  GET /api/library/reserve-status 200 in 51ms
-[0]  ✓ Compiled in 763ms (2537 modules)
-[0]  GET /library 200 in 205ms
-[0]  ✓ Compiled /api/local-data in 179ms (1328 modules)
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 37ms
+[0]  GET /api/local-data?type=dashboard 200 in 56ms
+[0]  GET /schedule 200 in 46ms
+[0]  GET /api/auth/session 200 in 23ms
+[0]  GET / 200 in 60ms
+[0]  GET /api/local-data?type=exams 200 in 45ms
+[0]  GET /api/auth/session 200 in 65ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 83ms
+[0]  GET /api/local-data?type=dashboard 200 in 82ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 51ms
+[0]  GET /api/local-data?type=dashboard 200 in 65ms
+[0]  GET /settings 200 in 39ms
+[0]  GET /api/auth/session 200 in 42ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 55ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 65ms
+[0]  GET / 200 in 38ms
+[0]  GET /api/local-data?type=exams 200 in 48ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 64ms
+[0]  GET /api/local-data?type=dashboard 200 in 63ms
+[0]  GET /api/auth/session 200 in 73ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 53ms
+[0]  GET /api/local-data?type=dashboard 200 in 64ms
+[0]  GET /api/local-data?type=exams 200 in 20ms
+[0]  GET /api/local-data?type=exams 200 in 29ms
+[0]  GET /api/local-data?type=exams 200 in 23ms
+[0]  GET /api/local-data?type=exams 200 in 32ms
+[0]  GET /api/local-data?type=exams 200 in 28ms
+[0]  ✓ Compiled in 1766ms (2846 modules)
+[0]  GET / 200 in 189ms
+[0]  ✓ Compiled in 300ms (1598 modules)
+[0]  GET / 200 in 54ms
+[0]  ✓ Compiled in 274ms (1598 modules)
+[0]  GET / 200 in 45ms
+[0]  ✓ Compiled in 982ms (2846 modules)
+[0]  GET / 200 in 123ms
+[0]  ✓ Compiled in 267ms (1598 modules)
+[0]  GET / 200 in 38ms
+[0]  ✓ Compiled in 505ms (2846 modules)
+[0]  GET / 200 in 89ms
+[0]  ✓ Compiled in 1796ms (2846 modules)
 [0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 247ms
-[0]  ⚠ Fast Refresh had to perform a full reload when \\scholarflow\\app\\library\\messages\\page.tsx","ids":[]} changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
-[0]  ✓ Compiled in 917ms (2544 modules)
-[0]  GET /library 200 in 983ms
-[0]  ✓ Compiled /api/auth/session in 290ms (1332 modules)
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 812ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 812ms
+[0]  GET /api/local-data?type=exams 200 in 812ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 812ms
+[0]  GET /api/local-data?type=jwc-news 200 in 811ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 813ms
+[0]  GET / 200 in 77ms
+[0]  ✓ Compiled in 895ms (2846 modules)
+[0]  GET / 200 in 97ms
+[0]  ✓ Compiled in 1325ms (2846 modules)
+[0]  GET / 200 in 100ms
+[0]  ✓ Compiled in 663ms (1598 modules)
+[0]  GET / 200 in 54ms
+[0]  ○ Compiling /api/auth/session ...
+[0]  ✓ Compiled /api/auth/session in 1492ms (2850 modules)
 [0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/auth/session 200 in 424ms
-[0]  ○ Compiling /api/library/messages ...
-[0]  ✓ Compiled /api/library/messages in 1222ms (2558 modules)
+[0]  GET /api/auth/session 200 in 1241ms
+[0]  GET / 200 in 220ms
+[0]  GET /api/auth/session 200 in 21ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 54ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 84ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 82ms
+[0]  GET /api/local-data?type=exams 200 in 78ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 78ms
+[0]  GET /api/local-data?type=jwc-news 200 in 78ms
+[0]  ✓ Compiled in 967ms (2850 modules)
 [0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
-[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 1329ms
-[0]  GET /api/library/reserve-status 200 in 1348ms
-[0]  GET /api/library/messages?page=1&num=20&type=1 200 in 1350ms
-[0]  GET /api/library/user-status 200 in 1352ms
-[0]  GET /api/vpn-proxy 200 in 1386ms
-[0]  GET /library 200 in 132ms
-[0]  ✓ Compiled in 441ms (2558 modules)
-[0]  GET /library 200 in 57ms
+[0]  GET /api/local-data?type=dashboard 200 in 1045ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 1028ms
+[0]  GET /api/local-data?type=dashboard 200 in 42ms
+[0]  GET / 200 in 103ms
+[0]  ✓ Compiled in 1222ms (2850 modules)
+[0]  GET / 200 in 87ms
+[0]  ✓ Compiled in 250ms (1598 modules)
+[0]  GET / 200 in 49ms
+[0]  ✓ Compiled in 242ms (1598 modules)
+[0]  GET / 200 in 49ms
+[0]  ✓ Compiled in 1035ms (2850 modules)
+[0]  GET / 200 in 99ms
+[0]  ✓ Compiled in 261ms (1598 modules)
+[0]  GET / 200 in 41ms
+[0]  ✓ Compiled in 316ms (1598 modules)
+[0]  GET / 200 in 56ms
+[0]  ✓ Compiled in 286ms (1598 modules)
+[0]  GET / 200 in 69ms
+[0]  ⚠ Fast Refresh had to perform a full reload when \\scholarflow\\app\\assignments\\page.tsx","ids":[]} changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[0]  ✓ Compiled in 3.8s (2850 modules)
+[0]  GET / 200 in 3847ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 31ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 185ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 211ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 210ms
+[0]  GET /api/local-data?type=exams 200 in 210ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 208ms
+[0]  GET /api/local-data?type=jwc-news 200 in 206ms
+[0]  GET /api/local-data?type=dashboard 200 in 70ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 157ms
+[0]  GET /api/local-data?type=dashboard 200 in 161ms
+[0]  ✓ Compiled in 732ms (2850 modules)
+[0]  GET / 200 in 84ms
+[0]  ✓ Compiled in 252ms (1598 modules)
+[0]  GET / 200 in 46ms
+[0]  ✓ Compiled in 1703ms (2850 modules)
+[0]  GET / 200 in 126ms
+[0]  ✓ Compiled in 441ms (1598 modules)
+[0]  ✓ Compiled in 3.5s (2850 modules)
+[0]  GET / 200 in 3608ms
+[0]  GET / 200 in 37ms
+[0]  ✓ Compiled in 298ms (1598 modules)
+[0]  GET / 200 in 54ms
+[0]  ✓ Compiled in 260ms (1598 modules)
+[0]  GET / 200 in 87ms
+[0]  ✓ Compiled in 322ms (1598 modules)
+[0]  GET / 200 in 46ms
+[0]  ✓ Compiled in 281ms (1598 modules)
+[0]  GET / 200 in 46ms
+[0]  ✓ Compiled in 250ms (1598 modules)
+[0]  GET / 200 in 56ms
+[0]  ✓ Compiled in 260ms (1595 modules)
+[0]  GET / 200 in 421ms
+[0]  ✓ Compiled in 605ms (1598 modules)
+[0]  GET / 200 in 206ms
+[0]  ✓ Compiled in 353ms (1595 modules)
+[0]  ✓ Compiled in 355ms (1598 modules)
+[0]  GET / 200 in 199ms
+[0]  GET / 200 in 51ms
+[0]  ✓ Compiled in 274ms (1598 modules)
+[0]  GET / 200 in 56ms
+[0]  ✓ Compiled in 336ms (1598 modules)
+[0]  GET / 200 in 47ms
+[0]  ✓ Compiled in 363ms (1598 modules)
+[0]  GET / 200 in 207ms
+[0]  ✓ Compiled in 370ms (1595 modules)
+[0]  GET / 200 in 141ms
+[0]  ✓ Compiled in 301ms (1598 modules)
+[0]  GET / 200 in 43ms
+[0]  ✓ Compiled in 263ms (1598 modules)
+[0]  GET / 200 in 46ms
+[0]  ✓ Compiled in 313ms (1598 modules)
+[0]  GET / 200 in 78ms
+[0]  ✓ Compiled in 382ms (1598 modules)
+[0]  GET / 200 in 199ms
+[0]  ✓ Compiled in 361ms (1598 modules)
+[0]  GET / 200 in 64ms
+[0]  ✓ Compiled in 380ms (1598 modules)
+[0]  GET / 200 in 63ms
+[0]  ✓ Compiled in 429ms (1598 modules)
+[0]  GET / 200 in 69ms
+[0]  ✓ Compiled in 380ms (1598 modules)
+[0]  GET / 200 in 53ms
+[0]  ✓ Compiled in 353ms (1598 modules)
+[0]  GET / 200 in 61ms
+[0]  ✓ Compiled in 361ms (1598 modules)
+[0]  GET / 200 in 53ms
+[0]  ✓ Compiled in 381ms (1598 modules)
+[0]  GET / 200 in 61ms
+[0]  ✓ Compiled in 306ms (1598 modules)
+[0]  GET / 200 in 47ms
+[0]  ✓ Compiled in 234ms (1598 modules)
+[0]  GET / 200 in 60ms
+[0]  ✓ Compiled in 505ms (1598 modules)
+[0]  GET / 200 in 100ms
+[0]  ✓ Compiled in 408ms (1598 modules)
+[0]  GET / 200 in 73ms
+[0]  ✓ Compiled in 240ms (1598 modules)
+[0]  GET / 200 in 45ms
+[0]  ✓ Compiled in 1310ms (2850 modules)
+[0]  GET / 200 in 117ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 36ms
+[0]  ✓ Compiled in 1296ms (2846 modules)
+[0]  ✓ Compiled in 0ms (1248 modules)
+[0]  ✓ Compiled in 0ms (1248 modules)
+[0]  ✓ Compiled in 0ms (1248 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 853ms
+[0]  GET / 200 in 992ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 25ms
+[0]  GET /api/local-data?type=exams 200 in 21ms
+[0]  ✓ Compiled in 485ms (1598 modules)
+[0]  GET / 200 in 65ms
+[0]  ✓ Compiled in 409ms (1598 modules)
+[0]  GET / 200 in 46ms
+[0]  ✓ Compiled in 320ms (1598 modules)
+[0]  GET / 200 in 45ms
+[0]  ✓ Compiled in 307ms (1598 modules)
+[0]  GET / 200 in 43ms
+[0]  ✓ Compiled in 612ms (1598 modules)
+[0]  GET / 200 in 43ms
+[0]  ✓ Compiled in 326ms (1598 modules)
+[0]  GET / 200 in 45ms
+[0]  ✓ Compiled in 286ms (1598 modules)
+[0]  GET / 200 in 43ms
+[0]  ✓ Compiled in 277ms (1598 modules)
+[0]  GET / 200 in 44ms
+[0]  ✓ Compiled in 248ms (1598 modules)
+[0]  GET / 200 in 59ms
+[0]  ✓ Compiled in 337ms (1598 modules)
+[0]  GET / 200 in 43ms
+[0]  GET /api/local-data?type=exams 200 in 29ms
+[0]  ✓ Compiled in 671ms (1598 modules)
+[0]  GET / 200 in 42ms
+[0]  ✓ Compiled in 309ms (1598 modules)
+[0]  GET / 200 in 45ms
+[0]  ✓ Compiled in 1808ms (2846 modules)
+[0]  ✓ Compiled in 0ms (1248 modules)
+[0]  ✓ Compiled in 0ms (1248 modules)
+[0]  ✓ Compiled in 1ms (1248 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 1019ms
+[0]  GET / 200 in 978ms
+[0]  ✓ Compiled in 511ms (2846 modules)
+[0]  GET / 200 in 138ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 131ms
+[0]  ✓ Compiled in 864ms (2846 modules)
+[0]  GET / 200 in 81ms
+[0]  ✓ Compiled in 578ms (2846 modules)
+[0]  GET / 200 in 106ms
+[0]  ✓ Compiled /api/auth/session in 1164ms (2846 modules)
+[0]  ✓ Compiled in 0ms (1252 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 569ms
+[0]  GET / 200 in 489ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 51ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 69ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 67ms
+[0]  GET /api/local-data?type=exams 200 in 67ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 67ms
+[0]  GET /api/local-data?type=dashboard 200 in 49ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 48ms
+[0]  GET /api/local-data?type=dashboard 200 in 39ms
+[0]  ○ Compiling /settings ...
+[0]  ✓ Compiled /settings in 740ms (1316 modules)
+[0]  GET /settings 200 in 858ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 33ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 21ms
+[0]  GET / 200 in 38ms
+[0]  GET /api/local-data?type=exams 200 in 20ms
+[0]  GET /api/auth/session 200 in 36ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 43ms
+[0]  GET /api/local-data?type=dashboard 200 in 42ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 32ms
+[0]  GET /api/local-data?type=dashboard 200 in 40ms
+[0]  GET /schedule 200 in 38ms
+[0]  GET /api/auth/session 200 in 28ms
+[0]  GET /assignments 200 in 49ms
+[0]  GET /api/auth/session 200 in 21ms
+[0]  GET /exams 200 in 37ms
+[0]  GET /api/auth/session 200 in 38ms
+[0]  ○ Compiling /api/exams ...
+[0]  ✓ Compiled /api/exams in 1358ms (1318 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 1964ms
+[0]  GET / 200 in 1285ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 38ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 62ms
+[0]  GET / 200 in 87ms
+[0]  POST /api/exams 200 in 38ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 47ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 64ms
+[0]  GET /api/local-data?type=exams 200 in 63ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 63ms
+[0]  GET /api/local-data?type=dashboard 200 in 61ms
+[0]  GET /api/auth/session 200 in 68ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 40ms
+[0]  GET /api/local-data?type=dashboard 200 in 50ms
+[0]  GET / 200 in 250ms
+[0]  GET /api/auth/session 200 in 23ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 38ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 65ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 65ms
+[0]  GET /api/local-data?type=exams 200 in 65ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 65ms
+[0]  GET /api/local-data?type=jwc-news 200 in 65ms
+[0]  GET /api/local-data?type=dashboard 200 in 31ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 52ms
+[0]  GET /api/local-data?type=dashboard 200 in 42ms
+[0]  GET /settings 200 in 104ms
+[0]  GET /api/auth/session 200 in 33ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 30ms
+[0]  GET / 200 in 43ms
+[0]  GET /api/local-data?type=exams 200 in 49ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 61ms
+[0]  GET /api/local-data?type=dashboard 200 in 61ms
+[0]  GET /api/auth/session 200 in 76ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 48ms
+[0]  GET /api/local-data?type=dashboard 200 in 64ms
+[0]  ✓ Compiled in 1326ms (1598 modules)
+[0]  GET / 200 in 74ms
+[0]  ✓ Compiled in 3.9s (2901 modules)
+[0]  GET / 200 in 229ms
+[0]  ✓ Compiled in 1957ms (2901 modules)
+[0]  GET / 200 in 190ms
+[0]  ✓ Compiled in 1416ms (2901 modules)
+[0]  GET / 200 in 134ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 61ms
+[0]  ✓ Compiled in 13.5s (2897 modules)
+[0]  GET / 200 in 275ms
+[0]  ✓ Compiled in 1439ms (2897 modules)
+[0]  GET / 200 in 206ms
+[0]  ✓ Compiled in 11.1s (2897 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 7331ms
+[0]  GET / 200 in 324ms
+[0]  GET /settings 200 in 64ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 59ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 106ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 112ms
+[0]  ○ Compiling /api/auth/session ...
+[0]  ✓ Compiled /api/auth/session in 1407ms (1303 modules)
+[0]  ✓ Compiled in 0ms (1303 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 1869ms
+[0]  ✓ Compiled in 0ms (1303 modules)
+[0]  ✓ Compiled in 1ms (1303 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 2565ms
+[0]  GET / 200 in 1372ms
+[0]  GET / 200 in 40ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 81ms
+[0]  GET /api/auth/session 200 in 90ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 120ms
+[0]  GET /api/local-data?type=dashboard 200 in 114ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 71ms
+[0]  GET /api/local-data?type=dashboard 200 in 108ms
+[0]  ○ Compiling /schedule ...
+[0]  ✓ Compiled /schedule in 2.1s (1316 modules)
+[0]  GET /schedule 200 in 2223ms
+[0]  GET /schedule 200 in 57ms
+[0]  GET /schedule 200 in 67ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 54ms
+[0]  GET /assignments 200 in 46ms
+[0]  GET /api/auth/session 200 in 27ms
+[0]  GET / 200 in 38ms
+[0]  GET /api/local-data?type=exams 200 in 59ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 58ms
+[0]  GET /api/local-data?type=dashboard 200 in 57ms
+[0]  GET /api/auth/session 200 in 62ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 41ms
+[0]  GET /api/local-data?type=dashboard 200 in 50ms
+[0]  GET /api/local-data?type=exams 200 in 21ms
+[0]  ✓ Compiled in 1099ms (2897 modules)
+[0]  GET / 200 in 97ms
+[0]  ✓ Compiled in 450ms (2897 modules)
+[0]  GET / 200 in 82ms
+[0]  GET / 200 in 283ms
+[0]  ✓ Compiled /api/auth/session in 218ms (1303 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 264ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 48ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 84ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 85ms
+[0]  GET /api/local-data?type=exams 200 in 80ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 80ms
+[0]  GET /api/local-data?type=jwc-news 200 in 80ms
+[0]  GET /api/local-data?type=dashboard 200 in 47ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 72ms
+[0]  GET /api/local-data?type=dashboard 200 in 46ms
+[0]  ✓ Compiled in 1609ms (2901 modules)
+[0]  GET / 200 in 126ms
+[0]  ✓ Compiled in 567ms (2901 modules)
+[0]  GET / 200 in 79ms
+[0]  ✓ Compiled in 350ms (1598 modules)
+[0]  GET / 200 in 150ms
+[0]  ✓ Compiled in 274ms (1598 modules)
+[0]  GET / 200 in 42ms
+[0]  ✓ Compiled in 248ms (1598 modules)
+[0]  GET / 200 in 130ms
+[0]  ✓ Compiled in 248ms (1598 modules)
+[0]  GET / 200 in 41ms
+[0]  ✓ Compiled in 742ms (1598 modules)
+[0]  GET / 200 in 34ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 39ms
+[0]  ✓ Compiled in 1414ms (2897 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 125ms
+[0]  GET / 200 in 149ms
+[0]  ○ Compiling /api/auth/jwt ...
+[0]  ✓ Compiled /api/auth/jwt in 1481ms (1290 modules)
+[0]  GET /api/auth/jwt 200 in 1669ms
+[0]  ✓ Compiled /api/local-data in 304ms (1301 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 394ms
+[0]  GET /api/local-data?type=exams 200 in 370ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 369ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 395ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 35ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 47ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 110ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 109ms
+[0]  GET /api/local-data?type=exams 200 in 109ms
+[0]  GET /api/local-data?type=jwc-news 200 in 109ms
+[0]  GET /api/local-data?type=exams 200 in 94ms
+[0]  ○ Compiling /schedule ...
+[0]  ✓ Compiled /schedule in 5.3s (1312 modules)
+[0]  GET /schedule 200 in 6719ms
+[0]  GET /assignments 200 in 4256ms
+[0]  GET /schedule 200 in 102ms
+[0]  GET /schedule 200 in 118ms
+[0]  GET /schedule 200 in 94ms
+[0]  ○ Compiling /api/auth/session ...
+[0]  ✓ Compiled /api/auth/session in 558ms (1316 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 668ms
+[0]  GET / 200 in 160ms
+[0]  GET /api/local-data?type=exams 200 in 96ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 178ms
+[0]  GET /api/local-data?type=dashboard 200 in 172ms
+[0]  GET /api/auth/session 200 in 197ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 103ms
+[0]  GET /api/local-data?type=dashboard 200 in 133ms
+[0]  GET /settings 200 in 116ms
+[0]  GET /api/auth/session 200 in 78ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 48ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 73ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 49ms
+[0]  GET / 200 in 82ms
+[0]  GET /api/local-data?type=exams 200 in 73ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 136ms
+[0]  GET /api/auth/session 200 in 149ms
+[0]  GET /api/local-data?type=dashboard 200 in 168ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 136ms
+[0]  GET /api/local-data?type=dashboard 200 in 129ms
+[0]  ✓ Compiled in 5.3s (2914 modules)
+[0]  ○ Compiling /library ...
+[0]  ✓ Compiled /library in 17.2s (2939 modules)
+[0]  GET /library 200 in 17662ms
+[0]  GET /library 200 in 124ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 118ms
+[0]  ○ Compiling /api/library/user-status ...
+[0]  ✓ Compiled /api/library/user-status in 3.7s (2932 modules)
+[0]  GET /api/library/messages?page=1&num=20&type=1 200 in 3987ms
+[0]  GET /api/library/reserve-status 200 in 3991ms
+[0]  GET /api/library/user-status 200 in 3993ms
+[0]  GET /api/vpn-proxy 200 in 4025ms
+[0]  ○ Compiling /library/layout ...
+[0]  ✓ Compiled /library/layout in 2.4s (2951 modules)
+[0]  GET /library/layout?lib_id=122783 200 in 2620ms
+[0]  ○ Compiling /api/library/seat-layout ...
+[0]  ✓ Compiled /api/library/seat-layout in 1307ms (2953 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 1432ms
+[0]  GET /api/library/seat-layout?lib_id=122783 200 in 1569ms
+[0]  ○ Compiling /api/library/reserve ...
+[0]  ✓ Compiled /api/library/reserve in 712ms (2942 modules)
+[0]  POST /api/library/reserve 200 in 1028ms
+[0]  GET /api/library/reserve-status 200 in 85ms
+[0]  GET /api/library/user-status 200 in 112ms
+[0]  GET /api/vpn-proxy 200 in 148ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 43ms
+[0]  GET /api/library/reserve-status 200 in 78ms
+[0]  GET /api/library/user-status 200 in 187ms
+[0]  GET /api/library/reserve-status 200 in 189ms
+[0]  GET /api/library/messages?page=1&num=20&type=1 200 in 192ms
+[0]  GET /api/vpn-proxy 200 in 195ms
+[0]  GET / 200 in 1256ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 202ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 299ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 293ms
+[0]  GET /api/local-data?type=exams 200 in 292ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 289ms
+[0]  GET /api/local-data?type=dashboard 200 in 289ms
+[0]  GET /api/auth/session 200 in 201ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 123ms
+[0]  GET /api/local-data?type=dashboard 200 in 172ms
+[0]  GET /settings 200 in 133ms
+[0]  GET /api/auth/session 200 in 55ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 87ms
+[0]  GET / 200 in 106ms
+[0]  GET /api/local-data?type=exams 200 in 142ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 180ms
+[0]  GET /api/local-data?type=dashboard 200 in 180ms
+[0]  GET /api/auth/session 200 in 197ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 117ms
+[0]  GET /api/local-data?type=dashboard 200 in 177ms
+[0]  ✓ Compiled in 7.1s (2913 modules)
+[0]  ✓ Compiled in 1952ms (2930 modules)
+[0]  ✓ Compiled in 2.5s (2920 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 152ms
+[0]  ○ Compiling /schedule ...
+[0]  ✓ Compiled /schedule in 2.4s (1312 modules)
+[0]  GET /schedule 200 in 2702ms
+[0]  ○ Compiling /api/auth/session ...
+[0]  ✓ Compiled /api/auth/session in 512ms (1316 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 611ms
+[0]  GET / 200 in 171ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 112ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 109ms
+[0]  GET /api/local-data?type=exams 200 in 109ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 109ms
+[0]  GET /api/local-data?type=dashboard 200 in 109ms
+[0]  GET /api/auth/session 200 in 120ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 76ms
+[0]  GET /api/local-data?type=dashboard 200 in 74ms
+[0]  GET /schedule 200 in 128ms
+[0]  GET /api/auth/session 200 in 56ms
+[0]  GET /assignments 200 in 90ms
+[0]  GET /api/auth/session 200 in 71ms
+[0]  GET /exams 200 in 100ms
+[0]  GET /api/auth/session 200 in 59ms
+[0]  ○ Compiling /api/exams ...
+[0]  ✓ Compiled /api/exams in 1033ms (1318 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 1130ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 56ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 54ms
+[0]  POST /api/exams 200 in 35ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 57ms
+[0]  POST /api/exams 200 in 47ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 37ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 65ms
+[0]  POST /api/exams 200 in 38ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 42ms
+[0]  GET / 200 in 106ms
+[0]  GET /api/local-data?type=exams 200 in 74ms
+[0]  GET /api/local-data?type=dashboard 200 in 121ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 121ms
+[0]  GET /api/auth/session 200 in 135ms
+[0]  GET /api/local-data?type=dashboard 200 in 59ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 84ms
+[0]  GET /api/local-data?type=exams 200 in 50ms
+[0]  GET /schedule 200 in 122ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 122ms
+[0]  GET /api/auth/session 200 in 145ms
+[0]  GET /assignments 200 in 100ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 80ms
+[0]  GET /api/auth/session 200 in 121ms
+[0]  GET /exams 200 in 86ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 118ms
+[0]  GET /api/auth/session 200 in 140ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 88ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 90ms
+[0]  POST /api/exams 200 in 49ms
+[0]  GET /gpa 200 in 132ms
+[0]  GET /api/auth/session 200 in 59ms
+[0]  GET /api/local-data?type=grades&schoolId=njtech&userId=202321144057 200 in 43ms
+[0]  GET /api/local-data?type=grades&schoolId=njtech&userId=202321144057 200 in 45ms
+[0]  ○ Compiling /knowledge ...
+[0]  ✓ Compiled /library in 3.5s (1773 modules)
+[0]  ✓ Compiled in 0ms (1787 modules)
+[0]  ✓ Compiled in 1ms (1787 modules)
+[0]  ✓ Compiled in 1ms (1787 modules)
+[0]  GET /knowledge 200 in 8384ms
+[0]  GET / 200 in 2964ms
+[0]  GET /library 200 in 6945ms
+[0]  GET /library 200 in 75ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 192ms
+[0]  GET /api/local-data?type=exams 200 in 184ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 183ms
+[0]  GET /api/local-data?type=dashboard 200 in 181ms
+[0]  GET /api/auth/session 200 in 204ms
+[0]  GET /api/local-data?type=dashboard 200 in 77ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 101ms
+[0]  GET / 200 in 94ms
+[0]  GET / 200 in 101ms
+[0]  ○ Compiling /wrinkle ...
+[0]  ✓ Compiled /monitoring in 7.9s (3407 modules)
+[0]  GET /monitoring 200 in 6918ms
+[0]  GET /wrinkle 200 in 8152ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 85ms
+[0]  GET /api/local-data?type=health 200 in 114ms
+[0]  GET /api/local-data?type=health 200 in 33ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 86ms
+[0]  GET /api/local-data?type=health 200 in 113ms
+[0]  GET /api/local-data?type=health 200 in 39ms
+[0]  GET / 200 in 109ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 118ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 236ms
+[0]  GET /api/local-data?type=exams 200 in 210ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 185ms
+[0]  GET /api/local-data?type=dashboard 200 in 185ms
+[0]  GET /api/auth/session 200 in 217ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 100ms
+[0]  GET /api/local-data?type=dashboard 200 in 133ms
+[0]  GET /settings 200 in 204ms
+[0]  GET /api/auth/session 200 in 375ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 983ms
+[0]  ✓ Compiled in 2.3s (1624 modules)
+[0]  ✓ Compiled in 497ms (1624 modules)
+[0]  ✓ Compiled in 3.6s (2927 modules)
+[0]  ✓ Compiled in 979ms (2928 modules)
+[0]  ✓ Compiled in 1761ms (2928 modules)
+[0]  ✓ Compiled in 1269ms (2928 modules)
+[0]  ✓ Compiled in 1313ms (2928 modules)
+[0]  GET / 200 in 255ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 142ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 224ms
+[0]  GET /api/local-data?type=jwc-news 200 in 224ms
+[0]  GET /api/local-data?type=dashboard 200 in 252ms
+[0]  GET /api/auth/session 200 in 277ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 124ms
+[0]  GET /api/local-data?type=dashboard 200 in 94ms
+[0]  ✓ Compiled in 2.2s (2928 modules)
+[0]  ✓ Compiled in 696ms (2928 modules)
+[0]  ✓ Compiled in 1045ms (2928 modules)
+[0]  ✓ Compiled in 761ms (2928 modules)
+[0]  ✓ Compiled in 763ms (2928 modules)
+[0]  ✓ Compiled in 1476ms (1624 modules)
+[0]  ✓ Compiled in 1318ms (2928 modules)
+[0]  ✓ Compiled in 323ms (1624 modules)
+[0]  ✓ Compiled in 350ms (1624 modules)
+[0]  ✓ Compiled in 367ms (1624 modules)
+[0]  ✓ Compiled in 344ms (1624 modules)
+[0]  GET /settings 200 in 434ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 511ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 637ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 605ms
+[0]  GET /api/auth/session 200 in 650ms
+[0]  GET / 200 in 106ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 56ms
+[0]  GET /api/auth/session 200 in 116ms
+[0]  GET /api/local-data?type=exams 200 in 163ms
+[0]  GET /api/local-data?type=dashboard 200 in 157ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 165ms
+[0]  GET /api/local-data?type=dashboard 200 in 114ms
+[0]  GET /settings 200 in 117ms
+[0]  GET /api/auth/session 200 in 87ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 95ms
+[0]  GET / 200 in 50ms
+[0]  GET /api/local-data?type=exams 200 in 76ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 146ms
+[0]  GET /api/local-data?type=dashboard 200 in 140ms
+[0]  GET /api/auth/session 200 in 148ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 74ms
+[0]  GET /api/local-data?type=dashboard 200 in 132ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 99ms
+[0]  GET /api/local-data?type=exams 200 in 139ms
+[0]  GET /settings 200 in 110ms
+[0]  GET /api/auth/session 200 in 152ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 178ms
+[0]  ○ Compiling /schedule ...
+[0]  ✓ Compiled /schedule in 2.1s (1316 modules)
+[0]  GET /schedule 200 in 2218ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 58ms
+[0]  ✓ Compiled in 1150ms (2940 modules)
+[0]  ○ Compiling /_not-found ...
+[0]  ✓ Compiled /_not-found in 3.7s (2908 modules)
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] <w> [webpack.cache.PackFileCacheStrategy] Restoring pack failed from D:\A\scholarflow\.next\cache\webpack\client-development-fallback.pack.gz: Error: invalid block type
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\server\app\page.js'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\server\\app\\page.js',
+[0]   page: '/'
+[0] }
+[0]  ○ Compiling /_error ...
+[0]  ✓ Compiled /_error in 5.1s (3255 modules)
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\server\app\page.js'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\server\\app\\page.js',
+[0]   page: '/'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0]  GET / 500 in 6584ms
+[0]  GET / 500 in 339ms
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 500 in 14079ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 500 in 338ms
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json',
+[0]   page: '/'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json',
+[0]   page: '/'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json',
+[0]   page: '/'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json',
+[0]   page: '/'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0]  GET / 500 in 2033ms
+[0]  GET / 500 in 650ms
+[0]  GET / 500 in 1465ms
+[0]  GET / 500 in 231ms
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'D:\A\scholarflow\.next\server\vendor-chunks\clsx.js'
+[0] <w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/clsx' in D:\A\scholarflow\.next\server for build dependencies doesn't lead to expected result 'D:\A\scholarflow\.next\server\vendor-chunks\clsx.js', but to 'Error: Can't resolve './vendor-chunks/clsx' in 'D:\A\scholarflow\.next\server'' instead. Resolving dependencies are ignored for this path.
+[0] <w>  at resolve commonjs file ./vendor-chunks/clsx (expected D:\A\scholarflow\.next\server\vendor-chunks\clsx.js)
+[0] <w>  at file dependencies D:\A\scholarflow\.next\server\webpack-runtime.js
+[0] <w>  at file D:\A\scholarflow\.next\server\webpack-runtime.js
+[0] <w>  at file dependencies D:\A\scholarflow\.next\server\pages\_document.js
+[0] <w>  at file D:\A\scholarflow\.next\server\pages\_document.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\server\require.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\server\require.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\server\load-components.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\server\load-components.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\utils.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\utils.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\swc\options.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\swc\options.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\swc\index.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\swc\index.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\webpack\bundle5.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\webpack\bundle5.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack-lib.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack-lib.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next-pwa\build-fallback-worker.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next-pwa\build-fallback-worker.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next-pwa\index.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next-pwa\index.js
+[0] <w>  at file dependencies D:\A\scholarflow\next.config.js
+[0] <w>  at file D:\A\scholarflow\next.config.js
+[0] <w>  at resolve commonjs D:\A\scholarflow\next.config.js
+[0] <w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/use-sync-external-store' in D:\A\scholarflow\.next\server for build dependencies doesn't lead to expected result 'D:\A\scholarflow\.next\server\vendor-chunks\use-sync-external-store.js', but to 'Error: Can't resolve './vendor-chunks/use-sync-external-store' in 'D:\A\scholarflow\.next\server'' instead. Resolving dependencies are ignored for this path.
+[0] <w>  at resolve commonjs file ./vendor-chunks/use-sync-external-store (expected D:\A\scholarflow\.next\server\vendor-chunks\use-sync-external-store.js)
+[0] <w>  at file dependencies D:\A\scholarflow\.next\server\webpack-runtime.js
+[0] <w>  at file D:\A\scholarflow\.next\server\webpack-runtime.js
+[0] <w>  at file dependencies D:\A\scholarflow\.next\server\pages\_document.js
+[0] <w>  at file D:\A\scholarflow\.next\server\pages\_document.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\server\require.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\server\require.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\server\load-components.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\server\load-components.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\utils.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\utils.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\swc\options.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\swc\options.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\swc\index.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\swc\index.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\webpack\bundle5.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\webpack\bundle5.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack-lib.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack-lib.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next-pwa\build-fallback-worker.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next-pwa\build-fallback-worker.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next-pwa\index.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next-pwa\index.js
+[0] <w>  at file dependencies D:\A\scholarflow\next.config.js
+[0] <w>  at file D:\A\scholarflow\next.config.js
+[0] <w>  at resolve commonjs D:\A\scholarflow\next.config.js
+[1] ^C
+[1] electron . exited with code 3221225786
+[0] ^C
+[0] next dev exited with code 3221225786

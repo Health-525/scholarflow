@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 
 import { useLibraryLayout, useReserveSeat } from "@/hooks/useLibraryQuery";
+import { semanticColor, semanticBg, semanticBorder, isDarkMode } from "@/lib/theme-colors";
 import type { LibraryLayoutInput } from "@/lib/schemas/library";
 
 type Seat = LibraryLayoutInput["lib_layout"]["seats"][number];
@@ -20,13 +21,18 @@ function categorize(seat: Seat): SeatCategory {
   return "empty";
 }
 
-const CATEGORY_STYLE: Record<SeatCategory, { bg: string; border: string; color: string; label: string; hoverBg: string }> = {
-  empty:      { bg: "transparent", border: "transparent", color: "transparent", label: "", hoverBg: "transparent" },
-  available:  { bg: "rgba(34,197,94,0.2)", border: "rgba(34,197,94,0.6)", color: "#22c55e", label: "空闲", hoverBg: "rgba(34,197,94,0.4)" },
-  reserved:   { bg: "rgba(59,130,246,0.15)", border: "rgba(59,130,246,0.4)", color: "#3b82f6", label: "已预约", hoverBg: "rgba(59,130,246,0.25)" },
-  occupied:   { bg: "rgba(239,68,68,0.12)", border: "rgba(239,68,68,0.3)", color: "#ef4444", label: "占用", hoverBg: "rgba(239,68,68,0.2)" },
-  maintenance:{ bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.3)", color: "#f59e0b", label: "维护", hoverBg: "rgba(245,158,11,0.2)" },
-};
+type CategoryStyle = { bg: string; border: string; color: string; label: string; hoverBg: string };
+
+function getCategoryStyles(): Record<SeatCategory, CategoryStyle> {
+  const dark = isDarkMode();
+  return {
+    empty:      { bg: "transparent", border: "transparent", color: "transparent", label: "", hoverBg: "transparent" },
+    available:  { bg: semanticBg("success"),  border: semanticBorder("success"),  color: semanticColor("success"),  label: "空闲", hoverBg: dark ? "rgba(63,185,80,0.25)"  : "rgba(34,197,94,0.20)" },
+    reserved:   { bg: semanticBg("info"),     border: semanticBorder("info"),     color: semanticColor("info"),     label: "已预约", hoverBg: dark ? "rgba(132,150,240,0.22)" : "rgba(59,130,246,0.18)" },
+    occupied:   { bg: semanticBg("error"),    border: semanticBorder("error"),    color: semanticColor("error"),    label: "占用", hoverBg: dark ? "rgba(248,81,73,0.20)"   : "rgba(239,68,68,0.16)" },
+    maintenance:{ bg: semanticBg("warning"),  border: semanticBorder("warning"),  color: semanticColor("warning"),  label: "维护", hoverBg: dark ? "rgba(210,153,34,0.20)"  : "rgba(245,158,11,0.16)" },
+  };
+}
 
 export default function LibraryLayoutPage() {
   return (
@@ -55,6 +61,7 @@ function LibraryLayoutInner() {
   const [dragging, setDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragState = useRef({ active: false, startX: 0, startY: 0, startScrollX: 0, startScrollY: 0, moved: false });
+  const CATEGORY_STYLE = getCategoryStyles();
 
   // 切换阅览室时重置选区与结果
   useEffect(() => {
@@ -147,7 +154,7 @@ function LibraryLayoutInner() {
   if (error) {
     return (
       <div className="pb-24 md:pb-8 max-w-md mx-auto py-16 px-4 text-center">
-        <p className="text-[13px] text-red-500">{error.message}</p>
+        <p className="text-[13px] text-destructive">{error.message}</p>
         <button onClick={handleRefresh} className="mt-4 px-4 py-2 rounded-xl text-[13px] font-medium bg-primary text-primary-foreground">
           <RefreshCw className="w-3.5 h-3.5 inline mr-1" />重试
         </button>
@@ -216,10 +223,10 @@ function LibraryLayoutInner() {
 
       {/* Stats bar */}
       <div className="flex flex-wrap items-center gap-3 mb-4 rounded-xl p-3 bg-card border border-border">
-        <span className="text-xs font-medium text-green-500">● {counts.available} 空闲</span>
-        <span className="text-xs font-medium text-blue-500">● {counts.reserved} 已预约</span>
-        <span className="text-xs font-medium text-red-500">● {counts.occupied} 占用</span>
-        {counts.maintenance > 0 && <span className="text-xs font-medium text-amber-500">● {counts.maintenance} 维护</span>}
+        <span className="text-xs font-medium text-[var(--status-success)]">● {counts.available} 空闲</span>
+        <span className="text-xs font-medium text-[var(--status-info)]">● {counts.reserved} 已预约</span>
+        <span className="text-xs font-medium text-[var(--status-error)]">● {counts.occupied} 占用</span>
+        {counts.maintenance > 0 && <span className="text-xs font-medium text-[var(--status-warning)]">● {counts.maintenance} 维护</span>}
         <span className="text-xs text-muted-foreground">共 {rt.seats_total} 座</span>
         <div className="ml-auto flex items-center gap-2">
           <button onClick={zoomOut} className="p-1.5 rounded-lg bg-secondary border border-border text-muted-foreground hover:text-foreground" title="缩小">
@@ -277,11 +284,11 @@ function LibraryLayoutInner() {
                   left, top,
                   width: CELL, height: CELL,
                   fontSize: 10,
-                  backgroundColor: isSelected ? "#22c55e" : (hoverSeat?.key === seat.key ? st.hoverBg : st.bg),
-                  color: isSelected ? "#fff" : st.color,
-                  border: isSelected ? "2px solid #16a34a" : `1px solid ${st.border}`,
+                  backgroundColor: isSelected ? semanticColor("success") : (hoverSeat?.key === seat.key ? st.hoverBg : st.bg),
+                  color: isSelected ? "var(--primary-foreground)" : st.color,
+                  border: isSelected ? `2px solid ${semanticColor("success")}` : `1px solid ${st.border}`,
                   cursor: isAvailable ? "pointer" : "default",
-                  boxShadow: isSelected ? "0 0 0 2px rgba(34,197,94,0.24)" : (hoverSeat?.key === seat.key ? "0 0 0 1px rgba(138,164,255,0.12)" : "none"),
+                  boxShadow: isSelected ? "0 0 0 2px rgba(var(--status-success-rgb), 0.24)" : (hoverSeat?.key === seat.key ? "0 0 0 1px rgba(var(--primary-rgb), 0.12)" : "none"),
                   transform: hoverSeat?.key === seat.key && isAvailable ? "scale(1.15)" : "scale(1)",
                   zIndex: hoverSeat?.key === seat.key ? 10 : 1,
                 }}
@@ -295,10 +302,10 @@ function LibraryLayoutInner() {
 
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-3 mt-3 text-[11px] text-muted-foreground">
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.5)" }} />空闲可约</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.5)" }} />已预约</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.5)" }} />占用</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.5)" }} />维护</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: semanticBg("success"), border: `1px solid ${semanticBorder("success")}` }} />空闲可约</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: semanticBg("info"), border: `1px solid ${semanticBorder("info")}` }} />已预约</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: semanticBg("error"), border: `1px solid ${semanticBorder("error")}` }} />占用</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: semanticBg("warning"), border: `1px solid ${semanticBorder("warning")}` }} />维护</span>
       </div>
 
       {/* Reserve panel */}
@@ -318,7 +325,7 @@ function LibraryLayoutInner() {
             </div>
           </div>
           {reserveResult && (
-            <p className="mt-2 text-[12px]" style={{ color: reserveResult.includes("成功") ? "#22c55e" : "#ef4444" }}>{reserveResult}</p>
+            <p className="mt-2 text-[12px]" style={{ color: reserveResult.includes("成功") ? semanticColor("success") : semanticColor("error") }}>{reserveResult}</p>
           )}
         </div>
       )}
