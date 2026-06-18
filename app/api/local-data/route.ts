@@ -46,12 +46,6 @@ export async function GET(request: Request) {
     case "running":
       return NextResponse.json(db.readData(`running:${prefix}`) || { records: [] });
 
-    case "health":
-      return NextResponse.json(db.readData("health-status") || { agents: [] });
-
-    case "roadmap":
-      return NextResponse.json(db.readData(`knowledge-roadmap:${prefix}`) || { phases: [] });
-
     case "jwc-news":
       // 教务通知是全校共享的，按 schoolId 区分
       return NextResponse.json(db.readData(`jwc-news:${schoolId}`) || []);
