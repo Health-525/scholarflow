@@ -6,7 +6,11 @@ import type { Adjustment } from "@/lib/schedule/adjustments";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
 import { courseColor } from "@/lib/schedule/course-color";
 import { getWeekNumber } from "@/lib/schedule/schedule";
-import type { RawScheduleData, DayItem, CourseView } from "@/lib/schedule/schedule";
+import type {
+  RawScheduleData,
+  DayItem,
+  CourseView,
+} from "@/lib/schedule/schedule";
 import { normalizeDate, getNowInTimeZone } from "@/lib/schedule/timezone";
 
 import { CourseDrawer } from "./CourseDrawer";
@@ -39,13 +43,15 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
     const normalized = normalizeDate(now);
     const jsDay = normalized.getDay();
     const monday = new Date(normalized);
-    monday.setDate(normalized.getDate() - (jsDay === 0 ? 6 : jsDay - 1) + weekOffset * 7);
+    monday.setDate(
+      normalized.getDate() - (jsDay === 0 ? 6 : jsDay - 1) + weekOffset * 7,
+    );
     const days = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
       return d;
     });
-    const fmt = (d: Date) => (d.getMonth() + 1) + "/" + d.getDate();
+    const fmt = (d: Date) => d.getMonth() + 1 + "/" + d.getDate();
     return {
       days,
       label: fmt(days[0]) + " — " + fmt(days[6]),
@@ -63,7 +69,11 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
       for (const item of items) {
         if (item.kind === "course") {
           const cv = item as CourseView;
-          courses.push({ item, firstPeriod: cv.periods[0], span: cv.periods.length });
+          courses.push({
+            item,
+            firstPeriod: cv.periods[0],
+            span: cv.periods.length,
+          });
         } else {
           specials.push(item);
         }
@@ -85,17 +95,33 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
           className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
           aria-label="上一周"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-foreground">{weekInfo.label}</span>
+          <span className="text-sm font-semibold text-foreground">
+            {weekInfo.label}
+          </span>
           <span className="text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
             {"第" + weekInfo.weekNum + "周"}
           </span>
           {weekOffset !== 0 && (
-            <button type="button" onClick={() => setWeekOffset(0)} className="text-[11px] text-primary hover:opacity-70 transition-opacity ml-1">
+            <button
+              type="button"
+              onClick={() => setWeekOffset(0)}
+              className="text-[11px] text-primary hover:opacity-70 transition-opacity ml-1"
+            >
               回到本周
             </button>
           )}
@@ -106,8 +132,18 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
           className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
           aria-label="下一周"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </button>
       </div>
@@ -117,7 +153,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
         <div className="min-w-[660px]">
           {/* Header row */}
           <div
-            className="grid grid-cols-[44px_repeat(7,1fr)] border-b border-border"
+            className="grid grid-cols-[44px_repeat(7,1fr)] border-b border-border dark:border-white/10"
             style={{ height: HEADER_H }}
           >
             <div className="flex items-center justify-center text-[9px] text-muted-foreground">
@@ -127,11 +163,16 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
               const isToday = normalizeDate(day).getTime() === today.getTime();
               const isWeekend = idx >= 5;
               return (
-                <div key={idx} className="flex flex-col items-center justify-center">
+                <div
+                  key={idx}
+                  className="flex flex-col items-center justify-center"
+                >
                   <div
                     className={
                       "text-[10px] font-medium " +
-                      (isWeekend ? "text-amber-500/60" : "text-muted-foreground")
+                      (isWeekend
+                        ? "text-[var(--status-warning)]"
+                        : "text-muted-foreground")
                     }
                   >
                     {WEEKDAY_LABELS[idx]}
@@ -168,14 +209,16 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                       <span className="text-[9px] font-semibold text-muted-foreground bg-background px-1 z-10">
                         {dividerLabel}
                       </span>
-                      <div className="flex-1 h-px bg-border" />
+                      <div className="flex-1 h-px bg-border dark:bg-white/10" />
                     </div>
                   )}
                   <div
-                    className="absolute left-0 w-[44px] flex flex-col items-center justify-center text-center border-r border-border/30"
+                    className="absolute left-0 w-[44px] flex flex-col items-center justify-center text-center border-r border-border/30 dark:border-white/5"
                     style={{ top: top, height: ROW_H }}
                   >
-                    <span className="text-[10px] font-semibold text-foreground">{p}</span>
+                    <span className="text-[10px] font-semibold text-foreground">
+                      {p}
+                    </span>
                     {timeStr && (
                       <span className="text-[7px] text-muted-foreground leading-tight">
                         {timeStr.split("-")[0]}
@@ -183,7 +226,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                     )}
                   </div>
                   <div
-                    className="absolute left-[44px] right-0 border-b border-border/30"
+                    className="absolute left-[44px] right-0 border-b border-border/30 dark:border-white/5"
                     style={{ top: top + ROW_H - 1 }}
                   />
                 </div>
@@ -197,18 +240,22 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
             >
               {weekInfo.days.map((day, dayIdx) => {
                 const { courses } = dayData[dayIdx];
-                const isToday = normalizeDate(day).getTime() === today.getTime();
+                const isToday =
+                  normalizeDate(day).getTime() === today.getTime();
                 const todayBg = isToday ? "bg-primary/5" : "";
                 return (
                   <div
                     key={dayIdx}
-                    className={"relative border-r border-border/20 last:border-r-0 " + todayBg}
+                    className={
+                      "relative border-r border-border/20 dark:border-white/[0.04] last:border-r-0 " +
+                      todayBg
+                    }
                   >
                     {/* Row backgrounds */}
                     {ALL_PERIODS.map((p) => (
                       <div
                         key={p}
-                        className="absolute left-0 right-0 border-b border-border/10"
+                        className="absolute left-0 right-0 border-b border-border/10 dark:border-white/[0.03]"
                         style={{ top: (p - 1) * ROW_H, height: ROW_H }}
                       />
                     ))}
@@ -232,7 +279,9 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                             backgroundColor: colors.bg,
                             border: "1px solid " + colors.border,
                           }}
-                          aria-label={cb.item.title + " " + (cb.item.timeText || "")}
+                          aria-label={
+                            cb.item.title + " " + (cb.item.timeText || "")
+                          }
                         >
                           <div
                             className="text-[11px] font-semibold leading-tight line-clamp-2"
@@ -263,7 +312,9 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
           {dayData.some((d) => d.specials.length > 0) && (
             <div className="mt-3 space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold text-muted-foreground">特殊安排</span>
+                <span className="text-[10px] font-semibold text-muted-foreground">
+                  特殊安排
+                </span>
                 <div className="flex-1 h-px bg-border" />
               </div>
               {weekInfo.days.map((day, dayIdx) =>
@@ -286,7 +337,10 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                       <span className="text-[10px] text-muted-foreground tabular-nums w-6">
                         {WEEKDAY_LABELS[dayIdx]}
                       </span>
-                      <span className="text-[11px] font-semibold" style={{ color: colors.accent }}>
+                      <span
+                        className="text-[11px] font-semibold"
+                        style={{ color: colors.accent }}
+                      >
                         {item.title}
                       </span>
                       {item.timeText && (
@@ -296,7 +350,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                       )}
                     </button>
                   );
-                })
+                }),
               )}
             </div>
           )}

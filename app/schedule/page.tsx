@@ -74,7 +74,7 @@ export default function SchedulePage() {
       {/* Tabs — segmented control style */}
       <div className="mb-4 animate-fade-up stagger-1">
         <div
-          className="flex rounded-xl p-1 bg-secondary border border-border"
+          className="flex rounded-xl p-1 bg-secondary border border-border dark:border-white/10"
           role="tablist"
           aria-label="课表视图切换"
         >

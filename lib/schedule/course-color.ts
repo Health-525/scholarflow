@@ -31,9 +31,11 @@ function courseHue(title: string): number {
  */
 function isDarkMode(): boolean {
   if (typeof window === "undefined") return false;
-  return document.documentElement.getAttribute("data-theme") === "dark"
-    || (document.documentElement.getAttribute("data-theme") !== "light"
-        && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  return (
+    document.documentElement.getAttribute("data-theme") === "dark" ||
+    (document.documentElement.getAttribute("data-theme") !== "light" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches)
+  );
 }
 
 /**
@@ -47,14 +49,14 @@ export function courseColor(title: string): CourseColor {
   const dark = isDarkMode();
 
   if (dark) {
-    // Dark mode: desaturated, comfortable colors (GitHub-style)
-    // Background: subtle tinted overlay (12% opacity, low lightness)
-    // Border: medium tint (20% opacity)
-    // Accent: soft luminous color (60% lightness, 55% saturation — not neon)
+    // Dark mode: tinted blocks that stand out against dark cards
+    // Background: low-saturation tinted fill (20-22% lightness, 65% opacity)
+    // Border: very subtle tint so edges don't look like bright "white borders"
+    // Accent: soft luminous color (65% lightness, 50% saturation — readable but not neon)
     return {
-      bg: `hsla(${hue}, 40%, 16%, 0.75)`,
-      border: `hsla(${hue}, 45%, 30%, 0.28)`,
-      accent: `hsl(${hue}, 55%, 60%)`,
+      bg: `hsla(${hue}, 32%, 21%, 0.72)`,
+      border: `hsla(${hue}, 30%, 28%, 0.22)`,
+      accent: `hsl(${hue}, 50%, 65%)`,
     };
   }
 
@@ -74,7 +76,7 @@ export function createMemoizedCourseColor(): (title: string) => CourseColor {
   return (title: string) => {
     // Cache key includes theme mode to ensure correct colors
     const dark = isDarkMode();
-    const key = `${title}-${dark ? 'dark' : 'light'}`;
+    const key = `${title}-${dark ? "dark" : "light"}`;
     if (!cache.has(key)) {
       cache.set(key, courseColor(title));
     }
