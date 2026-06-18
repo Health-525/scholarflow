@@ -30,7 +30,10 @@ export function isDuplicateRun(
  * 构建热力图数据（按月）
  * 返回当月每天的跑步状态
  */
-export function buildHeatmapData(records: RunRecord[]): HeatmapDay[] {
+export function buildHeatmapData(
+  records: RunRecord[],
+  referenceDate: Date = new Date()
+): HeatmapDay[] {
   const recordMap = new Map<string, { hasMorning: boolean; hasFree: boolean }>();
 
   for (const r of records) {
@@ -40,10 +43,9 @@ export function buildHeatmapData(records: RunRecord[]): HeatmapDay[] {
     recordMap.set(r.date, entry);
   }
 
-  // Generate days for current month
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
+  // Generate days for the reference month
+  const year = referenceDate.getFullYear();
+  const month = referenceDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const result: HeatmapDay[] = [];

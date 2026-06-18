@@ -1,12 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { Calendar, Check, ChevronRight, Clock } from "lucide-react";
+import { useMemo, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import type { Adjustment } from "@/lib/schedule/adjustments";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
 import { courseColor } from "@/lib/schedule/course-color";
 import { getNextCourse } from "@/lib/schedule/next-course";
-import type { RawScheduleData, DayItem } from "@/lib/schedule/schedule";
+import type { DayItem, RawScheduleData } from "@/lib/schedule/schedule";
 import { getNowInTimeZone } from "@/lib/schedule/timezone";
 
 import { CountdownTimer } from "./CountdownTimer";
@@ -58,9 +62,12 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
               <span className="text-xs font-medium text-muted-foreground">
                 {weekdayLabel} · {dateLabel}
               </span>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
+              <Badge
+                variant="outline"
+                className="bg-primary/10 text-primary border-primary/20"
+              >
                 下节课
-              </span>
+              </Badge>
             </div>
             <div className="text-lg font-bold font-display text-foreground mb-1">
               {nextCourse.item.title}
@@ -73,19 +80,7 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
             </div>
             <div className="flex items-center gap-3 p-3.5 rounded-xl bg-primary/10 dark:bg-primary/15 border border-primary/20">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/10 shrink-0">
-                <svg
-                  className="w-4 h-4 text-primary"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <Clock className="w-4 h-4 text-primary" />
               </div>
               <div className="text-2xl font-bold text-primary tabular-nums animate-breathe">
                 <CountdownTimer
@@ -98,19 +93,7 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
         ) : (
           <div className="text-center py-4">
             <div className="w-12 h-12 mx-auto rounded-xl bg-[var(--status-success)]/10 flex items-center justify-center mb-3">
-              <svg
-                className="w-6 h-6 text-[var(--status-success)]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
+              <Check className="w-6 h-6 text-[var(--status-success)]" />
             </div>
             <div className="font-medium text-foreground">
               今天的课程已全部结束
@@ -123,41 +106,27 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
       {/* Course list */}
       <div className="space-y-2">
         {items.length === 0 ? (
-          <div className="rounded-2xl p-6 text-center bg-card border border-border">
-            <div className="w-12 h-12 mx-auto rounded-xl bg-muted flex items-center justify-center mb-3">
-              <svg
-                className="w-6 h-6 text-muted-foreground"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-            <p className="text-sm text-foreground font-medium">今天没有课程</p>
-            <p className="text-xs text-muted-foreground mt-0.5">享受自由时光</p>
-          </div>
+          <EmptyState
+            icon={Calendar}
+            title="今天没有课程"
+            description="享受自由时光"
+          />
         ) : (
           items.map((item, idx) => {
             const colors = courseColor(item.title);
             return (
-              <button
+              <Button
                 key={idx}
-                type="button"
+                variant="secondary"
                 onClick={() => setSelectedItem(item)}
-                className={`w-full text-left rounded-xl p-4 transition-all duration-200 active:scale-[0.98] hover:shadow-md animate-fade-up stagger-${Math.min(idx + 1, 7)}`}
+                className={`w-full h-auto text-left rounded-xl p-4 transition-all duration-200 active:scale-[0.98] hover:shadow-md animate-fade-up stagger-${Math.min(idx + 1, 7)} items-start justify-start whitespace-normal`}
                 style={{
                   backgroundColor: colors.bg,
                   border: `1px solid ${colors.border}`,
                 }}
                 aria-label={`查看 ${item.title} 详情`}
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-3 w-full">
                   {/* Left color indicator + content */}
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <div
@@ -172,7 +141,7 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
                         {item.title}
                       </div>
                       {item.timeText && (
-                        <div className="text-xs text-muted-foreground mt-0.5">
+                        <div className="text-[11px] text-muted-foreground mt-0.5">
                           {item.timeText}
                           {item.location && (
                             <span className="ml-1.5 opacity-70">
@@ -183,22 +152,9 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
                       )}
                     </div>
                   </div>
-                  {/* Chevron */}
-                  <svg
-                    className="w-4 h-4 text-muted-foreground/40 flex-shrink-0 mt-1 transition-transform duration-200 group-hover:translate-x-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/40 flex-shrink-0 mt-1 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </div>
-              </button>
+              </Button>
             );
           })
         )}

@@ -3,6 +3,7 @@
 import { BookOpen, ClipboardList, Activity, Calculator } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { cardClasses } from "@/components/ui/card";
 import type { DashboardSummary } from "@/lib/dashboard/summary";
 import { gpaColorClasses } from "@/lib/gpa";
@@ -96,11 +97,9 @@ function StatMiniCard({
           <AnimatedNumber value={value} />
         </div>
         {badge && (
-          <span
-            className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md mt-1 inline-block ${badgeClass}`}
-          >
+          <Badge variant="outline" className={`text-[10px] h-4 px-1 mt-1 border-transparent ${badgeClass}`}>
             {badge}
-          </span>
+          </Badge>
         )}
       </div>
     </div>

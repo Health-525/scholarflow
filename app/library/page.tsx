@@ -20,6 +20,12 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { EmptyState } from "@/components/ui/EmptyState";
 import {
   useLibraryData,
   useLibraryReserveStatus,
@@ -30,8 +36,6 @@ import {
   JWTExpiredError,
   libraryQueryKeys,
 } from "@/hooks/useLibraryQuery";
-import { cardClasses } from "@/components/ui/card";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { statusColor, getReserveStatusMap } from "@/lib/theme-colors";
 import { cn } from "@/lib/utils";
 import type { LibraryRoom } from "@/types";
@@ -227,30 +231,28 @@ export default function LibraryPage() {
     const isRefreshing = jwtStatus === "refreshing";
     return (
       <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-        <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-destructive/10">
-          <KeyRound className="w-6 h-6 text-destructive" />
-        </div>
-        <h1 className="text-[16px] font-bold mb-2 text-foreground">
-          凭证已过期
-        </h1>
-        <p className="text-[12px] mb-1 text-muted-foreground">
-          {isElectron
-            ? "点击下方按钮登录智慧南工，自动同步凭证"
-            : "请在浏览器中重新登录图书馆系统"}
-        </p>
+        <EmptyState
+          icon={KeyRound}
+          title="凭证已过期"
+          description={
+            isElectron
+              ? "点击下方按钮登录智慧南工，自动同步凭证"
+              : "请在浏览器中重新登录图书馆系统"
+          }
+        />
         {refreshError && (
-          <p className="text-[11px] mt-1 mb-3 text-destructive">{refreshError}</p>
+          <p className="text-[11px] mt-3 text-destructive">{refreshError}</p>
         )}
-        <button
-          type="button"
+        <Button
+          className="mt-4"
           onClick={handleRefreshJWT}
-          className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
+          disabled={isRefreshing}
         >
           <RefreshCw
             className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`}
           />
           {isRefreshing ? "登录中..." : "登录刷新"}
-        </button>
+        </Button>
         {!isElectron && (
           <p className="text-[11px] mt-3 text-muted-foreground">
             提示：使用 ScholarFlow 桌面版可自动刷新凭证
@@ -267,19 +269,11 @@ export default function LibraryPage() {
   if (queryError && !data) {
     return (
       <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-        <div className="w-12 h-12 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-destructive/10">
-          <AlertCircle className="w-6 h-6 text-destructive" />
-        </div>
-        <h1 className="text-[16px] font-bold mb-2 text-foreground">加载失败</h1>
-        <p className="text-[12px] mb-4 text-muted-foreground">{queryError}</p>
-        <button
-          type="button"
-          onClick={fetchData}
-          className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-        >
+        <EmptyState icon={AlertCircle} title="加载失败" description={queryError} />
+        <Button className="mt-4" onClick={fetchData}>
           <RefreshCw className="w-3.5 h-3.5" />
           重试
-        </button>
+        </Button>
       </div>
     );
   }
@@ -287,31 +281,31 @@ export default function LibraryPage() {
   if (!data) {
     return (
       <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
-          <Library className="w-8 h-8 text-primary" />
-        </div>
-        <h1 className="text-[16px] font-bold mb-2 text-foreground">
-          图书馆座位
-        </h1>
-        <p className="text-[12px] mb-4 text-muted-foreground">
-          需要先同步图书馆登录凭证
-        </p>
-        <button
-          type="button"
-          onClick={handleRefreshJWT}
-          className="min-h-9 px-4 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-primary text-primary-foreground cursor-pointer"
-        >
+        <EmptyState
+          icon={Library}
+          title="图书馆座位"
+          description="需要先同步图书馆登录凭证"
+        />
+        <Button className="mt-4" onClick={handleRefreshJWT}>
           <KeyRound className="w-3.5 h-3.5" />
           刷新凭证
-        </button>
+        </Button>
       </div>
     );
   }
 
   if (!data?.libs?.length) {
     return (
-      <div className="pb-20 md:pb-0 py-8 text-center">
-        <p className="text-[13px] text-muted-foreground">暂无数据</p>
+      <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
+        <EmptyState
+          icon={MapPin}
+          title="暂无可预约阅览室"
+          description="当前没有开放的阅览室"
+        />
+        <Button className="mt-4" onClick={fetchData}>
+          <RefreshCw className="w-3.5 h-3.5" />
+          刷新
+        </Button>
       </div>
     );
   }
@@ -332,43 +326,30 @@ export default function LibraryPage() {
 
   return (
     <div className="max-w-5xl mx-auto pb-20 md:pb-0 py-6 px-4 sm:px-6 animate-page">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10">
-            <Library className="w-5 h-5 text-primary" />
+      <PageHeader
+        icon={<Library className="w-5 h-5 text-primary" />}
+        title="图书馆座位"
+        description="实时座位查询与预约"
+        actions={
+          <div className="flex items-center gap-2 shrink-0">
+            {isElectron && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleRefreshJWT}
+                title="刷新登录凭证"
+                aria-label="刷新登录凭证"
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+              </Button>
+            )}
+            <Button variant="outline" onClick={fetchData}>
+              <RefreshCw className="w-3.5 h-3.5" />
+              刷新
+            </Button>
           </div>
-          <div>
-            <h1 className="text-lg sm:text-xl font-bold font-display text-foreground">
-              图书馆座位
-            </h1>
-            <p className="text-[12px] text-muted-foreground">
-              实时座位查询与预约
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {isElectron && (
-            <button
-              type="button"
-              onClick={handleRefreshJWT}
-              title="刷新登录凭证"
-              className="min-h-9 min-w-9 px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center justify-center gap-1 bg-card text-muted-foreground border border-border cursor-pointer hover:bg-accent transition-colors"
-              aria-label="刷新登录凭证"
-            >
-              <KeyRound className="w-3.5 h-3.5" />
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={fetchData}
-            className="min-h-9 px-3 py-2 rounded-xl text-[13px] font-medium inline-flex items-center gap-1.5 bg-card text-muted-foreground border border-border cursor-pointer hover:bg-accent transition-colors"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            刷新
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Data freshness */}
       {data.updated && (
@@ -390,7 +371,7 @@ export default function LibraryPage() {
 
       {/* Blacklist warning */}
       {blacklisted && (
-        <div className="rounded-2xl p-4 mb-4 bg-destructive/5 border border-destructive/20 shadow-sm animate-fade-up">
+        <Card className="p-4 mb-4 border-destructive/20 bg-destructive/5 animate-fade-up">
           <div className="flex items-center gap-2 mb-1">
             <AlertCircle className="w-4 h-4 text-destructive" />
             <span className="text-[13px] font-semibold text-destructive">
@@ -400,18 +381,14 @@ export default function LibraryPage() {
           <p className="text-[12px] text-muted-foreground">
             当前账号处于黑名单状态，无法进行预约操作。请联系图书馆管理员解除限制。
           </p>
-        </div>
+        </Card>
       )}
 
       {/* Summary */}
-      <div className={cn(cardClasses, "p-4 sm:p-5 mb-5")}>
+      <Card className="p-4 sm:p-5 mb-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-4">
-            <StatCard
-              value={summary.avail}
-              label="可用座位"
-              color={c(freePct)}
-            />
+            <StatCard value={summary.avail} label="可用座位" color={c(freePct)} />
             <div className="w-px h-10 bg-border" />
             <StatCard value={summary.used} label="已使用" />
             <div className="w-px h-10 bg-border" />
@@ -439,15 +416,15 @@ export default function LibraryPage() {
             <span>更新时间 {String(data.updated ?? "").slice(11, 19)}</span>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Current reservation */}
-      <div
+      <Card
         className={cn(
-          "rounded-2xl mb-5 border shadow-sm overflow-hidden relative transition-all",
+          "mb-5 overflow-hidden relative transition-all",
           currentReserve
             ? "p-4 pl-5 sm:p-5 sm:pl-6 bg-gradient-to-br from-primary/[0.07] to-card border-primary/20"
-            : "p-2.5 pl-4 sm:p-3 sm:pl-5 bg-card border-border",
+            : "p-2.5 pl-4 sm:p-3 sm:pl-5 border-border",
         )}
       >
         {currentReserve && (
@@ -471,22 +448,23 @@ export default function LibraryPage() {
                   当前预约
                 </span>
               </div>
-              <span
-                className="text-[11px] px-2.5 py-1 rounded-full font-medium border"
-                style={{
-                  backgroundColor:
-                    (reserveStatusMap[currentReserve.status]?.color ||
-                      "#94a3b8") + "15",
-                  color:
-                    reserveStatusMap[currentReserve.status]?.color || "#94a3b8",
-                  borderColor:
-                    (reserveStatusMap[currentReserve.status]?.color ||
-                      "#94a3b8") + "30",
-                }}
-              >
-                {reserveStatusMap[currentReserve.status]?.label ||
-                  `状态${currentReserve.status}`}
-              </span>
+              {(() => {
+                const statusInfo = reserveStatusMap[currentReserve.status];
+                const color = statusInfo?.color || "#94a3b8";
+                return (
+                  <Badge
+                    variant="outline"
+                    className="text-[11px] border"
+                    style={{
+                      backgroundColor: `${color}15`,
+                      color,
+                      borderColor: `${color}30`,
+                    }}
+                  >
+                    {statusInfo?.label || `状态${currentReserve.status}`}
+                  </Badge>
+                );
+              })()}
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
               <div className="min-w-0">
@@ -509,36 +487,38 @@ export default function LibraryPage() {
                   </div>
                 </div>
                 {countdown && currentReserve.status === 1 && (
-                  <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                    <Clock className="w-3 h-3" /> {countdown}
-                  </div>
+                  <Badge
+                    variant="outline"
+                    className="mt-3 text-[11px] border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                  >
+                    <Clock className="w-3 h-3 mr-1" /> {countdown}
+                  </Badge>
                 )}
               </div>
               <div className="flex gap-2 shrink-0">
                 {(currentReserve.status === 1 ||
                   currentReserve.status === 2) && (
-                  <button
-                    type="button"
+                  <Button
+                    variant="destructive"
                     onClick={handleCancelReserve}
                     disabled={cancelReserve.isPending}
-                    className="min-h-9 px-3 py-2 rounded-xl text-[12px] font-medium inline-flex items-center gap-1.5 bg-destructive/10 text-destructive hover:bg-destructive/20 disabled:opacity-50 cursor-pointer transition-colors"
                     aria-label="取消当前预约"
                   >
                     <X className="w-3.5 h-3.5" />
                     {cancelReserve.isPending ? "取消中..." : "取消"}
-                  </button>
+                  </Button>
                 )}
                 {currentReserve.status === 2 && (
-                  <button
-                    type="button"
+                  <Button
+                    variant="outline"
                     onClick={handleHoldSeat}
                     disabled={holdSeat.isPending}
-                    className="min-h-9 px-3 py-2 rounded-xl text-[12px] font-medium inline-flex items-center gap-1.5 bg-[var(--status-warning)]/10 text-[var(--status-warning)] hover:bg-[var(--status-warning)]/20 disabled:opacity-50 cursor-pointer transition-colors"
+                    className="text-amber-600 border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 hover:text-amber-600"
                     aria-label="暂离座位"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     {holdSeat.isPending ? "处理中..." : "暂离"}
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -553,36 +533,44 @@ export default function LibraryPage() {
                 当前暂无预约
               </span>
             </div>
-            <button
-              type="button"
+            <Button
+              variant="default"
               onClick={() =>
                 document
                   .getElementById("rooms-section")
                   ?.scrollIntoView({ behavior: "smooth" })
               }
-              className="text-[11px] px-3 py-1.5 rounded-full bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors shrink-0"
             >
               去预约
-            </button>
+            </Button>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Messages shortcut */}
-      <button
-        type="button"
+      <Card
+        className="p-4 mb-4 cursor-pointer hover:bg-accent/50"
         onClick={() => router.push("/library/messages")}
-        className="w-full text-left rounded-2xl p-4 mb-4 bg-card border border-border shadow-sm cursor-pointer hover:bg-accent/50 transition-colors"
-        aria-label="查看图书馆消息通知"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            router.push("/library/messages");
+          }
+        }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <div className="relative w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
               <Bell className="w-4 h-4 text-primary" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
+                >
                   {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
+                </Badge>
               )}
             </div>
             <div className="min-w-0">
@@ -591,9 +579,9 @@ export default function LibraryPage() {
                   消息通知
                 </span>
                 {unreadCount > 0 && (
-                  <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive font-medium">
+                  <Badge variant="secondary" className="text-[11px]">
                     {unreadCount} 条未读
-                  </span>
+                  </Badge>
                 )}
               </div>
               {latestMessage ? (
@@ -607,11 +595,11 @@ export default function LibraryPage() {
               )}
             </div>
           </div>
-          <span className="text-xs text-muted-foreground shrink-0 ml-2">
-            查看 →
-          </span>
+          <Button variant="ghost" className="text-xs shrink-0 ml-2">
+            查看
+          </Button>
         </div>
-      </button>
+      </Card>
 
       {/* Room cards */}
       <div
@@ -624,14 +612,20 @@ export default function LibraryPage() {
             rt.seats_total > 0 ? (rt.seats_used / rt.seats_total) * 100 : 0;
           const color = c(pct);
           return (
-            <button
+            <Card
               key={lib.lib_id}
-              type="button"
+              className="p-4 cursor-pointer"
               onClick={() =>
                 router.push(`/library/layout?lib_id=${lib.lib_id}`)
               }
-              className="w-full text-left rounded-2xl p-4 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all bg-card border border-border shadow-sm"
-              aria-label={`进入 ${lib.lib_name} 座位图`}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  router.push(`/library/layout?lib_id=${lib.lib_id}`);
+                }
+              }}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -640,9 +634,9 @@ export default function LibraryPage() {
                     {lib.lib_name}
                   </span>
                 </div>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
+                <Badge variant="secondary" className="text-[11px]">
                   {lib.lib_floor}
-                </span>
+                </Badge>
               </div>
               <div className="h-2 rounded-full mb-3 bg-secondary overflow-hidden">
                 <div
@@ -667,7 +661,7 @@ export default function LibraryPage() {
                   <span>提前 {rt.advance_booking} 可约</span>
                 )}
               </div>
-            </button>
+            </Card>
           );
         })}
       </div>

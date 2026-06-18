@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { Clock } from "lucide-react";
 import Link from "next/link";
 
 import { cardClasses } from "@/components/ui/card";
@@ -121,19 +122,7 @@ export function ExamCountdownCard() {
           <div
             className={`w-7 h-7 rounded-lg flex items-center justify-center transition-transform duration-200 group-hover:scale-110 ${urgent ? "bg-destructive/10" : "bg-primary/10"}`}
           >
-            <svg
-              className={`w-3.5 h-3.5 ${urgent ? "text-destructive" : "text-primary"}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <Clock className={`w-3.5 h-3.5 ${urgent ? "text-destructive" : "text-primary"}`} />
           </div>
           <span className="text-[12px] font-semibold text-foreground font-display">
             考试倒计时

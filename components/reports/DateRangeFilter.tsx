@@ -1,5 +1,10 @@
 "use client";
 
+import { RotateCcw } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 interface DateRangeFilterProps {
   startDate: string;
   endDate: string;
@@ -23,32 +28,34 @@ export function DateRangeFilter({
       role="group"
       aria-label="日期范围筛选"
     >
-      <input
+      <Input
         type="date"
         value={startDate}
         onChange={(e) => onStartChange(e.target.value)}
-        className="px-3 py-1.5 rounded-xl text-xs outline-none bg-card border border-border text-foreground"
+        className="w-auto min-w-[9rem] text-xs"
         aria-label="开始日期"
       />
       <span className="text-xs text-muted-foreground">
         至
       </span>
-      <input
+      <Input
         type="date"
         value={endDate}
         onChange={(e) => onEndChange(e.target.value)}
-        className="px-3 py-1.5 rounded-xl text-xs outline-none bg-card border border-border text-foreground"
+        className="w-auto min-w-[9rem] text-xs"
         aria-label="结束日期"
       />
       {hasFilter && (
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={onReset}
-          className="px-3 py-1.5 rounded-xl text-xs bg-secondary text-muted-foreground hover:text-foreground transition-colors"
           aria-label="清除日期筛选"
         >
+          <RotateCcw className="mr-1 size-3.5" />
           清除
-        </button>
+        </Button>
       )}
     </div>
   );

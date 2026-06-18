@@ -1,9 +1,11 @@
 "use client";
 
+import { CalendarDays, Check } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
 import { CountdownTimer } from "@/components/schedule/CountdownTimer";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { useScheduleQuery } from "@/hooks/useQueries";
@@ -28,19 +30,7 @@ export function ScheduleCard() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">
-              <svg
-                className="w-3.5 h-3.5 text-primary"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
+              <CalendarDays className="w-3.5 h-3.5 text-primary" />
             </div>
             <h2 className="text-[13px] font-semibold tracking-wide font-display text-foreground">
               今日课表
@@ -83,19 +73,7 @@ export function ScheduleCard() {
             if (items.length === 0) {
               return (
                 <div className="py-4 flex items-center justify-center gap-2">
-                  <svg
-                    className="w-5 h-5 text-[var(--status-success)]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                  <Check className="w-5 h-5 text-[var(--status-success)]" />
                   <p className="text-[13px] text-muted-foreground">
                     今天没有课，好好休息
                   </p>
@@ -109,9 +87,9 @@ export function ScheduleCard() {
                   <div className="rounded-xl p-3 bg-primary/5 dark:bg-primary/10 border border-primary/10 dark:border-white/5 mb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-primary/10 dark:bg-primary/15 text-primary">
+                        <Badge variant="default" className="text-[10px]">
                           下节课
-                        </span>
+                        </Badge>
                         <span className="text-[13px] font-semibold truncate text-foreground">
                           {nextCourse.item.title}
                         </span>

@@ -2,6 +2,7 @@
 
 import { RefreshCw } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { showToast } from "@/components/ui/ToastContainer";
 import { useRefreshData } from "@/hooks/useQueries";
 import { cn } from "@/lib/utils";
@@ -46,23 +47,21 @@ export function RefreshButton({ className }: { className?: string }) {
   };
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="outline"
+      size="icon-lg"
       onClick={handleRefresh}
       disabled={isPending}
       aria-label="刷新数据"
       aria-busy={isPending}
       title={isPending ? "刷新中…" : "从教务系统刷新数据"}
       className={cn(
-        "relative flex h-12 w-12 items-center justify-center rounded-[18px]",
-        "bg-card/80 text-foreground backdrop-blur-xl shadow-sm transition-all duration-200",
-        "hover:bg-card active:scale-95 dark:bg-card/60 dark:hover:bg-card/80",
-        "disabled:cursor-not-allowed disabled:opacity-70",
+        "rounded-[18px] backdrop-blur-xl bg-card/80 dark:bg-card/60",
         className
       )}
     >
       <RefreshCw className={cn("w-5 h-5 text-primary", isPending && "animate-spin")} />
-    </button>
+    </Button>
   );
 }
 

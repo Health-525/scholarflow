@@ -28,10 +28,17 @@ import { useState, useEffect, useCallback } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { SettingsSection } from "@/components/ui/settings-section";
+import { showToast } from "@/components/ui/ToastContainer";
 import {
   useScheduleQuery,
   useAssignmentsQuery,
@@ -85,7 +92,6 @@ export default function SettingsPage() {
   const { records } = useRunningQuery();
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [fetchMessage, setFetchMessage] = useState<string | null>(null);
   const [showClearPassword, setShowClearPassword] = useState(false);
   const [clearingPassword, setClearingPassword] = useState(false);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
@@ -157,7 +163,6 @@ export default function SettingsPage() {
   // 「清除已记住的密码」控件：删除加密密码并将偏好开关置为关闭（Req 4.1/4.2/4.3）。
   const handleClearPassword = async () => {
     setClearingPassword(true);
-    setFetchMessage(null);
     await clearRememberedCredential();
     try {
       await fetch("/api/auth/remember", {
@@ -170,7 +175,7 @@ export default function SettingsPage() {
       });
     } catch {}
     setClearingPassword(false);
-    setFetchMessage("已清除记住的密码");
+    showToast("success", "已清除记住的密码");
   };
 
   const confirmClearPassword = () => {
@@ -201,10 +206,9 @@ export default function SettingsPage() {
 
   const handleRefreshFromSchool = async () => {
     if (!schoolId || !username) {
-      setFetchMessage("请先登录学校账号");
+      showToast("warning", "请先登录学校账号");
       return;
     }
-    setFetchMessage(null);
     try {
       // 凭证由服务端从本地数据库读取(含 cookie 过期静默重登),无需前端传 cookie。
       const result = await refreshData.mutateAsync({
@@ -213,17 +217,19 @@ export default function SettingsPage() {
         username,
       });
       if (result.success) {
-        setFetchMessage(
+        showToast(
+          "success",
           `数据刷新成功：${result.fetched?.join("、") || "全部"}`,
         );
         loadStudentInfo(); // 刷新成功后更新用户卡片的 GPA/学分/课程
       } else if (result.needsManualLogin) {
-        setFetchMessage("登录已过期，请退出后重新登录再刷新");
+        showToast("warning", "登录已过期，请退出后重新登录再刷新");
       } else {
-        setFetchMessage(`刷新失败：${result.error || "未知错误"}`);
+        showToast("error", `刷新失败：${result.error || "未知错误"}`);
       }
     } catch (e) {
-      setFetchMessage(
+      showToast(
+        "error",
         `刷新失败：${e instanceof Error ? e.message : "未知错误"}`,
       );
     }
@@ -245,7 +251,7 @@ export default function SettingsPage() {
       />
 
       {/* ── 用户卡片 ──────────────────────────────────────────── */}
-      <Card className="rounded-[28px] p-6 mb-5 relative overflow-hidden animate-fade-up hover:translate-y-0 hover:shadow-sm">
+      <Card className="rounded-[28px] p-0 mb-5 relative overflow-hidden animate-fade-up hover:translate-y-0 hover:shadow-sm">
         {/* Background decoration */}
         <div
           className="pointer-events-none absolute inset-0"
@@ -255,81 +261,85 @@ export default function SettingsPage() {
           <div className="absolute -left-8 -bottom-8 h-24 w-24 rounded-full bg-primary/4 blur-2xl" />
         </div>
 
-        <div className="relative flex items-center gap-4">
-          {/* Avatar */}
-          <div className="relative shrink-0">
-            <div
-              className="absolute inset-0 rounded-[22px] bg-primary/10 blur-xl"
-              aria-hidden="true"
-            />
-            <div className="relative w-14 h-14 rounded-[22px] flex items-center justify-center bg-primary text-primary-foreground font-display text-[22px] font-bold shadow-sm">
-              {avatarLetter}
-            </div>
-          </div>
-
-          {/* Info */}
-          <div className="flex-1 min-w-0">
-            <div className="text-[16px] font-semibold tabular-nums text-foreground truncate">
-              {displayName}
-            </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span
-                className={cn(
-                  "w-1.5 h-1.5 rounded-full",
-                  isSynced
-                    ? "bg-[var(--status-success)]"
-                    : "bg-muted-foreground/40",
-                )}
+        <CardHeader className="relative px-6 pt-6 pb-0">
+          <div className="flex items-center gap-4">
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              <div
+                className="absolute inset-0 rounded-[22px] bg-primary/10 blur-xl"
+                aria-hidden="true"
               />
-              <span className="text-[12px] text-muted-foreground">
-                {isSynced ? "已同步教务系统" : "未同步教务系统"}
-              </span>
-            </div>
-            {schoolId && (
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <School className="w-3 h-3 text-primary/60" />
-                <span className="text-[11px] text-muted-foreground">
-                  {schoolName}
-                </span>
+              <div className="relative w-14 h-14 rounded-[22px] flex items-center justify-center bg-primary text-primary-foreground font-display text-[22px] font-bold shadow-sm">
+                {avatarLetter}
               </div>
-            )}
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-[16px] font-semibold tabular-nums text-foreground truncate">
+                {displayName}
+              </CardTitle>
+              <CardDescription className="flex items-center gap-2 mt-1 text-[11px]">
+                <Badge
+                  variant="secondary"
+                  aria-hidden="true"
+                  className={cn(
+                    "w-1.5 h-1.5 rounded-full p-0 border-0 shrink-0",
+                    isSynced
+                      ? "bg-[var(--status-success)]"
+                      : "bg-muted-foreground/40",
+                  )}
+                />
+                <span>
+                  {isSynced ? "已同步教务系统" : "未同步教务系统"}
+                </span>
+              </CardDescription>
+              {schoolId && (
+                <CardDescription className="flex items-center gap-1.5 mt-0.5 text-[11px]">
+                  <School className="w-3 h-3 text-primary/60" />
+                  <span>{schoolName}</span>
+                </CardDescription>
+              )}
+            </div>
+
+            {/* Logout button — always visible */}
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={confirmLogout}
+              className="shrink-0 rounded-xl"
+              aria-label="退出登录"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="text-[12px]">退出</span>
+            </Button>
           </div>
+        </CardHeader>
 
-          {/* Logout button — always visible */}
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={confirmLogout}
-            className="shrink-0 rounded-xl px-3 py-2 h-auto text-[12px] font-medium gap-1.5 bg-destructive/8 border-destructive/15 text-destructive hover:bg-destructive/15 hover:border-destructive/25 active:translate-y-0.5"
-            aria-label="退出登录"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>退出</span>
-          </Button>
-        </div>
-
-        {/* Stats grid */}
-        <div className="grid grid-cols-4 gap-2 mt-5">
-          {studentInfo ? (
-            <>
-              <StatChip value={studentInfo.gpa} label="GPA" accent />
-              <StatChip value={String(studentInfo.totalCredits)} label="学分" />
-              <StatChip value={String(studentInfo.courseCount)} label="课程" />
-            </>
-          ) : (
-            <>
-              <StatChip
-                value={String(scheduleData?.schedule?.courses?.length ?? 0)}
-                label="课程"
-              />
-              <StatChip
-                value={String(assignments.filter((a) => !a.done).length)}
-                label="待办"
-              />
-            </>
-          )}
-          <StatChip value={String(records.length)} label="跑步" />
-        </div>
+        <CardContent className="relative px-6 pb-6 pt-5">
+          {/* Stats grid */}
+          <div className="grid grid-cols-4 gap-2">
+            {studentInfo ? (
+              <>
+                <StatChip value={studentInfo.gpa} label="GPA" accent />
+                <StatChip value={String(studentInfo.totalCredits)} label="学分" />
+                <StatChip value={String(studentInfo.courseCount)} label="课程" />
+              </>
+            ) : (
+              <>
+                <StatChip
+                  value={String(scheduleData?.schedule?.courses?.length ?? 0)}
+                  label="课程"
+                />
+                <StatChip
+                  value={String(assignments.filter((a) => !a.done).length)}
+                  label="待办"
+                />
+              </>
+            )}
+            <StatChip value={String(records.length)} label="跑步" />
+          </div>
+        </CardContent>
       </Card>
 
       {/* ── 外观 ──────────────────────────────────────────────── */}
@@ -353,22 +363,11 @@ export default function SettingsPage() {
         <p className="text-[11px] mb-3 text-muted-foreground">
           从学校教务系统重新抓取课表、成绩、考试等数据
         </p>
-        {fetchMessage && (
-          <div
-            className={cn(
-              "mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line",
-              fetchMessage.includes("失败") || fetchMessage.includes("错误")
-                ? "bg-destructive/8 border border-destructive/15 text-destructive"
-                : "bg-[var(--status-success)]/8 border border-[var(--status-success)]/15 text-[var(--status-success)]",
-            )}
-          >
-            {fetchMessage}
-          </div>
-        )}
         <Button
+          variant="default"
           onClick={handleRefreshFromSchool}
           disabled={refreshData.isPending}
-          className="w-full justify-start gap-3 px-4 py-3 h-auto rounded-xl text-left text-[13px] font-medium bg-primary/10 text-primary hover:bg-primary/15 active:translate-y-0.5 disabled:opacity-60"
+          className="w-full justify-start gap-3 px-4 py-3 h-auto rounded-xl text-left text-[13px] font-medium active:translate-y-0.5 disabled:opacity-60"
         >
           <RefreshCw
             className={cn(
@@ -379,7 +378,7 @@ export default function SettingsPage() {
           <span>
             {refreshData.isPending ? "刷新中..." : "从教务系统刷新数据"}
           </span>
-          <span className="text-[10px] ml-auto text-muted-foreground">
+          <span className="text-[11px] ml-auto text-primary-foreground/70">
             课表 · 成绩 · 考试
           </span>
         </Button>
@@ -395,9 +394,10 @@ export default function SettingsPage() {
             清除本地加密存储的教务密码，并停止后台自动刷新
           </p>
           <Button
+            variant="destructive"
             onClick={confirmClearPassword}
             disabled={clearingPassword}
-            className="w-full justify-start gap-3 px-4 py-3 h-auto rounded-xl text-left text-[13px] font-medium bg-destructive/8 text-destructive hover:bg-destructive/15 active:translate-y-0.5 disabled:opacity-60"
+            className="w-full justify-start gap-3 px-4 py-3 h-auto rounded-xl text-left text-[13px] font-medium active:translate-y-0.5 disabled:opacity-60"
           >
             <KeyRound className="w-4 h-4 shrink-0" />
             <span>{clearingPassword ? "清除中..." : "清除已记住的密码"}</span>
@@ -440,67 +440,81 @@ export default function SettingsPage() {
       </SettingsSection>
 
       {/* ── 存储信息 ──────────────────────────────────────────── */}
-      <SettingsSection icon={<Database className="w-4 h-4" />} title="存储信息">
-        <div className="space-y-2 text-[11px]">
-          <InfoRow
-            icon={<ShieldCheck className="w-3 h-3" />}
-            label="数据存储"
-            value="SQLite 本地数据库"
-          />
-          <InfoRow
-            icon={<Clock className="w-3 h-3" />}
-            label="课表/作业/跑步"
-            value="本地优先，自动持久化"
-          />
-          <InfoRow
-            icon={<GraduationCap className="w-3 h-3" />}
-            label="学校凭证"
-            value="安全加密存储"
-          />
-        </div>
-      </SettingsSection>
+      <Card className="mb-4 hover:translate-y-0 hover:shadow-sm">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Database className="w-4 h-4 text-primary" />
+            <CardTitle className="text-[13px] font-semibold">存储信息</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-[11px]">
+            <InfoRow
+              icon={<ShieldCheck className="w-3 h-3" />}
+              label="数据存储"
+              value="SQLite 本地数据库"
+            />
+            <InfoRow
+              icon={<Clock className="w-3 h-3" />}
+              label="课表/作业/跑步"
+              value="本地优先，自动持久化"
+            />
+            <InfoRow
+              icon={<GraduationCap className="w-3 h-3" />}
+              label="学校凭证"
+              value="安全加密存储"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* ── 关于 ──────────────────────────────────────────────── */}
-      <SettingsSection icon={<Info className="w-4 h-4" />} title="关于">
-        <div className="text-center">
+      {/* ── 关于 ──────────────────────────────────────────── */}
+      <Card className="mb-4 hover:translate-y-0 hover:shadow-sm">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Info className="w-4 h-4 text-primary" />
+            <CardTitle className="text-[13px] font-semibold">关于</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="text-center">
           <div className="text-[14px] font-semibold mb-1 text-primary font-display">
             ScholarFlow
           </div>
           <div className="text-[11px] text-muted-foreground">
             v2.0 · Electron + Next.js
           </div>
-          <div className="text-[10px] mt-0.5 text-muted-foreground">
+          <div className="text-[11px] mt-0.5 text-muted-foreground">
             独立学习管理中枢
           </div>
           <div className="mt-3 flex flex-wrap gap-1.5 justify-center">
             <Badge
               variant="secondary"
-              className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--status-success)]/10 text-[var(--status-success)] font-medium hover:bg-[var(--status-success)]/10"
+              className="text-[11px] px-2 py-0.5 rounded-md bg-[var(--status-success)]/10 text-[var(--status-success)] font-medium hover:bg-[var(--status-success)]/10"
             >
               PWA
             </Badge>
             <Badge
               variant="secondary"
-              className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--status-warning)]/10 text-[var(--status-warning)] font-medium hover:bg-[var(--status-warning)]/10"
+              className="text-[11px] px-2 py-0.5 rounded-md bg-[var(--status-warning)]/10 text-[var(--status-warning)] font-medium hover:bg-[var(--status-warning)]/10"
             >
               离线优先
             </Badge>
             <Badge
               variant="secondary"
-              className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium hover:bg-primary/10"
+              className="text-[11px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium hover:bg-primary/10"
             >
               SQLite
             </Badge>
           </div>
-          <div className="mt-3 text-[10px] text-muted-foreground">
+          <div className="mt-3 text-[11px] text-muted-foreground">
             按{" "}
-            <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-secondary border border-border">
+            <kbd className="px-1 py-0.5 rounded text-[11px] font-mono bg-secondary border border-border">
               ?
             </kbd>{" "}
             查看快捷键
           </div>
-        </div>
-      </SettingsSection>
+        </CardContent>
+      </Card>
 
       {/* ── 确认对话框(替代原生 confirm) ─────────────────────── */}
       <ConfirmDialog
@@ -542,7 +556,7 @@ function StatChip({
       >
         {value}
       </div>
-      <div className="text-[10px] text-muted-foreground">{label}</div>
+      <div className="text-[11px] text-muted-foreground">{label}</div>
     </div>
   );
 }
@@ -595,7 +609,7 @@ function InfoRow({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 text-[11px]">
       <span className="text-primary/60 shrink-0">{icon}</span>
       <span className="text-muted-foreground">{label}</span>
       <span className="text-right ml-auto text-foreground">{value}</span>

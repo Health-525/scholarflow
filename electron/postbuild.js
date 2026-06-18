@@ -242,17 +242,3 @@ console.log('[postbuild] 确保 better-sqlite3 原生模块进入 standalone ...
 ensureBetterSqlite3();
 
 console.log('[postbuild] 完成！');
-
-// 自动生成 vision-model-path.txt 到 dist 输出目录
-const distDir = path.join(root, 'dist', 'win-unpacked');
-if (fs.existsSync(distDir)) {
-  const pathFile = path.join(distDir, 'vision-model-path.txt');
-  const vmDir = path.join(root, '..', 'vision-model');
-  const vmDirAbsolute = path.resolve(vmDir);
-  if (fs.existsSync(path.join(vmDirAbsolute, 'src', 'api', 'server.py'))) {
-    fs.writeFileSync(pathFile, vmDirAbsolute, 'utf-8');
-    console.log(`[postbuild] 写入 vision-model-path.txt → ${vmDirAbsolute}`);
-  } else {
-    console.log(`[postbuild] WARNING: vision-model not found at ${vmDirAbsolute}`);
-  }
-}

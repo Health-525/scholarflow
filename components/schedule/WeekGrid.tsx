@@ -1,17 +1,20 @@
 "use client";
 
+import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { Adjustment } from "@/lib/schedule/adjustments";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
 import { courseColor } from "@/lib/schedule/course-color";
 import { getWeekNumber } from "@/lib/schedule/schedule";
 import type {
-  RawScheduleData,
-  DayItem,
   CourseView,
+  DayItem,
+  RawScheduleData,
 } from "@/lib/schedule/schedule";
-import { normalizeDate, getNowInTimeZone } from "@/lib/schedule/timezone";
+import { getNowInTimeZone, normalizeDate } from "@/lib/schedule/timezone";
 
 import { CourseDrawer } from "./CourseDrawer";
 
@@ -89,63 +92,38 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
     <div>
       {/* Week nav */}
       <div className="flex items-center justify-between mb-3">
-        <button
-          type="button"
+        <Button
+          size="icon"
+          variant="ghost"
           onClick={() => setWeekOffset((w) => w - 1)}
-          className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
           aria-label="上一周"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-foreground">
             {weekInfo.label}
           </span>
-          <span className="text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
-            {"第" + weekInfo.weekNum + "周"}
-          </span>
+          <Badge variant="secondary">{"第" + weekInfo.weekNum + "周"}</Badge>
           {weekOffset !== 0 && (
-            <button
-              type="button"
+            <Button
+              variant="ghost"
               onClick={() => setWeekOffset(0)}
-              className="text-[11px] text-primary hover:opacity-70 transition-opacity ml-1"
+              className="text-primary hover:opacity-70 transition-opacity ml-1"
             >
+              <RotateCcw className="w-3.5 h-3.5 mr-1" />
               回到本周
-            </button>
+            </Button>
           )}
         </div>
-        <button
-          type="button"
+        <Button
+          size="icon"
+          variant="ghost"
           onClick={() => setWeekOffset((w) => w + 1)}
-          className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
           aria-label="下一周"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </button>
+          <ChevronRight className="w-4 h-4" />
+        </Button>
       </div>
 
       {/* Grid */}
@@ -156,7 +134,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
             className="grid grid-cols-[44px_repeat(7,1fr)] border-b border-border dark:border-white/10"
             style={{ height: HEADER_H }}
           >
-            <div className="flex items-center justify-center text-[9px] text-muted-foreground">
+            <div className="flex items-center justify-center text-[11px] text-muted-foreground">
               节次
             </div>
             {weekInfo.days.map((day, idx) => {
@@ -169,7 +147,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                 >
                   <div
                     className={
-                      "text-[10px] font-medium " +
+                      "text-[11px] font-medium " +
                       (isWeekend
                         ? "text-[var(--status-warning)]"
                         : "text-muted-foreground")
@@ -179,9 +157,9 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                   </div>
                   <div
                     className={
-                      "text-[11px] font-semibold w-5 h-5 flex items-center justify-center rounded-full " +
+                      "text-[11px] font-semibold w-6 h-6 flex items-center justify-center rounded-full " +
                       (isToday
-                        ? "bg-primary text-primary-foreground text-[10px]"
+                        ? "bg-primary text-primary-foreground"
                         : "text-foreground")
                     }
                   >
@@ -206,7 +184,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                       className="absolute left-0 right-0 flex items-center"
                       style={{ top: top - 6 }}
                     >
-                      <span className="text-[9px] font-semibold text-muted-foreground bg-background px-1 z-10">
+                      <span className="text-[11px] font-semibold text-muted-foreground bg-background px-1 z-10">
                         {dividerLabel}
                       </span>
                       <div className="flex-1 h-px bg-border dark:bg-white/10" />
@@ -216,11 +194,11 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                     className="absolute left-0 w-[44px] flex flex-col items-center justify-center text-center border-r border-border/30 dark:border-white/5"
                     style={{ top: top, height: ROW_H }}
                   >
-                    <span className="text-[10px] font-semibold text-foreground">
+                    <span className="text-xs font-semibold text-foreground">
                       {p}
                     </span>
                     {timeStr && (
-                      <span className="text-[7px] text-muted-foreground leading-tight">
+                      <span className="text-[11px] text-muted-foreground leading-tight">
                         {timeStr.split("-")[0]}
                       </span>
                     )}
@@ -265,14 +243,14 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                       const blockTop = (cb.firstPeriod - 1) * ROW_H + 2;
                       const blockHeight = cb.span * ROW_H - 4;
                       return (
-                        <button
+                        <Button
                           key={i}
-                          type="button"
+                          variant="secondary"
                           onClick={() => {
                             setSelectedItem(cb.item);
                             setSelectedDate(day);
                           }}
-                          className="absolute left-1 right-1 rounded-lg px-2 py-1.5 text-left transition-all active:scale-[0.97] hover:shadow-sm overflow-hidden"
+                          className="absolute left-1 right-1 rounded-lg px-2 py-1.5 text-left transition-all active:scale-[0.97] hover:shadow-sm overflow-hidden items-start justify-start whitespace-normal"
                           style={{
                             top: blockTop,
                             height: blockHeight,
@@ -284,22 +262,22 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                           }
                         >
                           <div
-                            className="text-[11px] font-semibold leading-tight line-clamp-2"
+                            className="text-xs font-semibold leading-tight line-clamp-2"
                             style={{ color: colors.accent }}
                           >
                             {cb.item.title}
                           </div>
                           {cb.item.location && (
-                            <div className="text-[9px] text-muted-foreground mt-0.5 truncate">
+                            <div className="text-[11px] text-muted-foreground mt-0.5 truncate">
                               {cb.item.location}
                             </div>
                           )}
                           {cb.item.timeText && blockHeight > 50 && (
-                            <div className="text-[8px] text-muted-foreground/70 mt-0.5">
+                            <div className="text-[11px] text-muted-foreground/70 mt-0.5">
                               {cb.item.timeText}
                             </div>
                           )}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -312,7 +290,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
           {dayData.some((d) => d.specials.length > 0) && (
             <div className="mt-3 space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold text-muted-foreground">
+                <span className="text-[11px] font-semibold text-muted-foreground">
                   特殊安排
                 </span>
                 <div className="flex-1 h-px bg-border" />
@@ -321,34 +299,34 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                 dayData[dayIdx].specials.map((item, i) => {
                   const colors = courseColor(item.title);
                   return (
-                    <button
+                    <Button
                       key={"sp-" + dayIdx + "-" + i}
-                      type="button"
+                      variant="secondary"
                       onClick={() => {
                         setSelectedItem(item);
                         setSelectedDate(day);
                       }}
-                      className="w-full rounded-lg px-3 py-2 text-left transition-all active:scale-[0.97] flex items-center gap-2"
+                      className="w-full h-auto rounded-lg px-3 py-2 text-left transition-all active:scale-[0.97] flex items-center gap-2 justify-start whitespace-normal"
                       style={{
                         backgroundColor: colors.bg,
                         border: "1px solid " + colors.border,
                       }}
                     >
-                      <span className="text-[10px] text-muted-foreground tabular-nums w-6">
+                      <span className="text-[11px] text-muted-foreground tabular-nums w-6">
                         {WEEKDAY_LABELS[dayIdx]}
                       </span>
                       <span
-                        className="text-[11px] font-semibold"
+                        className="text-xs font-semibold"
                         style={{ color: colors.accent }}
                       >
                         {item.title}
                       </span>
                       {item.timeText && (
-                        <span className="text-[10px] text-muted-foreground ml-auto">
+                        <span className="text-[11px] text-muted-foreground ml-auto">
                           {item.timeText}
                         </span>
                       )}
-                    </button>
+                    </Button>
                   );
                 }),
               )}

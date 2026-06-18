@@ -1,13 +1,39 @@
 "use client";
 
-import { ChevronLeft, Trash2, Monitor } from "lucide-react";
-import Link from "next/link";
+import {
+  Activity,
+  BookOpen,
+  Code,
+  Gamepad2,
+  Globe,
+  HelpCircle,
+  MessageCircle,
+  Monitor,
+  Settings,
+  Trash2,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { useActivityTrackerV3, downloadActivityCSV, clearActivityData, CATEGORY_LABELS } from "@/lib/activity-tracker-v3";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { EmptyState } from "@/components/ui/EmptyState";
+import {
+  CATEGORY_LABELS,
+  clearActivityData,
+  downloadActivityCSV,
+  useActivityTrackerV3,
+} from "@/lib/activity-tracker-v3";
 import type { Category } from "@/lib/activity-tracker-v3";
 import { semanticColor } from "@/lib/theme-colors";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 const CATEGORY_SEMANTIC: Record<Category, Parameters<typeof semanticColor>[0]> = {
   coding: "success",
@@ -19,7 +45,18 @@ const CATEGORY_SEMANTIC: Record<Category, Parameters<typeof semanticColor>[0]> =
   other: "info",
 };
 
+const CATEGORY_ICON: Record<Category, typeof Code> = {
+  coding: Code,
+  browsing: Globe,
+  study: BookOpen,
+  entertainment: Gamepad2,
+  communication: MessageCircle,
+  system: Settings,
+  other: HelpCircle,
+};
+
 export default function ActivityPage() {
+  const router = useRouter();
   const state = useActivityTrackerV3();
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
@@ -27,108 +64,209 @@ export default function ActivityPage() {
 
   if (!state.isElectron) {
     return (
-      <div className="pb-24 md:pb-0">
-        <Header />
-        <div className="text-center py-20">
-          <Monitor size={48} className="mx-auto mb-4 opacity-30 text-muted-foreground" />
-          <h2 className="text-[15px] font-semibold mb-2 text-foreground">需要 Electron 桌面版</h2>
-          <p className="text-[13px] text-muted-foreground">Web 浏览器无法检测桌面应用。请使用 ScholarFlow 桌面版。</p>
-        </div>
+      <div className="max-w-5xl mx-auto pb-24 md:pb-0 animate-page">
+        <PageHeader
+          icon={<Monitor className="w-5 h-5 text-primary" />}
+          title="活动分析"
+          description="实时追踪桌面应用使用时间"
+        />
+        <EmptyState
+          icon={Monitor}
+          title="需要 Electron 桌面版"
+          description="Web 浏览器无法检测桌面应用，请在 ScholarFlow 桌面版中查看活动分析。"
+        />
+        <Button
+          variant="outline"
+          className="w-full mt-4 h-9"
+          onClick={() => router.push("/")}
+        >
+          返回首页
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="max-w-5xl mx-auto pb-24 md:pb-0 animate-page">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
-          <Monitor className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-xl font-bold font-display text-foreground">活动分析</h1>
-          <p className="text-[12px] text-muted-foreground">实时追踪桌面应用使用时间</p>
-        </div>
-      </div>
+      <PageHeader
+        icon={<Monitor className="w-5 h-5 text-primary" />}
+        title="活动分析"
+        description="实时追踪桌面应用使用时间"
+      />
 
       {/* ── Big stats ── */}
-      <div className="grid grid-cols-1 gap-3 mb-5">
-        <StatCard value={activeMins} label="活跃 min（今日）" colorClass="text-[var(--status-success)]" icon="🟢" />
-      </div>
+      <Card className="mb-4">
+        <CardContent className="flex flex-col items-center justify-center py-4">
+          <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center mb-2">
+            <Activity className="w-5 h-5 text-primary" />
+          </div>
+          <div className="text-[28px] font-bold tabular-nums leading-none text-[var(--status-success)]">
+            {activeMins}
+          </div>
+          <div className="text-[11px] mt-1.5 text-muted-foreground">
+            活跃 min（今日）
+          </div>
+        </CardContent>
+      </Card>
 
       {/* ── Category breakdown ── */}
       {state.categoryBreakdown.length > 0 && (
-        <div className="rounded-2xl p-5 mb-4 border border-border bg-card">
-          <h3 className="text-[13px] font-semibold mb-4 text-muted-foreground">活动分类</h3>
-          {/* Stacked bar */}
-          <div className="h-3 rounded-full overflow-hidden flex mb-3 bg-secondary">
-            {state.categoryBreakdown.map(c => (
-              <div key={c.category} className="h-full transition-all" style={{ width: `${(c.minutes / Math.max(activeMins, 1)) * 100}%`, background: semanticColor(CATEGORY_SEMANTIC[c.category]), minWidth: c.minutes > 0 ? 3 : 0 }} title={`${CATEGORY_LABELS[c.category as Category]}: ${c.minutes}min`} />
-            ))}
-          </div>
-          {/* Category list */}
-          <div className="space-y-1.5">
-            {state.categoryBreakdown.map(c => (
-              <div key={c.category} className="flex items-center gap-2 text-[12px]">
-                <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: semanticColor(CATEGORY_SEMANTIC[c.category]) }} />
-                <span className="text-foreground">{CATEGORY_LABELS[c.category as Category]}</span>
-                <div className="flex-1" />
-                <span className="font-medium tabular-nums text-muted-foreground">{c.minutes}分</span>
-                <span className="w-16 text-right tabular-nums text-muted-foreground/60">{Math.round((c.minutes / Math.max(activeMins, 1)) * 100)}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle>活动分类</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Stacked bar */}
+            <div className="h-3 rounded-full overflow-hidden flex mb-4 bg-secondary">
+              {state.categoryBreakdown.map((c) => (
+                <div
+                  key={c.category}
+                  className="h-full transition-all"
+                  style={{
+                    width: `${(c.minutes / Math.max(activeMins, 1)) * 100}%`,
+                    background: semanticColor(CATEGORY_SEMANTIC[c.category]),
+                    minWidth: c.minutes > 0 ? 3 : 0,
+                  }}
+                  title={`${CATEGORY_LABELS[c.category as Category]}: ${c.minutes}min`}
+                />
+              ))}
+            </div>
+            {/* Legend list */}
+            <div className="space-y-2">
+              {state.categoryBreakdown.map((c) => {
+                const Icon = CATEGORY_ICON[c.category as Category];
+                const pct = Math.round(
+                  (c.minutes / Math.max(activeMins, 1)) * 100
+                );
+                return (
+                  <div
+                    key={c.category}
+                    className="flex items-center gap-3 text-xs min-h-8"
+                  >
+                    <Badge
+                      variant="outline"
+                      className="gap-1.5 px-2 py-1 text-xs font-normal"
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-sm shrink-0"
+                        style={{
+                          background: semanticColor(
+                            CATEGORY_SEMANTIC[c.category]
+                          ),
+                        }}
+                      />
+                      <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="text-foreground">
+                        {CATEGORY_LABELS[c.category as Category]}
+                      </span>
+                    </Badge>
+                    <div className="flex-1" />
+                    <span className="font-medium tabular-nums text-muted-foreground">
+                      {c.minutes}分
+                    </span>
+                    <span className="w-12 text-right tabular-nums text-muted-foreground/70">
+                      {pct}%
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* ── ALL apps breakdown ── */}
       {state.appBreakdown.length > 0 && (
-        <div className="rounded-2xl p-5 mb-4 border border-border bg-card">
-          <h3 className="text-[13px] font-semibold mb-4 text-muted-foreground">
-            全部应用 ({state.appBreakdown.length})
-          </h3>
-          <div className="space-y-2">
-            {state.appBreakdown.map(b => {
-              const pct = Math.round((b.minutes / Math.max(activeMins, 1)) * 100);
-              const seg = state.todayLog.segments.find(s => s.app === b.app);
-              const catColor = seg ? semanticColor(CATEGORY_SEMANTIC[seg.category]) : semanticColor(CATEGORY_SEMANTIC.other);
-              return (
-                <div key={b.app} className="flex items-center gap-3">
-                  <span className="text-[11px] w-24 shrink-0 truncate font-medium text-foreground" title={b.app}>{b.app}</span>
-                  <div className="flex-1 h-2 rounded-full overflow-hidden bg-secondary">
-                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: catColor }} />
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle>全部应用 ({state.appBreakdown.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {state.appBreakdown.map((b) => {
+                const pct = Math.round(
+                  (b.minutes / Math.max(activeMins, 1)) * 100
+                );
+                const seg = state.todayLog.segments.find(
+                  (s) => s.app === b.app
+                );
+                const catColor = seg
+                  ? semanticColor(CATEGORY_SEMANTIC[seg.category])
+                  : semanticColor(CATEGORY_SEMANTIC.other);
+                return (
+                  <div key={b.app} className="space-y-1.5">
+                    <div className="flex items-center gap-3 text-xs">
+                      <span
+                        className="font-medium text-foreground truncate shrink-0 max-w-[8rem]"
+                        title={b.app}
+                      >
+                        {b.app}
+                      </span>
+                      <div className="flex-1" />
+                      <span className="tabular-nums text-muted-foreground">
+                        {b.minutes}分
+                      </span>
+                      <span className="w-10 text-right tabular-nums text-muted-foreground/70">
+                        {pct}%
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full overflow-hidden bg-secondary">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%`, background: catColor }}
+                      />
+                    </div>
                   </div>
-                  <span className="text-[10px] w-14 text-right tabular-nums text-muted-foreground">{b.minutes}分</span>
-                  <span className="text-[10px] w-7 text-right tabular-nums text-muted-foreground/60">{pct}%</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* ── Current tracking status ── */}
-      <div className="rounded-2xl p-5 mb-4 border border-border bg-card">
-        <h3 className="text-[13px] font-semibold mb-3 text-muted-foreground">实时状态</h3>
-        <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-[var(--status-success)] animate-pulse" />
-          <span className="text-[13px] text-foreground">{state.currentApp}</span>
-          {state.currentTitle && (
-            <span className="text-[11px] truncate text-muted-foreground" title={state.currentTitle}>
-              — {state.currentTitle.slice(0, 50)}
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>实时状态</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-3 min-h-8">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--status-success)] opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-[var(--status-success)]" />
             </span>
-          )}
-        </div>
-      </div>
+            <span className="text-sm font-medium text-foreground">
+              {state.currentApp}
+            </span>
+            {state.currentTitle && (
+              <span
+                className="text-xs truncate text-muted-foreground"
+                title={state.currentTitle}
+              >
+                — {state.currentTitle.slice(0, 50)}
+              </span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* ── Export / Clear ── */}
       <div className="flex gap-3 mb-8">
-        <button onClick={downloadActivityCSV} className="flex-1 py-3 rounded-xl text-[13px] font-medium bg-card border border-border text-foreground">
+        <Button
+          variant="outline"
+          className="flex-1 h-9"
+          onClick={downloadActivityCSV}
+        >
           导出 CSV
-        </button>
-        <button onClick={() => setClearDialogOpen(true)} className="flex items-center justify-center gap-1 py-3 px-4 rounded-xl text-[13px] font-medium bg-card border border-border text-destructive">
-          <Trash2 className="w-4 h-4" />清除
-        </button>
+        </Button>
+        <Button
+          variant="destructive"
+          className="h-9"
+          onClick={() => setClearDialogOpen(true)}
+        >
+          <Trash2 className="w-4 h-4 mr-1" />
+          清除
+        </Button>
       </div>
 
       <ConfirmDialog
@@ -136,32 +274,11 @@ export default function ActivityPage() {
         onOpenChange={setClearDialogOpen}
         title="确定清除所有活动记录？"
         description="此操作不可撤销，所有活动记录将被永久删除。"
-        onConfirm={() => { clearActivityData(); window.location.reload(); }}
+        onConfirm={() => {
+          clearActivityData();
+          window.location.reload();
+        }}
       />
-    </div>
-  );
-}
-
-function Header() {
-  return (
-    <div className="flex items-center gap-4 mb-6 py-4">
-      <Link href="/" className="flex items-center justify-center w-9 h-9 rounded-xl bg-card text-muted-foreground">
-        <ChevronLeft className="w-5 h-5" />
-      </Link>
-      <div>
-        <h1 className="text-lg font-bold text-foreground">活动分析</h1>
-        <p className="text-[11px] text-muted-foreground">实时追踪桌面应用使用时间</p>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ value, label, colorClass, icon }: { value: number | string; label: string; colorClass: string; icon: string }) {
-  return (
-    <div className="rounded-2xl p-4 text-center border border-border bg-card">
-      <div className="text-2xl mb-1">{icon}</div>
-      <div className={`text-[28px] font-bold tabular-nums leading-none ${colorClass}`}>{value}</div>
-      <div className="text-[10px] mt-1 text-muted-foreground">{label}</div>
     </div>
   );
 }

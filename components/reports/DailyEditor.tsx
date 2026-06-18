@@ -1,8 +1,13 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { getCurrentUser } from "@/lib/mobile-data";
+import { cn } from "@/lib/utils";
 
 interface DailyEditorProps {
   existingDate?: string;
@@ -24,7 +29,6 @@ export function DailyEditor({ existingDate, existingContent, onSaved, onCancel }
     setError(null);
 
     try {
-      // Save via local API
       const { schoolId, userId } = getCurrentUser();
       const body: Record<string, string> = {
         file: `日报/${date}.md`,
@@ -48,17 +52,16 @@ export function DailyEditor({ existingDate, existingContent, onSaved, onCancel }
   }
 
   return (
-    <div className="rounded-2xl p-4 mb-4 bg-card border border-border">
-      <h3 className="text-sm font-semibold mb-3 text-foreground">
-        {existingDate ? "编辑日报" : "新建日报"}
-      </h3>
+    <Card className="mb-4">
+      <CardHeader>
+        <CardTitle>{existingDate ? "编辑日报" : "新建日报"}</CardTitle>
+      </CardHeader>
 
-      <div className="space-y-3">
-        <input
+      <CardContent className="space-y-3">
+        <Input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="w-full px-3 py-2 rounded-xl text-sm bg-secondary border border-border text-foreground"
         />
 
         <textarea
@@ -66,31 +69,25 @@ export function DailyEditor({ existingDate, existingContent, onSaved, onCancel }
           onChange={(e) => setContent(e.target.value)}
           placeholder={`# ${date} 日报\n\n## 📋 今日概览\n- 课程：\n- 待办：\n- 提交：\n\n## 📝 变更解读\n\n## 📅 今日课表\n\n## 💡 收获与反思`}
           rows={12}
-          className="w-full px-3 py-2 rounded-xl text-sm font-mono resize-y bg-secondary border border-border text-foreground leading-[1.6]"
+          className={cn(
+            "min-h-[240px] w-full resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm leading-[1.6] text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
+          )}
         />
 
         {error && (
           <p className="text-sm text-destructive">{error}</p>
         )}
+      </CardContent>
 
-        <div className="flex gap-2 justify-end">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 rounded-xl text-sm bg-secondary border border-border text-muted-foreground hover:text-foreground transition-colors"
-          >
-            取消
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className={`px-4 py-2 rounded-xl text-sm font-medium bg-primary text-primary-foreground ${
-              isSaving ? "opacity-50" : ""
-            }`}
-          >
-            {isSaving ? "保存中..." : "保存"}
-          </button>
-        </div>
-      </div>
-    </div>
+      <CardFooter className="justify-end gap-2">
+        <Button variant="outline" onClick={onCancel}>
+          取消
+        </Button>
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving && <Loader2 className="mr-1 size-4 animate-spin" />}
+          {isSaving ? "保存中..." : "保存"}
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

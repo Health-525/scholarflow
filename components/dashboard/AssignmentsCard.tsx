@@ -1,8 +1,10 @@
 "use client";
 
+import { ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { useAssignmentsQuery } from "@/hooks/useQueries";
@@ -54,27 +56,15 @@ export function AssignmentsCard() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-[var(--status-warning)]/10">
-              <svg
-                className="w-3.5 h-3.5 text-[var(--status-warning)]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 00-2 2m6 0a2 2 0 002 2"
-                />
-              </svg>
+              <ClipboardList className="w-3.5 h-3.5 text-[var(--status-warning)]" />
             </div>
             <h2 className="text-[13px] font-semibold tracking-wide font-display text-foreground">
               待办作业
             </h2>
             {mounted && !isLoading && pending.length > 0 && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-[var(--status-warning)]/10 text-[var(--status-warning)]">
+              <Badge variant="secondary" className="text-[10px] h-4 px-1 bg-[var(--status-warning)]/10 text-[var(--status-warning)] hover:bg-[var(--status-warning)]/10">
                 {pending.length}
-              </span>
+              </Badge>
             )}
           </div>
           <Link

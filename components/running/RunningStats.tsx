@@ -1,5 +1,9 @@
 "use client";
 
+import { Zap } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { RUNNING_GOAL } from "@/lib/running-utils";
 import type { RunStats } from "@/types";
@@ -10,52 +14,65 @@ interface RunningStatsProps {
 
 export function RunningStats({ stats }: RunningStatsProps) {
   return (
-    <div className="rounded-2xl p-5 bg-card border border-border shadow-sm">
-      <div className="flex items-center gap-2 mb-4">
-        <svg className="w-4 h-4 text-[var(--status-success)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        <span className="text-[13px] font-semibold text-foreground">阳光长跑进度</span>
-        {stats.progressPercent >= 100 && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--status-success)]/10 text-[var(--status-success)] border border-[var(--status-success)]/20">已达标</span>
-        )}
-      </div>
-
-      <div className="mb-4">
-        <div className="flex justify-between items-baseline mb-1.5">
-          <span className="text-3xl font-bold text-foreground">
-            {stats.total}
+    <Card>
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Zap className="w-4 h-4 text-[var(--status-success)]" />
+          <span className="text-base font-semibold text-foreground">
+            阳光长跑进度
           </span>
-          <span className="text-sm text-muted-foreground">
-            / {RUNNING_GOAL} 次
-          </span>
+          {stats.progressPercent >= 100 && (
+            <Badge
+              variant="outline"
+              className="ml-auto border-[var(--status-success)]/20 bg-[var(--status-success)]/10 text-[var(--status-success)]"
+            >
+              已达标
+            </Badge>
+          )}
         </div>
-        <ProgressBar
-          value={stats.progressPercent}
-          label={`${Math.round(stats.progressPercent)}%`}
-          showPercent
-        />
-      </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-xl p-3 text-center bg-[var(--status-success)]/8 border border-[var(--status-success)]/20">
-          <div className="text-xl font-bold text-[var(--status-success)]">
-            {stats.morning}
+        <div>
+          <div className="flex justify-between items-baseline mb-2">
+            <span className="text-3xl font-bold text-foreground">
+              {stats.total}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              / {RUNNING_GOAL} 次
+            </span>
           </div>
-          <div className="text-xs mt-0.5 text-muted-foreground">
-            晨跑
-          </div>
+          <ProgressBar
+            value={stats.progressPercent}
+            label={`${Math.round(stats.progressPercent)}%`}
+            showPercent
+          />
         </div>
-        <div className="rounded-xl p-3 text-center bg-primary/8 border border-primary/20">
-          <div className="text-xl font-bold text-primary">
-            {stats.free}
-          </div>
-          <div className="text-xs mt-0.5 text-muted-foreground">
-            自由跑
-          </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Card
+            hover={false}
+            className="p-3 text-center bg-[var(--status-success)]/8 border-[var(--status-success)]/20 hover:translate-y-0 hover:shadow-sm"
+          >
+            <div className="text-xl font-bold text-[var(--status-success)]">
+              {stats.morning}
+            </div>
+            <div className="text-xs mt-1 text-muted-foreground">
+              晨跑
+            </div>
+          </Card>
+          <Card
+            hover={false}
+            className="p-3 text-center bg-primary/8 border-primary/20 hover:translate-y-0 hover:shadow-sm"
+          >
+            <div className="text-xl font-bold text-primary">
+              {stats.free}
+            </div>
+            <div className="text-xs mt-1 text-muted-foreground">
+              自由跑
+            </div>
+          </Card>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
