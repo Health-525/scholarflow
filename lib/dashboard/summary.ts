@@ -92,19 +92,9 @@ export function buildDashboardSummary(db: ServerDB, prefix: string): DashboardSu
 }
 
 /**
- * 读取 dashboard summary 缓存，若不存在或日期非今日则重新生成。
+ * 每次请求都重新生成 dashboard summary，避免课表/成绩等数据变更后显示旧数字。
  * 供 /api/local-data?type=dashboard 使用。
  */
 export function getDashboardSummary(db: ServerDB, prefix: string): DashboardSummary {
-  const cacheKey = `dashboard-summary:${prefix}`;
-  const cached = db.readData(cacheKey) as DashboardSummary | null;
-  const today = new Date().toISOString().slice(0, 10);
-
-  if (cached && cached.date === today) {
-    return cached;
-  }
-
-  const summary = buildDashboardSummary(db, prefix);
-  db.writeData(cacheKey, summary);
-  return summary;
+  return buildDashboardSummary(db, prefix);
 }

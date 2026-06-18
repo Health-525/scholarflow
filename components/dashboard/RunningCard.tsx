@@ -52,7 +52,7 @@ export function RunningCard() {
               )}
             </div>
 
-            <div className="h-2 rounded-full overflow-hidden bg-secondary" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`跑步进度 ${pct.toFixed(0)}%`}>
+            <div className="h-2.5 rounded-full overflow-hidden bg-muted border border-border/30" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`跑步进度 ${pct.toFixed(0)}%`}>
               <div className="h-full rounded-full bg-gradient-to-r from-[var(--chart-success)] to-[var(--status-success)] transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%` }} />
             </div>
 

@@ -63,12 +63,12 @@ export function BottomNav() {
                   </>
                 )}
                 <Icon
-                  className={`relative z-[1] h-[18px] w-[18px] transition-all duration-300 ${
+                  className={`relative z-[1] h-5 w-5 transition-all duration-300 ${
                     active ? "scale-[1.15] drop-shadow-[0_0_10px_rgba(var(--primary-rgb),0.28)]" : ""
                   }`}
                   strokeWidth={active ? 2.4 : 1.8}
                 />
-                <span className={`relative z-[1] text-[10px] leading-none tracking-wide ${active ? "font-semibold" : ""}`}>
+                <span className={`relative z-[1] text-[11px] leading-none tracking-wide ${active ? "font-semibold" : ""}`}>
                   {label}
                 </span>
               </Link>
@@ -86,8 +86,8 @@ export function BottomNav() {
             aria-expanded={drawerOpen}
             aria-haspopup="dialog"
           >
-            <Ellipsis className="relative z-[1] h-[18px] w-[18px]" strokeWidth={1.8} />
-            <span className="relative z-[1] text-[10px] leading-none tracking-wide">更多</span>
+            <Ellipsis className="relative z-[1] h-5 w-5" strokeWidth={1.8} />
+            <span className="relative z-[1] text-[11px] leading-none tracking-wide">更多</span>
           </button>
         </div>
       </nav>

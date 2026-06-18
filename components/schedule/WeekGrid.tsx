@@ -250,7 +250,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                             setSelectedItem(cb.item);
                             setSelectedDate(day);
                           }}
-                          className="absolute left-1 right-1 rounded-lg px-2 py-1.5 text-left transition-all active:scale-[0.97] hover:shadow-sm overflow-hidden items-start justify-start whitespace-normal"
+                          className="absolute left-1 right-1 rounded-lg px-2 py-1.5 text-left transition-all active:scale-[0.97] hover:shadow-sm overflow-hidden items-start justify-start whitespace-nowrap"
                           style={{
                             top: blockTop,
                             height: blockHeight,
@@ -262,18 +262,18 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                           }
                         >
                           <div
-                            className="text-xs font-semibold leading-tight line-clamp-2"
+                            className="text-xs font-semibold leading-tight truncate"
                             style={{ color: colors.accent }}
                           >
                             {cb.item.title}
-                          </div>
-                          {cb.item.location && (
+                            </div>
+                          {cb.item.location && blockHeight > 50 && (
                             <div className="text-[11px] text-muted-foreground mt-0.5 truncate">
                               {cb.item.location}
                             </div>
                           )}
-                          {cb.item.timeText && blockHeight > 50 && (
-                            <div className="text-[11px] text-muted-foreground/70 mt-0.5">
+                          {cb.item.timeText && blockHeight > 64 && (
+                            <div className="text-[11px] text-muted-foreground/70 mt-0.5 truncate">
                               {cb.item.timeText}
                             </div>
                           )}
