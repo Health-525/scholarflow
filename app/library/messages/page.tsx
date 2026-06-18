@@ -2,14 +2,28 @@
 
 import { ArrowLeft, RefreshCw, Loader2, Bell, Trash2, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 interface Message {
+  message_id: number;
   title: string;
   content: string;
   create_time: string;
   isread: number;
   isused: number;
+}
+
+function formatMessageTime(input: string | number | undefined): string {
+  if (!input) return "";
+  const ts = typeof input === "number" ? input * 1000 : Date.parse(input);
+  if (Number.isNaN(ts)) return String(input);
+  return new Date(ts).toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default function LibraryMessagesPage() {
@@ -19,6 +33,7 @@ export default function LibraryMessagesPage() {
   const [error, setError] = useState<string | null>(null);
   const [type, setType] = useState(1);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [marking, setMarking] = useState(false);
 
   const fetchMessages = useCallback(() => {
     setLoading(true); setError(null);
@@ -38,20 +53,52 @@ export default function LibraryMessagesPage() {
 
   useEffect(() => { fetchMessages(); }, [fetchMessages]);
 
+  // 进入消息页后自动将未读消息同步标记为已读
+  const autoMarkedRef = useRef(false);
+  useEffect(() => {
+    if (autoMarkedRef.current) return;
+    const unread = messages.filter(m => m.isread === 0);
+    if (unread.length === 0) return;
+    autoMarkedRef.current = true;
+    setMarking(true);
+    fetch("/api/library/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, ids: unread.map(m => m.message_id) }),
+    })
+      .then(r => r.json())
+      .then(() => fetchMessages())
+      .catch(() => setMarking(false));
+  }, [messages, type, fetchMessages]);
+
   const unreadCount = messages.filter(m => m.isread === 0).length;
 
   const handleDelete = async (index: number) => {
     setDeleting(index);
-    // API: message.delete(messageId: Int!) — but we don't have message IDs
-    // For now just remove from UI
+    // 图书馆后端暂未提供删除消息接口，先在本地移除
     setTimeout(() => {
       setMessages(prev => prev.filter((_, i) => i !== index));
       setDeleting(null);
     }, 300);
   };
 
-  const handleMarkAllRead = () => {
-    setMessages(prev => prev.map(m => ({ ...m, isread: 1 })));
+  const handleMarkAllRead = async () => {
+    if (unreadCount === 0) return;
+    setMarking(true);
+    try {
+      const r = await fetch("/api/library/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type }),
+      });
+      const json = await r.json();
+      if (json.error) throw new Error(json.error);
+      await fetchMessages();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "标记失败");
+    } finally {
+      setMarking(false);
+    }
   };
 
   return (
@@ -73,9 +120,9 @@ export default function LibraryMessagesPage() {
         </div>
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
-            <button onClick={handleMarkAllRead} title="全部已读"
-              className="p-2 rounded-xl bg-card border border-border text-muted-foreground">
-              <Check className="w-4 h-4" />
+            <button onClick={handleMarkAllRead} disabled={marking} title="全部已读"
+              className="p-2 rounded-xl bg-card border border-border text-muted-foreground disabled:opacity-50">
+              {marking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
             </button>
           )}
           <button onClick={fetchMessages} className="p-2 rounded-xl bg-card border border-border text-muted-foreground">
@@ -121,7 +168,7 @@ export default function LibraryMessagesPage() {
       ) : (
         <div className="space-y-3">
           {messages.map((msg, i) => (
-            <div key={i} className={`rounded-xl p-4 bg-card border transition-all ${msg.isread === 0 ? "border-primary/30 bg-primary/5" : "border-border"} ${deleting === i ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
+            <div key={msg.message_id} className={`rounded-xl p-4 bg-card border transition-all ${msg.isread === 0 ? "border-primary/30 bg-primary/5" : "border-border"} ${deleting === i ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   {msg.isread === 0 && (
@@ -133,9 +180,12 @@ export default function LibraryMessagesPage() {
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <p className="text-[12px] text-muted-foreground leading-relaxed mt-1 ml-4">{msg.content}</p>
+              <div
+                className="text-[12px] text-muted-foreground leading-relaxed mt-2 ml-4 prose prose-sm max-w-none dark:prose-invert"
+                dangerouslySetInnerHTML={{ __html: msg.content }}
+              />
               <p className="text-[11px] text-muted-foreground/60 mt-2 ml-4">
-                {msg.create_time}
+                {formatMessageTime(msg.create_time)}
               </p>
             </div>
           ))}

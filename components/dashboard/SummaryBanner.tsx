@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { cardClasses } from "@/components/ui/card";
 import type { DashboardSummary } from "@/lib/dashboard/summary";
 import { gpaColorClasses } from "@/lib/gpa";
-import { RUNNING_GOAL } from "@/lib/running-utils";
 import { cn } from "@/lib/utils";
 
 function AnimatedNumber({ value, duration = 800 }: { value: number | string; duration?: number }) {
@@ -37,7 +36,7 @@ function AnimatedNumber({ value, duration = 800 }: { value: number | string; dur
   return <span className="tabular-nums">{decimals > 0 ? display.toFixed(decimals) : display}</span>;
 }
 
-function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge, badgeClass, sub }: {
+function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge, badgeClass }: {
   icon: typeof BookOpen;
   label: string;
   value: number | string;
@@ -45,7 +44,6 @@ function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge
   iconBgClass: string;
   badge?: string;
   badgeClass?: string;
-  sub: string;
 }) {
   return (
     <div className={cn(cardClasses, "p-3 hover:-translate-y-1")}>
@@ -63,7 +61,6 @@ function StatMiniCard({ icon: Icon, label, value, colorClass, iconBgClass, badge
             {badge}
           </span>
         )}
-        <div className="text-[11px] text-muted-foreground mt-2">{sub}</div>
       </div>
     </div>
   );
@@ -91,8 +88,8 @@ export function SummaryBanner({ data, loading = true }: SummaryBannerProps) {
 
   if (!data) {
     const fallbackItems = [
-      { icon: BookOpen, label: "课程", colorClass: "text-indigo-800 dark:text-indigo-400", iconBgClass: "bg-indigo-500/[0.07] dark:bg-indigo-400/10" },
-      { icon: ClipboardList, label: "待办", colorClass: "text-amber-700 dark:text-amber-400", iconBgClass: "bg-amber-500/[0.07] dark:bg-amber-400/10" },
+      { icon: BookOpen, label: "今日课程", colorClass: "text-indigo-800 dark:text-indigo-400", iconBgClass: "bg-indigo-500/[0.07] dark:bg-indigo-400/10" },
+      { icon: ClipboardList, label: "待办作业", colorClass: "text-amber-700 dark:text-amber-400", iconBgClass: "bg-amber-500/[0.07] dark:bg-amber-400/10" },
       { icon: Activity, label: "跑步", colorClass: "text-emerald-700 dark:text-green-400", iconBgClass: "bg-emerald-500/[0.07] dark:bg-green-400/10" },
       { icon: Calculator, label: "绩点", colorClass: "text-indigo-800 dark:text-indigo-400", iconBgClass: "bg-indigo-500/[0.07] dark:bg-indigo-400/10" },
     ];
@@ -116,12 +113,11 @@ export function SummaryBanner({ data, loading = true }: SummaryBannerProps) {
   const urgentAssign = overview.urgentAssignments > 0;
   const runningDone = overview.running?.completed;
 
-  const items: { icon: typeof BookOpen; label: string; value: number | string; colorClass: string; iconBgClass: string; badge?: string; badgeClass?: string; sub: string }[] = [
+  const items: { icon: typeof BookOpen; label: string; value: number | string; colorClass: string; iconBgClass: string; badge?: string; badgeClass?: string }[] = [
     {
-      icon: BookOpen, label: "今日课程", value: overview.courses,
+      icon: BookOpen, label: "今日课程", value: overview.todayCourses,
       colorClass: "text-[#4F46E5] dark:text-indigo-400",
       iconBgClass: "bg-[#ECE9FF] dark:bg-indigo-400/10",
-      sub: overview.courses > 0 ? `${overview.courses} 门课` : "无课程",
     },
     {
       icon: ClipboardList, label: "待办作业", value: overview.pendingAssignments,
@@ -129,7 +125,6 @@ export function SummaryBanner({ data, loading = true }: SummaryBannerProps) {
       iconBgClass: urgentAssign ? "bg-[#FEF2F2] dark:bg-red-400/10" : "bg-[#FEF3C7] dark:bg-amber-400/10",
       badge: urgentAssign ? `${overview.urgentAssignments}紧急` : undefined,
       badgeClass: urgentAssign ? "bg-red-500/10 text-red-600 dark:bg-red-400/15 dark:text-red-400" : "bg-amber-500/10 text-amber-700 dark:bg-amber-400/15 dark:text-amber-400",
-      sub: overview.pendingAssignments > 0 ? `${overview.pendingAssignments} 项` : "全部完成",
     },
     {
       icon: Activity, label: "阳光长跑", value: overview.running?.total ?? 0,
@@ -137,7 +132,6 @@ export function SummaryBanner({ data, loading = true }: SummaryBannerProps) {
       iconBgClass: runningDone ? "bg-[#ECFDF5] dark:bg-green-400/10" : "bg-[#FEF3C7] dark:bg-amber-400/10",
       badge: runningDone ? "已达标" : undefined,
       badgeClass: runningDone ? "bg-emerald-500/10 text-emerald-700 dark:bg-green-400/15 dark:text-green-400" : "",
-      sub: `${overview.running?.total ?? 0}/${RUNNING_GOAL} 次`,
     },
   ];
 
@@ -147,7 +141,6 @@ export function SummaryBanner({ data, loading = true }: SummaryBannerProps) {
       icon: Calculator, label: "绩点", value: overview.gpa,
       colorClass: gpaCls.colorClass,
       iconBgClass: gpaCls.iconBgClass,
-      sub: `GPA ${overview.gpa}`,
     });
   }
 

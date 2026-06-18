@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { resolveAccountPrefix } from "@/lib/account-prefix";
+// eslint-disable-next-line import/order
 import { buildNoteTree, listNotePaths } from "@/lib/notes/store";
+import { getServerDB } from "@/lib/server-db";
 
 /**
  * GET /api/notes/tree?schoolId=<schoolId>&userId=<userId>
@@ -10,9 +13,11 @@ import { buildNoteTree, listNotePaths } from "@/lib/notes/store";
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const schoolId = searchParams.get("schoolId") || "njtech";
-    const userId = searchParams.get("userId") || "default";
-    const prefix = `${schoolId}:${userId}`;
+    const schoolId = searchParams.get("schoolId");
+    const userId = searchParams.get("userId");
+    const db = getServerDB();
+    const active = db.findActiveCredentials();
+    const prefix = resolveAccountPrefix({ schoolId, userId }, active);
 
     const paths = listNotePaths(prefix);
     const tree = buildNoteTree(paths);

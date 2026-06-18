@@ -1,4 +1,6 @@
 import { RUNNING_GOAL } from "@/lib/running-utils";
+import { getItemsForDate } from "@/lib/schedule/schedule";
+import { getNowInTimeZone } from "@/lib/schedule/timezone";
 import type { ServerDB } from "@/lib/server-db";
 
 export interface DashboardSummary {
@@ -6,6 +8,7 @@ export interface DashboardSummary {
   date: string;
   overview: {
     courses: number;
+    todayCourses: number;
     pendingAssignments: number;
     urgentAssignments: number;
     running: { total: number; morning: number; completed: boolean };
@@ -17,6 +20,10 @@ export interface DashboardSummary {
 
 interface CourseEntry {
   title: string;
+  weekday: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  periods: number[];
+  weeks: string;
+  location?: string;
 }
 
 interface AssignmentEntry {
@@ -34,6 +41,7 @@ interface RunningData {
 }
 
 interface ScheduleData {
+  meta?: { week1_monday: string; tz?: string };
   courses?: CourseEntry[];
 }
 
@@ -56,11 +64,21 @@ export function buildDashboardSummary(db: ServerDB, prefix: string): DashboardSu
   const records = Array.isArray(runningData.records) ? runningData.records : [];
   const runningTotal = records.length;
 
+  // 计算今日课程数（按课表时区）
+  let todayCourses = 0;
+  if (schedule.meta?.week1_monday) {
+    const tz = schedule.meta.tz || "Asia/Shanghai";
+    const now = getNowInTimeZone(tz);
+    const { items } = getItemsForDate(schedule as { meta: { week1_monday: string }; courses: CourseEntry[] }, now);
+    todayCourses = items.length;
+  }
+
   return {
     updatedAt: new Date().toISOString(),
     date: today,
     overview: {
       courses: new Set(courses.map((c) => c.title)).size,
+      todayCourses,
       pendingAssignments: assignments.filter((a) => !a.done).length,
       urgentAssignments: assignments.filter(
         (a) => !a.done && a.deadline && a.deadline <= today

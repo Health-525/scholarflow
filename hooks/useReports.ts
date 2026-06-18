@@ -14,7 +14,9 @@ interface ReportsState {
 
 function getAuthParams(): string {
   const { schoolId, userId } = getCurrentUser();
-  return `schoolId=${encodeURIComponent(schoolId)}&userId=${encodeURIComponent(userId)}`;
+  const params = new URLSearchParams({ schoolId });
+  if (userId) params.set("userId", userId);
+  return params.toString();
 }
 
 /**

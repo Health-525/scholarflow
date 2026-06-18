@@ -59,6 +59,7 @@ interface LibraryRoom {
   lib_name: string;
   lib_floor: string;
   is_open: boolean;
+  lib_type?: number;
   lib_group_id: number;
   lib_rt: {
     seats_total: number;
@@ -114,7 +115,7 @@ export async function GET() {
   const jwt = getCachedJWT();
   if (!jwt) return NextResponse.json({ error: "JWT未配置或已过期，请在Chrome图书馆页F12运行同步命令" }, { status: 401 });
 
-  const q = `{userAuth{reserve{libs{lib_id lib_name lib_floor is_open lib_group_id lib_rt{seats_total seats_used seats_booking seats_has reserve_ttl open_time_str close_time_str advance_booking}}}}}`;
+  const q = `{userAuth{reserve{libs{lib_id lib_name lib_floor is_open lib_type lib_group_id lib_rt{seats_total seats_used seats_booking seats_has reserve_ttl open_time_str close_time_str advance_booking}}}}}`;
   const r = await graphql(jwt, q);
   if (!r.ok || r.data.errors) return NextResponse.json({ error: r.data?.errors?.[0]?.msg || "请求失败" }, { status: 500 });
 

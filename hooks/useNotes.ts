@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 import { useAuthStore } from "@/store/auth";
 
@@ -11,27 +11,38 @@ export interface NoteTreeNode {
   children?: NoteTreeNode[];
 }
 
-function getQueryPrefix(): string {
-  if (typeof window === "undefined") return "schoolId=default&userId=default";
-  const auth = useAuthStore.getState();
-  const schoolId = auth.schoolId || "default";
-  const userId = auth.userId || "default";
-  return `schoolId=${encodeURIComponent(schoolId)}&userId=${encodeURIComponent(userId)}`;
+/** 从 auth store 读当前账号参数，始终使用最新值（不调用 hook，供非 hook 函数使用） */
+function getAuthParams(): string {
+  if (typeof window === "undefined") return "";
+  const { schoolId, userId } = useAuthStore.getState();
+  const sid = schoolId || "";
+  const uid = userId || "";
+  const p = new URLSearchParams();
+  if (sid) p.set("schoolId", sid);
+  if (uid) p.set("userId", uid);
+  return p.toString();
 }
 
 /**
- * 读取笔记目录树
+ * 读取笔记目录树。
+ * 在 auth hydrate 后（schoolId/userId 从空变为实际值时）自动重新加载，
+ * 避免首次渲染拿到 default 命名空间的数据。
  */
 export function useNoteTree() {
   const [tree, setTree] = useState<NoteTreeNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  // 订阅 auth，让 schoolId/userId 变化时触发重载
+  const schoolId = useAuthStore((s) => s.schoolId);
+  const userId = useAuthStore((s) => s.userId);
+  const prevKeyRef = useRef<string | null>(null);
+
   const load = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/notes/tree?${getQueryPrefix()}`);
+      const res = await fetch(`/api/notes/tree?${getAuthParams()}`);
       if (!res.ok) throw new Error("加载文件树失败");
       const data = (await res.json()) as NoteTreeNode[];
       setTree(data);
@@ -43,19 +54,28 @@ export function useNoteTree() {
   }, []);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    // 只在账号 key 真正变化时重新加载（避免其他 auth 字段变化触发无意义请求）
+    const key = `${schoolId || ""}:${userId || ""}`;
+    if (prevKeyRef.current !== key) {
+      prevKeyRef.current = key;
+      load();
+    }
+  }, [schoolId, userId, load]);
 
   return { tree, isLoading, error, reload: load };
 }
 
 /**
- * 读取单个文件内容
+ * 读取单个文件内容。
+ * 同样在 auth hydrate 后自动重载。
  */
 export function useNoteContent(path: string | null) {
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+
+  const schoolId = useAuthStore((s) => s.schoolId);
+  const userId = useAuthStore((s) => s.userId);
 
   const load = useCallback(async () => {
     if (!path) {
@@ -66,7 +86,7 @@ export function useNoteContent(path: string | null) {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/notes?${getQueryPrefix()}&path=${encodeURIComponent(path)}`);
+      const res = await fetch(`/api/notes?${getAuthParams()}&path=${encodeURIComponent(path)}`);
       if (!res.ok) throw new Error("加载笔记失败");
       const data = (await res.json()) as { content: string };
       setContent(data.content);
@@ -75,7 +95,7 @@ export function useNoteContent(path: string | null) {
     } finally {
       setIsLoading(false);
     }
-  }, [path]);
+  }, [path, schoolId, userId]); // 账号变化时重新加载
 
   useEffect(() => {
     load();
@@ -121,6 +141,9 @@ export async function deleteNote(path: string): Promise<void> {
 }
 
 function getAuthBody(): { schoolId: string; userId: string } {
-  const auth = useAuthStore.getState();
-  return { schoolId: auth.schoolId || "default", userId: auth.userId || "default" };
+  const { schoolId, userId } = useAuthStore.getState();
+  return {
+    schoolId: schoolId || "",
+    userId: userId || "",
+  };
 }

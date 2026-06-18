@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 
+import { resolveAccountPrefix } from "@/lib/account-prefix";
+import { getServerDB } from "@/lib/server-db";
+// eslint-disable-next-line import/order
 import { deleteNote, readNote, renameNote, writeNote } from "@/lib/notes/store";
+
+function getNotePrefix(schoolId?: string | null, userId?: string | null): string {
+  const db = getServerDB();
+  const active = db.findActiveCredentials();
+  return resolveAccountPrefix({ schoolId, userId }, active);
+}
 
 /**
  * GET /api/notes?path=<path>&schoolId=<schoolId>&userId=<userId>
@@ -11,14 +20,14 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const path = searchParams.get("path");
-    const schoolId = searchParams.get("schoolId") || "njtech";
-    const userId = searchParams.get("userId") || "default";
+    const schoolId = searchParams.get("schoolId");
+    const userId = searchParams.get("userId");
 
     if (!path) {
       return NextResponse.json({ error: "missing path" }, { status: 400 });
     }
 
-    const prefix = `${schoolId}:${userId}`;
+    const prefix = getNotePrefix(schoolId, userId);
     const content = readNote(prefix, path);
 
     if (content === null) {
@@ -49,8 +58,8 @@ interface NotesActionBody {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as NotesActionBody;
-    const { action, path, schoolId = "njtech", userId = "default" } = body;
-    const prefix = `${schoolId}:${userId}`;
+    const { action, path, schoolId, userId } = body;
+    const prefix = getNotePrefix(schoolId, userId);
 
     if (!path) {
       return NextResponse.json({ error: "missing path" }, { status: 400 });

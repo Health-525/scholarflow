@@ -51,19 +51,20 @@ export async function mobileWriteFile(fileName: string, content: string): Promis
  * 获取当前登录用户的 schoolId 和 userId
  * 从 localStorage 的 sf_auth 中读取
  */
-export function getCurrentUser(): { schoolId: string; userId: string } {
+export function getCurrentUser(): { schoolId: string; userId: string | undefined } {
   try {
     const raw = localStorage.getItem("sf_auth");
     if (raw) {
       const parsed = JSON.parse(raw);
       const state = parsed?.state || parsed;
+      const userId = state?.userId || state?.username;
       return {
         schoolId: state?.schoolId || "njtech",
-        userId: state?.userId || state?.username || "default",
+        userId: userId?.trim() ? userId.trim() : undefined,
       };
     }
   } catch {}
-  return { schoolId: "njtech", userId: "default" };
+  return { schoolId: "njtech", userId: undefined };
 }
 
 export async function readData(type: string): Promise<unknown> {
@@ -76,8 +77,10 @@ export async function readData(type: string): Promise<unknown> {
 
   // Web/Electron: 赳 API — 带 schoolId/userId 实现账号隔离
   const { schoolId, userId } = getCurrentUser();
+  const params = new URLSearchParams({ type, schoolId });
+  if (userId) params.set("userId", userId);
   try {
-    const res = await fetch(`/api/local-data?type=${type}&schoolId=${schoolId}&userId=${userId}`);
+    const res = await fetch(`/api/local-data?${params.toString()}`);
     if (res.ok) return await res.json();
   } catch {}
   return null;
@@ -91,10 +94,12 @@ export async function writeData(file: string, content: string, action = "更新"
 
   // Web/Electron: 走 API (带 git commit)
   const { schoolId, userId } = getCurrentUser();
+  const body: Record<string, string> = { file, content, action, schoolId };
+  if (userId) body.userId = userId;
   await fetch("/api/local-save", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ file, content, action, schoolId, userId }),
+    body: JSON.stringify(body),
   });
 }
 

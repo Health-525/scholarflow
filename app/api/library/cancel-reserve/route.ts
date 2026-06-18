@@ -8,12 +8,31 @@ export async function POST(request: Request) {
   const jwt = getCachedJWT();
   if (!jwt) return NextResponse.json({ error: "JWT未配置或已过期" }, { status: 401 });
 
-  const { sToken } = await request.json();
-  if (!sToken) return NextResponse.json({ error: "缺少sToken参数" }, { status: 400 });
+  let body: { sToken?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "请求体格式错误" }, { status: 400 });
+  }
 
-  // reserveCancle returns reserveCancle type — query __typename to get result
-  const query = `mutation{userAuth{reserve{reserveCancle(sToken:"${sToken}"){__typename}}}}`;
-  const r = await graphql(jwt, query);
+  const { sToken } = body;
+  if (!sToken || typeof sToken !== "string") {
+    return NextResponse.json({ error: "缺少sToken参数" }, { status: 400 });
+  }
+
+  // 限制 sToken 格式：只允许字母、数字、横线、下划线，防止注入
+  if (!/^[A-Za-z0-9_-]+$/.test(sToken)) {
+    return NextResponse.json({ error: "sToken格式非法" }, { status: 400 });
+  }
+
+  const query = `mutation CancelReserve($sToken: String!) {
+    userAuth {
+      reserve {
+        reserveCancle(sToken: $sToken) { __typename }
+      }
+    }
+  }`;
+  const r = await graphql(jwt, query, { sToken });
 
   if (r.data.errors) {
     const msg = r.data.errors[0]?.msg || "取消失败";

@@ -69,8 +69,8 @@ function AssignmentList({ assignments, onMarkDone, onReorder, undoBuffer, onUndo
     return (
       <div className="text-center py-12 text-muted-foreground">
         <ClipboardList className="w-10 h-10 mx-auto mb-3 opacity-30" />
-        <p className="text-sm">暂无作业</p>
-        <p className="text-xs mt-1">点击右上角「+ 新增」添加</p>
+        <p className="text-sm">暂无待办作业</p>
+        <p className="text-xs mt-1 text-muted-foreground/60">添加后会在这里显示</p>
       </div>
     );
   }

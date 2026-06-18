@@ -7,6 +7,7 @@ import { buildAssignment, sortAssignments } from "@/lib/assignment-utils";
 import { readData, writeData } from "@/lib/mobile-data";
 import { loadAdjustments } from "@/lib/schedule/adjustments";
 import { parseSchedule } from "@/lib/schedule/schedule";
+import { useAuthStore } from "@/store/auth";
 import type { Assignment, AssignmentDraft, RunRecord, RunType } from "@/types";
 
 // ============================================================
@@ -19,10 +20,11 @@ import type { Assignment, AssignmentDraft, RunRecord, RunType } from "@/types";
 // ============================================================
 
 // ── Query Key 工厂 ──────────────────────────────────────────
+// 把 userId 放进 queryKey，账号切换时 React Query 会自动重新请求，避免缓存串号。
 export const queryKeys = {
-  schedule: ["schedule"] as const,
-  assignments: ["assignments"] as const,
-  running: ["running"] as const,
+  schedule: (userId?: string) => ["schedule", userId ?? "active"] as const,
+  assignments: (userId?: string) => ["assignments", userId ?? "active"] as const,
+  running: (userId?: string) => ["running", userId ?? "active"] as const,
   jwcNews: ["jwcNews"] as const,
   dailyReports: ["dailyReports"] as const,
   weeklyReports: ["weeklyReports"] as const,
@@ -77,8 +79,9 @@ function parseLocalRecords(local: unknown): RunRecord[] | null {
 
 // ── Schedule Hook ──────────────────────────────────────────
 export function useScheduleQuery() {
+  const userId = useAuthStore((s) => s.userId);
   return useQuery({
-    queryKey: queryKeys.schedule,
+    queryKey: queryKeys.schedule(userId ?? undefined),
     queryFn: async () => {
       const local = await tryLocalApi("schedule") as Record<string, unknown> | null;
       if (local?.courses) {
@@ -98,10 +101,12 @@ export function useScheduleQuery() {
 // ── Assignments Hook ───────────────────────────────────────
 export function useAssignmentsQuery() {
   const queryClient = useQueryClient();
+  const userId = useAuthStore((s) => s.userId);
+  const assignmentsKey = queryKeys.assignments(userId ?? undefined);
   const [undoBuffer, setUndoBuffer] = useState<{ assignment: Assignment; expiresAt: number } | null>(null);
 
   const query = useQuery({
-    queryKey: queryKeys.assignments,
+    queryKey: assignmentsKey,
     queryFn: async () => {
       const local = await tryLocalApi("assignments");
       const localAssignments = parseLocalAssignments(local);
@@ -116,7 +121,7 @@ export function useAssignmentsQuery() {
 
   const addMutation = useMutation({
     mutationFn: async (draft: AssignmentDraft) => {
-      const current = queryClient.getQueryData<Assignment[]>(queryKeys.assignments) ?? [];
+      const current = queryClient.getQueryData<Assignment[]>(assignmentsKey) ?? [];
       const newAssignment = buildAssignment(draft);
       const updated = sortAssignments([...current, newAssignment]);
       const content = JSON.stringify(updated, null, 2);
@@ -124,13 +129,13 @@ export function useAssignmentsQuery() {
       return updated;
     },
     onSuccess: (updated) => {
-      queryClient.setQueryData(queryKeys.assignments, updated);
+      queryClient.setQueryData(assignmentsKey, updated);
     },
   });
 
   const markDoneMutation = useMutation({
     mutationFn: async (id: string) => {
-      const current = queryClient.getQueryData<Assignment[]>(queryKeys.assignments) ?? [];
+      const current = queryClient.getQueryData<Assignment[]>(assignmentsKey) ?? [];
       const target = current.find((a) => a.id === id);
       const updated = current.map((a) =>
         a.id === id ? { ...a, done: true, completedAt: new Date().toISOString() } : a
@@ -140,7 +145,7 @@ export function useAssignmentsQuery() {
       return { updated, id, target };
     },
     onSuccess: ({ updated, target }) => {
-      queryClient.setQueryData(queryKeys.assignments, updated);
+      queryClient.setQueryData(assignmentsKey, updated);
       if (target) {
         setUndoBuffer({ assignment: target, expiresAt: Date.now() + 10_000 });
       }
@@ -149,7 +154,7 @@ export function useAssignmentsQuery() {
 
   const undoMutation = useMutation({
     mutationFn: async (id: string) => {
-      const current = queryClient.getQueryData<Assignment[]>(queryKeys.assignments) ?? [];
+      const current = queryClient.getQueryData<Assignment[]>(assignmentsKey) ?? [];
       const updated = current.map((a) =>
         a.id === id ? { ...a, done: false, completedAt: undefined } : a
       );
@@ -158,7 +163,7 @@ export function useAssignmentsQuery() {
       return updated;
     },
     onSuccess: (updated) => {
-      queryClient.setQueryData(queryKeys.assignments, updated);
+      queryClient.setQueryData(assignmentsKey, updated);
       setUndoBuffer(null);
     },
   });
@@ -171,7 +176,7 @@ export function useAssignmentsQuery() {
       return updated;
     },
     onSuccess: (updated) => {
-      queryClient.setQueryData(queryKeys.assignments, updated);
+      queryClient.setQueryData(assignmentsKey, updated);
     },
   });
 
@@ -202,9 +207,11 @@ export function useAssignmentsQuery() {
 // ── Running Hook ───────────────────────────────────────────
 export function useRunningQuery() {
   const queryClient = useQueryClient();
+  const userId = useAuthStore((s) => s.userId);
+  const runningKey = queryKeys.running(userId ?? undefined);
 
   const query = useQuery({
-    queryKey: queryKeys.running,
+    queryKey: runningKey,
     queryFn: async () => {
       const local = await tryLocalApi("running");
       const localRecords = parseLocalRecords(local);
@@ -219,7 +226,7 @@ export function useRunningQuery() {
 
   const addMutation = useMutation({
     mutationFn: async (record: { date: string; type: RunType }) => {
-      const current = queryClient.getQueryData<RunRecord[]>(queryKeys.running) ?? [];
+      const current = queryClient.getQueryData<RunRecord[]>(runningKey) ?? [];
       const newRecord: RunRecord = { ...record, createdAt: new Date().toISOString() };
       const updated = [...current, newRecord];
       const content = JSON.stringify({ records: updated }, null, 2);
@@ -227,7 +234,7 @@ export function useRunningQuery() {
       return updated;
     },
     onSuccess: (updated) => {
-      queryClient.setQueryData(queryKeys.running, updated);
+      queryClient.setQueryData(runningKey, updated);
     },
   });
 
@@ -297,9 +304,10 @@ export function useRefreshData() {
       };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.schedule });
-      queryClient.invalidateQueries({ queryKey: queryKeys.assignments });
-      queryClient.invalidateQueries({ queryKey: queryKeys.running });
+      // 用前缀匹配，使所有账号的 schedule/assignments/running 缓存都失效
+      queryClient.invalidateQueries({ queryKey: ["schedule"] });
+      queryClient.invalidateQueries({ queryKey: ["assignments"] });
+      queryClient.invalidateQueries({ queryKey: ["running"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.jwcNews });
     },
   });

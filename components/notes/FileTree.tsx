@@ -45,7 +45,7 @@ export function FileTree({ onSelect, activePath }: FileTreeProps) {
   }
 
   return (
-    <div className="py-2 text-[12px] font-mono select-none">
+    <div className="py-1 select-none">
       {tree.map((node) => (
         <TreeNodeView
           key={node.path}
@@ -87,39 +87,30 @@ function TreeNodeView({
     }
   };
 
-  const getIcon = () => {
-    if (isDir) return isExpanded ? "📂" : "📁";
-    const ext = node.name.split(".").pop()?.toLowerCase();
-    if (ext === "md") return "📝";
-    if (ext === "png" || ext === "jpg" || ext === "jpeg" || ext === "gif") return "🖼";
-    if (ext === "py") return "🐍";
-    if (ext === "js" || ext === "ts") return "📜";
-    return "📄";
-  };
+  // 简洁图标：目录用箭头区分展开/折叠，文件统一用点
+  const icon = isDir ? (isExpanded ? "▾" : "▸") : null;
 
   return (
     <div>
       <button
         type="button"
         onClick={handleClick}
-        className={`w-full text-left flex items-center gap-1 px-2 py-[3px] transition-colors hover:bg-accent/5 ${
-          isActive ? "bg-primary/10 text-primary" : "text-muted-foreground"
+        className={`w-full text-left flex items-center gap-1.5 px-2 py-[5px] rounded-lg mx-1 transition-colors text-[13px] hover:bg-accent/8 ${
+          isActive ? "bg-primary/10 text-primary font-medium" : "text-foreground"
         }`}
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
+        style={{ paddingLeft: `${depth * 14 + 8}px` }}
         title={node.path}
       >
-        {isDir && (
-          <span
-            className="w-4 text-center shrink-0 transition-transform text-muted-foreground text-[10px]"
-            style={{ transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}
-            aria-hidden="true"
-          >
-            ▶
+        {isDir ? (
+          <span className="w-3 shrink-0 text-muted-foreground text-[11px]" aria-hidden="true">
+            {icon}
+          </span>
+        ) : (
+          <span className="w-3 shrink-0 flex items-center justify-center" aria-hidden="true">
+            <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-primary" : "bg-muted-foreground/40"}`} />
           </span>
         )}
-        {!isDir && <span className="w-4 shrink-0" />}
-        <span className="shrink-0 text-xs">{getIcon()}</span>
-        <span className="truncate">{node.name}</span>
+        <span className={`truncate ${isDir ? "font-medium text-foreground" : ""}`}>{node.name}</span>
       </button>
       {isExpanded &&
         node.children?.map((child) => (

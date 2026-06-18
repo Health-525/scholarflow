@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { SIDE_NAV_GROUPS, SIDE_NAV_SETTINGS, type NavItemConfig } from "@/config/navigation";
 
 function NavItem({ item }: { item: NavItemConfig }) {
-  const { href, label, icon: Icon } = item;
+  const { href, label, icon: Icon, wip } = item;
   const pathname = usePathname();
   const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -20,6 +20,8 @@ function NavItem({ item }: { item: NavItemConfig }) {
         "group flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 cursor-pointer",
         active
           ? "bg-[#F1F4FF] text-[#4F46E5] dark:bg-primary/[0.12] dark:text-white"
+          : wip
+          ? "text-muted-foreground/50 hover:bg-muted/30 hover:text-muted-foreground"
           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
       ].join(" ")}
     >
@@ -33,9 +35,14 @@ function NavItem({ item }: { item: NavItemConfig }) {
       />
       <Icon className={[
         "shrink-0 h-[18px] w-[18px] transition-colors duration-150",
-        active ? "text-[#4F46E5]" : "text-muted-foreground/60 group-hover:text-foreground",
+        active ? "text-[#4F46E5]" : wip ? "text-muted-foreground/30" : "text-muted-foreground/60 group-hover:text-foreground",
       ].join(" ")} />
-      <span className="tracking-wide">{label}</span>
+      <span className="tracking-wide flex-1">{label}</span>
+      {wip && (
+        <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground/60 shrink-0">
+          开发中
+        </span>
+      )}
     </Link>
   );
 }

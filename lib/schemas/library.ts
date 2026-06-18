@@ -1,38 +1,38 @@
 import { z } from "zod";
 
 export const libraryRoomSchema = z.object({
-  lib_id: z.number(),
+  lib_id: z.coerce.number(),
   lib_name: z.string(),
   lib_floor: z.string(),
-  is_open: z.boolean(),
-  lib_type: z.number(),
-  lib_group_id: z.number(),
+  is_open: z.coerce.boolean(),
+  lib_type: z.coerce.number().optional().default(0),
+  lib_group_id: z.coerce.number(),
   lib_rt: z.object({
-    seats_total: z.number(),
-    seats_used: z.number(),
-    seats_booking: z.number(),
-    seats_has: z.number(),
-    reserve_ttl: z.number(),
+    seats_total: z.coerce.number(),
+    seats_used: z.coerce.number(),
+    seats_booking: z.coerce.number(),
+    seats_has: z.coerce.number(),
+    reserve_ttl: z.coerce.number(),
     open_time_str: z.string(),
     close_time_str: z.string(),
     advance_booking: z.string(),
   }),
   lib_layout: z
     .object({
-      seats_total: z.number(),
-      seats_used: z.number(),
-      seats_booking: z.number(),
-      max_x: z.number(),
-      max_y: z.number(),
+      seats_total: z.coerce.number(),
+      seats_used: z.coerce.number(),
+      seats_booking: z.coerce.number(),
+      max_x: z.coerce.number(),
+      max_y: z.coerce.number(),
       seats: z.array(
         z.object({
-          x: z.number(),
-          y: z.number(),
+          x: z.coerce.number(),
+          y: z.coerce.number(),
           key: z.string(),
-          type: z.number(),
+          type: z.coerce.number(),
           name: z.string(),
-          seat_status: z.number(),
-          status: z.boolean(),
+          seat_status: z.coerce.number(),
+          status: z.coerce.boolean(),
         })
       ),
     })
@@ -42,28 +42,30 @@ export const libraryRoomSchema = z.object({
 export const libraryDataSchema = z.object({
   updated: z.string(),
   summary: z.object({
-    total: z.number(),
-    used: z.number(),
-    avail: z.number(),
-    rate: z.number(),
+    total: z.coerce.number(),
+    used: z.coerce.number(),
+    avail: z.coerce.number(),
+    rate: z.coerce.number(),
   }),
   libs: z.array(libraryRoomSchema),
 });
 
+// 不同 API 返回的 reserve 对象字段可能不同（user-status 只返回部分字段），全部设为可选
+// date 可能是 Unix 时间戳数字或日期字符串
 export const libraryReserveSchema = z.object({
-  lib_id: z.number(),
-  seat_key: z.string(),
-  seat_name: z.string(),
-  lib_name: z.string(),
-  status: z.number(),
-  user_id: z.number(),
-  date: z.string(),
-  token: z.string(),
+  lib_id: z.coerce.number().optional().default(0),
+  seat_key: z.string().optional().default(""),
+  seat_name: z.string().optional().default(""),
+  lib_name: z.string().optional().default(""),
+  status: z.coerce.number().optional().default(0),
+  user_id: z.coerce.number().optional().default(0),
+  date: z.union([z.number(), z.string()]).optional().default(""),
+  token: z.string().optional().default(""),
 });
 
 export const libraryUserStatusSchema = z.object({
   reserve: libraryReserveSchema.nullable(),
-  rank: z.number().nullable(),
+  rank: z.coerce.number().nullable(),
 });
 
 export const libraryReserveStatusSchema = z.object({
@@ -71,25 +73,25 @@ export const libraryReserveStatusSchema = z.object({
 });
 
 export const libraryLayoutSchema = z.object({
-  lib_id: z.number(),
+  lib_id: z.coerce.number(),
   lib_name: z.string(),
   lib_floor: z.string(),
   lib_rt: z.object({
-    seats_total: z.number(),
-    seats_used: z.number(),
-    seats_has: z.number(),
+    seats_total: z.coerce.number(),
+    seats_used: z.coerce.number(),
+    seats_has: z.coerce.number(),
     open_time_str: z.string(),
     close_time_str: z.string(),
   }),
   lib_layout: z.object({
     seats: z.array(
       z.object({
-        x: z.number(),
-        y: z.number(),
+        x: z.coerce.number(),
+        y: z.coerce.number(),
         key: z.string(),
         name: z.string().nullable(),
-        seat_status: z.number(),
-        status: z.boolean(),
+        seat_status: z.coerce.number(),
+        status: z.coerce.boolean(),
       })
     ),
   }),

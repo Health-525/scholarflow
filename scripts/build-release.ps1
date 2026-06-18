@@ -7,15 +7,27 @@
     任意步骤失败立即中止，输出带颜色的进度和耗时。
 .PARAMETER SkipCheck
     跳过 TypeScript 类型检查、ESLint、单元测试（用于快速迭代）
+.PARAMETER SkipBuild
+    跳过 Next.js 生产构建，直接复用已生成的 .next/standalone
+.PARAMETER OnlyDir
+    只生成 win-unpacked 目录，不生成 installer/portable 安装包（最快验证）
+.PARAMETER PrePackaged
+    完全复用已有的 dist/win-unpacked，跳过 Next.js 构建、postbuild 和 packaging
 .PARAMETER Target
     打包目标：'all'（默认，installer + portable）| 'installer' | 'portable'
 .EXAMPLE
     .\scripts\build-release.ps1
     .\scripts\build-release.ps1 -SkipCheck
     .\scripts\build-release.ps1 -Target portable
+    .\scripts\build-release.ps1 -SkipCheck -OnlyDir
+    .\scripts\build-release.ps1 -SkipCheck -SkipBuild -Target installer
+    .\scripts\build-release.ps1 -SkipCheck -PrePackaged -Target installer
 #>
 param(
     [switch]$SkipCheck,
+    [switch]$SkipBuild,
+    [switch]$OnlyDir,
+    [switch]$PrePackaged,
     [ValidateSet('all', 'installer', 'portable')]
     [string]$Target = 'all'
 )
@@ -91,6 +103,9 @@ Write-Host '╚═════════════════════�
 Write-Host "   根目录  : $root"
 Write-Host "   目标    : $Target"
 Write-Host "   跳过检查: $($SkipCheck.IsPresent)"
+Write-Host "   跳过构建: $($SkipBuild.IsPresent)"
+Write-Host "   仅生成目录: $($OnlyDir.IsPresent)"
+Write-Host "   复用产物: $($PrePackaged.IsPresent)"
 Write-Host "   时间    : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 
 # 检查 Node / npm 是否可用
@@ -116,24 +131,38 @@ if (-not $SkipCheck) {
     Write-Host "`n⚠  已跳过质量检查（-SkipCheck）" -ForegroundColor Yellow
 }
 
-# ── 步骤 2：Next.js 生产构建 ────────────────────────────────
+# ── 步骤 2：Next.js 生产构建（可跳过）───────────────────────
 
-Invoke-Step 'Next.js 生产构建' {
-    npm run build
+if (-not $SkipBuild) {
+    Invoke-Step 'Next.js 生产构建' {
+        npm run build
+    }
+} else {
+    Write-Host "`n⚠  已跳过 Next.js 生产构建（-SkipBuild）" -ForegroundColor Yellow
 }
 
 # ── 步骤 3：postbuild 后处理（含 Electron ABI 切换）────────
 
-Invoke-Step 'Postbuild 后处理 & ABI 对齐' {
-    node electron/postbuild.js
+if (-not $PrePackaged) {
+    Invoke-Step 'Postbuild 后处理 & ABI 对齐' {
+        node electron/postbuild.js
+    }
+} else {
+    Write-Host "`n⚠  已跳过 Postbuild（-PrePackaged，复用 dist/win-unpacked）" -ForegroundColor Yellow
 }
 
 # ── 步骤 4：electron-builder 打包 ──────────────────────────
 
-$builderArgs = switch ($Target) {
-    'installer' { @('--win', 'nsis') }
-    'portable'  { @('--win', 'portable') }
-    default     { @('--win') }   # all: nsis + portable（来自 package.json build.win.target）
+$builderArgs = if ($PrePackaged) {
+    @('--win', '--prepackaged', 'dist/win-unpacked')
+} elseif ($OnlyDir) {
+    @('--win', '--dir')
+} else {
+    switch ($Target) {
+        'installer' { @('--win', 'nsis') }
+        'portable'  { @('--win', 'portable') }
+        default     { @('--win') }   # all: nsis + portable（来自 package.json build.win.target）
+    }
 }
 
 Invoke-Step "electron-builder 打包 [$Target]" {
@@ -146,7 +175,7 @@ $total = Get-Elapsed $totalStart
 
 Write-Host ''
 Write-Host '╔══════════════════════════════════════════╗' -ForegroundColor Green
-Write-Host "║   ✔  打包完成！总耗时 $total".PadRight(43) + '║' -ForegroundColor Green
+Write-Host "║   ✔  打包完成！总耗时 $total" -ForegroundColor Green
 Write-Host '╚══════════════════════════════════════════╝' -ForegroundColor Green
 Write-Host ''
 

@@ -34,6 +34,8 @@ export interface NavItemConfig {
   searchTitle?: string;
   /** 全局搜索关键词 */
   keywords?: string[];
+  /** 标记为开发中，UI 可据此展示灰色状态 */
+  wip?: boolean;
 }
 
 export interface NavGroupConfig {
@@ -71,8 +73,8 @@ export const SIDE_NAV_GROUPS: NavGroupConfig[] = [
       { id: "running", href: "/running", label: "跑步", icon: Activity, keywords: ["跑步", "运动"], searchTitle: "阳光长跑" },
       { id: "activity", href: "/activity", label: "屏幕时间", icon: Monitor, keywords: ["屏幕时间", "使用统计"] },
       { id: "library", href: "/library", label: "图书馆", icon: Library, keywords: ["图书馆", "座位", "选座"] },
-      { id: "wrinkle", href: "/wrinkle", label: "皮肤检测", icon: Sparkles, keywords: ["皮肤", "检测"] },
-      { id: "monitoring", href: "/monitoring", label: "Agent", icon: HeartPulse, keywords: ["Agent", "监控"] },
+      { id: "monitoring", href: "/monitoring", label: "数据同步", icon: HeartPulse, keywords: ["同步", "监控", "Agent"] },
+      { id: "wrinkle", href: "/wrinkle", label: "皮肤检测", icon: Sparkles, keywords: ["皮肤", "检测"], wip: true },
     ],
   },
 ];
@@ -96,7 +98,7 @@ export const BOTTOM_NAV_CORE: NavItemConfig[] = [
   { id: "library", href: "/library", label: "图书馆", icon: Library, keywords: ["图书馆", "座位", "选座"] },
 ];
 
-// 底部导航“更多”抽屉分组
+// 底部导航"更多"抽屉分组
 export const BOTTOM_NAV_MORE_GROUPS: NavGroupConfig[] = [
   {
     label: "学业",
@@ -125,8 +127,8 @@ export const BOTTOM_NAV_MORE_GROUPS: NavGroupConfig[] = [
   {
     label: "更多",
     items: [
-      { id: "wrinkle", href: "/wrinkle", label: "皮肤检测", icon: Sparkles, keywords: ["皮肤", "检测"] },
-      { id: "monitoring", href: "/monitoring", label: "Agent", icon: HeartPulse, keywords: ["Agent", "监控"] },
+      { id: "monitoring", href: "/monitoring", label: "数据同步", icon: HeartPulse, keywords: ["同步", "监控", "Agent"] },
+      { id: "wrinkle", href: "/wrinkle", label: "皮肤检测", icon: Sparkles, keywords: ["皮肤", "检测"], wip: true },
     ],
   },
 ];
@@ -150,5 +152,6 @@ export const GLOBAL_SEARCH_ITEMS: NavItemConfig[] = [
   { id: "activity", href: "/activity", label: "屏幕时间", icon: Monitor, keywords: ["屏幕时间", "使用统计"] },
   { id: "stats", href: "/stats", label: "统计", icon: BarChart3, keywords: ["统计", "数据"], searchTitle: "统计" },
   { id: "gpa", href: "/gpa", label: "绩点", icon: Percent, keywords: ["绩点", "GPA", "成绩"], searchTitle: "GPA" },
+  { id: "monitoring", href: "/monitoring", label: "数据同步", icon: HeartPulse, keywords: ["同步", "监控"] },
   { id: "settings", href: "/settings", label: "用户中心", icon: Settings, keywords: ["设置", "配置"], searchTitle: "设置" },
 ];

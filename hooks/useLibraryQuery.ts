@@ -21,6 +21,35 @@ class JWTExpiredError extends Error {
   }
 }
 
+const LIBRARY_CANCEL_TOKEN_KEY = "scholarflow-library-cancel-token";
+
+function extractCancelToken(result: unknown): string | null {
+  if (!result) return null;
+  if (typeof result === "string") return result;
+  if (typeof result === "object") {
+    const obj = result as Record<string, unknown>;
+    if (typeof obj.sToken === "string") return obj.sToken;
+    if (typeof obj.token === "string") return obj.token;
+    if (typeof obj.cancelToken === "string") return obj.cancelToken;
+  }
+  return null;
+}
+
+function saveCancelToken(result: unknown) {
+  const token = extractCancelToken(result);
+  if (token) {
+    try { localStorage.setItem(LIBRARY_CANCEL_TOKEN_KEY, token); } catch {}
+  }
+}
+
+function loadCancelToken(): string | null {
+  try { return localStorage.getItem(LIBRARY_CANCEL_TOKEN_KEY); } catch { return null; }
+}
+
+function clearCancelToken() {
+  try { localStorage.removeItem(LIBRARY_CANCEL_TOKEN_KEY); } catch {}
+}
+
 async function handleResponse<T>(r: Response, schema: import("zod").ZodType<T>): Promise<T> {
   if (r.status === 401) throw new JWTExpiredError();
   if (!r.ok) {
@@ -36,6 +65,7 @@ export const libraryQueryKeys = {
   data: () => [...libraryQueryKeys.all, "data"] as const,
   userStatus: () => [...libraryQueryKeys.all, "user-status"] as const,
   reserveStatus: () => [...libraryQueryKeys.all, "reserve-status"] as const,
+  messages: (type: number) => [...libraryQueryKeys.all, "messages", String(type)] as const,
   layout: (libId: string) => [...libraryQueryKeys.all, "layout", libId] as const,
 };
 
@@ -73,6 +103,33 @@ export function useLibraryReserveStatus(enabled = true) {
   });
 }
 
+export interface LibraryMessage {
+  title: string;
+  content: string;
+  create_time: string;
+  isread: number;
+  isused: number;
+}
+
+export function useLibraryMessages(type = 1, enabled = true) {
+  return useQuery<{ messages: LibraryMessage[] }, Error>({
+    queryKey: libraryQueryKeys.messages(type),
+    queryFn: async () => {
+      const r = await fetch(`/api/library/messages?page=1&num=20&type=${type}`);
+      if (r.status === 401) throw new JWTExpiredError();
+      if (!r.ok) {
+        const json = await r.json().catch(() => ({}));
+        throw new Error(json.error || `请求失败 (${r.status})`);
+      }
+      const json = await r.json();
+      return { messages: Array.isArray(json.messages) ? json.messages : [] };
+    },
+    staleTime: 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    enabled,
+  });
+}
+
 export function useLibraryLayout(libId: string | null) {
   return useQuery<LibraryLayoutInput, Error>({
     queryKey: libraryQueryKeys.layout(libId ?? ""),
@@ -85,7 +142,7 @@ export function useLibraryLayout(libId: string | null) {
 
 export function useReserveSeat() {
   const queryClient = useQueryClient();
-  return useMutation<{ success: boolean }, Error, { libId: number; key: string }>({
+  return useMutation<{ success: boolean; data?: unknown }, Error, { libId: number; key: string }>({
     mutationFn: async ({ libId, key }) => {
       const r = await fetch("/api/library/reserve", {
         method: "POST",
@@ -98,20 +155,33 @@ export function useReserveSeat() {
       if (!json.success) throw new Error(`未知响应: ${JSON.stringify(json)}`);
       return json;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: libraryQueryKeys.all });
+    onSuccess: async (data) => {
+      // 保存取消预约用的 sToken（有效期仅约 2 分钟）
+      saveCancelToken(data.data);
+      // 立即刷新当前预约和用户信息
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: libraryQueryKeys.reserveStatus() }),
+        queryClient.refetchQueries({ queryKey: libraryQueryKeys.userStatus() }),
+        queryClient.refetchQueries({ queryKey: libraryQueryKeys.data() }),
+      ]);
     },
   });
 }
 
 export function useCancelReserve() {
   const queryClient = useQueryClient();
-  return useMutation<Record<string, unknown>, Error, { sToken: string }>({
-    mutationFn: async ({ sToken }) => {
+  return useMutation<Record<string, unknown>, Error, { sToken?: string }>({
+    mutationFn: async () => {
+      // 取消预约必须使用预约成功时返回的 sToken（reserve-status 里的 token 不是它）
+      const cancelToken = loadCancelToken();
+      if (!cancelToken) {
+        throw new Error("取消令牌已过期或不存在，请在官方页面取消，或重新预约");
+      }
+
       const r = await fetch("/api/library/cancel-reserve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sToken }),
+        body: JSON.stringify({ sToken: cancelToken }),
       });
       if (r.status === 401) throw new JWTExpiredError();
       if (!r.ok) {
@@ -120,9 +190,13 @@ export function useCancelReserve() {
       }
       return r.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: libraryQueryKeys.reserveStatus() });
-      queryClient.invalidateQueries({ queryKey: libraryQueryKeys.data() });
+    onSuccess: async () => {
+      clearCancelToken();
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: libraryQueryKeys.reserveStatus() }),
+        queryClient.refetchQueries({ queryKey: libraryQueryKeys.userStatus() }),
+        queryClient.refetchQueries({ queryKey: libraryQueryKeys.data() }),
+      ]);
     },
   });
 }
@@ -139,8 +213,11 @@ export function useHoldSeat() {
       }
       return r.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: libraryQueryKeys.reserveStatus() });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: libraryQueryKeys.reserveStatus() }),
+        queryClient.refetchQueries({ queryKey: libraryQueryKeys.userStatus() }),
+      ]);
     },
   });
 }

@@ -268,6 +268,28 @@ export class ServerDB {
     }
   }
 
+  /**
+   * 当有效凭证不存在时，从本地已保存的数据中推断最近使用的账号前缀。
+   * 优先查找 schedule/grades/dashboard-summary 等关键 key，避免凭证过期后读到空 default。
+   */
+  findLocalAccountPrefix(schoolId = "njtech"): string | null {
+    const keys = this.listKeys();
+    const candidates = new Map<string, number>();
+
+    for (const key of keys) {
+      const match = key.match(/^(schedule|grades|dashboard-summary|assignments|running|exams):([^:]+):([^:]+)$/);
+      if (!match) continue;
+      const [, , kSchool, userId] = match;
+      if (kSchool !== schoolId) continue;
+      if (userId === "default") continue;
+      const prefix = `${kSchool}:${userId}`;
+      candidates.set(prefix, (candidates.get(prefix) || 0) + 1);
+    }
+
+    if (candidates.size === 0) return null;
+    return [...candidates.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  }
+
   listKeys(): string[] {
     return (this.stmts.listKeys.all() as { key: string }[]).map((r) => r.key);
   }

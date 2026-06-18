@@ -30,8 +30,8 @@ function getCachedJWT(): string | null {
   return null;
 }
 
-function graphql<T = unknown>(jwt: string, query: string) {
-  const body = JSON.stringify({ query });
+function graphql<T = unknown>(jwt: string, query: string, variables?: Record<string, unknown>) {
+  const body = JSON.stringify({ query, variables });
   const hostname = process.env.LIBRARY_API_HOSTNAME || "seat.njtech.edu.cn";
   const allowInsecure = process.env.NODE_ENV === "development" || process.env.LIBRARY_ALLOW_INSECURE === "true";
   return new Promise<{ ok: boolean; data: T }>(resolve => {
@@ -59,15 +59,46 @@ export async function GET(request: Request) {
   if (!jwt) return NextResponse.json({ error: "JWT未配置或已过期" }, { status: 401 });
 
   const { searchParams } = new URL(request.url);
-  const libId = searchParams.get("lib_id");
-  if (!libId) return NextResponse.json({ error: "缺少 lib_id" }, { status: 400 });
+  const rawLibId = searchParams.get("lib_id");
+  const libId = rawLibId ? Number(rawLibId) : NaN;
+  if (!Number.isFinite(libId) || libId <= 0) {
+    return NextResponse.json({ error: "lib_id必须是正整数" }, { status: 400 });
+  }
 
-  const query = `{userAuth{reserve{libs(libId:${libId}){lib_id lib_name lib_floor lib_rt{seats_total seats_used seats_has open_time_str close_time_str}lib_layout{seats{x y key name seat_status status}}}}}}`;
+  const query = `query SeatLayout($libId: Int!) {
+    userAuth {
+      reserve {
+        libs(libId: $libId) {
+          lib_id
+          lib_name
+          lib_floor
+          lib_rt {
+            seats_total
+            seats_used
+            seats_has
+            open_time_str
+            close_time_str
+          }
+          lib_layout {
+            seats {
+              x
+              y
+              key
+              name
+              seat_status
+              status
+            }
+          }
+        }
+      }
+    }
+  }`;
+
   type Response = {
     errors?: Array<{ msg?: string }>;
     data?: { userAuth?: { reserve?: { libs?: unknown[] } } };
   };
-  const r = await graphql<Response>(jwt, query);
+  const r = await graphql<Response>(jwt, query, { libId });
   if (!r.ok || r.data.errors) return NextResponse.json({ error: r.data.errors?.[0]?.msg || "请求失败" }, { status: 500 });
 
   const lib = r.data.data?.userAuth?.reserve?.libs?.[0];

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { DEFAULT_SCHOOL_ID } from "@/lib/account-prefix";
 import { resolveAccountPrefix, resolveSchoolId, resolveUserId } from "@/lib/account-prefix";
 import { getDashboardSummary } from "@/lib/dashboard/summary";
 import { getServerDB } from "@/lib/server-db";
@@ -18,8 +19,16 @@ export async function GET(request: Request) {
 
   const db = getServerDB();
   const active = db.findActiveCredentials();
-  const prefix = resolveAccountPrefix({ schoolId: schoolIdParam, userId: userIdParam }, active);
+  let prefix = resolveAccountPrefix({ schoolId: schoolIdParam, userId: userIdParam }, active);
   const schoolId = resolveSchoolId({ schoolId: schoolIdParam }, active);
+
+  // 凭证过期但本地已有数据时，回退到本地最近使用的账号，避免显示空 default。
+  if (!active && !userIdParam) {
+    const localPrefix = db.findLocalAccountPrefix(schoolIdParam || DEFAULT_SCHOOL_ID);
+    if (localPrefix) {
+      prefix = localPrefix;
+    }
+  }
 
   // Auto-seed missing data from timetable on first access
   db.seedFromTimetable(prefix);

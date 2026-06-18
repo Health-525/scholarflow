@@ -26,16 +26,17 @@ export function DailyEditor({ existingDate, existingContent, onSaved, onCancel }
     try {
       // Save via local API
       const { schoolId, userId } = getCurrentUser();
+      const body: Record<string, string> = {
+        file: `日报/${date}.md`,
+        content: content.trim() || "# ",
+        action: `创建日报 ${date}`,
+        schoolId,
+      };
+      if (userId) body.userId = userId;
       const res = await fetch("/api/local-save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          file: `日报/${date}.md`,
-          content: content.trim() || "# ",
-          action: `创建日报 ${date}`,
-          schoolId,
-          userId,
-        }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error("保存失败");
       onSaved();
