@@ -7,9 +7,7 @@ import {
   Clock,
   FileText,
   Timer,
-  TrendingUp,
   Library,
-  Brain,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
@@ -29,9 +27,7 @@ const QUICK_ACTIONS: Array<{
   { href: "/exams", label: "考试", Icon: Clock, colorType: "error" },
   { href: "/pomodoro", label: "番茄钟", Icon: Timer, colorType: "info" },
   { href: "/notes", label: "笔记", Icon: FileText, colorType: "info" },
-  { href: "/progress", label: "进度", Icon: TrendingUp, colorType: "primary" },
   { href: "/library", label: "图书馆", Icon: Library, colorType: "warning" },
-  { href: "/knowledge", label: "知识", Icon: Brain, colorType: "info" },
 ];
 
 export function QuickActions() {

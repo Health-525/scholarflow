@@ -14,8 +14,6 @@ export interface DashboardSummary {
     running: { total: number; morning: number; completed: boolean };
     gpa: string;
   };
-  health: { agents: number; total: number; failing: number };
-  knowledge: { gapsRemaining: number; estimatedHours: number };
 }
 
 interface CourseEntry {
@@ -90,8 +88,6 @@ export function buildDashboardSummary(db: ServerDB, prefix: string): DashboardSu
       },
       gpa: grades.gpa || "0.00",
     },
-    health: { agents: 0, total: 0, failing: 0 },
-    knowledge: { gapsRemaining: 0, estimatedHours: 0 },
   };
 }
 

@@ -3,13 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 import { useAuthStore } from "@/store/auth";
-
-export interface NoteTreeNode {
-  name: string;
-  path: string;
-  type: "file" | "dir";
-  children?: NoteTreeNode[];
-}
+import type { NoteTreeNode } from "@/types";
 
 /** 从 auth store 读当前账号参数，始终使用最新值（不调用 hook，供非 hook 函数使用） */
 function getAuthParams(): string {

@@ -45,9 +45,11 @@ describe("GPA Engine", () => {
 
 describe("Exam countdown format", () => {
   function formatCountdown(dateStr: string) {
-    const diff = new Date(dateStr + "T23:59:59").getTime() - Date.now();
-    if (diff < 0) return "已结束";
-    const days = Math.floor(diff / 86400000);
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const target = new Date(dateStr + "T00:00:00");
+    const days = Math.round((target.getTime() - start.getTime()) / 86400000);
+    if (days < 0) return "已结束";
     if (days === 0) return "今天";
     if (days === 1) return "明天";
     return `${days} 天后`;
@@ -58,7 +60,7 @@ describe("Exam countdown format", () => {
   it("3天后", () => {
     const d = new Date();
     d.setDate(d.getDate() + 3);
-    const key = d.toISOString().slice(0, 10);
+    const key = d.toLocaleDateString("en-CA");
     expect(formatCountdown(key)).toBe("3 天后");
   });
 });

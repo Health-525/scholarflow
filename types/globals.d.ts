@@ -30,13 +30,6 @@ interface ElectronAPI {
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
   onUpdateDownloadProgress: (callback: (progress: DownloadProgress) => void) => () => void;
   onUpdateDownloaded: (callback: (info: { version: string }) => void) => () => void;
-  visionModelStatus: () => Promise<boolean>;
-  visionModelStart: () => Promise<{ ok: boolean; message: string }>;
-  browMonitorStart: () => Promise<{ ok: boolean; message: string }>;
-  browMonitorStop: () => Promise<{ ok: boolean; message: string }>;
-  browMonitorStatus: () => Promise<{ running: boolean }>;
-  petShow: () => Promise<{ ok: boolean }>;
-  petHide: () => Promise<{ ok: boolean }>;
   setTitleBarOverlay: (options: { color?: string; symbolColor?: string; height?: number }) => Promise<boolean>;
   // Local-first-sync credential APIs (exposed by preload, task 6.2)
   storeCredential?: (plaintext: string) => Promise<boolean>;

@@ -1,40 +1,24 @@
 "use client";
 
-import {
-  Save,
-  X,
-  Bold,
-  Italic,
-  Heading2,
-  List,
-  Code,
-  Link,
-  Quote,
-} from "lucide-react";
-import { useState, useRef, useCallback } from "react";
+import { Save, X, Bold, Heading2, List } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 interface NoteEditorProps {
   content: string;
   onSave: (content: string) => Promise<void>;
-  onCancel: () => void;
+  onCancel?: () => void;
+  onChange?: (value: string) => void;
 }
 
-export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
+export function NoteEditor({ content, onSave, onCancel, onChange }: NoteEditorProps) {
   const [value, setValue] = useState(content);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const autoSaveTimer = useRef<number | null>(null);
 
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setValue(e.target.value);
-      setDirty(true);
-    },
-    [],
-  );
-
-  const handleSave = async () => {
-    if (saving || !dirty) return;
+  const triggerSave = useCallback(async () => {
+    if (saving) return;
     setSaving(true);
     try {
       await onSave(value);
@@ -42,14 +26,32 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
     } finally {
       setSaving(false);
     }
-  };
+  }, [onSave, saving, value]);
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setValue(e.target.value);
+    setDirty(true);
+    onChange?.(e.target.value);
+  }, [onChange]);
+
+  // Auto-save after 1.5s idle
+  useEffect(() => {
+    if (!dirty || saving) return;
+    if (autoSaveTimer.current) window.clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = window.setTimeout(() => {
+      triggerSave();
+    }, 1500);
+    return () => {
+      if (autoSaveTimer.current) window.clearTimeout(autoSaveTimer.current);
+    };
+  }, [dirty, saving, triggerSave, value]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "s") {
       e.preventDefault();
-      handleSave();
+      triggerSave();
     }
-    if (e.key === "Escape") {
+    if (e.key === "Escape" && onCancel) {
       onCancel();
     }
     if (e.key === "Tab") {
@@ -61,6 +63,7 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
       const newValue = value.substring(0, start) + "  " + value.substring(end);
       setValue(newValue);
       setDirty(true);
+      onChange?.(newValue);
       requestAnimationFrame(() => {
         textarea.selectionStart = textarea.selectionEnd = start + 2;
       });
@@ -73,44 +76,39 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selected = value.substring(start, end);
-    const replacement = `${prefix}${selected || "文本"}${suffix}`;
-    const newValue =
-      value.substring(0, start) + replacement + value.substring(end);
+    const placeholder = selected || "文本";
+    const replacement = `${prefix}${placeholder}${suffix}`;
+    const newValue = value.substring(0, start) + replacement + value.substring(end);
     setValue(newValue);
     setDirty(true);
+    onChange?.(newValue);
 
     requestAnimationFrame(() => {
-      const cursorPos = selected
-        ? start + replacement.length
-        : start + prefix.length;
+      const cursorPos = start + replacement.length;
       textarea.selectionStart = start + prefix.length;
-      textarea.selectionEnd = selected
-        ? cursorPos
-        : start + prefix.length + (selected || "文本").length;
+      textarea.selectionEnd = selected ? cursorPos : start + prefix.length + placeholder.length;
       textarea.focus();
     });
   };
 
   const toolbarButtons = [
     { icon: Bold, label: "粗体", action: () => insertSyntax("**", "**") },
-    { icon: Italic, label: "斜体", action: () => insertSyntax("*", "*") },
     { icon: Heading2, label: "标题", action: () => insertSyntax("## ") },
     { icon: List, label: "列表", action: () => insertSyntax("- ") },
-    { icon: Code, label: "代码", action: () => insertSyntax("`", "`") },
-    { icon: Link, label: "链接", action: () => insertSyntax("[", "](url)") },
-    { icon: Quote, label: "引用", action: () => insertSyntax("> ") },
   ];
 
   return (
-    <div className="flex flex-col" style={{ minHeight: "300px" }}>
+    <div className="flex flex-col h-full">
       {/* Toolbar */}
       <div className="flex items-center gap-0.5 px-3 py-2 shrink-0 border-b border-border">
         {toolbarButtons.map((btn) => (
           <button
             key={btn.label}
+            type="button"
             onClick={btn.action}
-            className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors text-muted-foreground"
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors text-muted-foreground hover:bg-secondary hover:text-foreground"
             title={btn.label}
+            aria-label={btn.label}
           >
             <btn.icon className="w-3.5 h-3.5" />
           </button>
@@ -119,25 +117,25 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
         <div className="flex-1" />
 
         {dirty && (
-          <span className="text-[10px] mr-2 text-[var(--status-warning)]">
-            未保存
-          </span>
+          <span className="text-[10px] mr-2 text-[var(--status-warning)]">未保存</span>
         )}
 
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] transition-colors text-muted-foreground hover:bg-secondary"
+          >
+            <X className="w-3 h-3" />
+            取消
+          </button>
+        )}
         <button
-          onClick={onCancel}
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] transition-colors text-muted-foreground"
-        >
-          <X className="w-3 h-3" />
-          取消
-        </button>
-        <button
-          onClick={handleSave}
+          type="button"
+          onClick={triggerSave}
           disabled={!dirty || saving}
           className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
-            dirty
-              ? "bg-primary text-primary-foreground"
-              : "bg-secondary text-muted-foreground"
+            dirty ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
           }`}
         >
           <Save className="w-3 h-3" />
@@ -151,9 +149,8 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        className="flex-1 w-full px-5 py-4 text-[13px] leading-[1.8] outline-none resize-none bg-transparent text-foreground font-mono"
-        style={{ minHeight: "calc(100vh - 340px)" }}
-        placeholder="开始写作..."
+        className="flex-1 w-full px-5 py-4 text-[14px] leading-[1.8] outline-none resize-none bg-transparent text-foreground font-mono"
+        placeholder="开始写作…"
         spellCheck={false}
       />
 
@@ -162,7 +159,7 @@ export function NoteEditor({ content, onSave, onCancel }: NoteEditorProps) {
         <span>
           {value.length} 字符 · {value.split("\n").length} 行
         </span>
-        <span>Ctrl+S 保存 · Esc 取消</span>
+        <span>Ctrl + S 保存 · 停止输入 1.5 秒后自动保存</span>
       </div>
     </div>
   );

@@ -84,27 +84,8 @@ export interface GradeCourse {
   semester: string;
 }
 
-export interface LibraryData {
-  updated: string;
-  summary: { total: number; used: number; avail: number; rate: number };
-  libs: LibraryRoom[];
-}
-
-export interface LibraryRoom {
-  lib_id: number;
-  lib_name: string;
-  lib_floor?: string;
-  is_open: boolean;
-  lib_rt: {
-    seats_total: number;
-    seats_used: number;
-    seats_booking: number;
-    seats_has: number;
-    open_time_str: string;
-    close_time_str: string;
-  };
-  [key: string]: unknown;
-}
+import type { LibraryData, LibraryRoom } from "@/types";
+export type { LibraryData, LibraryRoom };
 
 export interface NewsItem {
   title: string;

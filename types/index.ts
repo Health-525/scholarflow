@@ -158,14 +158,10 @@ export interface LibraryData {
   libs: LibraryRoom[];
 }
 
-// ---- 知识画像类型 ----
-export interface TechItem {
+// ---- 笔记文件树类型 ----
+export interface NoteTreeNode {
   name: string;
-  stars: number; // 1~5
-  category?: string;
-}
-
-export interface GapItem {
-  name: string;
-  description?: string;
+  path: string;
+  type: "file" | "dir";
+  children?: NoteTreeNode[];
 }

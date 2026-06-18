@@ -1,4 +1,4 @@
-export type ThemeValue = "light" | "dark" | "system";
+import type { ThemeValue } from "@/types";
 
 const THEME_KEY = "sf_theme";
 

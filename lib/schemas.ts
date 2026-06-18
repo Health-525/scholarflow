@@ -40,10 +40,3 @@ export const examSchema = z.object({
 
 export type ExamInput = z.infer<typeof examSchema>;
 
-// ── Wrinkle calibration ──
-export const wrinkleCalibrationSchema = z.object({
-  sensitivity: z.enum(["low", "medium", "high"]),
-  cooldown: z.coerce.number().int().min(5).max(300),
-});
-
-export type WrinkleCalibrationInput = z.infer<typeof wrinkleCalibrationSchema>;

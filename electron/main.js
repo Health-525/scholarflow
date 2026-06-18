@@ -30,7 +30,6 @@ const IS_DEV = !!process.env.ELECTRON_DEV;
 
 let mainWindow = null;
 let serverProcess = null;
-let visionModelProcess = null;
 let autoRefreshScheduler = null;
 
 // ── 获取 app 根目录 ──────────────────────────────────────────
@@ -156,223 +155,7 @@ function launchServer() {
 
 // ── 创建窗口 ────────────────────────────────────────────────
 
-// ── 启动 Vision-Model API (FastAPI on :8000) ──────────────
-function findVisionModelDir() {
-  const exeDir = path.dirname(app.getPath('exe'));
-  const candidates = [
-    // 1. D:\A\vision-model（开发模式：项目根目录）
-    path.join(__dirname, '..', '..', 'vision-model'),
-    // 2. exe 同级目录（部署模式：ScholarFlow.exe 旁边放 vision-model/）
-    path.join(exeDir, 'vision-model'),
-  ];
-  for (const dir of candidates) {
-    const serverPath = path.join(dir, 'src', 'api', 'server.py');
-    if (fs.existsSync(serverPath)) return dir;
-  }
-  // 3. 读取 exe 同级的 vision-model-path.txt（一行，写入 vision-model 的绝对路径）
-  const pathFile = path.join(exeDir, 'vision-model-path.txt');
-  if (fs.existsSync(pathFile)) {
-    const customDir = fs.readFileSync(pathFile, 'utf-8').trim();
-    if (customDir && fs.existsSync(path.join(customDir, 'src', 'api', 'server.py'))) {
-      return customDir;
-    }
-  }
-  return null;
-}
-
-function launchVisionModel() {
-  const vmDir = findVisionModelDir();
-  if (!vmDir) {
-    console.log('[SF] Vision-Model directory not found, skipping');
-    return false;
-  }
-
-  // 检查 8000 端口是否已占用
-  return new Promise((resolve) => {
-    const sock = new net.Socket();
-    sock.setTimeout(500);
-    sock.once('connect', () => {
-      sock.destroy();
-      console.log('[SF] Vision-Model already running on :8000');
-      resolve(true);
-    });
-    sock.once('error', () => {
-      sock.destroy();
-      // 端口空闲，启动服务
-      console.log('[SF] Launching Vision-Model from', vmDir);
-      const { spawn } = require('child_process');
-      const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-
-      visionModelProcess = spawn(pythonCmd, ['src/api/server.py'], {
-        cwd: vmDir,
-        env: { ...process.env },
-        stdio: 'pipe',
-        shell: true,
-      });
-
-      visionModelProcess.stdout && visionModelProcess.stdout.on('data', d => {
-        console.log('[VisionModel]', d.toString().trim());
-      });
-      visionModelProcess.stderr && visionModelProcess.stderr.on('data', d => {
-        console.error('[VisionModel ERR]', d.toString().trim());
-      });
-      visionModelProcess.on('error', (err) => {
-        console.error('[SF] Vision-Model launch error:', err.message);
-        resolve(false);
-      });
-      visionModelProcess.on('exit', (code) => {
-        console.log('[SF] Vision-Model exited with code', code);
-        visionModelProcess = null;
-      });
-
-      // 给 3 秒启动时间，不阻塞主流程
-      setTimeout(() => resolve(true), 3000);
-    });
-    sock.once('timeout', () => {
-      sock.destroy();
-      resolve(false);
-    });
-    sock.connect(8000, '127.0.0.1');
-  });
-}
-
-// ── IPC: 启动/检查 Vision-Model ───────────────────────────
-ipcMain.handle('vision-model:status', async () => {
-  return new Promise((resolve) => {
-    const sock = new net.Socket();
-    sock.setTimeout(1500);
-    sock.once('connect', () => { sock.destroy(); resolve(true); });
-    sock.once('error', () => { sock.destroy(); resolve(false); });
-    sock.once('timeout', () => { sock.destroy(); resolve(false); });
-    sock.connect(8000, '127.0.0.1');
-  });
-});
-
-ipcMain.handle('vision-model:start', async () => {
-  const running = await ipcMain.handle('vision-model:status');
-  if (running) return { ok: true, message: '已运行' };
-  const result = await launchVisionModel();
-  return { ok: result, message: result ? '启动成功' : '启动失败' };
-});
-
-// ── IPC: 桌面宠物 ────────────────────────────────────────
-let petWindow = null;
-
-ipcMain.handle('pet:show', async () => {
-  if (petWindow && !petWindow.isDestroyed()) {
-    petWindow.show();
-    return { ok: true };
-  }
-
-  petWindow = new BrowserWindow({
-    width: 160,
-    height: 180,
-    frame: false,
-    transparent: true,
-    resizable: false,
-    alwaysOnTop: true,
-    skipTaskbar: true,
-    hasShadow: false,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'pet-preload.js'),
-    },
-  });
-
-  petWindow.setVisibleOnAllWorkspaces(true);
-  petWindow.setAlwaysOnTop(true, 'floating');
-
-  // 加载宠物页面
-  const petPath = path.join(__dirname, 'pet.html');
-  petWindow.loadFile(petPath);
-
-  // 右下角位置
-  const { width: screenW, height: screenH } = require('electron').screen.getPrimaryDisplay().workAreaSize;
-  petWindow.setPosition(screenW - 180, screenH - 200);
-
-  petWindow.on('closed', () => { petWindow = null; });
-
-  // 右键关闭
-  ipcMain.once('pet:close', () => {
-    if (petWindow && !petWindow.isDestroyed()) petWindow.close();
-  });
-
-  return { ok: true };
-});
-
-ipcMain.handle('pet:hide', async () => {
-  if (petWindow && !petWindow.isDestroyed()) petWindow.close();
-  return { ok: true };
-});
-
-ipcMain.handle('pet:status', async () => {
-  return { visible: petWindow !== null && !petWindow.isDestroyed() };
-});
-
-// ── IPC: 抬头纹后台监控 ──────────────────────────────────
-let browMonitorProcess = null;
-
-ipcMain.handle('brow-monitor:start', async () => {
-  if (browMonitorProcess && !browMonitorProcess.killed) {
-    return { ok: true, message: '监控已运行' };
-  }
-  const vmDir = findVisionModelDir();
-  console.log('[SF] brow-monitor:start vmDir =', vmDir);
-  if (!vmDir) return { ok: false, message: '未找到vision-model目录' };
-
-  const { spawn } = require('child_process');
-  const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-
-  browMonitorProcess = spawn(pythonCmd, ['src/brow_monitor_daemon.py'], {
-    cwd: vmDir,
-    env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
-    stdio: 'pipe',
-    shell: true,
-  });
-
-  console.log('[SF] brow-monitor spawned PID =', browMonitorProcess.pid, 'killed =', browMonitorProcess.killed);
-
-  browMonitorProcess.stdout?.on('data', d => {
-    const line = d.toString().trim();
-    if (line) console.log('[BrowMonitor]', line);
-    // 检测ALERT行，转发到宠物窗口（IPC比HTTP轮询更快）
-    if (line.includes('[BrowMonitor] ALERT:')) {
-      const match = line.match(/评分\s+(\d+)/);
-      const score = match ? parseInt(match[1]) : 50;
-      if (petWindow && !petWindow.isDestroyed()) {
-        petWindow.webContents.send('brow-alert', { score });
-      }
-    }
-  });
-  browMonitorProcess.stderr?.on('data', d => {
-    const line = d.toString().trim();
-    if (line) console.error('[BrowMonitor ERR]', line);
-  });
-  browMonitorProcess.on('exit', code => {
-    console.log('[BrowMonitor] exited with code', code);
-    browMonitorProcess = null;
-  });
-
-  return { ok: true, message: '监控已启动' };
-});
-
-ipcMain.handle('brow-monitor:stop', async () => {
-  if (browMonitorProcess && !browMonitorProcess.killed) {
-    browMonitorProcess.kill();
-    browMonitorProcess = null;
-    return { ok: true, message: '监控已停止' };
-  }
-  return { ok: true, message: '监控未运行' };
-});
-
-ipcMain.handle('brow-monitor:status', async () => {
-  const running = browMonitorProcess !== null && !browMonitorProcess.killed;
-  console.log('[SF] brow-monitor:status =', running, 'process =', browMonitorProcess?.pid);
-  return { running };
-});
-
-// IPC: 动态更新 titleBarOverlay 颜色（跟随主题）
+// ── IPC: 动态更新 titleBarOverlay 颜色（跟随主题）
 ipcMain.handle('window:set-titlebar-overlay', async (_event, options) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.setTitleBarOverlay(options);
@@ -977,16 +760,6 @@ app.whenReady().then(async () => {
     });
     autoRefreshScheduler.start();
 
-    // Auto-launch Vision-Model API (non-blocking)
-    setTimeout(async () => {
-      try {
-        const launched = await launchVisionModel();
-        console.log('[SF] Vision-Model launch:', launched ? 'success' : 'skipped');
-      } catch (err) {
-        console.log('[SF] Vision-Model launch skipped:', err.message);
-      }
-    }, 5000);
-
     // Auto-refresh library JWT (non-blocking)
     autoRefreshLibraryJWT();
     startJWTAutoRefresh();
@@ -1002,7 +775,6 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', () => {
   if (autoRefreshScheduler) { autoRefreshScheduler.stop(); }
   if (serverProcess) { serverProcess.kill(); serverProcess = null; }
-  if (visionModelProcess) { visionModelProcess.kill(); visionModelProcess = null; }
   if (process.platform !== 'darwin') app.quit();
 });
 
@@ -1015,7 +787,6 @@ app.on('before-quit', () => {
   stopJWTAutoRefresh();
   if (autoRefreshScheduler) { autoRefreshScheduler.stop(); }
   if (serverProcess) { serverProcess.kill('SIGTERM'); serverProcess = null; }
-  if (visionModelProcess) { visionModelProcess.kill(); visionModelProcess = null; }
 });
 
 // 导出纯函数供测试引用(task 8.2);在 Electron 中作为入口正常运行,

@@ -1,11 +1,5 @@
 import { getServerDB } from "@/lib/server-db";
-
-export interface NoteTreeNode {
-  name: string;
-  path: string;
-  type: "file" | "dir";
-  children?: NoteTreeNode[];
-}
+import type { NoteTreeNode } from "@/types";
 
 const NOTE_KEY_PREFIX = "note";
 
