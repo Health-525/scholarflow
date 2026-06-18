@@ -61,12 +61,12 @@ function loadLog(): DayLog {
 function saveLog(log: DayLog) {
   try {
     const store: Record<string, DayLog> = {};
-    try { const r = localStorage.getItem(STORAGE_KEY); if (r) Object.assign(store, JSON.parse(r)); } catch {}
+    try { const r = localStorage.getItem(STORAGE_KEY); if (r) Object.assign(store, JSON.parse(r)); } catch (e) { console.error("[ActivityTracker] loadLog JSON parse failed:", e); }
     store[log.date] = log;
     const keys = Object.keys(store).sort();
     while (keys.length > MAX_DAYS) delete store[keys.shift()!];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-  } catch {}
+  } catch (e) { console.error("[ActivityTracker] saveLog failed:", e); }
 }
 
 // ── Global singleton ── survives Next.js page navigation
@@ -241,7 +241,7 @@ export function useActivityTrackerV3(): ActivityStateV3 {
 
 export function downloadActivityCSV() {
   const store: Record<string, DayLog> = {};
-  try { const r = localStorage.getItem(STORAGE_KEY); if (r) Object.assign(store, JSON.parse(r)); } catch {}
+  try { const r = localStorage.getItem(STORAGE_KEY); if (r) Object.assign(store, JSON.parse(r)); } catch (e) { console.error("[ActivityTracker] loadLog JSON parse failed:", e); }
   let csv = "Date,App,Minutes\n";
   for (const [date, log] of Object.entries(store).sort()) {
     if (!log?.segments) continue;
@@ -263,5 +263,5 @@ export function downloadActivityCSV() {
 }
 
 export function clearActivityData() {
-  try { localStorage.removeItem(STORAGE_KEY); _segs = []; _latest = null; } catch {}
+  try { localStorage.removeItem(STORAGE_KEY); _segs = []; _latest = null; } catch (e) { console.error("[ActivityTracker] clearActivityData failed:", e); }
 }

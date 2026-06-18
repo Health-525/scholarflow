@@ -73,8 +73,8 @@ export function saveReminder(key: string, entry: ReminderEntry): void {
     const { timerHandle: _, ...rest } = entry;
     store[key] = rest;
     localStorage.setItem(REMINDERS_KEY, JSON.stringify(store));
-  } catch {
-    // ignore
+  } catch (e) {
+    console.error("[Notification] saveReminder failed:", e);
   }
 }
 
@@ -93,8 +93,8 @@ export function clearReminder(key: string): void {
       delete store[key];
       localStorage.setItem(REMINDERS_KEY, JSON.stringify(store));
     }
-  } catch {
-    // ignore
+  } catch (e) {
+    console.error("[Notification] clearReminder failed:", e);
   }
 }
 
@@ -116,7 +116,7 @@ export function rebuildAllReminders(): void {
   }
   try {
     localStorage.setItem(REMINDERS_KEY, JSON.stringify(store));
-  } catch {
-    // ignore
+  } catch (e) {
+    console.error("[Notification] rebuildAllReminders failed:", e);
   }
 }

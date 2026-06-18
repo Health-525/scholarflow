@@ -36,8 +36,8 @@ export function setTheme(t: ThemeValue): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(THEME_KEY, t);
-  } catch {
-    // ignore
+  } catch (e) {
+    console.error("[Theme] setTheme failed:", e);
   }
 }
 

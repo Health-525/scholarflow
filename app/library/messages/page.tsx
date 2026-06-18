@@ -11,6 +11,8 @@ import {
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, useRef } from "react";
 
+import { sanitizeHtml } from "@/lib/sanitize";
+
 interface Message {
   message_id: number;
   title: string;
@@ -227,7 +229,7 @@ export default function LibraryMessagesPage() {
               </div>
               <div
                 className="text-[12px] text-muted-foreground leading-relaxed mt-2 ml-4 prose prose-sm max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: msg.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.content) }}
               />
               <p className="text-[11px] text-muted-foreground/60 mt-2 ml-4">
                 {formatMessageTime(msg.create_time)}

@@ -2,19 +2,15 @@
 
 import { FileText, PenLine, Eye, Plus, Trash2, XCircle, CheckCircle2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 import { FileTree } from "@/components/notes/FileTree";
 import { NoteEditor } from "@/components/notes/NoteEditor";
 import { NoteViewer } from "@/components/notes/NoteViewer";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { createNote, deleteNote, saveNote, useNoteContent, useNoteTree } from "@/hooks/useNotes";
 
 type ViewMode = "view" | "edit";
-
-function confirmAction(message: string): boolean {
-  // eslint-disable-next-line no-alert
-  return window.confirm(message);
-}
 
 export default function NotesPage() {
   const searchParams = useSearchParams();
@@ -28,6 +24,8 @@ export default function NotesPage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const pendingDeleteRef = useRef<() => Promise<void>>(async () => {});
 
   const { content, setContent, isLoading, error, reload } = useNoteContent(selectedPath);
   const { reload: reloadTree } = useNoteTree();
@@ -88,14 +86,16 @@ export default function NotesPage() {
 
   const handleDelete = async () => {
     if (!selectedPath) return;
-    if (!confirmAction(`确定删除 "${selectedPath}" 吗？此操作不可撤销。`)) return;
-    try {
-      await deleteNote(selectedPath);
-      setSelectedPath(null);
-      reloadTree();
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "删除失败");
-    }
+    pendingDeleteRef.current = async () => {
+      try {
+        await deleteNote(selectedPath);
+        setSelectedPath(null);
+        reloadTree();
+      } catch (err) {
+        setDeleteError(err instanceof Error ? err.message : "删除失败");
+      }
+    };
+    setDeleteDialogOpen(true);
   };
 
   const fileName = selectedPath?.split("/").pop() || "";
@@ -243,6 +243,14 @@ export default function NotesPage() {
           <EmptyState onCreate={() => setIsCreating(true)} />
         )}
       </main>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title={`确定删除 "${selectedPath ?? ""}" 吗？`}
+        description="此操作不可撤销。"
+        onConfirm={() => { pendingDeleteRef.current(); }}
+      />
     </div>
   );
 }

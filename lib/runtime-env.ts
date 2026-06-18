@@ -46,7 +46,8 @@ export async function isSecureStorageAvailable(): Promise<boolean> {
     const api = window.electronAPI;
     if (typeof api?.secureStorageAvailable !== "function") return false;
     return (await api.secureStorageAvailable()) === true;
-  } catch {
+  } catch (e) {
+    console.error("[RuntimeEnv] secureStorageAvailable failed:", e);
     return false;
   }
 }

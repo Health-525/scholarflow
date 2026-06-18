@@ -31,16 +31,12 @@ import {
   libraryQueryKeys,
 } from "@/hooks/useLibraryQuery";
 import { cardClasses } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { statusColor, getReserveStatusMap } from "@/lib/theme-colors";
 import { cn } from "@/lib/utils";
 import type { LibraryRoom } from "@/types";
 
 const DEFAULT_SUMMARY = { rate: 0, avail: 0, used: 0, total: 0, has: 0 };
-
-function confirmAction(message: string): boolean {
-  // eslint-disable-next-line no-alert
-  return window.confirm(message);
-}
 
 function formatReserveDate(date: string | number | undefined): string {
   if (!date) return "";
@@ -88,6 +84,7 @@ export default function LibraryPage() {
   const [countdown, setCountdown] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [blacklisted, setBlacklisted] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
   const enabled = jwtStatus === "ok" || jwtStatus === "unknown";
   const {
@@ -183,9 +180,12 @@ export default function LibraryPage() {
     };
   }, [isElectron, queryClient]);
 
-  const handleCancelReserve = useCallback(async () => {
+  const handleCancelReserve = useCallback(() => {
     if (cancelReserve.isPending) return;
-    if (!confirmAction("确定要取消当前预约吗？")) return;
+    setCancelDialogOpen(true);
+  }, [cancelReserve]);
+
+  const doCancelReserve = useCallback(() => {
     cancelReserve.mutate(
       {},
       {
@@ -677,6 +677,13 @@ export default function LibraryPage() {
           另有 {closedCount} 个阅览室未开放
         </p>
       )}
+
+      <ConfirmDialog
+        open={cancelDialogOpen}
+        onOpenChange={setCancelDialogOpen}
+        title="确定要取消当前预约吗？"
+        onConfirm={doCancelReserve}
+      />
     </div>
   );
 }

@@ -82,7 +82,7 @@ export async function readData(type: string): Promise<unknown> {
   try {
     const res = await fetch(`/api/local-data?${params.toString()}`);
     if (res.ok) return await res.json();
-  } catch {}
+  } catch (e) { console.error("[MobileData] readData fetch failed:", e); }
   return null;
 }
 

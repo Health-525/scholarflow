@@ -223,6 +223,7 @@ export class ServerDB {
     try {
       return JSON.parse(row.content);
     } catch {
+      console.error("[ServerDB] JSON parse failed for key:", key);
       return row.content;
     }
   }
@@ -264,6 +265,7 @@ export class ServerDB {
         expiresAt,
       };
     } catch {
+      console.error("[ServerDB] credential_data JSON parse failed for", row.school_id, row.user_id);
       return { schoolId: row.school_id, userId: row.user_id, username: row.user_id, expiresAt };
     }
   }
@@ -325,6 +327,7 @@ export class ServerDB {
     try {
       return JSON.parse(row.credential_data);
     } catch {
+      console.error("[ServerDB] getCredentials JSON parse failed for", schoolId, userId);
       return null;
     }
   }

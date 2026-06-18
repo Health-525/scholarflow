@@ -2,10 +2,12 @@
 
 import { ChevronLeft, Trash2, Monitor } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 import { useActivityTrackerV3, downloadActivityCSV, clearActivityData, CATEGORY_LABELS } from "@/lib/activity-tracker-v3";
 import type { Category } from "@/lib/activity-tracker-v3";
 import { semanticColor } from "@/lib/theme-colors";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 const CATEGORY_SEMANTIC: Record<Category, Parameters<typeof semanticColor>[0]> = {
   coding: "success",
@@ -17,13 +19,9 @@ const CATEGORY_SEMANTIC: Record<Category, Parameters<typeof semanticColor>[0]> =
   other: "info",
 };
 
-function confirmClear(message: string): boolean {
-  // eslint-disable-next-line no-alert
-  return window.confirm(message);
-}
-
 export default function ActivityPage() {
   const state = useActivityTrackerV3();
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   const activeMins = Math.round(state.totalActiveMs / 60000);
 
@@ -128,10 +126,18 @@ export default function ActivityPage() {
         <button onClick={downloadActivityCSV} className="flex-1 py-3 rounded-xl text-[13px] font-medium bg-card border border-border text-foreground">
           导出 CSV
         </button>
-        <button onClick={() => { if (confirmClear("确定清除所有活动记录？")) { clearActivityData(); window.location.reload(); } }} className="flex items-center justify-center gap-1 py-3 px-4 rounded-xl text-[13px] font-medium bg-card border border-border text-destructive">
+        <button onClick={() => setClearDialogOpen(true)} className="flex items-center justify-center gap-1 py-3 px-4 rounded-xl text-[13px] font-medium bg-card border border-border text-destructive">
           <Trash2 className="w-4 h-4" />清除
         </button>
       </div>
+
+      <ConfirmDialog
+        open={clearDialogOpen}
+        onOpenChange={setClearDialogOpen}
+        title="确定清除所有活动记录？"
+        description="此操作不可撤销，所有活动记录将被永久删除。"
+        onConfirm={() => { clearActivityData(); window.location.reload(); }}
+      />
     </div>
   );
 }
