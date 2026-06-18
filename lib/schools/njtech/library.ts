@@ -97,18 +97,4 @@ export async function fetchLibrarySeats(jwt: string): Promise<LibraryData> {
   };
 }
 
-/**
- * 抓取单个阅览室座位布局
- * @param jwt - 图书馆 JWT Token
- * @param libId - 阅览室 ID
- */
-export async function fetchSeatLayout(
-  jwt: string,
-  libId: number
-): Promise<LibraryRoom | null> {
-  const q = `{userAuth{reserve{libs(lib_id:${libId}){lib_id lib_name lib_layout{seats_total seats_used seats_booking max_x max_y seats{x y key type name seat_status status}}}}}}`;
 
-  const result = await graphql<GraphqlLibsResponse>(jwt, q);
-
-  return result.data?.data?.userAuth?.reserve?.libs?.[0] || null;
-}

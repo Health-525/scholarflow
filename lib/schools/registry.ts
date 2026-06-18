@@ -32,12 +32,5 @@ export function getAllSchools(): SchoolAdapter[] {
   return [...ADAPTERS.values()];
 }
 
-/**
- * 获取所有学校的简要信息（用于下拉选择）
- */
-export function getSchoolOptions(): { id: string; name: string }[] {
-  return getAllSchools().map((a) => ({ id: a.id, name: a.name }));
-}
-
 // ── 注册已知学校 ────────────────────────────────────────────
 registerSchool(njtechAdapter);

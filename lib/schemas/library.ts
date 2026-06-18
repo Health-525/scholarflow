@@ -97,9 +97,7 @@ export const libraryLayoutSchema = z.object({
   }),
 });
 
-export type LibraryRoomInput = z.infer<typeof libraryRoomSchema>;
 export type LibraryDataInput = z.infer<typeof libraryDataSchema>;
-export type LibraryReserveInput = z.infer<typeof libraryReserveSchema>;
 export type LibraryUserStatusInput = z.infer<typeof libraryUserStatusSchema>;
 export type LibraryReserveStatusInput = z.infer<typeof libraryReserveStatusSchema>;
 export type LibraryLayoutInput = z.infer<typeof libraryLayoutSchema>;

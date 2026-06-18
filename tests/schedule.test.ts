@@ -11,9 +11,7 @@ import {
   getWeekNumber,
   parseSchedule,
   getItemsForDate,
-  formatDayResponse,
   type RawScheduleData,
-  type DayItem,
 } from "@/lib/schedule/schedule";
 
 // ════════════════════════════════════════════════════
@@ -230,43 +228,3 @@ describe("getItemsForDate", () => {
   });
 });
 
-// ════════════════════════════════════════════════════
-// formatDayResponse
-// ════════════════════════════════════════════════════
-describe("formatDayResponse", () => {
-  it("无课时显示提示", () => {
-    const result = formatDayResponse(new Date("2026-03-07"), 1, []);
-    expect(result).toContain("今天没有课");
-    expect(result).toContain("第1周");
-  });
-
-  it("有课时列出课程", () => {
-    const items: DayItem[] = [
-      {
-        kind: "course",
-        title: "数值分析",
-        periods: [5, 6],
-        timeText: "14:00-15:40",
-        location: "笃学B楼 202",
-      },
-    ];
-    const result = formatDayResponse(new Date("2026-03-10"), 2, items);
-    expect(result).toContain("数值分析");
-    expect(result).toContain("14:00-15:40");
-    expect(result).toContain("笃学B楼 202");
-  });
-
-  it("special 项目格式正确", () => {
-    const items: DayItem[] = [
-      {
-        kind: "special",
-        title: "Python上机",
-        timeText: "14:00-15:40",
-        location: "笃行楼235",
-      },
-    ];
-    const result = formatDayResponse(new Date("2026-03-10"), 2, items);
-    expect(result).toContain("Python上机");
-    expect(result).toContain("14:00-15:40");
-  });
-});

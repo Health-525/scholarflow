@@ -68,7 +68,7 @@ export function BottomNav() {
                   }`}
                   strokeWidth={active ? 2.4 : 1.8}
                 />
-                <span className={`relative z-[1] text-[9px] leading-none tracking-wide ${active ? "font-semibold" : ""}`}>
+                <span className={`relative z-[1] text-[10px] leading-none tracking-wide ${active ? "font-semibold" : ""}`}>
                   {label}
                 </span>
               </Link>
@@ -87,7 +87,7 @@ export function BottomNav() {
             aria-haspopup="dialog"
           >
             <Ellipsis className="relative z-[1] h-[18px] w-[18px]" strokeWidth={1.8} />
-            <span className="relative z-[1] text-[9px] leading-none tracking-wide">更多</span>
+            <span className="relative z-[1] text-[10px] leading-none tracking-wide">更多</span>
           </button>
         </div>
       </nav>

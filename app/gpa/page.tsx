@@ -180,11 +180,12 @@ export default function GPAPage() {
       <PageHeader icon={<TrendingUp className="w-5 h-5 text-primary" />} title="绩点" description="数据来自教务系统" />
 
       {/* 学期筛选 */}
-      <div className="mb-4">
+      <div className="mb-4 overflow-x-auto pb-1 -mx-1 px-1">
         <SegmentedControl
           options={filterOptions}
           value={activeSemester}
           onChange={setActiveSemester}
+          className="min-w-max"
         />
       </div>
 

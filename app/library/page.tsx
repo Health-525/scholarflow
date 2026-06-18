@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import {
   useLibraryData,
   useLibraryReserveStatus,
@@ -217,11 +218,38 @@ export default function LibraryPage() {
     queryClient.invalidateQueries({ queryKey: libraryQueryKeys.all });
   }, [queryClient]);
 
+  const pageActions = (
+    <div className="flex items-center gap-2 shrink-0">
+      {isElectron && (
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleRefreshJWT}
+          title="刷新登录凭证"
+          aria-label="刷新登录凭证"
+          disabled={dataLoading && !data}
+        >
+          <KeyRound className="w-3.5 h-3.5" />
+        </Button>
+      )}
+      <Button variant="outline" onClick={fetchData} disabled={dataLoading && !data}>
+        <RefreshCw className="w-3.5 h-3.5" />
+        刷新
+      </Button>
+    </div>
+  );
+
   if (dataLoading && !data) {
     return (
-      <div className="pb-20 md:pb-0 py-16 text-center">
-        <div className="inline-flex items-center gap-2 text-[13px] text-muted-foreground">
-          <RefreshCw className="w-4 h-4 animate-spin" /> 加载中...
+      <div className="max-w-5xl mx-auto pb-20 md:pb-0 py-6 px-4 sm:px-6 animate-page">
+        <PageHeader
+          icon={<Library className="w-5 h-5 text-primary" />}
+          title="图书馆座位"
+          description="实时座位查询与预约"
+          actions={pageActions}
+        />
+        <div className="py-16 text-center">
+          <LoadingSpinner label="加载座位数据..." />
         </div>
       </div>
     );
@@ -230,34 +258,42 @@ export default function LibraryPage() {
   if (jwtStatus === "expired" || jwtStatus === "refreshing") {
     const isRefreshing = jwtStatus === "refreshing";
     return (
-      <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-        <EmptyState
-          icon={KeyRound}
-          title="凭证已过期"
-          description={
-            isElectron
-              ? "点击下方按钮登录智慧南工，自动同步凭证"
-              : "请在浏览器中重新登录图书馆系统"
-          }
+      <div className="max-w-5xl mx-auto pb-20 md:pb-0 py-6 px-4 sm:px-6 animate-page">
+        <PageHeader
+          icon={<Library className="w-5 h-5 text-primary" />}
+          title="图书馆座位"
+          description="实时座位查询与预约"
+          actions={pageActions}
         />
-        {refreshError && (
-          <p className="text-[11px] mt-3 text-destructive">{refreshError}</p>
-        )}
-        <Button
-          className="mt-4"
-          onClick={handleRefreshJWT}
-          disabled={isRefreshing}
-        >
-          <RefreshCw
-            className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+        <div className="max-w-md mx-auto py-16 px-4 text-center">
+          <EmptyState
+            icon={KeyRound}
+            title="凭证已过期"
+            description={
+              isElectron
+                ? "点击下方按钮登录智慧南工，自动同步凭证"
+                : "请在浏览器中重新登录图书馆系统"
+            }
           />
-          {isRefreshing ? "登录中..." : "登录刷新"}
-        </Button>
-        {!isElectron && (
-          <p className="text-[11px] mt-3 text-muted-foreground">
-            提示：使用 ScholarFlow 桌面版可自动刷新凭证
-          </p>
-        )}
+          {refreshError && (
+            <p className="text-[11px] mt-3 text-destructive">{refreshError}</p>
+          )}
+          <Button
+            className="mt-4"
+            onClick={handleRefreshJWT}
+            disabled={isRefreshing}
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+            {isRefreshing ? "登录中..." : "登录刷新"}
+          </Button>
+          {!isElectron && (
+            <p className="text-[11px] mt-3 text-muted-foreground">
+              提示：使用 ScholarFlow 桌面版可自动刷新凭证
+            </p>
+          )}
+        </div>
       </div>
     );
   }
@@ -268,44 +304,68 @@ export default function LibraryPage() {
       : null;
   if (queryError && !data) {
     return (
-      <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-        <EmptyState icon={AlertCircle} title="加载失败" description={queryError} />
-        <Button className="mt-4" onClick={fetchData}>
-          <RefreshCw className="w-3.5 h-3.5" />
-          重试
-        </Button>
+      <div className="max-w-5xl mx-auto pb-20 md:pb-0 py-6 px-4 sm:px-6 animate-page">
+        <PageHeader
+          icon={<Library className="w-5 h-5 text-primary" />}
+          title="图书馆座位"
+          description="实时座位查询与预约"
+          actions={pageActions}
+        />
+        <div className="max-w-md mx-auto py-16 px-4 text-center">
+          <EmptyState icon={AlertCircle} title="加载失败" description={queryError} />
+          <Button className="mt-4" onClick={fetchData}>
+            <RefreshCw className="w-3.5 h-3.5" />
+            重试
+          </Button>
+        </div>
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-        <EmptyState
-          icon={Library}
+      <div className="max-w-5xl mx-auto pb-20 md:pb-0 py-6 px-4 sm:px-6 animate-page">
+        <PageHeader
+          icon={<Library className="w-5 h-5 text-primary" />}
           title="图书馆座位"
-          description="需要先同步图书馆登录凭证"
+          description="实时座位查询与预约"
+          actions={pageActions}
         />
-        <Button className="mt-4" onClick={handleRefreshJWT}>
-          <KeyRound className="w-3.5 h-3.5" />
-          刷新凭证
-        </Button>
+        <div className="max-w-md mx-auto py-16 px-4 text-center">
+          <EmptyState
+            icon={Library}
+            title="图书馆座位"
+            description="需要先同步图书馆登录凭证"
+          />
+          <Button className="mt-4" onClick={handleRefreshJWT}>
+            <KeyRound className="w-3.5 h-3.5" />
+            刷新凭证
+          </Button>
+        </div>
       </div>
     );
   }
 
   if (!data?.libs?.length) {
     return (
-      <div className="pb-20 md:pb-0 max-w-md mx-auto py-16 px-4 text-center">
-        <EmptyState
-          icon={MapPin}
-          title="暂无可预约阅览室"
-          description="当前没有开放的阅览室"
+      <div className="max-w-5xl mx-auto pb-20 md:pb-0 py-6 px-4 sm:px-6 animate-page">
+        <PageHeader
+          icon={<Library className="w-5 h-5 text-primary" />}
+          title="图书馆座位"
+          description="实时座位查询与预约"
+          actions={pageActions}
         />
-        <Button className="mt-4" onClick={fetchData}>
-          <RefreshCw className="w-3.5 h-3.5" />
-          刷新
-        </Button>
+        <div className="max-w-md mx-auto py-16 px-4 text-center">
+          <EmptyState
+            icon={MapPin}
+            title="暂无可预约阅览室"
+            description="当前没有开放的阅览室"
+          />
+          <Button className="mt-4" onClick={fetchData}>
+            <RefreshCw className="w-3.5 h-3.5" />
+            刷新
+          </Button>
+        </div>
       </div>
     );
   }

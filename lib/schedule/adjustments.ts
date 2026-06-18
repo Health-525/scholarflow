@@ -47,18 +47,6 @@ export function loadAdjustments(): Adjustment[] {
 }
 
 /**
- * 保存调课记录到 localStorage
- */
-export function saveAdjustments(adjustments: Adjustment[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(adjustments));
-  } catch {
-    // ignore
-  }
-}
-
-/**
  * 检查调课是否对指定周次生效
  */
 export function isAdjustmentActive(adj: Adjustment, weekNum: number): boolean {
@@ -170,39 +158,4 @@ function arraysEqual(a: number[], b: number[]): boolean {
   return a.every((v, i) => v === b[i]);
 }
 
-/**
- * 检查目标槽位是否有冲突
- */
-export function checkConflict(
-  schedule: RawScheduleData,
-  adjustments: Adjustment[],
-  targetWeekday: Weekday,
-  targetPeriods: number[],
-  weekNum: number,
-  excludeAdjId?: string
-): { hasConflict: boolean; conflictWith?: string } {
-  const activeAdjs = adjustments.filter(
-    (adj) => adj.id !== excludeAdjId && isAdjustmentActive(adj, weekNum)
-  );
 
-  for (const c of schedule.courses || []) {
-    // Skip courses that aren't active this week
-    const courseWeeks = parseWeekSpec(c.weeks);
-    if (courseWeeks.length && !courseWeeks.includes(weekNum)) continue;
-
-    const adj = activeAdjs.find(
-      (a) => a.sourceWeekday === c.weekday && arraysEqual(a.sourcePeriods, c.periods)
-    );
-    const actualWeekday = adj ? adj.targetWeekday : c.weekday;
-    const actualPeriods = adj ? adj.targetPeriods : c.periods;
-    if (actualWeekday === targetWeekday && periodsOverlap(actualPeriods, targetPeriods)) {
-      return { hasConflict: true, conflictWith: c.title };
-    }
-  }
-
-  return { hasConflict: false };
-}
-
-function periodsOverlap(a: number[], b: number[]): boolean {
-  return a.some((p) => b.includes(p));
-}

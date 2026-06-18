@@ -4,7 +4,7 @@
  * - CSV: 作业/跑步数据导出
  */
 
-export { downloadICS, buildWeekICS, validateICS } from "./ics";
+export { downloadICS, buildWeekICS } from "./ics";
 
 // ── CSV 导出 ──────────────────────────────────────────────
 

@@ -7,7 +7,6 @@
 
 import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
-import { Preferences } from "@capacitor/preferences";
 
 export const isNative = Capacitor.isNativePlatform();
 
@@ -103,28 +102,4 @@ export async function writeData(file: string, content: string, action = "更新"
   });
 }
 
-// ── 设置存储 (key-value) ──
 
-export async function getSetting(key: string): Promise<string | null> {
-  if (isNative) {
-    const { value } = await Preferences.get({ key });
-    return value;
-  }
-  return localStorage.getItem(key);
-}
-
-export async function setSetting(key: string, value: string): Promise<void> {
-  if (isNative) {
-    await Preferences.set({ key, value });
-    return;
-  }
-  localStorage.setItem(key, value);
-}
-
-export async function removeSetting(key: string): Promise<void> {
-  if (isNative) {
-    await Preferences.remove({ key });
-    return;
-  }
-  localStorage.removeItem(key);
-}

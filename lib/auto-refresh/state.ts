@@ -33,52 +33,13 @@ export interface RememberSetting {
   lastManualLoginAt: number | null;
 }
 
-const DEFAULT_AUTO_REFRESH_STATE: AutoRefreshState = {
-  attempt: 0,
-  nextRunAt: null,
-  lastRunAt: null,
-  lastResult: null,
-};
-
 const DEFAULT_REMEMBER_SETTING: RememberSetting = {
   enabled: false,
   lastManualLoginAt: null,
 };
 
-function autoRefreshStateKey(schoolId: string, userId: string): string {
-  return `auto-refresh-state:${schoolId}:${userId}`;
-}
-
 function rememberSettingKey(schoolId: string, userId: string): string {
   return `remember-setting:${schoolId}:${userId}`;
-}
-
-/**
- * 读取自动刷新调度状态。缺失时返回默认值
- * `{ attempt: 0, nextRunAt: null, lastRunAt: null, lastResult: null }`。
- */
-export function getAutoRefreshState(schoolId: string, userId: string): AutoRefreshState {
-  const raw = getServerDB().readData(autoRefreshStateKey(schoolId, userId));
-  if (!raw || typeof raw !== "object") {
-    return { ...DEFAULT_AUTO_REFRESH_STATE };
-  }
-  const value = raw as Partial<AutoRefreshState>;
-  return {
-    attempt: typeof value.attempt === "number" ? value.attempt : DEFAULT_AUTO_REFRESH_STATE.attempt,
-    nextRunAt: typeof value.nextRunAt === "number" ? value.nextRunAt : null,
-    lastRunAt: typeof value.lastRunAt === "number" ? value.lastRunAt : null,
-    lastResult:
-      value.lastResult === "success" || value.lastResult === "failed" ? value.lastResult : null,
-  };
-}
-
-/** 写入自动刷新调度状态。 */
-export function setAutoRefreshState(
-  schoolId: string,
-  userId: string,
-  state: AutoRefreshState
-): void {
-  getServerDB().writeData(autoRefreshStateKey(schoolId, userId), state);
 }
 
 /**

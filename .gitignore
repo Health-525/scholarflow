@@ -61,3 +61,6 @@ coverage/
 .idea/
 *.swp
 *.swo
+
+# Temporary screenshots
+screenshots/

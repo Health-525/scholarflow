@@ -123,36 +123,4 @@ export async function fetchAllGrades(
   };
 }
 
-/**
- * 单独计算 GPA（不抓取，从已有成绩数据计算）
- */
-export function calculateGPA(courses: GradeCourse[]): GradeResult {
-  const best: Record<string, GradeCourse> = {};
-  for (const g of courses) {
-    const k = g.course;
-    if (!best[k] || parseFloat(g.score) > parseFloat(best[k].score)) {
-      best[k] = g;
-    }
-  }
-  const deduped = Object.values(best);
 
-  const required = deduped.filter(
-    (g) => isRequired(g.type) && parseFloat(g.credit) > 0
-  );
-  let tg = 0;
-  let tc = 0;
-  for (const g of required) {
-    const gp = toGP(g.score);
-    const cr = parseFloat(g.credit) || 0;
-    tg += gp * cr;
-    tc += cr;
-  }
-  const gpa = tc > 0 ? (tg / tc).toFixed(2) : "0.00";
-
-  return {
-    gpa,
-    totalCredits: tc,
-    requiredCourses: required.length,
-    allCourses: deduped,
-  };
-}

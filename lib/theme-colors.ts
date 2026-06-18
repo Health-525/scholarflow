@@ -25,14 +25,6 @@ export function statusColor(pct: number): string {
   return dark ? "#3fb950" : "#22c55e";
 }
 
-export function statusColorBg(pct: number): string {
-  const dark = isDarkMode();
-  if (pct >= 90) return dark ? "rgba(248,81,73,0.14)" : "rgba(239,68,68,0.10)";
-  if (pct >= 70)
-    return dark ? "rgba(210,153,34,0.14)" : "rgba(245,158,11,0.10)";
-  return dark ? "rgba(63,185,80,0.14)" : "rgba(34,197,94,0.10)";
-}
-
 // ── Library reserve status colors ──
 export interface ReserveStatusStyle {
   label: string;

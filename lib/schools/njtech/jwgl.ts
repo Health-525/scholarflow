@@ -3,7 +3,7 @@
  * 搬自 timetable/scripts/fetch_jwgl.js，改为 TypeScript 函数化
  */
 
-import type { CourseData, ExamData, GradeCourse } from "../types";
+import type { CourseData, ExamData } from "../types";
 
 import { encryptPassword } from "./jwgl-crypto";
 import { createClient, createClientWithCookie } from "./jwgl-http";
@@ -278,41 +278,4 @@ export async function fetchExams(
   }
 }
 
-// ── 当前学期成绩 ────────────────────────────────────────────
 
-export async function fetchCurrentGrades(
-  cookie: string,
-  xnm?: number,
-  xqm?: number
-): Promise<GradeCourse[]> {
-  const client = createClientWithCookie(BASE, cookie);
-
-  const now = new Date();
-  const month = now.getMonth();
-  const isFirstSemester = month >= 8 || month <= 1;
-  const year = xnm ?? (isFirstSemester
-    ? (month >= 8 ? now.getFullYear() : now.getFullYear() - 1)
-    : now.getFullYear() - 1);
-  const semester = xqm ?? (isFirstSemester ? 3 : 12);
-
-  const resp = await client.req(
-    "/cjcx/cjcx_cxDgXscj.html?doType=query&gnmkdm=N305005",
-    {
-      method: "POST",
-      body: `xnm=${year}&xqm=${semester}&_search=false&nd=${Date.now()}&queryModel.showCount=200&queryModel.currentPage=1`,
-    }
-  );
-
-  try {
-    const data = JSON.parse(resp.body);
-    return (data?.items || []).map((item: Record<string, unknown>) => ({
-      course: (item.kcmc as string) || "",
-      score: (item.cj as string) || (item.bfzcj as string) || "",
-      credit: (item.xf as string) || "",
-      type: (item.kcxzmc as string) || "",
-      semester: ((item.xnmmc as string) || "") + ((item.xqmmc as string) || ""),
-    }));
-  } catch {
-    return [];
-  }
-}

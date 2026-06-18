@@ -107,13 +107,6 @@ export function getServerDB(): ServerDB {
   return dbInstance;
 }
 
-export function resetServerDB(): void {
-  if (dbInstance) {
-    dbInstance.close();
-    dbInstance = null;
-  }
-}
-
 // ── ServerDB Class ──────────────────────────────────────────
 
 export class ServerDB {

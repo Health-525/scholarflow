@@ -133,8 +133,6 @@ export function predictTarget(
   };
 }
 
-export const CURRENT_SEMESTER = "2025-20262";
-
 export function getSemesterLabel(semester: string): string {
   // 兼容两种格式: "2024-2025-1" 和 "2024-20251"
   const parts = semester.split("-");

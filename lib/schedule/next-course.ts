@@ -34,14 +34,4 @@ export function getNextCourse(
   return null;
 }
 
-/**
- * 检查今天的课是否全部结束（考虑调课）
- */
-export function isTodayFinished(
-  schedule: RawScheduleData,
-  today: Date,
-  tz: string,
-  adjustments: Adjustment[] = []
-): boolean {
-  return getNextCourse(schedule, today, tz, adjustments) === null;
-}
+

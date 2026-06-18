@@ -68,18 +68,4 @@ export function courseColor(title: string): CourseColor {
   };
 }
 
-/**
- * 获取课程颜色（记忆化版本）
- */
-export function createMemoizedCourseColor(): (title: string) => CourseColor {
-  const cache = new Map<string, CourseColor>();
-  return (title: string) => {
-    // Cache key includes theme mode to ensure correct colors
-    const dark = isDarkMode();
-    const key = `${title}-${dark ? "dark" : "light"}`;
-    if (!cache.has(key)) {
-      cache.set(key, courseColor(title));
-    }
-    return cache.get(key)!;
-  };
-}
+

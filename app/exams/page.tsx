@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/input";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { showToast } from "@/components/ui/ToastContainer";
 import { useScheduleQuery } from "@/hooks/useQueries";
 import { parseExamDate } from "@/lib/parse-exam-date";
@@ -635,7 +636,9 @@ export default function ExamsPage() {
         <QuickAddForm subjects={subjects} onAdd={handleAdd} disabled={loading} />
 
         {loading && (
-          <div className="py-12 text-center text-sm text-muted-foreground">加载中…</div>
+          <div className="py-12 text-center">
+            <LoadingSpinner label="加载考试数据..." />
+          </div>
         )}
 
         {!loading && visible.length === 0 && (

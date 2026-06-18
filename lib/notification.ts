@@ -98,25 +98,4 @@ export function clearReminder(key: string): void {
   }
 }
 
-/**
- * 页面加载后重建所有提醒（因为 setTimeout 句柄不持久化）
- */
-export function rebuildAllReminders(): void {
-  if (typeof window === "undefined") return;
-  if (Notification.permission !== "granted") return;
 
-  const store = loadReminders();
-  for (const [key, entry] of Object.entries(store)) {
-    if (entry.remindAt > Date.now()) {
-      scheduleReminder(key, entry);
-    } else {
-      // Expired, clean up
-      delete store[key];
-    }
-  }
-  try {
-    localStorage.setItem(REMINDERS_KEY, JSON.stringify(store));
-  } catch (e) {
-    console.error("[Notification] rebuildAllReminders failed:", e);
-  }
-}

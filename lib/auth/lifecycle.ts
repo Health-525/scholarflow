@@ -48,15 +48,4 @@ export function canSilentRelogin(state: CredentialState, now: number, intervalMs
   return state.rememberEnabled && !isForceReloginDue(state, now, intervalMs);
 }
 
-/**
- * JWC cookie 是否过期。
- *
- * `cookieExpiresAt` 为 `null` 时视为过期返回 `true`;
- * 否则当且仅当 `now >= cookieExpiresAt` 时返回 `true`。
- */
-export function isCookieExpired(state: CredentialState, now: number): boolean {
-  if (state.cookieExpiresAt === null) {
-    return true;
-  }
-  return now >= state.cookieExpiresAt;
-}
+
