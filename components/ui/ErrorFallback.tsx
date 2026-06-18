@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { semanticBg, semanticBorder } from "@/lib/theme-colors";
 
 interface ErrorFallbackProps {
@@ -24,13 +25,9 @@ export function ErrorFallback({
         {message}
       </p>
       {onRetry && (
-        <button
-          type="button"
-          onClick={onRetry}
-          className="px-4 py-2 rounded-xl text-sm font-medium active:scale-95 transition-transform bg-primary text-primary-foreground"
-        >
+        <Button onClick={onRetry}>
           重试
-        </button>
+        </Button>
       )}
     </div>
   );
