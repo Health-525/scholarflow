@@ -239,7 +239,15 @@ export default function NotesPage() {
       <Card className="w-72 shrink-0 hidden md:flex flex-col rounded-2xl hover:shadow-sm hover:translate-y-0">
         <CardHeader className="pb-2 space-y-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-[13px]">笔记</CardTitle>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">
+                <FileText className="w-3.5 h-3.5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-[13px]">笔记</CardTitle>
+                <p className="text-[10px] text-muted-foreground">Markdown · 自动保存</p>
+              </div>
+            </div>
             <Button variant="ghost" size="icon-sm" onClick={startCreating} aria-label="新建笔记">
               <Plus className="w-4 h-4" />
             </Button>

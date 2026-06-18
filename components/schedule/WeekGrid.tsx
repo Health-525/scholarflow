@@ -147,7 +147,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                 >
                   <div
                     className={
-                      "text-[11px] font-medium " +
+                      "text-xs font-medium " +
                       (isWeekend
                         ? "text-[var(--status-warning)]"
                         : "text-muted-foreground")
@@ -157,7 +157,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                   </div>
                   <div
                     className={
-                      "text-[11px] font-semibold w-6 h-6 flex items-center justify-center rounded-full " +
+                      "text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full " +
                       (isToday
                         ? "bg-primary text-primary-foreground"
                         : "text-foreground")
