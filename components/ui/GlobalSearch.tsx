@@ -38,13 +38,22 @@ export function GlobalSearch() {
   const reset = useSearchStore((s) => s.reset);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const previousActiveElement = useRef<Element | null>(null);
 
   useEffect(() => {
     if (open) {
+      previousActiveElement.current = document.activeElement;
       setQuery("");
       setSelectedIndex(0);
       inputRef.current?.focus();
     }
+    return () => {
+      if (!open) return;
+      const prev = previousActiveElement.current as HTMLElement | null;
+      if (prev && typeof prev.focus === "function") {
+        prev.focus();
+      }
+    };
   }, [open, setQuery]);
 
   const results = useMemo(() => {

@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/input";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { ListSkeleton } from "@/components/ui/skeleton";
 import { showToast } from "@/components/ui/ToastContainer";
 import { useScheduleQuery } from "@/hooks/useQueries";
 import { parseExamDate } from "@/lib/parse-exam-date";
@@ -602,7 +602,11 @@ export default function ExamsPage() {
     .filter((e) => e.status === "completed")
     .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0));
 
-  const headerDescription = upcoming.length > 0 ? `${upcoming.length} 场待考` : "暂无待考科目";
+  const headerDescription = loading
+    ? "加载中…"
+    : upcoming.length > 0
+      ? `${upcoming.length} 场待考`
+      : "暂无待考科目";
 
   // 没有待考科目时，默认展开已完成列表，避免用户以为数据丢失
   useEffect(() => {
@@ -636,9 +640,9 @@ export default function ExamsPage() {
         <QuickAddForm subjects={subjects} onAdd={handleAdd} disabled={loading} />
 
         {loading && (
-          <div className="py-12 text-center">
-            <LoadingSpinner label="加载考试数据..." />
-          </div>
+          <Card hover={false} className="p-4">
+            <ListSkeleton count={4} />
+          </Card>
         )}
 
         {!loading && visible.length === 0 && (

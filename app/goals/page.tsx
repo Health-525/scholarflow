@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ListSkeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/store/auth";
 
 // ── 类型 ────────────────────────────────────────────────────
@@ -367,7 +368,9 @@ export default function DailyGoalsPage() {
       {/* Goals list */}
       <div className="mb-6">
         {!loaded ? (
-          <div className="text-center py-12 text-[13px] text-muted-foreground">正在整理你的目标…</div>
+          <Card className="p-4 hover:shadow-sm hover:translate-y-0">
+            <ListSkeleton count={4} />
+          </Card>
         ) : goals.length > 0 ? (
           <Card className="hover:shadow-sm hover:translate-y-0">
             <CardContent className="space-y-1 py-3">

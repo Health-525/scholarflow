@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { CardSkeleton, Skeleton } from "@/components/ui/skeleton";
 import {
   useLibraryData,
   useLibraryReserveStatus,
@@ -248,8 +248,31 @@ export default function LibraryPage() {
           description="实时座位查询与预约"
           actions={pageActions}
         />
-        <div className="py-16 text-center">
-          <LoadingSpinner label="加载座位数据..." />
+        <Card className="p-4 sm:p-5 mb-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="text-center px-3">
+                  <Skeleton className="h-8 w-12 mx-auto" />
+                  <Skeleton className="h-2 w-10 mx-auto mt-1.5" />
+                </div>
+              ))}
+            </div>
+            <div className="hidden sm:block text-right">
+              <Skeleton className="h-8 w-14 ml-auto" />
+              <Skeleton className="h-2 w-10 ml-auto mt-1.5" />
+            </div>
+          </div>
+          <Skeleton className="h-2.5 w-full rounded-full mt-4" />
+          <div className="flex justify-between mt-2">
+            <Skeleton className="h-2 w-24" />
+            <Skeleton className="h-2 w-24" />
+          </div>
+        </Card>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
         </div>
       </div>
     );

@@ -551,7 +551,10 @@ function PomodoroTimerInner({
               }}
             />
           )}
-          <svg width="260" height="260" viewBox="0 0 260 260">
+          <svg
+            viewBox="0 0 260 260"
+            className="w-[clamp(220px,60vw,260px)] h-[clamp(220px,60vw,260px)]"
+          >
             {/* Background track */}
             <circle
               cx="130"
@@ -577,16 +580,6 @@ function PomodoroTimerInner({
               style={{
                 transition: prefersReducedMotion ? undefined : "stroke-dashoffset 1s linear",
               }}
-            />
-            {/* Inner decorative ring */}
-            <circle
-              cx="130"
-              cy="130"
-              r={radius - 16}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1"
-              className="text-border/30"
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -797,7 +790,7 @@ export function PomodoroTimer() {
     return (
       <div className="pb-24 md:pb-0 space-y-6">
         <div className="flex flex-col items-center mb-6">
-          <Skeleton className="w-[260px] h-[260px] rounded-full" />
+          <Skeleton className="w-[clamp(220px,60vw,260px)] h-[clamp(220px,60vw,260px)] rounded-full" />
         </div>
         <div className="flex items-center justify-center gap-4 mb-6">
           <Skeleton className="w-11 h-11 rounded-xl" />

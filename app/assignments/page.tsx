@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { Input } from "@/components/ui/input";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { ListSkeleton } from "@/components/ui/skeleton";
 import { useAssignmentsQuery, useScheduleQuery } from "@/hooks/useQueries";
 import { assignmentSchema, type AssignmentInput } from "@/lib/schemas";
 import type { Assignment } from "@/types";
@@ -341,9 +341,9 @@ export default function AssignmentsPage() {
         <QuickCaptureForm subjects={subjects} onAdd={add} />
 
         {isLoading && (
-          <div className="py-12">
-            <LoadingSpinner label="加载作业..." />
-          </div>
+          <Card className="p-4 hover:shadow-sm hover:translate-y-0">
+            <ListSkeleton count={4} />
+          </Card>
         )}
         {error && !isLoading && <ErrorFallback message={error.message} onRetry={reload} />}
         {!isLoading && !error && (
