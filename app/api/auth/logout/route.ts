@@ -23,6 +23,7 @@ export async function POST(request: Request) {
 
     const db = getServerDB();
     db.deleteCredentials(schoolId, userId);
+    db.deleteData(`credential-password:${schoolId}:${userId}`);
 
     // 关闭记住密码偏好（保留 lastManualLoginAt 仅作历史参考无安全影响）。
     const remember = getRememberSetting(schoolId, userId);

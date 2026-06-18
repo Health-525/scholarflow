@@ -212,6 +212,9 @@ export class ServerDB {
         "SELECT * FROM credentials WHERE expires_at IS NULL OR expires_at > ? " +
           "ORDER BY created_at DESC LIMIT 1"
       ),
+      credRecent: this.db.prepare(
+        "SELECT * FROM credentials ORDER BY created_at DESC LIMIT 1"
+      ),
     };
   }
 
@@ -266,6 +269,33 @@ export class ServerDB {
       };
     } catch {
       console.error("[ServerDB] credential_data JSON parse failed for", row.school_id, row.user_id);
+      return { schoolId: row.school_id, userId: row.user_id, username: row.user_id, expiresAt };
+    }
+  }
+
+  /**
+   * 查找最近一条凭证记录（无视过期时间）。
+   * 供 session 端点使用：cookie 过期但记住密码仍有效时，应返回已认证状态，
+   * 让自动刷新调度器能用记住的密码静默重登。
+   */
+  findMostRecentCredential():
+    | { schoolId: string; userId: string; username: string; expiresAt: number | null }
+    | null {
+    const row = this.stmts.credRecent.get() as
+      | { school_id: string; user_id: string; credential_data: string; expires_at: number | null }
+      | undefined;
+    if (!row) return null;
+    const expiresAt = typeof row.expires_at === "number" ? row.expires_at : null;
+    try {
+      const data = JSON.parse(row.credential_data) as Record<string, string>;
+      return {
+        schoolId: row.school_id,
+        userId: row.user_id,
+        username: data.username || row.user_id,
+        expiresAt,
+      };
+    } catch {
+      console.error("[ServerDB] findMostRecentCredential JSON parse failed");
       return { schoolId: row.school_id, userId: row.user_id, username: row.user_id, expiresAt };
     }
   }

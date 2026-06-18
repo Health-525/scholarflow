@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { resolveUserId } from "@/lib/account-prefix";
+import { decryptPassword } from "@/lib/crypto-password";
 import { buildDashboardSummary } from "@/lib/dashboard/summary";
 import { NJTECH_PERIOD_TIMES } from "@/lib/schools/njtech/jwgl";
 import { getAdapter } from "@/lib/schools/registry";
@@ -48,10 +49,19 @@ export async function POST(request: Request) {
 
     // JWC_Cookie 过期或不存在 → 尝试静默重登(有 password)或提示手动登录。
     if (!savedCreds) {
-      if (password && username) {
+      // 尝试从请求体、或本地 DB 中获取已保存的密码（前端刷新时可能未传 password，
+      // 此时从 DB 中读取记住的密码用于静默重登）。
+      const resolvedPassword =
+        password ||
+        decryptPassword(
+          (db.readData(`credential-password:${schoolId}:${userId}`) as { password?: string } | null)?.password || ""
+        ) ||
+        undefined;
+
+      if (resolvedPassword && username) {
         try {
           // 用记住的密码静默重新登录教务系统,拿到新 cookie 后保存(R8.3)。
-          const session = await adapter.login({ username, password });
+          const session = await adapter.login({ username, password: resolvedPassword });
           db.saveCredentials(schoolId, userId, session.data, session.expiresAt);
           savedCreds = session.data;
         } catch {

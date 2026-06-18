@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { resolveUserId } from "@/lib/account-prefix";
 import { setRememberSetting } from "@/lib/auto-refresh/state";
+import { encryptPassword } from "@/lib/crypto-password";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
 
@@ -9,9 +10,9 @@ import { getServerDB } from "@/lib/server-db";
  * POST /api/auth/login
  * 学校登录验证 → 保存教务凭证 → 记录「记住密码」偏好与本次手动登录时间 → 返回 session 信息
  *
- * 注意:本路由不写入明文密码。当处于 Electron 且用户勾选「记住密码」时,
- * 密码的 OS 级加密存储由前端调用 safeStorage(storeCredential)完成(见任务 12.1)。
- * 本路由仅负责:验证登录、保存教务会话凭证、记录 remember 偏好与登录时间。
+ * 记住密码时，密码同时通过两条路径保存：
+ * 1. Electron safeStorage（OS 级加密）→ 供主进程调度器使用
+ * 2. 服务端 SQLite credential-password key → 供 Web 前端手动刷新时 /api/fetch/all 静默重登
  */
 export async function POST(request: Request) {
   try {
@@ -46,6 +47,15 @@ export async function POST(request: Request) {
       enabled: !!remember,
       lastManualLoginAt: Date.now(),
     });
+
+    // 记住密码时，将密码存入服务端 DB，供 /api/fetch/all 在 cookie 过期后静默重登。
+    // 密码仅存在本地 SQLite 文件中，不会上传到任何远程服务器。
+    const password = (credentials as Record<string, string>).password;
+    if (remember && password) {
+      db.writeData(`credential-password:${schoolId}:${userId}`, { password: encryptPassword(password) });
+    } else {
+      db.deleteData(`credential-password:${schoolId}:${userId}`);
+    }
 
     return NextResponse.json({
       ok: true,
