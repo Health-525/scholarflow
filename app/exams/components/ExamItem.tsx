@@ -142,46 +142,21 @@ export function ExamItem({
           </Badge>
         )}
 
-        {isCompleted ? (
-          <>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => onUncomplete(exam.id)}
-              className="size-8 opacity-0 transition-opacity group-hover:opacity-100"
-              aria-label="撤销完成"
-              title="撤销完成"
-            >
-              <RotateCcw className="size-4" />
-            </Button>
-            {exam.source === "manual" && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowDeleteConfirm(true)}
-                className="size-8 opacity-0 transition-opacity group-hover:opacity-100"
-                aria-label={`删除「${exam.subject}」`}
-                title="删除"
-              >
-                <Trash2 className="size-4" />
-              </Button>
-            )}
-          </>
-        ) : (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowDeleteConfirm(true)}
-            className="size-8 opacity-0 transition-opacity group-hover:opacity-100"
-            aria-label={`删除「${exam.subject}」`}
-            title="删除"
-          >
-            <Trash2 className="size-4" />
-          </Button>
-        )}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => isCompleted ? onUncomplete(exam.id) : setShowDeleteConfirm(true)}
+          className="size-8 text-muted-foreground/50 hover:text-primary"
+          aria-label={isCompleted ? "撤销完成" : `删除「${exam.subject}」`}
+          title={isCompleted ? "撤销完成" : "删除"}
+        >
+          {isCompleted ? (
+            <RotateCcw className="size-3.5" />
+          ) : (
+            <Trash2 className="size-3.5" />
+          )}
+        </Button>
       </div>
 
       <ConfirmDialog

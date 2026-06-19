@@ -255,7 +255,7 @@ export default function ActivityPage() {
         <Button
           variant="outline"
           className="flex-1 h-9"
-          onClick={downloadActivityCSV}
+          onClick={() => downloadActivityCSV().catch(() => {})}
         >
           导出 CSV
         </Button>
@@ -274,8 +274,8 @@ export default function ActivityPage() {
         onOpenChange={setClearDialogOpen}
         title="确定清除所有活动记录？"
         description="此操作不可撤销，所有活动记录将被永久删除。"
-        onConfirm={() => {
-          clearActivityData();
+        onConfirm={async () => {
+          await clearActivityData();
           window.location.reload();
         }}
       />

@@ -1,43 +1,11 @@
 "use client";
 
-import {
-  Sun,
-  Moon,
-  Monitor,
-  LogOut,
-  ChevronRight,
-  Calendar,
-  ClipboardList,
-  Activity,
-  Database,
-  BarChart3,
-  Trash2,
-  Download,
-  RefreshCw,
-  GraduationCap,
-  ShieldCheck,
-  Clock,
-  User,
-  School,
-  Info,
-  KeyRound,
-} from "lucide-react";
+import { User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { SegmentedControl } from "@/components/ui/segmented-control";
-import { SettingsSection } from "@/components/ui/settings-section";
 import { showToast } from "@/components/ui/ToastContainer";
 import {
   useScheduleQuery,
@@ -46,8 +14,8 @@ import {
   useRefreshData,
 } from "@/hooks/useQueries";
 import {
-  downloadActivityCSV,
   clearActivityData,
+  downloadActivityCSV,
 } from "@/lib/activity-tracker-v3";
 import {
   exportAssignmentsCSV,
@@ -56,32 +24,19 @@ import {
   downloadICS,
 } from "@/lib/export";
 import { isElectron } from "@/lib/runtime-env";
-import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 import { useThemeStore } from "@/store/theme";
-import type { ThemeValue } from "@/types";
 
-interface ConfirmState {
-  title: string;
-  description?: string;
-  confirmText?: string;
-  danger?: boolean;
-  action: () => void;
-}
-
-const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] =
-  [
-    { value: "light", label: "浅色", Icon: Sun },
-    { value: "dark", label: "深色", Icon: Moon },
-    { value: "system", label: "跟随系统", Icon: Monitor },
-  ];
-
-interface StudentInfo {
-  studentId: string;
-  gpa: string;
-  totalCredits: number;
-  courseCount: number;
-}
+import {
+  AboutCard,
+  AccountSecuritySection,
+  DataExportSection,
+  DataRefreshSection,
+  StorageInfoCard,
+  ThemeSection,
+  UserProfileCard,
+} from "./components";
+import type { ConfirmState, StudentInfo } from "./types";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -194,7 +149,9 @@ export default function SettingsPage() {
       description: "将永久删除本地记录的屏幕使用时间数据,此操作不可撤销。",
       confirmText: "清除",
       danger: true,
-      action: clearActivityData,
+      action: async () => {
+        await clearActivityData();
+      },
     });
   };
 
@@ -250,271 +207,47 @@ export default function SettingsPage() {
         title="用户中心"
       />
 
-      {/* ── 用户卡片 ──────────────────────────────────────────── */}
-      <Card className="rounded-[28px] p-0 mb-5 relative overflow-hidden animate-fade-up hover:translate-y-0 hover:shadow-sm">
-        {/* Background decoration */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          aria-hidden="true"
-        >
-          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/6 blur-3xl" />
-          <div className="absolute -left-8 -bottom-8 h-24 w-24 rounded-full bg-primary/4 blur-2xl" />
-        </div>
+      <UserProfileCard
+        displayName={displayName}
+        avatarLetter={avatarLetter}
+        schoolName={schoolName}
+        isSynced={isSynced}
+        schoolId={schoolId}
+        studentInfo={studentInfo}
+        scheduleCourseCount={scheduleData?.schedule?.courses?.length ?? 0}
+        pendingAssignmentsCount={assignments.filter((a) => !a.done).length}
+        recordsCount={records.length}
+        onLogout={confirmLogout}
+      />
 
-        <CardHeader className="relative px-6 pt-6 pb-0">
-          <div className="flex items-center gap-4">
-            {/* Avatar */}
-            <div className="relative shrink-0">
-              <div
-                className="absolute inset-0 rounded-[22px] bg-primary/10 blur-xl"
-                aria-hidden="true"
-              />
-              <div className="relative w-14 h-14 rounded-[22px] flex items-center justify-center bg-primary text-primary-foreground font-display text-[22px] font-bold shadow-sm">
-                {avatarLetter}
-              </div>
-            </div>
+      <ThemeSection theme={theme} onChange={setTheme} />
 
-            {/* Info */}
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-[16px] font-semibold tabular-nums text-foreground truncate">
-                {displayName}
-              </CardTitle>
-              <CardDescription className="flex items-center gap-2 mt-1 text-[11px]">
-                <Badge
-                  variant="secondary"
-                  aria-hidden="true"
-                  className={cn(
-                    "w-1.5 h-1.5 rounded-full p-0 border-0 shrink-0",
-                    isSynced
-                      ? "bg-[var(--status-success)]"
-                      : "bg-muted-foreground/40",
-                  )}
-                />
-                <span>
-                  {isSynced ? "已同步教务系统" : "未同步教务系统"}
-                </span>
-              </CardDescription>
-              {schoolId && (
-                <CardDescription className="flex items-center gap-1.5 mt-0.5 text-[11px]">
-                  <School className="w-3 h-3 text-primary/60" />
-                  <span>{schoolName}</span>
-                </CardDescription>
-              )}
-            </div>
+      <DataRefreshSection
+        isPending={refreshData.isPending}
+        onRefresh={handleRefreshFromSchool}
+      />
 
-            {/* Logout button — always visible */}
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={confirmLogout}
-              className="shrink-0 rounded-xl"
-              aria-label="退出登录"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="text-[12px]">退出</span>
-            </Button>
-          </div>
-        </CardHeader>
-
-        <CardContent className="relative px-6 pb-6 pt-5">
-          {/* Stats grid */}
-          <div className="grid grid-cols-4 gap-2">
-            {studentInfo ? (
-              <>
-                <StatChip value={studentInfo.gpa} label="GPA" accent />
-                <StatChip value={String(studentInfo.totalCredits)} label="学分" />
-                <StatChip value={String(studentInfo.courseCount)} label="课程" />
-              </>
-            ) : (
-              <>
-                <StatChip
-                  value={String(scheduleData?.schedule?.courses?.length ?? 0)}
-                  label="课程"
-                />
-                <StatChip
-                  value={String(assignments.filter((a) => !a.done).length)}
-                  label="待办"
-                />
-              </>
-            )}
-            <StatChip value={String(records.length)} label="跑步" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* ── 外观 ──────────────────────────────────────────────── */}
-      <SettingsSection icon={<Sun className="w-4 h-4" />} title="外观">
-        <SegmentedControl
-          options={THEME_OPTIONS.map((opt) => ({
-            id: opt.value,
-            label: opt.label,
-            icon: opt.Icon,
-          }))}
-          value={theme}
-          onChange={(id) => setTheme(id as ThemeValue)}
-        />
-      </SettingsSection>
-
-      {/* ── 数据刷新 ──────────────────────────────────────────── */}
-      <SettingsSection
-        icon={<RefreshCw className="w-4 h-4" />}
-        title="数据刷新"
-      >
-        <p className="text-[11px] mb-3 text-muted-foreground">
-          从学校教务系统重新抓取课表、成绩、考试等数据
-        </p>
-        <Button
-          variant="default"
-          onClick={handleRefreshFromSchool}
-          disabled={refreshData.isPending}
-          className="w-full justify-start gap-3 px-4 py-3 h-auto rounded-xl text-left text-[13px] font-medium active:translate-y-0.5 disabled:opacity-60"
-        >
-          <RefreshCw
-            className={cn(
-              "w-4 h-4 shrink-0",
-              refreshData.isPending && "animate-spin",
-            )}
-          />
-          <span>
-            {refreshData.isPending ? "刷新中..." : "从教务系统刷新数据"}
-          </span>
-          <span className="text-[11px] ml-auto text-primary-foreground/70">
-            课表 · 成绩 · 考试
-          </span>
-        </Button>
-      </SettingsSection>
-
-      {/* ── 账户安全：清除已记住的密码（仅 Electron） ──────────── */}
       {showClearPassword && (
-        <SettingsSection
-          icon={<KeyRound className="w-4 h-4" />}
-          title="账户安全"
-        >
-          <p className="text-[11px] mb-3 text-muted-foreground">
-            清除本地加密存储的教务密码，并停止后台自动刷新
-          </p>
-          <Button
-            variant="destructive"
-            onClick={confirmClearPassword}
-            disabled={clearingPassword}
-            className="w-full justify-start gap-3 px-4 py-3 h-auto rounded-xl text-left text-[13px] font-medium active:translate-y-0.5 disabled:opacity-60"
-          >
-            <KeyRound className="w-4 h-4 shrink-0" />
-            <span>{clearingPassword ? "清除中..." : "清除已记住的密码"}</span>
-          </Button>
-        </SettingsSection>
+        <AccountSecuritySection
+          clearingPassword={clearingPassword}
+          onClearPassword={confirmClearPassword}
+        />
       )}
 
-      {/* ── 数据导出 ──────────────────────────────────────────── */}
-      <SettingsSection icon={<Download className="w-4 h-4" />} title="数据导出">
-        <MenuItem
-          icon={Calendar}
-          label="导出课表 (ICS)"
-          onClick={handleExportICS}
-          disabled={!scheduleData?.schedule}
-        />
-        <MenuItem
-          icon={ClipboardList}
-          label="导出作业 (CSV)"
-          onClick={() => exportAssignmentsCSV(assignments)}
-          disabled={!assignments.length}
-        />
-        <MenuItem
-          icon={Activity}
-          label="导出跑步 (CSV)"
-          onClick={() => exportRunningCSV(records)}
-          disabled={!records.length}
-        />
-        <MenuItem
-          icon={BarChart3}
-          label="导出屏幕时间 (CSV)"
-          onClick={downloadActivityCSV}
-        />
-        <MenuItem
-          icon={Trash2}
-          label="清除屏幕时间数据"
-          onClick={confirmClearActivity}
-          danger
-          last
-        />
-      </SettingsSection>
+      <DataExportSection
+        scheduleData={scheduleData}
+        assignments={assignments}
+        records={records}
+        onExportICS={handleExportICS}
+        onExportAssignments={() => exportAssignmentsCSV(assignments)}
+        onExportRunning={() => exportRunningCSV(records)}
+        onExportActivity={() => downloadActivityCSV().catch(() => {})}
+        onConfirmClearActivity={confirmClearActivity}
+      />
 
-      {/* ── 存储信息 ──────────────────────────────────────────── */}
-      <Card className="mb-4 hover:translate-y-0 hover:shadow-sm">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Database className="w-4 h-4 text-primary" />
-            <CardTitle className="text-[13px] font-semibold">存储信息</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-[11px]">
-            <InfoRow
-              icon={<ShieldCheck className="w-3 h-3" />}
-              label="数据存储"
-              value="SQLite 本地数据库"
-            />
-            <InfoRow
-              icon={<Clock className="w-3 h-3" />}
-              label="课表/作业/跑步"
-              value="本地优先，自动持久化"
-            />
-            <InfoRow
-              icon={<GraduationCap className="w-3 h-3" />}
-              label="学校凭证"
-              value="安全加密存储"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <StorageInfoCard />
 
-      {/* ── 关于 ──────────────────────────────────────────── */}
-      <Card className="mb-4 hover:translate-y-0 hover:shadow-sm">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Info className="w-4 h-4 text-primary" />
-            <CardTitle className="text-[13px] font-semibold">关于</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="text-center">
-          <div className="text-[14px] font-semibold mb-1 text-primary font-display">
-            ScholarFlow
-          </div>
-          <div className="text-[11px] text-muted-foreground">
-            v2.0 · Electron + Next.js
-          </div>
-          <div className="text-[11px] mt-0.5 text-muted-foreground">
-            独立学习管理中枢
-          </div>
-          <div className="mt-3 flex flex-wrap gap-1.5 justify-center">
-            <Badge
-              variant="secondary"
-              className="text-[11px] px-2 py-0.5 rounded-md bg-[var(--status-success)]/10 text-[var(--status-success)] font-medium hover:bg-[var(--status-success)]/10"
-            >
-              PWA
-            </Badge>
-            <Badge
-              variant="secondary"
-              className="text-[11px] px-2 py-0.5 rounded-md bg-[var(--status-warning)]/10 text-[var(--status-warning)] font-medium hover:bg-[var(--status-warning)]/10"
-            >
-              离线优先
-            </Badge>
-            <Badge
-              variant="secondary"
-              className="text-[11px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium hover:bg-primary/10"
-            >
-              SQLite
-            </Badge>
-          </div>
-          <div className="mt-3 text-[11px] text-muted-foreground">
-            按{" "}
-            <kbd className="px-1 py-0.5 rounded text-[11px] font-mono bg-secondary border border-border">
-              ?
-            </kbd>{" "}
-            查看快捷键
-          </div>
-        </CardContent>
-      </Card>
+      <AboutCard />
 
       {/* ── 确认对话框(替代原生 confirm) ─────────────────────── */}
       <ConfirmDialog
@@ -531,88 +264,6 @@ export default function SettingsPage() {
           setConfirmState(null);
         }}
       />
-    </div>
-  );
-}
-
-// ── 子组件 ──────────────────────────────────────────────────────
-
-function StatChip({
-  value,
-  label,
-  accent,
-}: {
-  value: string;
-  label: string;
-  accent?: boolean;
-}) {
-  return (
-    <div className="rounded-xl p-2.5 text-center bg-secondary/60">
-      <div
-        className={cn(
-          "text-[16px] font-semibold tabular-nums",
-          accent ? "text-[var(--status-success)]" : "text-foreground",
-        )}
-      >
-        {value}
-      </div>
-      <div className="text-[11px] text-muted-foreground">{label}</div>
-    </div>
-  );
-}
-
-function MenuItem({
-  icon: Icon,
-  label,
-  onClick,
-  disabled,
-  danger,
-  last,
-}: {
-  icon: typeof Sun;
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-  danger?: boolean;
-  last?: boolean;
-}) {
-  return (
-    <Button
-      variant="ghost"
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        "w-full justify-start gap-3 px-2 py-3 h-auto text-left text-[13px] font-normal rounded-none",
-        !last && "border-b border-border",
-        disabled &&
-          "text-muted-foreground opacity-50 cursor-default hover:bg-transparent",
-        danger && !disabled && "text-destructive hover:bg-destructive/8",
-        !danger && !disabled && "text-foreground hover:bg-secondary/40",
-      )}
-    >
-      <Icon className="w-4 h-4 shrink-0" />
-      <span>{label}</span>
-      {!disabled && (
-        <ChevronRight className="w-3.5 h-3.5 ml-auto shrink-0 text-muted-foreground" />
-      )}
-    </Button>
-  );
-}
-
-function InfoRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-2 text-[11px]">
-      <span className="text-primary/60 shrink-0">{icon}</span>
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-right ml-auto text-foreground">{value}</span>
     </div>
   );
 }

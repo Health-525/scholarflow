@@ -23,6 +23,22 @@ contextBridge.exposeInMainWorld("electronAPI", {
   /** 查询 OS 级加密是否可用 */
   secureStorageAvailable: () => ipcRenderer.invoke("credential:secure-available"),
 
+  // ── Auth state 安全存储 — 替代 localStorage 明文 sf_auth ──
+  /** 加密存储 auth state(safeStorage) */
+  storeAuthState: (plaintext) => ipcRenderer.invoke("auth-state:store", plaintext),
+  /** 读取并解密 auth state,失败/不存在返回 null */
+  retrieveAuthState: () => ipcRenderer.invoke("auth-state:retrieve"),
+  /** 清除已存储的 auth state */
+  clearAuthState: () => ipcRenderer.invoke("auth-state:clear"),
+
+  // ── Activity data 安全存储 — 替代 localStorage 明文 sf_activity_v3 ──
+  /** 加密存储 activity data(safeStorage) */
+  storeActivityData: (plaintext) => ipcRenderer.invoke("activity-data:store", plaintext),
+  /** 读取并解密 activity data,失败/不存在返回 null */
+  retrieveActivityData: () => ipcRenderer.invoke("activity-data:retrieve"),
+  /** 清除已存储的 activity data */
+  clearActivityData: () => ipcRenderer.invoke("activity-data:clear"),
+
   // ── 活动窗口追踪 ──
   /** 获取当前活动窗口信息 */
   getActiveWindow: () => ipcRenderer.invoke("activity:get-current-window"),

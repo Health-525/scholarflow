@@ -36,6 +36,14 @@ interface ElectronAPI {
   retrieveCredential?: () => Promise<string | null>;
   clearCredential?: () => Promise<boolean>;
   secureStorageAvailable?: () => Promise<boolean>;
+  // Auth state secure storage (replaces plaintext localStorage sf_auth)
+  storeAuthState?: (plaintext: string) => Promise<boolean>;
+  retrieveAuthState?: () => Promise<string | null>;
+  clearAuthState?: () => Promise<boolean>;
+  // Activity data secure storage (replaces plaintext localStorage sf_activity_v3)
+  storeActivityData?: (plaintext: string) => Promise<boolean>;
+  retrieveActivityData?: () => Promise<string | null>;
+  clearActivityData?: () => Promise<boolean>;
 }
 
 interface Window {

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { resolveUserId } from "@/lib/account-prefix";
-import { isTrustedOrigin } from "@/lib/auth/origin";
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { decryptPassword } from "@/lib/crypto-password";
 import { buildDashboardSummary } from "@/lib/dashboard/summary";
 import { mergeExams } from "@/lib/exams/merge";
@@ -9,6 +10,13 @@ import { NJTECH_PERIOD_TIMES } from "@/lib/schools/njtech/jwgl";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
 import type { Exam } from "@/types/exam";
+
+const fetchAllBodySchema = z.object({
+  schoolId: z.string().min(1),
+  cookie: z.string().optional(),
+  username: z.string().min(1).optional(),
+  password: z.string().optional(),
+});
 
 /**
  * POST /api/fetch/all
@@ -25,22 +33,16 @@ import type { Exam } from "@/types/exam";
  */
 export async function POST(request: Request) {
   try {
-    if (!isTrustedOrigin(request)) {
-      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+      return forbiddenResponse();
     }
 
-    const body = await request.json() as {
-      schoolId?: string;
-      cookie?: string;
-      username?: string;
-      /** 可选:供调度器/记住密码静默重登使用的教务密码 */
-      password?: string;
-    };
-    const { schoolId, username, password } = body;
-
-    if (!schoolId) {
-      return NextResponse.json({ error: "missing schoolId" }, { status: 400 });
+    const parse = fetchAllBodySchema.safeParse(await request.json());
+    if (!parse.success) {
+      return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
     }
+    const { schoolId, username, password } = parse.data;
+
     if (!username?.trim()) {
       return NextResponse.json({ error: "missing username" }, { status: 401 });
     }

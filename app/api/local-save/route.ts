@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { DEFAULT_SCHOOL_ID } from "@/lib/account-prefix";
 import { resolveAccountPrefix } from "@/lib/account-prefix";
-import { isTrustedOrigin } from "@/lib/auth/origin";
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getServerDB } from "@/lib/server-db";
+
+const localSaveBodySchema = z.object({
+  file: z.string().min(1).optional(),
+  content: z.string().optional(),
+  action: z.string().optional(),
+  schoolId: z.string().optional(),
+  userId: z.string().optional(),
+});
 
 /** 禁止通过 local-save 写入的敏感 key 前缀/模式 */
 const SENSITIVE_KEY_PATTERNS = [
@@ -18,12 +27,15 @@ function isSensitiveKey(key: string): boolean {
 
 export async function POST(request: Request) {
   try {
-    if (!isTrustedOrigin(request)) {
-      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+      return forbiddenResponse();
     }
 
-    const body = await request.json() as { file?: string; content?: string; action?: string; schoolId?: string; userId?: string };
-    const { file, content, action, schoolId, userId } = body;
+    const parse = localSaveBodySchema.safeParse(await request.json());
+    if (!parse.success) {
+      return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
+    }
+    const { file, content, action, schoolId, userId } = parse.data;
 
     const db = getServerDB();
 

@@ -3,7 +3,10 @@ const { app, BrowserWindow, shell, dialog, ipcMain, safeStorage, session } = req
 const { fork } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const { createAutoRefreshScheduler } = require('./auto-refresh');
+
+const INTERNAL_TOKEN_HEADER = 'x-scholarflow-internal-token';
 
 // ── 进程级日志（早于控制台，用于排查双击无反应/闪退）─────────────
 const logDir = path.join(app.getPath('userData'), 'logs');
@@ -88,6 +91,29 @@ function resolveStableDataDir(env, app) {
   return path.join(app.getPath('userData'), 'data');
 }
 
+// ── 内部调用 token ──────────────────────────────────────────
+/**
+ * 生成或复用稳定的内部调用 token。
+ * token 持久化在稳定数据目录,供主进程与 standalone server 共享。
+ */
+function getOrCreateInternalToken(dataDir) {
+  const tokenPath = path.join(dataDir, '.internal-token');
+  try {
+    if (fs.existsSync(tokenPath)) {
+      const existing = fs.readFileSync(tokenPath, 'utf-8').trim();
+      if (existing) return existing;
+    }
+  } catch {}
+
+  const token = crypto.randomBytes(32).toString('hex');
+  try {
+    fs.writeFileSync(tokenPath, token, { mode: 0o600 });
+  } catch {
+    fs.writeFileSync(tokenPath, token);
+  }
+  return token;
+}
+
 // ── 启动 standalone server ──────────────────────────────────
 function launchServer() {
   return new Promise((resolve, reject) => {
@@ -117,6 +143,9 @@ function launchServer() {
     logToFile('info', `[SF] Data directory (stable): ${dataDir}`);
     console.log('[SF] Data directory:', dataDir);
 
+    const internalToken = getOrCreateInternalToken(dataDir);
+    globalThis.__scholarflowInternalToken = internalToken;
+
     // fork 比 spawn 更可靠，直接用 Node 运行，不需要 shell
     const cwd = path.dirname(serverScript);
     serverProcess = fork(serverScript, [], {
@@ -128,6 +157,7 @@ function launchServer() {
         HOSTNAME: '127.0.0.1',
         SCHOLARFLOW_DATA_DIR: dataDir,
         ELECTRON_USER_DATA: dataDir,
+        SCHOLARFLOW_INTERNAL_TOKEN: internalToken,
         // 子进程以纯 Node 模式运行 Electron 二进制(Electron ABI),
         // 以便 better-sqlite3 原生模块按 Electron ABI 加载 (见 design §1.1)
         ELECTRON_RUN_AS_NODE: '1',
@@ -247,6 +277,82 @@ function setupSecureCredentialIPC() {
   });
 }
 
+// ── Auth state 安全存储路径(与用户凭证隔离)──────────────────
+function getAuthStateStorePath() {
+  const userDataPath = app.getPath('userData');
+  return path.join(userDataPath, 'secure-auth-state.enc');
+}
+
+// ── IPC: Auth state 加密存储与检索 ──────────────────────────
+function setupAuthStateIPC() {
+  ipcMain.handle('auth-state:store', async (_event, plaintext) => {
+    if (!safeStorage.isEncryptionAvailable()) {
+      throw new Error('系统加密不可用');
+    }
+    const encrypted = safeStorage.encryptString(plaintext);
+    const buf = Buffer.from(encrypted).toString('base64');
+    fs.writeFileSync(getAuthStateStorePath(), buf, 'utf-8');
+    return true;
+  });
+
+  ipcMain.handle('auth-state:retrieve', async () => {
+    const encPath = getAuthStateStorePath();
+    if (!fs.existsSync(encPath)) return null;
+    if (!safeStorage.isEncryptionAvailable()) return null;
+    try {
+      const buf = fs.readFileSync(encPath, 'utf-8');
+      const encrypted = Buffer.from(buf, 'base64');
+      return safeStorage.decryptString(encrypted);
+    } catch {
+      return null;
+    }
+  });
+
+  ipcMain.handle('auth-state:clear', async () => {
+    const encPath = getAuthStateStorePath();
+    if (fs.existsSync(encPath)) fs.unlinkSync(encPath);
+    return true;
+  });
+}
+
+// ── Activity data 安全存储路径(与 auth state 隔离)────────────
+function getActivityDataStorePath() {
+  const userDataPath = app.getPath('userData');
+  return path.join(userDataPath, 'secure-activity-data.enc');
+}
+
+// ── IPC: Activity data 加密存储与检索 ───────────────────────
+function setupActivityDataIPC() {
+  ipcMain.handle('activity-data:store', async (_event, plaintext) => {
+    if (!safeStorage.isEncryptionAvailable()) {
+      throw new Error('系统加密不可用');
+    }
+    const encrypted = safeStorage.encryptString(plaintext);
+    const buf = Buffer.from(encrypted).toString('base64');
+    fs.writeFileSync(getActivityDataStorePath(), buf, 'utf-8');
+    return true;
+  });
+
+  ipcMain.handle('activity-data:retrieve', async () => {
+    const encPath = getActivityDataStorePath();
+    if (!fs.existsSync(encPath)) return null;
+    if (!safeStorage.isEncryptionAvailable()) return null;
+    try {
+      const buf = fs.readFileSync(encPath, 'utf-8');
+      const encrypted = Buffer.from(buf, 'base64');
+      return safeStorage.decryptString(encrypted);
+    } catch {
+      return null;
+    }
+  });
+
+  ipcMain.handle('activity-data:clear', async () => {
+    const encPath = getActivityDataStorePath();
+    if (fs.existsSync(encPath)) fs.unlinkSync(encPath);
+    return true;
+  });
+}
+
 // ── 取记住的(已解密)密码,供 AutoRefreshScheduler 静默重登使用 ──────
 // 复用 getCredentialStorePath() 读取 secure-credential.enc,逻辑等价于
 // credential:retrieve handler:文件不存在 / 加密不可用 / 解密失败均返回 null。
@@ -281,7 +387,11 @@ function syncJWTToApp(jwtValue) {
   return new Promise(resolve => {
     const req = http.request({
       hostname: '127.0.0.1', port: PORT, path: '/api/auth/jwt',
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        [INTERNAL_TOKEN_HEADER]: globalThis.__scholarflowInternalToken,
+      },
     }, r => { let d = ''; r.on('data', c => d += c); r.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve({ ok: false }); } }); });
     req.on('error', () => resolve({ ok: false }));
     req.write(body); req.end();
@@ -303,6 +413,9 @@ async function checkCurrentJWT() {
       const req = http.request({
         hostname: '127.0.0.1', port: PORT, path: '/api/auth/jwt',
         method: 'GET',
+        headers: {
+          [INTERNAL_TOKEN_HEADER]: globalThis.__scholarflowInternalToken,
+        },
       }, r => { let d = ''; r.on('data', c => d += c); r.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve({ valid: false }); } }); });
       req.on('error', () => resolve({ valid: false }));
       req.setTimeout(3000, () => { req.destroy(); resolve({ valid: false }); });
@@ -757,6 +870,8 @@ function setupAutoUpdater() {
 app.whenReady().then(async () => {
   setupSecureTokenIPC();
   setupSecureCredentialIPC();
+  setupAuthStateIPC();
+  setupActivityDataIPC();
   setupAutoUpdater();
   try {
     console.log('[SF] Starting...');
@@ -776,6 +891,7 @@ app.whenReady().then(async () => {
     // 静默调度刷新(关窗后仍可触发),退出时清理定时器 (task 11.2, R5.1/R5.5)。
     autoRefreshScheduler = createAutoRefreshScheduler({
       port: PORT,
+      internalToken: globalThis.__scholarflowInternalToken,
       getMainWindow: () => mainWindow,
       retrievePassword: retrieveCredentialPassword,
       log: (level, msg) => logToFile(level, `[AutoRefresh] ${msg}`),

@@ -1,16 +1,22 @@
 import { NextResponse } from "next/server";
 
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+import { schoolIdBodySchema } from "@/lib/schemas/fetch";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
 
 export async function POST(request: Request) {
-  try {
-    const body = await request.json() as { schoolId?: string };
-    const { schoolId } = body;
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
 
-    if (!schoolId) {
-      return NextResponse.json({ error: "missing schoolId" }, { status: 400 });
+
+  try {
+    const parse = schoolIdBodySchema.safeParse(await request.json());
+    if (!parse.success) {
+      return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
     }
+    const { schoolId } = parse.data;
 
     const adapter = getAdapter(schoolId);
     if (!adapter || !adapter.fetchJwcNews) {

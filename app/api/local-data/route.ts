@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { DEFAULT_SCHOOL_ID } from "@/lib/account-prefix";
 import { resolveAccountPrefix, resolveSchoolId, resolveUserId } from "@/lib/account-prefix";
-import { isTrustedOrigin } from "@/lib/auth/origin";
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getDashboardSummary } from "@/lib/dashboard/summary";
 import { getServerDB } from "@/lib/server-db";
+
+const localDataQuerySchema = z.object({
+  type: z.string().default("dashboard"),
+  schoolId: z.string().optional(),
+  userId: z.string().optional(),
+  date: z.string().optional(),
+  slug: z.string().optional(),
+});
 
 /**
  * GET /api/local-data?type=<type>&schoolId=<schoolId>&userId=<userId>
@@ -13,14 +22,16 @@ import { getServerDB } from "@/lib/server-db";
  * 实现账号隔离 — 不同账号的数据互不可见
  */
 export async function GET(request: Request) {
-  if (!isTrustedOrigin(request)) {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
   }
 
   const { searchParams } = new URL(request.url);
-  const type = searchParams.get("type") || "dashboard";
-  const schoolIdParam = searchParams.get("schoolId");
-  const userIdParam = searchParams.get("userId");
+  const parse = localDataQuerySchema.safeParse(Object.fromEntries(searchParams));
+  if (!parse.success) {
+    return NextResponse.json({ error: "invalid query", issues: parse.error.issues }, { status: 400 });
+  }
+  const { type, schoolId: schoolIdParam, userId: userIdParam, date, slug } = parse.data;
 
   const db = getServerDB();
   const active = db.findActiveCredentials();
@@ -91,7 +102,6 @@ export async function GET(request: Request) {
     }
 
     case "dailyReport": {
-      const date = searchParams.get("date");
       if (!date) {
         return NextResponse.json({ error: "missing date" }, { status: 400 });
       }
@@ -100,7 +110,6 @@ export async function GET(request: Request) {
     }
 
     case "weeklyReport": {
-      const slug = searchParams.get("slug");
       if (!slug) {
         return NextResponse.json({ error: "missing slug" }, { status: 400 });
       }

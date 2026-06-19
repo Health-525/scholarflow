@@ -3,6 +3,7 @@ import path from "path";
 
 import { NextResponse } from "next/server";
 
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { decryptPassword, encryptPassword } from "@/lib/crypto-password";
 
 let cachedJWT = "", jwtExpiry = 0;
@@ -102,7 +103,17 @@ function cors(request: Request, body: Record<string, unknown>, status = 200) {
   return new NextResponse(JSON.stringify(body), { status, headers });
 }
 
+function requireTrustedOrigin(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+  return null;
+}
+
 export async function GET(request: Request) {
+  const denied = requireTrustedOrigin(request);
+  if (denied) return denied;
+
   // 尝试从持久化恢复
   if (!cachedJWT || jwtExpiry * 1000 <= Date.now()) {
     const saved = loadPersistedJWT();
@@ -117,6 +128,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const denied = requireTrustedOrigin(request);
+  if (denied) return denied;
+
   try {
     const { cookie } = await request.json();
     const match = cookie.match(/Authorization=([^;]+)/);
@@ -134,4 +148,8 @@ export async function POST(request: Request) {
   }
 }
 
-export async function OPTIONS(request: Request) { return cors(request, { ok: true }); }
+export async function OPTIONS(request: Request) {
+  const denied = requireTrustedOrigin(request);
+  if (denied) return denied;
+  return cors(request, { ok: true });
+}

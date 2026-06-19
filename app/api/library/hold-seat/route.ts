@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+
+
 import { getCachedJWT, graphql } from "../_lib";
 
 // POST /api/library/hold-seat — 暂离（保留座位）
-export async function POST() {
+export async function POST(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   const jwt = getCachedJWT();
   if (!jwt) return NextResponse.json({ error: "JWT未配置或已过期" }, { status: 401 });
 

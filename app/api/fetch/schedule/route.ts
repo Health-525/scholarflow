@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+import { schoolUsernameBodySchema } from "@/lib/schemas/fetch";
 import { NJTECH_PERIOD_TIMES } from "@/lib/schools/njtech/jwgl";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
@@ -9,13 +11,17 @@ import { getServerDB } from "@/lib/server-db";
  * 从教务系统抓取课表 → 写入 SQLite（带账号隔离）
  */
 export async function POST(request: Request) {
-  try {
-    const body = await request.json() as { schoolId?: string; username?: string };
-    const { schoolId, username } = body;
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
 
-    if (!schoolId) {
-      return NextResponse.json({ error: "missing schoolId" }, { status: 400 });
+
+  try {
+    const parse = schoolUsernameBodySchema.safeParse(await request.json());
+    if (!parse.success) {
+      return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
     }
+    const { schoolId, username } = parse.data;
 
     const adapter = getAdapter(schoolId);
     if (!adapter) {

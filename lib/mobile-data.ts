@@ -46,24 +46,18 @@ export async function mobileWriteFile(fileName: string, content: string): Promis
 
 // ── 统一接口 ──
 
+import { getCurrentAuth } from "./api/auth-params";
+
 /**
  * 获取当前登录用户的 schoolId 和 userId
- * 从 localStorage 的 sf_auth 中读取
+ * 优先从 Zustand auth store 读取(兼容 Electron 加密存储)
  */
 export function getCurrentUser(): { schoolId: string; userId: string | undefined } {
-  try {
-    const raw = localStorage.getItem("sf_auth");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      const state = parsed?.state || parsed;
-      const userId = state?.userId || state?.username;
-      return {
-        schoolId: state?.schoolId || "njtech",
-        userId: userId?.trim() ? userId.trim() : undefined,
-      };
-    }
-  } catch {}
-  return { schoolId: "njtech", userId: undefined };
+  const { schoolId, userId } = getCurrentAuth();
+  return {
+    schoolId: schoolId || "njtech",
+    userId: userId || undefined,
+  };
 }
 
 export async function readData(type: string): Promise<unknown> {

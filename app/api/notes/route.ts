@@ -1,9 +1,27 @@
+
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { resolveAccountPrefix } from "@/lib/account-prefix";
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getServerDB } from "@/lib/server-db";
 // eslint-disable-next-line import/order
 import { deleteNote, readNote, renameNote, writeNote } from "@/lib/notes/store";
+
+const notesQuerySchema = z.object({
+  path: z.string().min(1),
+  schoolId: z.string().optional(),
+  userId: z.string().optional(),
+});
+
+const notesActionBodySchema = z.object({
+  action: z.enum(["save", "create", "delete", "rename"]),
+  path: z.string().min(1),
+  content: z.string().optional(),
+  newPath: z.string().min(1).optional(),
+  schoolId: z.string().optional(),
+  userId: z.string().optional(),
+});
 
 function getNotePrefix(schoolId?: string | null, userId?: string | null): string {
   const db = getServerDB();
@@ -17,15 +35,17 @@ function getNotePrefix(schoolId?: string | null, userId?: string | null): string
  * 读取单篇笔记内容
  */
 export async function GET(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
   try {
     const { searchParams } = new URL(request.url);
-    const path = searchParams.get("path");
-    const schoolId = searchParams.get("schoolId");
-    const userId = searchParams.get("userId");
-
-    if (!path) {
-      return NextResponse.json({ error: "missing path" }, { status: 400 });
+    const parse = notesQuerySchema.safeParse(Object.fromEntries(searchParams));
+    if (!parse.success) {
+      return NextResponse.json({ error: "invalid query", issues: parse.error.issues }, { status: 400 });
     }
+    const { path, schoolId, userId } = parse.data;
 
     const prefix = getNotePrefix(schoolId, userId);
     const content = readNote(prefix, path);
@@ -41,29 +61,25 @@ export async function GET(request: Request) {
   }
 }
 
-interface NotesActionBody {
-  action: "save" | "create" | "delete" | "rename";
-  path: string;
-  content?: string;
-  newPath?: string;
-  schoolId?: string;
-  userId?: string;
-}
-
 /**
  * POST /api/notes
  *
  * 笔记写操作：保存、创建、删除、重命名
  */
 export async function POST(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   try {
-    const body = (await request.json()) as NotesActionBody;
+    const parse = notesActionBodySchema.safeParse(await request.json());
+    if (!parse.success) {
+      return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
+    }
+    const body = parse.data;
     const { action, path, schoolId, userId } = body;
     const prefix = getNotePrefix(schoolId, userId);
-
-    if (!path) {
-      return NextResponse.json({ error: "missing path" }, { status: 400 });
-    }
 
     switch (action) {
       case "save": {

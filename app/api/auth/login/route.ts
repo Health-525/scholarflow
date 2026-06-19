@@ -1,10 +1,19 @@
+
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { resolveUserId } from "@/lib/account-prefix";
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { setRememberSetting } from "@/lib/auto-refresh/state";
 import { encryptPassword } from "@/lib/crypto-password";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
+
+const loginBodySchema = z.object({
+  schoolId: z.string().min(1),
+  credentials: z.record(z.string(), z.string()),
+  remember: z.boolean().optional(),
+});
 
 /**
  * POST /api/auth/login
@@ -15,18 +24,17 @@ import { getServerDB } from "@/lib/server-db";
  * 2. 服务端 SQLite credential-password key → 供 Web 前端手动刷新时 /api/fetch/all 静默重登
  */
 export async function POST(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   try {
-    const body = await request.json() as {
-      schoolId?: string;
-      credentials?: Record<string, string>;
-      remember?: boolean;
-    };
-
-    const { schoolId, credentials, remember } = body;
-
-    if (!schoolId || !credentials) {
-      return NextResponse.json({ error: "missing schoolId or credentials" }, { status: 400 });
+    const parse = loginBodySchema.safeParse(await request.json());
+    if (!parse.success) {
+      return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
     }
+    const { schoolId, credentials, remember } = parse.data;
 
     const adapter = getAdapter(schoolId);
     if (!adapter) {
@@ -50,7 +58,7 @@ export async function POST(request: Request) {
 
     // 记住密码时，将密码存入服务端 DB，供 /api/fetch/all 在 cookie 过期后静默重登。
     // 密码仅存在本地 SQLite 文件中，不会上传到任何远程服务器。
-    const password = (credentials as Record<string, string>).password;
+    const password = credentials.password;
     if (remember && password) {
       db.writeData(`credential-password:${schoolId}:${userId}`, { password: encryptPassword(password) });
     } else {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, RefreshCw } from "lucide-react";
+import { Clock, RefreshCw, X } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
@@ -41,6 +41,7 @@ export default function ExamsPage() {
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("all");
   const autoImportedRef = useRef(false);
   const pendingDeleteRef = useRef<{
     exam: Exam;
@@ -320,14 +321,39 @@ export default function ExamsPage() {
           />
         )}
 
-        {!loading && visible.length > 0 && <ExamStats exams={exams} />}
+        {!loading && visible.length > 0 && (
+          <ExamStats exams={exams} filter={filter} onFilter={setFilter} />
+        )}
 
-        {!loading && upcoming.length > 0 && (
+        {/* 筛选状态 */}
+        {!loading && filter !== "all" && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 text-sm">
+            <span className="text-muted-foreground">当前筛选：</span>
+            <Badge variant="secondary" className="gap-1">
+              {filter === "upcoming" ? "待考" : "已完成"}
+              <button
+                onClick={() => setFilter("all")}
+                className="ml-1 hover:text-foreground transition-colors"
+                aria-label="清除筛选"
+              >
+                <X size={12} />
+              </button>
+            </Badge>
+            <span className="text-muted-foreground text-xs ml-auto">
+              {filter === "upcoming" ? upcoming.length : completed.length} 场考试
+            </span>
+          </div>
+        )}
+
+        {/* 待考列表 */}
+        {!loading && (filter === "all" || filter === "upcoming") && upcoming.length > 0 && (
           <Card hover={false}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base">待考</CardTitle>
-                <Badge variant="secondary">{upcoming.length} 场</Badge>
+                <CardTitle className="text-sm font-semibold">待考</CardTitle>
+                <Badge variant="secondary" className="text-xs">
+                  {upcoming.length} 场
+                </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -344,7 +370,8 @@ export default function ExamsPage() {
           </Card>
         )}
 
-        {!loading && completed.length > 0 && (
+        {/* 已完成列表 */}
+        {!loading && (filter === "all" || filter === "completed") && completed.length > 0 && (
           <Card hover={false}>
             <CardHeader>
               <button
@@ -352,13 +379,15 @@ export default function ExamsPage() {
                 onClick={() => setShowCompleted((v) => !v)}
                 className="flex w-full items-center justify-between text-left"
               >
-                <CardTitle className="text-base text-muted-foreground">
+                <CardTitle className="text-sm font-semibold text-muted-foreground">
                   已完成
                 </CardTitle>
-                <Badge variant="secondary">{completed.length} 场</Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {completed.length} 场
+                </Badge>
               </button>
             </CardHeader>
-            {showCompleted && (
+            {(showCompleted || filter === "completed") && (
               <CardContent className="space-y-2">
                 {completed.map((exam) => (
                   <ExamItem

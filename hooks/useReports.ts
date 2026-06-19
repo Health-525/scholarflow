@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-import { accountParams } from "@/lib/api/client";
-import { getCurrentUser } from "@/lib/mobile-data";
+import { getAuthParams } from "@/lib/api/auth-params";
 import type { DirectoryEntry } from "@/types";
 
 interface ReportsState {
@@ -11,11 +10,6 @@ interface ReportsState {
   isLoading: boolean;
   error: Error | null;
   reload: () => void;
-}
-
-function getAuthParams(): string {
-  const { schoolId, userId } = getCurrentUser();
-  return accountParams(schoolId, userId ?? null);
 }
 
 /**

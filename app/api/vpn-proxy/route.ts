@@ -1,8 +1,11 @@
+
 import fs from "fs";
 import https from "https";
 import path from "path";
 
 import { NextResponse } from "next/server";
+
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 
 // Shared JWT cache (cross-route via globalThis + filesystem fallback)
 function getCachedJWT(): string | null {
@@ -111,7 +114,12 @@ async function graphql(jwt: string, query: string) {
   });
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   const jwt = getCachedJWT();
   if (!jwt) return NextResponse.json({ error: "JWT未配置或已过期，请在Chrome图书馆页F12运行同步命令" }, { status: 401 });
 

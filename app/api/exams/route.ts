@@ -14,12 +14,41 @@
  *   "jwgl"    — 教务系统导入，删除后进入 hiddenIds 列表，重新导入不恢复
  */
 
+
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { resolveAccountPrefix } from "@/lib/account-prefix";
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { mergeExams } from "@/lib/exams/merge";
 import { getServerDB } from "@/lib/server-db";
 import type { Exam } from "@/types/exam";
+
+const examSchema = z.object({
+  id: z.string().optional(),
+  subject: z.string().optional(),
+  date: z.string().optional(),
+  time: z.string().optional(),
+  location: z.string().optional(),
+  notes: z.string().optional(),
+  source: z.enum(["manual", "jwgl"]).optional(),
+  status: z.enum(["upcoming", "completed", "deleted"]).optional(),
+  completedAt: z.number().optional(),
+});
+
+const examPostBodySchema = z.object({
+  exam: examSchema.optional(),
+  exams: z.array(examSchema).optional(),
+  schoolId: z.string().optional(),
+  userId: z.string().optional(),
+});
+
+const examPatchBodySchema = z.object({
+  id: z.string().min(1),
+  status: z.enum(["upcoming", "completed", "deleted"]),
+  schoolId: z.string().optional(),
+  userId: z.string().optional(),
+});
 
 function getExamKey(prefix: string) {
   return `exams:${prefix}`;
@@ -48,6 +77,11 @@ function writeExams(prefix: string, exams: Exam[]) {
 // ── GET ─────────────────────────────────────────────────────
 
 export async function GET(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   try {
     const { searchParams } = new URL(request.url);
     const db = getServerDB();
@@ -67,13 +101,17 @@ export async function GET(request: Request) {
 // ── POST（新增 or 批量导入）────────────────────────────────
 
 export async function POST(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   try {
-    const body = await request.json() as {
-      exam?: Partial<Exam>;
-      exams?: Partial<Exam>[];   // 批量导入（教务同步用）
-      schoolId?: string;
-      userId?: string;
-    };
+    const parse = examPostBodySchema.safeParse(await request.json());
+    if (!parse.success) {
+      return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
+    }
+    const body = parse.data;
 
     const db = getServerDB();
     const active = db.findActiveCredentials();
@@ -121,17 +159,17 @@ export async function POST(request: Request) {
 // ── PATCH（更新状态）────────────────────────────────────────
 
 export async function PATCH(request: Request) {
-  try {
-    const body = await request.json() as {
-      id: string;
-      status: Exam["status"];
-      schoolId?: string;
-      userId?: string;
-    };
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
 
-    if (!body.id || !body.status) {
-      return NextResponse.json({ error: "id and status are required" }, { status: 400 });
+
+  try {
+    const parse = examPatchBodySchema.safeParse(await request.json());
+    if (!parse.success) {
+      return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
     }
+    const body = parse.data;
 
     const db = getServerDB();
     const active = db.findActiveCredentials();
@@ -163,6 +201,11 @@ export async function PATCH(request: Request) {
 // ── DELETE ──────────────────────────────────────────────────
 
 export async function DELETE(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

@@ -1,28 +1,25 @@
 import { NextResponse } from "next/server";
 
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+import { reserveSeatBodySchema } from "@/lib/schemas/library-api";
+
 import { getCachedJWT, graphql } from "../_lib";
 
 // POST /api/library/reserve { lib_id, key }
 export async function POST(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   const jwt = getCachedJWT();
   if (!jwt) return NextResponse.json({ error: "JWT未配置或已过期" }, { status: 401 });
 
-  let body: { lib_id?: unknown; key?: unknown };
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "请求体格式错误" }, { status: 400 });
+  const parse = reserveSeatBodySchema.safeParse(await request.json());
+  if (!parse.success) {
+    return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
   }
-
-  const lib_id = Number(body.lib_id);
-  const key = typeof body.key === "string" ? body.key.trim() : "";
-
-  if (!Number.isFinite(lib_id) || lib_id <= 0) {
-    return NextResponse.json({ error: "lib_id 必须是正整数" }, { status: 400 });
-  }
-  if (!key) {
-    return NextResponse.json({ error: "缺少 key" }, { status: 400 });
-  }
+  const { lib_id, key } = parse.data;
 
   const query = `mutation ReserveSeat($libId: Int!, $seatKey: String!) {
     userAuth {

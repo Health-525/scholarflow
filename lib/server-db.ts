@@ -7,94 +7,17 @@
  */
 
 import fs from "fs";
-import os from "os";
 import path from "path";
 
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 
 import { getLegacyBaseDirs, discoverLegacyCandidates, ensureMigrated } from "./data-migrate";
+import { resolveDataDir } from "./server-db/path";
+import { escapeLike, openSqlite } from "./server-db/utils";
 
 // ── Schema ──────────────────────────────────────────────────
 
 const CURRENT_VERSION = 1;
-
-// ── Data directory resolution (pure functions) ──────────────
-
-/** 打包产物路径标志段:出现这些段即认为路径位于打包产物内部 */
-const PACKAGED_PATH_MARKERS = ["app.asar", ".next", "standalone", "dist"];
-
-/**
- * 判断目录是否位于打包产物内部。
- * 归一化反斜杠为正斜杠后,判断是否包含任一标志段(形如 `/marker/` 或以 `/marker` 结尾)。
- */
-export function isInsidePackagedDir(dir: string): boolean {
-  const n = dir.replace(/\\/g, "/");
-  return PACKAGED_PATH_MARKERS.some((m) => n.includes(`/${m}/`) || n.endsWith(`/${m}`));
-}
-
-/**
- * 基于用户主目录的稳定回退锚点(跨平台)。
- * 有非空 `%APPDATA%` 时返回 `%APPDATA%\ScholarFlow\data`,否则 `os.homedir()/.scholarflow/data`。
- */
-export function homeAnchoredFallback(): string {
-  const appData = process.env.APPDATA; // Windows: %APPDATA%\ScholarFlow\data
-  if (appData && appData.trim()) {
-    return path.join(appData, "ScholarFlow", "data");
-  }
-  return path.join(os.homedir(), ".scholarflow", "data"); // 其他平台
-}
-
-/**
- * 解析数据目录(供测试与复用的纯路径解析)。
- *   1. `SCHOLARFLOW_DATA_DIR` 非空(trim)→ 直接用
- *   2. 否则 cwd 不在打包目录 → `cwd/data`
- *   3. 否则(打包态且无 env)→ home 锚定回退,绝不写打包目录
- */
-export function resolveDataDir(
-  env: NodeJS.ProcessEnv = process.env,
-  cwd: string = process.cwd()
-): string {
-  const explicit = env.SCHOLARFLOW_DATA_DIR;
-  if (explicit && explicit.trim()) {
-    return explicit;
-  }
-  const cwdData = path.join(cwd, "data");
-  if (!isInsidePackagedDir(cwd)) {
-    return cwdData;
-  }
-  return homeAnchoredFallback();
-}
-
-// ── Native module loading (R4.5) ────────────────────────────
-
-/**
- * 打开 SQLite 数据库连接。
- * `new Database(...)` 用 try/catch 包裹,加载/初始化失败时输出可定位信息
- * (db 文件、运行时 ABI/版本、错误栈),便于区分 ABI 不匹配与文件缺失,然后抛出。
- */
-function openSqlite(dbFile: string): Database.Database {
-  try {
-    return new Database(dbFile);
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(
-      "[ServerDB] failed to load better-sqlite3 native module.",
-      "dbFile=", dbFile,
-      "electron=", process.versions.electron,
-      "modules(ABI)=", process.versions.modules,
-      "node=", process.versions.node,
-      "error=", (err as Error).stack || (err as Error).message
-    );
-    throw err;
-  }
-}
-
-/**
- * 转义 SQL `LIKE` 模式中的特殊字符(`%`、`_`、转义符自身),配合 `ESCAPE '\'` 使用。
- */
-function escapeLike(value: string): string {
-  return value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
-}
 
 // ── Singleton ───────────────────────────────────────────────
 

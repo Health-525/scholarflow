@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 
 import {
@@ -5,6 +6,7 @@ import {
   canSilentRelogin,
   isForceReloginDue,
 } from "@/lib/auth/lifecycle";
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getRememberSetting } from "@/lib/auto-refresh/state";
 import { getServerDB } from "@/lib/server-db";
 
@@ -18,7 +20,12 @@ import { getServerDB } from "@/lib/server-db";
  *    authenticated: true，调度器可用记住的密码静默重登获取新 cookie。
  * 3. 以上皆不满足 → authenticated: false。
  */
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   try {
     const db = getServerDB();
 

@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+
+
 import { getCachedJWT, graphql } from "../_lib";
 
 interface UserStatusResponse {
@@ -13,7 +16,12 @@ interface UserStatusResponse {
 }
 
 // Check user account status (blacklist, rank, etc.)
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   const jwt = getCachedJWT();  if (!jwt) {
     return NextResponse.json({ error: "JWT_EXPIRED" }, { status: 401 });
   }

@@ -2,20 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 
+import { getAuthParams } from "@/lib/api/auth-params";
 import { useAuthStore } from "@/store/auth";
 import type { NoteTreeNode } from "@/types";
-
-/** 从 auth store 读当前账号参数，始终使用最新值（不调用 hook，供非 hook 函数使用） */
-function getAuthParams(): string {
-  if (typeof window === "undefined") return "";
-  const { schoolId, userId } = useAuthStore.getState();
-  const sid = schoolId || "";
-  const uid = userId || "";
-  const p = new URLSearchParams();
-  if (sid) p.set("schoolId", sid);
-  if (uid) p.set("userId", uid);
-  return p.toString();
-}
 
 /**
  * 读取笔记目录树。

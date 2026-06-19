@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getRememberSetting, setRememberSetting } from "@/lib/auto-refresh/state";
 import { getServerDB } from "@/lib/server-db";
+
+const logoutBodySchema = z.object({
+  schoolId: z.string().min(1),
+  userId: z.string().min(1),
+});
 
 /**
  * POST /api/auth/logout
@@ -13,13 +20,17 @@ import { getServerDB } from "@/lib/server-db";
  * 通过 Secure_Storage（clearCredential）清除。
  */
 export async function POST(request: Request) {
-  try {
-    const body = await request.json() as { schoolId?: string; userId?: string };
-    const { schoolId, userId } = body;
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
 
-    if (!schoolId || !userId) {
-      return NextResponse.json({ error: "missing schoolId or userId" }, { status: 400 });
+
+  try {
+    const parse = logoutBodySchema.safeParse(await request.json());
+    if (!parse.success) {
+      return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
     }
+    const { schoolId, userId } = parse.data;
 
     const db = getServerDB();
     db.deleteCredentials(schoolId, userId);

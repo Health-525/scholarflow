@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+
+
 import { getCachedJWT, graphql } from "../_lib";
 
 // GET /api/library/user-rank — 查询用户排名
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   const jwt = getCachedJWT();
   if (!jwt) return NextResponse.json({ error: "JWT未配置或已过期" }, { status: 401 });
 

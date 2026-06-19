@@ -9,10 +9,38 @@
  *   goals:history:<prefix>  → [{ date, completed, total }]
  */
 
+
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { resolveAccountPrefix } from "@/lib/account-prefix";
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getServerDB } from "@/lib/server-db";
+
+const dailyGoalSchema = z.object({
+  id: z.string().min(1),
+  text: z.string().min(1),
+  done: z.boolean(),
+});
+
+const goalsStateSchema = z.object({
+  goals: z.array(dailyGoalSchema),
+  streak: z.number().int().min(0),
+  date: z.string(),
+});
+
+const historyRecordSchema = z.object({
+  date: z.string(),
+  completed: z.number().int().min(0),
+  total: z.number().int().min(0),
+});
+
+const goalsPostBodySchema = z.object({
+  schoolId: z.string().optional(),
+  userId: z.string().optional(),
+  state: goalsStateSchema.optional(),
+  history: z.array(historyRecordSchema).optional(),
+});
 
 interface DailyGoal {
   id: string;
@@ -41,6 +69,11 @@ function getPrefix(schoolId: string | null, userId: string | null) {
 // ── GET ─────────────────────────────────────────────────────
 
 export async function GET(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   try {
     const { searchParams } = new URL(request.url);
     const prefix = getPrefix(
@@ -66,13 +99,17 @@ export async function GET(request: Request) {
 // ── POST ────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   try {
-    const body = await request.json() as {
-      schoolId?: string;
-      userId?: string;
-      state?: GoalsState;
-      history?: HistoryRecord[];
-    };
+    const parse = goalsPostBodySchema.safeParse(await request.json());
+    if (!parse.success) {
+      return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
+    }
+    const body = parse.data;
 
     const prefix = getPrefix(body.schoolId ?? null, body.userId ?? null);
     const db = getServerDB();

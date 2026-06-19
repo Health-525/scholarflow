@@ -1,98 +1,16 @@
 "use client";
 
-import { FileText, Plus, Trash2, CheckCircle2, XCircle, ChevronLeft, Eye, PenLine, Search } from "lucide-react";
+import { FileText, Plus, ChevronLeft, Search } from "lucide-react";
 import { useState, useCallback, useEffect, useMemo } from "react";
 
-import { NoteEditor } from "@/components/notes/NoteEditor";
-import { NoteViewer } from "@/components/notes/NoteViewer";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { createNote, deleteNote, saveNote, useNoteContent, useNoteTree } from "@/hooks/useNotes";
-import { buildNotePath, parseNotePath } from "@/lib/note-utils";
-import type { NoteTreeNode } from "@/types";
+import { buildNotePath } from "@/lib/note-utils";
 
-interface NoteListItem {
-  path: string;
-  title: string;
-  category: string;
-}
-
-interface DeletedNote {
-  path: string;
-  content: string;
-  expiresAt: number;
-}
-
-const SAMPLE_NOTE = {
-  title: "欢迎使用笔记",
-  category: "示例",
-  content: "# 欢迎使用笔记\n\n这里可以记录课堂重点、复习提纲或任何想法。\n\n- 支持 Markdown 格式\n- 自动保存\n- 左侧可搜索笔记\n\n右侧会实时显示最终效果。",
-};
-
-function flattenTree(nodes: NoteTreeNode[]): NoteListItem[] {
-  const result: NoteListItem[] = [];
-  function walk(list: NoteTreeNode[], parentCategory: string) {
-    for (const node of list) {
-      if (node.type === "file") {
-        const parsed = parseNotePath(node.path);
-        result.push({ path: node.path, title: parsed.title, category: parentCategory });
-      }
-      if (node.children && node.children.length > 0) {
-        walk(node.children, node.type === "dir" ? node.name : parentCategory);
-      }
-    }
-  }
-  walk(nodes, "");
-  return result;
-}
-
-function EmptyListState({ onCreate, onUseSample }: { onCreate: () => void; onUseSample: () => void }) {
-  return (
-    <Card className="m-3 hover:shadow-sm hover:translate-y-0">
-      <CardContent className="text-center py-10 px-4">
-        <div className="w-12 h-12 mx-auto mb-3 rounded-2xl flex items-center justify-center bg-primary/10">
-          <FileText className="w-5 h-5 text-primary" />
-        </div>
-        <p className="text-[13px] font-medium text-foreground">还没有笔记</p>
-        <p className="text-[11px] text-muted-foreground mt-1 mb-4">写下第一条想法，或从示例开始</p>
-        <div className="flex flex-col gap-2">
-          <Button onClick={onCreate} className="w-full gap-1.5">
-            <Plus className="w-3.5 h-3.5" /> 新建笔记
-          </Button>
-          <Button onClick={onUseSample} variant="secondary" className="w-full gap-1.5">
-            <FileText className="w-3.5 h-3.5" /> 查看示例笔记
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function EmptyWorkspaceState({ onCreate, onUseSample }: { onCreate: () => void; onUseSample: () => void }) {
-  return (
-    <Card className="h-full flex flex-col items-center justify-center hover:shadow-sm hover:translate-y-0">
-      <CardContent className="text-center animate-fade-up max-w-[320px] px-6 py-12">
-        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-primary/10">
-          <FileText className="w-6 h-6 text-primary" />
-        </div>
-        <h3 className="text-[15px] font-semibold mb-1.5 text-foreground">选择一个笔记开始写作</h3>
-        <p className="text-[12px] leading-relaxed text-muted-foreground mb-5">
-          从左侧选择已有笔记，或创建一篇新笔记。不知道写什么？先看看示例。
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
-          <Button onClick={onCreate} className="gap-1.5">
-            <Plus className="w-3.5 h-3.5" /> 新建笔记
-          </Button>
-          <Button onClick={onUseSample} variant="secondary" className="gap-1.5">
-            <FileText className="w-3.5 h-3.5" /> 查看示例
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+import { EmptyListState, EmptyWorkspaceState, Workspace } from "./components";
+import { flattenTree, SAMPLE_NOTE, type DeletedNote } from "./utils";
 
 export default function NotesPage() {
   const { tree, isLoading: treeLoading, error: treeError, reload: reloadTree } = useNoteTree();
@@ -235,6 +153,37 @@ export default function NotesPage() {
   const workspaceLoading = !isSample && contentLoading;
   const workspaceError = !isSample ? contentError : null;
 
+  const workspaceProps = {
+    isCreating,
+    isSample,
+    createTitle,
+    setCreateTitle,
+    createCategory,
+    setCreateCategory,
+    createContent,
+    setCreateContent,
+    createError,
+    onCreateSubmit: handleCreate,
+    title: workspaceTitle,
+    category: workspaceCategory,
+    content: workspaceLoading ? "" : isSample ? SAMPLE_NOTE.content : content,
+    previewContent,
+    onPreviewChange: setPreviewContent,
+    isLoading: workspaceLoading,
+    error: workspaceError,
+    reload: reloadContent,
+    editorKey,
+    mobileMode,
+    onMobileModeChange: setMobileMode,
+    saving,
+    saveSuccess,
+    saveError,
+    onSave: handleSave,
+    onDelete: handleDelete,
+    deletedBuffer,
+    onUndoDelete: undoDelete,
+  };
+
   return (
     <div className="h-[calc(100vh-80px)] flex gap-4 max-w-7xl mx-auto py-4 px-4 animate-page">
       {/* Sidebar */}
@@ -306,36 +255,7 @@ export default function NotesPage() {
             <Button variant="ghost" size="sm" onClick={() => { setSelectedPath(null); setIsCreating(false); setIsSample(false); }} className="mb-3 w-fit gap-1">
               <ChevronLeft className="w-3.5 h-3.5" /> 返回笔记列表
             </Button>
-            <Workspace
-              isCreating={isCreating}
-              isSample={isSample}
-              createTitle={createTitle}
-              setCreateTitle={setCreateTitle}
-              createCategory={createCategory}
-              setCreateCategory={setCreateCategory}
-              createContent={createContent}
-              setCreateContent={setCreateContent}
-              createError={createError}
-              onCreateSubmit={handleCreate}
-              title={workspaceTitle}
-              category={workspaceCategory}
-              content={workspaceLoading ? "" : isSample ? SAMPLE_NOTE.content : content}
-              previewContent={previewContent}
-              onPreviewChange={setPreviewContent}
-              isLoading={workspaceLoading}
-              error={workspaceError}
-              reload={reloadContent}
-              editorKey={editorKey}
-              mobileMode={mobileMode}
-              onMobileModeChange={setMobileMode}
-              saving={saving}
-              saveSuccess={saveSuccess}
-              saveError={saveError}
-              onSave={handleSave}
-              onDelete={handleDelete}
-              deletedBuffer={deletedBuffer}
-              onUndoDelete={undoDelete}
-            />
+            <Workspace {...workspaceProps} />
           </div>
         ) : (
           <Card className="h-full flex flex-col rounded-2xl hover:shadow-sm hover:translate-y-0">
@@ -400,252 +320,11 @@ export default function NotesPage() {
       {/* Desktop workspace */}
       <main className="hidden md:block flex-1 min-w-0">
         {isCreating || isSample || selectedPath ? (
-          <Workspace
-            isCreating={isCreating}
-            isSample={isSample}
-            createTitle={createTitle}
-            setCreateTitle={setCreateTitle}
-            createCategory={createCategory}
-            setCreateCategory={setCreateCategory}
-            createContent={createContent}
-            setCreateContent={setCreateContent}
-            createError={createError}
-            onCreateSubmit={handleCreate}
-            title={workspaceTitle}
-            category={workspaceCategory}
-            content={workspaceLoading ? "" : isSample ? SAMPLE_NOTE.content : content}
-            previewContent={previewContent}
-            onPreviewChange={setPreviewContent}
-            isLoading={workspaceLoading}
-            error={workspaceError}
-            reload={reloadContent}
-            editorKey={editorKey}
-            mobileMode={mobileMode}
-            onMobileModeChange={setMobileMode}
-            saving={saving}
-            saveSuccess={saveSuccess}
-            saveError={saveError}
-            onSave={handleSave}
-            onDelete={handleDelete}
-            deletedBuffer={deletedBuffer}
-            onUndoDelete={undoDelete}
-          />
+          <Workspace {...workspaceProps} />
         ) : (
           <EmptyWorkspaceState onCreate={startCreating} onUseSample={openSample} />
         )}
       </main>
     </div>
-  );
-}
-
-interface WorkspaceProps {
-  isCreating: boolean;
-  isSample: boolean;
-  createTitle: string;
-  setCreateTitle: (v: string) => void;
-  createCategory: string;
-  setCreateCategory: (v: string) => void;
-  createContent: string;
-  setCreateContent: (v: string) => void;
-  createError: string | null;
-  onCreateSubmit: (e: React.FormEvent) => Promise<void>;
-  title: string;
-  category: string;
-  content: string;
-  previewContent: string;
-  onPreviewChange: (v: string) => void;
-  isLoading: boolean;
-  error: Error | null;
-  reload: () => void;
-  editorKey: string;
-  mobileMode: "edit" | "view";
-  onMobileModeChange: (m: "edit" | "view") => void;
-  saving: boolean;
-  saveSuccess: boolean;
-  saveError: string | null;
-  onSave: (content: string) => Promise<void>;
-  onDelete: () => Promise<void>;
-  deletedBuffer: DeletedNote | null;
-  onUndoDelete: () => Promise<void>;
-}
-
-function Workspace(props: WorkspaceProps) {
-  const {
-    isCreating,
-    isSample,
-    createTitle,
-    setCreateTitle,
-    createCategory,
-    setCreateCategory,
-    createContent,
-    setCreateContent,
-    createError,
-    onCreateSubmit,
-    title,
-    category,
-    content,
-    previewContent,
-    onPreviewChange,
-    isLoading,
-    error,
-    reload,
-    editorKey,
-    mobileMode,
-    onMobileModeChange,
-    saving,
-    saveSuccess,
-    saveError,
-    onSave,
-    onDelete,
-    deletedBuffer,
-    onUndoDelete,
-  } = props;
-
-  if (isCreating) {
-    return (
-      <Card className="h-full flex flex-col rounded-2xl hover:shadow-sm hover:translate-y-0">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-[15px]">新建笔记</CardTitle>
-          <p className="text-[11px] text-muted-foreground">填写标题即可创建，分类可选</p>
-        </CardHeader>
-        <form onSubmit={onCreateSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div>
-            <label htmlFor="note-title" className="block text-[12px] font-medium text-muted-foreground mb-1.5">标题</label>
-            <Input
-              id="note-title"
-              type="text"
-              value={createTitle}
-              onChange={(e) => setCreateTitle(e.target.value)}
-              placeholder="例如：高等数学复习"
-              className="h-10"
-            />
-          </div>
-          <div>
-            <label htmlFor="note-category" className="block text-[12px] font-medium text-muted-foreground mb-1.5">分类（可选）</label>
-            <Input
-              id="note-category"
-              type="text"
-              value={createCategory}
-              onChange={(e) => setCreateCategory(e.target.value)}
-              placeholder="例如：数学"
-              className="h-10"
-            />
-          </div>
-          <div>
-            <label htmlFor="note-content" className="block text-[12px] font-medium text-muted-foreground mb-1.5">内容</label>
-            <textarea
-              id="note-content"
-              value={createContent}
-              onChange={(e) => setCreateContent(e.target.value)}
-              placeholder="从这里开始写…"
-              className="w-full h-48 px-3 py-2.5 rounded-xl text-sm bg-secondary border border-border text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 resize-none"
-            />
-          </div>
-          {createError && <p className="text-[11px] text-destructive">{createError}</p>}
-          <Button type="submit" className="w-full">创建笔记</Button>
-        </form>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="h-full flex flex-col rounded-2xl hover:shadow-sm hover:translate-y-0">
-      {/* Header */}
-      <CardHeader className="pb-2 shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-sm">📝</span>
-            <CardTitle className="text-[15px] truncate">{title}</CardTitle>
-            {category && <Badge variant="secondary" className="shrink-0">{category}</Badge>}
-            {isSample && <Badge variant="outline" className="shrink-0 text-amber-600 border-amber-200 bg-amber-500/10">示例</Badge>}
-          </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <div className="flex md:hidden items-center bg-secondary rounded-lg p-0.5">
-              <Button
-                variant={mobileMode === "edit" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => onMobileModeChange("edit")}
-                className="h-7 gap-1 rounded-md text-[11px]"
-              >
-                <PenLine className="w-3 h-3" /> 编辑
-              </Button>
-              <Button
-                variant={mobileMode === "view" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => onMobileModeChange("view")}
-                className="h-7 gap-1 rounded-md text-[11px]"
-              >
-                <Eye className="w-3 h-3" /> 阅读
-              </Button>
-            </div>
-            {!isSample && (
-              <Button variant="ghost" size="icon-sm" onClick={onDelete} aria-label="删除笔记" className="text-muted-foreground hover:text-destructive">
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 min-h-5">
-          {saveSuccess && (
-            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded animate-fade-up bg-green-500/10 dark:bg-green-500/15 text-green-600 dark:text-green-400 flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" /> 已保存
-            </span>
-          )}
-          {saving && <span className="text-[10px] text-muted-foreground">保存中…</span>}
-          {saveError && (
-            <span className="text-[10px] text-destructive flex items-center gap-1">
-              <XCircle className="w-3 h-3" /> {saveError}
-            </span>
-          )}
-        </div>
-      </CardHeader>
-
-      {/* Undo toast */}
-      {deletedBuffer && Date.now() < deletedBuffer.expiresAt && (
-        <div className="flex items-center gap-2 px-3 py-2.5 text-sm bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-fade-up shrink-0">
-          <span className="flex-1 truncate">已删除「{parseNotePath(deletedBuffer.path).title}」</span>
-          <Button variant="secondary" size="sm" onClick={onUndoDelete} className="gap-1">
-            <Trash2 size={12} /> 撤销
-          </Button>
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="flex-1 overflow-hidden min-h-0">
-        {isLoading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="w-8 h-8 mx-auto mb-3 rounded-lg flex items-center justify-center animate-breathe bg-primary/10">
-                <FileText className="w-4 h-4 text-primary" />
-              </div>
-              <p className="text-[12px] text-muted-foreground">正在打开笔记…</p>
-            </div>
-          </div>
-        )}
-        {error && !isLoading && (
-          <div className="text-center py-20">
-            <p className="text-[13px] mb-2 text-destructive">加载失败</p>
-            <p className="text-[11px] text-muted-foreground">{error.message}</p>
-            <Button variant="secondary" size="sm" onClick={reload} className="mt-3">重试</Button>
-          </div>
-        )}
-        {!isLoading && !error && (
-          <div className="flex h-full">
-            <div className={`flex-1 min-w-0 h-full ${mobileMode === "view" ? "hidden md:block" : "block"}`}>
-              <NoteEditor key={editorKey} content={content} onSave={onSave} onChange={onPreviewChange} />
-            </div>
-            <div
-              className={`flex-1 min-w-0 h-full border-l border-border bg-secondary/20 overflow-y-auto ${
-                mobileMode === "edit" ? "hidden md:block" : "block"
-              }`}
-            >
-              <div className="px-5 py-4">
-                <NoteViewer content={previewContent} isMarkdown />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </Card>
   );
 }

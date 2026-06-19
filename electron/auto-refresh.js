@@ -20,6 +20,8 @@
 
 const http = require('http');
 
+const INTERNAL_TOKEN_HEADER = 'x-scholarflow-internal-token';
+
 // ── 调度配置(内联,等价于 lib/auto-refresh/schedule.ts DEFAULT_SCHEDULE_CONFIG)──
 //   baseIntervalMs 12h、jitterWindowMs 6h、backoffBaseMs 60s、maxDelayMs 1h、maxRetries 5
 const DEFAULT_SCHEDULE_CONFIG = {
@@ -69,7 +71,7 @@ function shouldStopRetrying(attempt, cfg) {
  * GET 127.0.0.1:{port}/api/auth/session。
  * 失败(网络/解析)返回 null,绝不抛出。
  */
-function httpGetSession(port) {
+function httpGetSession(port, internalToken) {
   return new Promise((resolve) => {
     try {
       const req = http.request(
@@ -78,6 +80,7 @@ function httpGetSession(port) {
           port,
           path: '/api/auth/session',
           method: 'GET',
+          headers: internalToken ? { [INTERNAL_TOKEN_HEADER]: internalToken } : {},
         },
         (res) => {
           let data = '';
@@ -109,7 +112,7 @@ function httpGetSession(port) {
  * POST 127.0.0.1:{port}/api/fetch/all,body { schoolId, username, password }。
  * 返回 { ok: boolean }。任何网络/HTTP/解析错误均视为失败(ok:false),绝不抛出。
  */
-function httpPostFetchAll(port, payload) {
+function httpPostFetchAll(port, payload, internalToken) {
   return new Promise((resolve) => {
     try {
       const body = JSON.stringify(payload);
@@ -122,6 +125,7 @@ function httpPostFetchAll(port, payload) {
           headers: {
             'Content-Type': 'application/json',
             'Content-Length': Buffer.byteLength(body),
+            ...(internalToken ? { [INTERNAL_TOKEN_HEADER]: internalToken } : {}),
           },
         },
         (res) => {
@@ -155,6 +159,7 @@ function httpPostFetchAll(port, payload) {
  *
  * @param {object} opts
  * @param {number} opts.port standalone server 端口
+ * @param {string} [opts.internalToken] 内部调用 /api/auth/session 与 /api/fetch/all 的 token
  * @param {() => (object|null)} [opts.getMainWindow] 取主窗口(预留:可用于推送刷新状态)
  * @param {() => (string|null)} opts.retrievePassword 取记住的(已解密)密码;无则返回 null。
  *        由 main.js 注入(复用 safeStorage 读 secure-credential.enc),保持本模块独立可测。
@@ -166,6 +171,7 @@ function httpPostFetchAll(port, payload) {
 function createAutoRefreshScheduler(opts) {
   const {
     port,
+    internalToken,
     getMainWindow = () => null,
     retrievePassword = () => null,
     config = DEFAULT_SCHEDULE_CONFIG,
@@ -219,7 +225,7 @@ function createAutoRefreshScheduler(opts) {
    * @returns {Promise<object|null>} 可刷新时返回 session;否则返回 null。
    */
   async function evaluateGate() {
-    const session = await httpGetSession(port);
+    const session = await httpGetSession(port, internalToken);
     if (!session || !session.authenticated) {
       log('info', '未登录,跳过自动刷新调度');
       return null;
@@ -252,7 +258,7 @@ function createAutoRefreshScheduler(opts) {
         schoolId: session.schoolId,
         username: session.username,
         password,
-      });
+      }, internalToken);
 
       if (result.ok) {
         attempt = 0;

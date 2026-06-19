@@ -43,27 +43,63 @@ function todayKey(): string { const d = new Date(); return `${d.getFullYear()}-$
 function nowMs() { return Date.now(); }
 
 // ── Storage ──
-function loadLog(): DayLog {
-  if (typeof window === "undefined") return { date: todayKey(), segments: [], idleMs: 0, awayMs: 0 };
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const store = JSON.parse(raw);
-      const today = todayKey();
-      // saveLog 存的是 { "日期": DayLog } 格式
-      if (store[today] && store[today].segments) return store[today];
-      // 兼容旧格式：顶层直接有 segments
-      if (store.segments) return store;
+function isSecureStorageAvailable(): boolean {
+  return typeof window !== "undefined" &&
+    !!window.electronAPI?.storeActivityData &&
+    !!window.electronAPI?.retrieveActivityData &&
+    !!window.electronAPI?.clearActivityData;
+}
+
+async function readRawStorage(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  const api = window.electronAPI;
+  if (isSecureStorageAvailable()) {
+    const legacy = window.localStorage.getItem(STORAGE_KEY);
+    if (legacy) {
+      try {
+        await api!.storeActivityData!(legacy);
+        window.localStorage.removeItem(STORAGE_KEY);
+        return legacy;
+      } catch {
+        return legacy;
+      }
     }
+    return api!.retrieveActivityData!();
+  }
+  return window.localStorage.getItem(STORAGE_KEY);
+}
+
+async function writeRawStorage(value: string): Promise<void> {
+  if (typeof window === "undefined") return;
+  if (isSecureStorageAvailable()) {
+    await window.electronAPI!.storeActivityData!(value);
+  } else {
+    window.localStorage.setItem(STORAGE_KEY, value);
+  }
+}
+
+function parseLog(raw: string | null): DayLog {
+  if (!raw) return { date: todayKey(), segments: [], idleMs: 0, awayMs: 0 };
+  try {
+    const store = JSON.parse(raw);
+    const today = todayKey();
+    if (store[today] && store[today].segments) return store[today];
+    if (store.segments) return store;
   } catch {}
   return { date: todayKey(), segments: [], idleMs: 0, awayMs: 0 };
 }
-function saveLog(log: DayLog) {
+
+async function loadLog(): Promise<DayLog> {
+  const raw = await readRawStorage();
+  return parseLog(raw);
+}
+
+async function saveLog(log: DayLog) {
   try {
     const store: Record<string, DayLog> = {};
     try {
-      const r = localStorage.getItem(STORAGE_KEY);
-      if (r) Object.assign(store, JSON.parse(r));
+      const raw = await readRawStorage();
+      if (raw) Object.assign(store, JSON.parse(raw));
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error("[ActivityTracker] loadLog JSON parse failed:", e);
@@ -71,7 +107,7 @@ function saveLog(log: DayLog) {
     store[log.date] = log;
     const keys = Object.keys(store).sort();
     while (keys.length > MAX_DAYS) delete store[keys.shift()!];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    await writeRawStorage(JSON.stringify(store));
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error("[ActivityTracker] saveLog failed:", e);
@@ -153,13 +189,13 @@ function extractObsidianVault(title: string): string | undefined {
 let _flushTimer: ReturnType<typeof setInterval> | null = null;
 
 // ── Init / cleanup ──
-function init() {
+async function init() {
   _refCount++;
   if (_inited) return;
   const isElectron = !!window.electronAPI?.isElectron;
   if (!isElectron) return;
   _inited = true;
-  const log = loadLog();
+  const log = await loadLog();
   _segs = [...log.segments];
   if (_segs.length>0 && _segs[_segs.length-1].end===0) _segs[_segs.length-1].end = nowMs();
 
@@ -172,7 +208,7 @@ function init() {
   });
   _flushTimer = setInterval(() => {
     if (_segs.length>0 && _segs[_segs.length-1].end===0) _segs[_segs.length-1].end = nowMs();
-    saveLog(buildLog());
+    saveLog(buildLog()).catch(() => {});
     _segs.push({ app: _curApp, title: _curTitle, category: _curCategory, start: nowMs(), end: 0 });
   }, 30000);
 }
@@ -237,7 +273,7 @@ export interface ActivityStateV3 {
 export function useActivityTrackerV3(): ActivityStateV3 {
   const [, tick] = useState(0);
   useEffect(() => {
-    init();
+    init().catch(() => {});
     const fn = () => tick(n=>n+1);
     _subs.push(fn);
     return () => {
@@ -248,10 +284,10 @@ export function useActivityTrackerV3(): ActivityStateV3 {
   return _latest || computeState();
 }
 
-export function downloadActivityCSV() {
+export async function downloadActivityCSV() {
   const store: Record<string, DayLog> = {};
   try {
-    const r = localStorage.getItem(STORAGE_KEY);
+    const r = await readRawStorage();
     if (r) Object.assign(store, JSON.parse(r));
   } catch (e) {
     // eslint-disable-next-line no-console
@@ -277,9 +313,13 @@ export function downloadActivityCSV() {
   URL.revokeObjectURL(url);
 }
 
-export function clearActivityData() {
+export async function clearActivityData() {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    if (isSecureStorageAvailable()) {
+      await window.electronAPI!.clearActivityData!();
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
     _segs = [];
     _latest = null;
   } catch (e) {

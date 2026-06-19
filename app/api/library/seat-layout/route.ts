@@ -1,18 +1,26 @@
 import { NextResponse } from "next/server";
 
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+import { seatLayoutQuerySchema } from "@/lib/schemas/library-api";
+
 import { getCachedJWT, graphql } from "../_lib";
 
 // GET /api/library/seat-layout?lib_id=123
 export async function GET(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   const jwt = getCachedJWT();
   if (!jwt) return NextResponse.json({ error: "JWT未配置或已过期" }, { status: 401 });
 
   const { searchParams } = new URL(request.url);
-  const rawLibId = searchParams.get("lib_id");
-  const libId = rawLibId ? Number(rawLibId) : NaN;
-  if (!Number.isFinite(libId) || libId <= 0) {
-    return NextResponse.json({ error: "lib_id必须是正整数" }, { status: 400 });
+  const parse = seatLayoutQuerySchema.safeParse(Object.fromEntries(searchParams.entries()));
+  if (!parse.success) {
+    return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
   }
+  const { lib_id: libId } = parse.data;
 
   const query = `query SeatLayout($libId: Int!) {
     userAuth {
