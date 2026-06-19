@@ -8,6 +8,7 @@ import { cardClasses } from "@/components/ui/card";
 import { queryKeys } from "@/hooks/useQueries";
 import { parseExamDate } from "@/lib/parse-exam-date";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth";
 
 interface Exam {
   id: string;
@@ -24,6 +25,7 @@ interface JWGLExamRaw {
   date?: string;
   subject?: string;
   location?: string;
+  status?: string;
 }
 
 interface ExamCountdownResult {
@@ -45,6 +47,7 @@ async function fetchNextExam(): Promise<ExamCountdownResult> {
       if (Array.isArray(apiExams) && apiExams.length > 0) {
         const futureExams = apiExams
           .filter((e) => {
+            if (e.status && e.status !== "upcoming") return false;
             const dateStr = parseExamDate(e.kssj || e.date);
             return new Date(dateStr + "T23:59:59").getTime() > Date.now();
           })
@@ -95,8 +98,9 @@ async function fetchNextExam(): Promise<ExamCountdownResult> {
 }
 
 export function ExamCountdownCard() {
+  const { schoolId, userId } = useAuthStore((s) => s);
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.exams,
+    queryKey: queryKeys.exams(schoolId, userId),
     queryFn: fetchNextExam,
     refetchInterval: 60_000,
     staleTime: 0,

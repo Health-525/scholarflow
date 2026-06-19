@@ -47,9 +47,16 @@ function accountParams(schoolId: string | null, userId: string | null) {
   return p.toString();
 }
 
+async function checkOk(res: Response) {
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`请求失败 (${res.status}): ${text || res.statusText}`);
+  }
+}
+
 async function apiGet(schoolId: string | null, userId: string | null): Promise<Exam[]> {
   const res = await fetch(`/api/exams?${accountParams(schoolId, userId)}`);
-  if (!res.ok) return [];
+  await checkOk(res);
   const data = await res.json();
   return Array.isArray(data) ? data : [];
 }
@@ -58,14 +65,16 @@ async function apiAdd(
   exam: Omit<Exam, "id" | "source" | "status">,
   schoolId: string | null,
   userId: string | null
-): Promise<Exam | null> {
+): Promise<Exam> {
   const res = await fetch("/api/exams", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ exam, schoolId, userId }),
   });
+  await checkOk(res);
   const data = await res.json();
-  return data.exam ?? null;
+  if (!data.exam) throw new Error("服务端未返回考试数据");
+  return data.exam;
 }
 
 async function apiPatch(
@@ -74,11 +83,12 @@ async function apiPatch(
   schoolId: string | null,
   userId: string | null
 ) {
-  await fetch("/api/exams", {
+  const res = await fetch("/api/exams", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, status, schoolId, userId }),
   });
+  await checkOk(res);
 }
 
 async function apiDelete(
@@ -86,9 +96,10 @@ async function apiDelete(
   schoolId: string | null,
   userId: string | null
 ) {
-  await fetch(`/api/exams?id=${encodeURIComponent(id)}&${accountParams(schoolId, userId)}`, {
+  const res = await fetch(`/api/exams?id=${encodeURIComponent(id)}&${accountParams(schoolId, userId)}`, {
     method: "DELETE",
   });
+  await checkOk(res);
 }
 
 async function apiImportJwgl(
@@ -123,6 +134,7 @@ async function apiImportJwgl(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ exams, schoolId, userId }),
   });
+  await checkOk(res);
   const data = await res.json();
   return { added: data.added ?? 0 };
 }
@@ -530,9 +542,14 @@ export default function ExamsPage() {
     setExams(data);
   }, [schoolId, userId]);
 
+  const rollbackRef = useRef<Exam[] | null>(null);
+
   useEffect(() => {
     setLoading(true);
     refresh()
+      .catch((err) => {
+        showToast("error", err instanceof Error ? err.message : "加载考试失败");
+      })
       .then(async () => {
         // 首次进入页面时自动尝试从教务同步考试数据
         // 延迟到下一帧执行，避免阻塞首屏渲染和导航交互
@@ -576,45 +593,75 @@ export default function ExamsPage() {
       source: "manual",
       status: "upcoming",
     };
-    // 乐观更新
-    setExams((prev) => [...prev, optimistic].sort((a, b) => a.date.localeCompare(b.date)));
+    setExams((prev) => {
+      rollbackRef.current = prev;
+      return [...prev, optimistic].sort((a, b) => a.date.localeCompare(b.date));
+    });
 
-    const created = await apiAdd(payload, schoolId, userId);
-    // 用服务端返回的真实 id 替换乐观项
-    setExams((prev) => prev.map((e) => (e.id === optimistic.id ? created ?? optimistic : e)));
-    showToast("success", "已添加考试");
+    try {
+      const created = await apiAdd(payload, schoolId, userId);
+      setExams((prev) => prev.map((e) => (e.id === optimistic.id ? created : e)));
+      showToast("success", "已添加考试");
+    } catch (err) {
+      setExams(rollbackRef.current ?? []);
+      showToast("error", err instanceof Error ? err.message : "添加考试失败");
+    } finally {
+      rollbackRef.current = null;
+    }
   };
 
   const handleComplete = async (id: string) => {
-    setExams((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, status: "completed", completedAt: Date.now() } : e))
-    );
-    await apiPatch(id, "completed", schoolId, userId);
+    setExams((prev) => {
+      rollbackRef.current = prev;
+      return prev.map((e) => (e.id === id ? { ...e, status: "completed", completedAt: Date.now() } : e));
+    });
+    try {
+      await apiPatch(id, "completed", schoolId, userId);
+    } catch (err) {
+      if (rollbackRef.current) setExams(rollbackRef.current);
+      showToast("error", err instanceof Error ? err.message : "标记完成失败");
+    } finally {
+      rollbackRef.current = null;
+    }
   };
 
   const handleUncomplete = async (id: string) => {
-    setExams((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, status: "upcoming", completedAt: undefined } : e))
-    );
-    await apiPatch(id, "upcoming", schoolId, userId);
+    setExams((prev) => {
+      rollbackRef.current = prev;
+      return prev.map((e) => (e.id === id ? { ...e, status: "upcoming", completedAt: undefined } : e));
+    });
+    try {
+      await apiPatch(id, "upcoming", schoolId, userId);
+    } catch (err) {
+      if (rollbackRef.current) setExams(rollbackRef.current);
+      showToast("error", err instanceof Error ? err.message : "撤销完成失败");
+    } finally {
+      rollbackRef.current = null;
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     const target = exams.find((e) => e.id === id);
     if (!target) return;
 
     // 手动考试：立即从界面移除，提供撤销Toast
     if (target.source === "manual") {
-      setExams((prev) => prev.filter((e) => e.id !== id));
+      setExams((prev) => {
+        rollbackRef.current = prev;
+        return prev.filter((e) => e.id !== id);
+      });
 
       // 如果已有未过期的待删除项，先立即落盘
       if (pendingDeleteRef.current) {
         clearTimeout(pendingDeleteRef.current.timer);
-        apiDelete(pendingDeleteRef.current.exam.id, schoolId, userId);
+        apiDelete(pendingDeleteRef.current.exam.id, schoolId, userId).catch(() => {});
       }
 
       const timer = setTimeout(() => {
-        apiDelete(target.id, schoolId, userId);
+        apiDelete(target.id, schoolId, userId).catch((err) => {
+          if (rollbackRef.current) setExams(rollbackRef.current);
+          showToast("error", err instanceof Error ? err.message : "删除考试失败");
+        });
         pendingDeleteRef.current = null;
       }, 5000);
 
@@ -637,8 +684,18 @@ export default function ExamsPage() {
     }
 
     // 教务考试：本地先标记 deleted，再同步服务端
-    setExams((prev) => prev.map((e) => (e.id === id ? { ...e, status: "deleted" as const } : e)));
-    apiDelete(id, schoolId, userId);
+    setExams((prev) => {
+      rollbackRef.current = prev;
+      return prev.map((e) => (e.id === id ? { ...e, status: "deleted" as const } : e));
+    });
+    try {
+      await apiDelete(id, schoolId, userId);
+    } catch (err) {
+      if (rollbackRef.current) setExams(rollbackRef.current);
+      showToast("error", err instanceof Error ? err.message : "删除考试失败");
+    } finally {
+      rollbackRef.current = null;
+    }
   };
 
   const handleImport = async () => {

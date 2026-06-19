@@ -64,6 +64,13 @@ describe("parseTimeToDate", () => {
     expect(result.getHours()).toBe(14);
     expect(result.getMinutes()).toBe(30);
   });
+
+  it("非法时间字符串不崩溃", () => {
+    const today = new Date("2026-06-05T08:00:00");
+    const result = parseTimeToDate(today, "not-a-time");
+    expect(result).toBeInstanceOf(Date);
+    expect(Number.isFinite(result.getTime())).toBe(true);
+  });
 });
 
 describe("getNowInTimeZone", () => {
@@ -73,7 +80,9 @@ describe("getNowInTimeZone", () => {
   });
 
   it("无效时区正确处理", () => {
-    // Node.js 对无效时区会抛出 RangeError，这是预期行为
-    expect(() => getNowInTimeZone("Invalid/Zone")).toThrow();
+    // 无效时区时回退到本地时间，不抛出异常
+    const result = getNowInTimeZone("Invalid/Zone");
+    expect(result).toBeInstanceOf(Date);
+    expect(Number.isFinite(result.getTime())).toBe(true);
   });
 });

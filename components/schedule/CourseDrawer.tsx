@@ -107,12 +107,15 @@ export function CourseDrawer({
 
   // Compute startAt timestamp for reminder
   let startAt = 0;
-  if (item.timeText) {
+  if (item.timeText && item.timeText.includes("-")) {
     const startStr = item.timeText.split("-")[0].trim();
     const [hours, minutes] = startStr.split(":").map(Number);
-    const d = new Date(date);
-    d.setHours(hours, minutes, 0, 0);
-    startAt = d.getTime();
+    if (Number.isFinite(hours) && Number.isFinite(minutes)) {
+      const d = new Date(date);
+      d.setHours(hours, minutes, 0, 0);
+      const t = d.getTime();
+      if (Number.isFinite(t)) startAt = t;
+    }
   }
 
   const courseKey = `${formatDateInTimeZone(date, timeZone)}-${item.title}`;

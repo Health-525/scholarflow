@@ -342,14 +342,11 @@ async function openLibraryLoginWindow() {
   });
 
   // 信任南京工业大学校内 / VPN 域名的自签名证书。
-  // 使用严格的后缀校验（endsWith）而非 includes，防止 evil-njtech.edu.cn.attacker.com 绕过。
-  const TRUSTED_SUFFIXES = ['.njtech.edu.cn', 'njtech.edu.cn'];
+  // 使用正则锚定到域名末尾，防止 evil-njtech.edu.cn.attacker.com 等绕过。
+  const TRUSTED_HOST_RE = /^(?:[a-z0-9-]+\.)*njtech\.edu\.cn$/i;
   loginSession.setCertificateVerifyProc((request, callback) => {
     const { hostname } = request;
-    const trusted = TRUSTED_SUFFIXES.some(
-      (suffix) => hostname === suffix || hostname.endsWith('.' + suffix.replace(/^\./, ''))
-    );
-    if (trusted) {
+    if (TRUSTED_HOST_RE.test(hostname)) {
       callback(0); // 信任
     } else {
       callback(-2); // 使用默认验证

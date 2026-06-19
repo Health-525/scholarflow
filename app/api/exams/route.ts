@@ -17,16 +17,26 @@
 import { NextResponse } from "next/server";
 
 import { resolveAccountPrefix } from "@/lib/account-prefix";
+import { mergeExams } from "@/lib/exams/merge";
 import { getServerDB } from "@/lib/server-db";
 import type { Exam } from "@/types/exam";
 
 function getExamKey(prefix: string) {
-  return `user-exams:${prefix}`;
+  return `exams:${prefix}`;
 }
 
 function readExams(prefix: string): Exam[] {
   const db = getServerDB();
-  const raw = db.readData(getExamKey(prefix));
+  const key = getExamKey(prefix);
+  let raw = db.readData(key);
+  // 旧版本使用 user-exams:<prefix>，一次性迁移
+  if (!Array.isArray(raw) || raw.length === 0) {
+    const legacy = db.readData(`user-exams:${prefix}`);
+    if (Array.isArray(legacy) && legacy.length > 0) {
+      db.writeData(key, legacy);
+      raw = legacy;
+    }
+  }
   if (!Array.isArray(raw)) return [];
   return raw as Exam[];
 }
@@ -74,29 +84,12 @@ export async function POST(request: Request) {
 
     const existing = readExams(prefix);
 
-    // 批量导入（去重）
+    // 批量导入（与本地数据合并，保留手动添加与完成/删除状态）
     if (body.exams) {
-      let added = 0;
-      for (const raw of body.exams) {
-        if (!raw.subject || !raw.date) continue;
-        const isDup = existing.some(
-          (e) => e.subject === raw.subject && e.date === raw.date
-        );
-        if (isDup) continue;
-        existing.push({
-          id: raw.id ?? `jwgl-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-          subject: raw.subject,
-          date: raw.date,
-          time: raw.time,
-          location: raw.location,
-          notes: raw.notes,
-          source: "jwgl",
-          status: "upcoming",
-        });
-        added++;
-      }
-      writeExams(prefix, existing);
-      return NextResponse.json({ ok: true, added });
+      const merged = mergeExams(existing, body.exams as Exam[]);
+      const added = merged.length - existing.length;
+      writeExams(prefix, merged);
+      return NextResponse.json({ ok: true, added: Math.max(0, added) });
     }
 
     // 单条新增

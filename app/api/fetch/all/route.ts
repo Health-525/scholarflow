@@ -3,9 +3,29 @@ import { NextResponse } from "next/server";
 import { resolveUserId } from "@/lib/account-prefix";
 import { decryptPassword } from "@/lib/crypto-password";
 import { buildDashboardSummary } from "@/lib/dashboard/summary";
+import { mergeExams } from "@/lib/exams/merge";
 import { NJTECH_PERIOD_TIMES } from "@/lib/schools/njtech/jwgl";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
+import type { Exam } from "@/types/exam";
+
+const DEFAULT_ALLOWED_ORIGINS = [
+  "http://localhost:3000",
+  "http://localhost:3456",
+  "https://localhost:3456",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3456",
+];
+
+function isTrustedOrigin(request: Request): boolean {
+  const configured = process.env.CORS_ORIGIN;
+  const allowed = configured
+    ? configured.split(",").map((s) => s.trim()).filter(Boolean)
+    : DEFAULT_ALLOWED_ORIGINS;
+  const origin = request.headers.get("origin");
+  if (!origin) return true; // 服务器内部调用(如 Electron 主进程)
+  return allowed.includes(origin);
+}
 
 /**
  * POST /api/fetch/all
@@ -22,6 +42,10 @@ import { getServerDB } from "@/lib/server-db";
  */
 export async function POST(request: Request) {
   try {
+    if (!isTrustedOrigin(request)) {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
+
     const body = await request.json() as {
       schoolId?: string;
       cookie?: string;
@@ -34,6 +58,9 @@ export async function POST(request: Request) {
     if (!schoolId) {
       return NextResponse.json({ error: "missing schoolId" }, { status: 400 });
     }
+    if (!username?.trim()) {
+      return NextResponse.json({ error: "missing username" }, { status: 401 });
+    }
 
     const adapter = getAdapter(schoolId);
     if (!adapter) {
@@ -45,6 +72,18 @@ export async function POST(request: Request) {
     //「凭证不存在」与「JWC_Cookie 过期」两种情况。
     const db = getServerDB();
     const userId = resolveUserId(username);
+
+    // 身份校验：显式提供密码（调度器/记住密码）视为已授权；
+    // 否则必须请求的是当前已登录/最近使用过的账号。
+    if (!password) {
+      const active = db.findActiveCredentials();
+      const recent = db.findMostRecentCredential();
+      const allowed = active || recent;
+      if (!allowed || allowed.userId !== userId || allowed.schoolId !== schoolId) {
+        return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+      }
+    }
+
     let savedCreds = db.getCredentials(schoolId, userId);
 
     // JWC_Cookie 过期或不存在 → 尝试静默重登(有 password)或提示手动登录。
@@ -58,7 +97,7 @@ export async function POST(request: Request) {
         ) ||
         undefined;
 
-      if (resolvedPassword && username) {
+      if (resolvedPassword) {
         try {
           // 用记住的密码静默重新登录教务系统,拿到新 cookie 后保存(R8.3)。
           const session = await adapter.login({ username, password: resolvedPassword });
@@ -99,13 +138,14 @@ export async function POST(request: Request) {
       const semesterInfo = adapter.getCurrentSemester?.() || {
         year: "2025", semester: "2", week1Monday: "2026-03-02",
       };
+      const yearNum = Number.parseInt(semesterInfo.year, 10);
 
       db.writeData(`schedule:${prefix}`, {
         courses,
         meta: {
           week1_monday: semesterInfo.week1Monday,
           tz: "Asia/Shanghai",
-          semester: `${semesterInfo.year}-${semesterInfo.year + 1}-${semesterInfo.semester}`,
+          semester: `${yearNum}-${yearNum + 1}-${semesterInfo.semester}`,
           schoolId,
         },
         periodTimes: NJTECH_PERIOD_TIMES,
@@ -115,11 +155,13 @@ export async function POST(request: Request) {
       results.schedule = `失败: ${(e as Error).message}`;
     }
 
-    // 考试
+    // 考试（合并到 exams:<prefix>，保留手动添加与完成/删除状态）
     try {
-      const exams = await adapter.fetchExams(credentials);
-      db.writeData(`exams:${prefix}`, exams);
-      results.exams = `${exams.length} 门考试`;
+      const fetchedExams = await adapter.fetchExams(credentials);
+      const existingExams = (db.readData(`exams:${prefix}`) as Exam[]) || [];
+      const merged = mergeExams(existingExams, fetchedExams as unknown as import("@/types/exam").Exam[]);
+      db.writeData(`exams:${prefix}`, merged);
+      results.exams = `${fetchedExams.length} 门考试`;
     } catch (e) {
       results.exams = `失败: ${(e as Error).message}`;
     }

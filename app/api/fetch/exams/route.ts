@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { resolveUserId, resolveAccountPrefix, buildDataKey } from "@/lib/account-prefix";
+import { mergeExams } from "@/lib/exams/merge";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
+import type { Exam } from "@/types/exam";
 
 export async function POST(request: Request) {
   try {
@@ -19,7 +21,7 @@ export async function POST(request: Request) {
     }
 
     const credentials = { schoolId, data: { cookie }, expiresAt: Date.now() + 30 * 60 * 1000 };
-    const exams = await adapter.fetchExams(credentials);
+    const fetchedExams = await adapter.fetchExams(credentials);
 
     const db = getServerDB();
     const userId = resolveUserId(username);
@@ -27,9 +29,12 @@ export async function POST(request: Request) {
     const prefix = username
       ? `${schoolId}:${userId}`
       : resolveAccountPrefix({ schoolId, userId: undefined }, db.findActiveCredentials());
-    db.writeData(buildDataKey("exams", prefix), exams);
+    const key = buildDataKey("exams", prefix);
+    const existing = (db.readData(key) as Exam[]) || [];
+    const merged = mergeExams(existing, fetchedExams as unknown as Exam[]);
+    db.writeData(key, merged);
 
-    return NextResponse.json({ ok: true, count: exams.length });
+    return NextResponse.json({ ok: true, count: fetchedExams.length });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

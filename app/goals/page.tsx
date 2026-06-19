@@ -51,20 +51,34 @@ async function apiLoad(schoolId: string | null, userId: string | null) {
   return res.json() as Promise<{ state: GoalsState; history: HistoryRecord[] }>;
 }
 
-async function apiSaveState(state: GoalsState, schoolId: string | null, userId: string | null) {
-  await fetch("/api/goals", {
+async function apiSave(
+  state: GoalsState,
+  history: HistoryRecord[] | undefined,
+  schoolId: string | null,
+  userId: string | null
+) {
+  const res = await fetch("/api/goals", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ state, schoolId, userId }),
+    body: JSON.stringify({ state, history, schoolId, userId }),
   });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`保存失败 (${res.status}): ${text || res.statusText}`);
+  }
 }
 
-async function apiSaveHistory(history: HistoryRecord[], schoolId: string | null, userId: string | null) {
-  await fetch("/api/goals", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ history, schoolId, userId }),
-  });
+function useGoalSaver(schoolId: string | null, userId: string | null) {
+  const queue = useRef(Promise.resolve());
+  return useCallback(
+    (nextGoals: DailyGoal[], nextStreak: number, nextHistory?: HistoryRecord[]) => {
+      const today = new Date().toDateString();
+      const state: GoalsState = { goals: nextGoals, streak: nextStreak, date: today };
+      queue.current = queue.current.catch(() => {}).then(() => apiSave(state, nextHistory, schoolId, userId));
+      return queue.current;
+    },
+    [schoolId, userId]
+  );
 }
 
 // ── ProgressRing ──
@@ -108,7 +122,7 @@ export default function DailyGoalsPage() {
   const [loaded, setLoaded] = useState(false);
   const [deletedBuffer, setDeletedBuffer] = useState<DeletedGoal | null>(null);
 
-  const pendingSave = useRef(false);
+  const enqueueSave = useGoalSaver(schoolId, userId);
 
   // ── 初始化 ──────────────────────────────────────────
 
@@ -132,14 +146,9 @@ export default function DailyGoalsPage() {
             nextStreak = nextGoals.every((g) => g.done) ? nextStreak + 1 : 0;
           }
           nextGoals = nextGoals.map((g) => ({ ...g, done: false }));
-          const newState: GoalsState = { goals: nextGoals, streak: nextStreak, date: today };
-          await Promise.all([
-            apiSaveState(newState, schoolId, userId),
-            apiSaveHistory(nextHistory, schoolId, userId),
-          ]);
+          await enqueueSave(nextGoals, nextStreak, nextHistory);
         } else if (!state.date) {
-          const newState: GoalsState = { goals: nextGoals, streak: nextStreak, date: today };
-          await apiSaveState(newState, schoolId, userId);
+          await enqueueSave(nextGoals, nextStreak);
         }
 
         setGoals(nextGoals);
@@ -154,19 +163,7 @@ export default function DailyGoalsPage() {
     setLoaded(false);
     init();
     return () => { cancelled = true; };
-  }, [schoolId, userId]);
-
-  const persistState = useCallback(
-    async (nextGoals: DailyGoal[], nextStreak: number) => {
-      if (pendingSave.current) return;
-      pendingSave.current = true;
-      const today = new Date().toDateString();
-      await apiSaveState({ goals: nextGoals, streak: nextStreak, date: today }, schoolId, userId).finally(
-        () => { pendingSave.current = false; }
-      );
-    },
-    [schoolId, userId]
-  );
+  }, [schoolId, userId, enqueueSave]);
 
   const add = useCallback(() => {
     if (!newGoal.trim()) return;
@@ -177,21 +174,21 @@ export default function DailyGoalsPage() {
     };
     setGoals((prev) => {
       const next = [...prev, g];
-      persistState(next, streak);
+      enqueueSave(next, streak);
       return next;
     });
     setNewGoal("");
-  }, [newGoal, streak, persistState]);
+  }, [newGoal, streak, enqueueSave]);
 
   const toggle = useCallback(
     (id: string) => {
       setGoals((prev) => {
         const next = prev.map((g) => (g.id === id ? { ...g, done: !g.done } : g));
-        persistState(next, streak);
+        enqueueSave(next, streak);
         return next;
       });
     },
-    [streak, persistState]
+    [streak, enqueueSave]
   );
 
   const del = useCallback(
@@ -201,12 +198,12 @@ export default function DailyGoalsPage() {
         const goal = prev[index];
         if (!goal) return prev;
         const next = prev.filter((g) => g.id !== id);
-        persistState(next, streak);
+        enqueueSave(next, streak);
         setDeletedBuffer({ goal, index, expiresAt: Date.now() + 5000 });
         return next;
       });
     },
-    [streak, persistState]
+    [streak, enqueueSave]
   );
 
   const undoDelete = useCallback(() => {
@@ -217,11 +214,11 @@ export default function DailyGoalsPage() {
     setGoals((prev) => {
       const next = [...prev];
       next.splice(deletedBuffer.index, 0, deletedBuffer.goal);
-      persistState(next, streak);
+      enqueueSave(next, streak);
       return next;
     });
     setDeletedBuffer(null);
-  }, [deletedBuffer, streak, persistState]);
+  }, [deletedBuffer, streak, enqueueSave]);
 
   const done = goals.filter((g) => g.done).length;
   const pct = goals.length > 0 ? Math.round((done / goals.length) * 100) : 0;

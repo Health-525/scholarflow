@@ -16,17 +16,41 @@ export function NoteEditor({ content, onSave, onCancel, onChange }: NoteEditorPr
   const [dirty, setDirty] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const autoSaveTimer = useRef<number | null>(null);
+  const savingRef = useRef(false);
+  const dirtyRef = useRef(false);
+  const valueRef = useRef(value);
+  const onSaveRef = useRef(onSave);
+
+  useEffect(() => { onSaveRef.current = onSave; }, [onSave]);
+  useEffect(() => { valueRef.current = value; }, [value]);
+  useEffect(() => { dirtyRef.current = dirty; }, [dirty]);
+
+  const flushSave = useCallback(async () => {
+    await onSaveRef.current(valueRef.current);
+  }, []);
 
   const triggerSave = useCallback(async () => {
-    if (saving) return;
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     try {
-      await onSave(value);
+      await flushSave();
       setDirty(false);
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
-  }, [onSave, saving, value]);
+  }, [flushSave]);
+
+  // 组件卸载或切换笔记前，如果有未保存的改动则强制落盘
+  useEffect(() => {
+    return () => {
+      if (dirtyRef.current) {
+        flushSave().catch(() => {});
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);

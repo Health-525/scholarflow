@@ -21,6 +21,7 @@ export default function ClientShell({ children }: ClientShellProps) {
   const pathname = usePathname();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const setAuth = useAuthStore((s) => s.setAuth);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
   const currentTheme = useThemeStore((s) => s.theme);
   const isOnline = useOnlineStatus();
   const [isRestoring, setIsRestoring] = useState(true);
@@ -46,6 +47,9 @@ export default function ClientShell({ children }: ClientShellProps) {
             // user into the app. Data is read locally via /api/local-data by
             // each page; we never auto-fetch from the school server on startup.
             setAuth(data.schoolId, data.userId);
+          } else {
+            // 服务端已无有效会话，清除前端缓存的登录态，避免双数据源不一致
+            clearAuth();
           }
         }
       } catch {
@@ -56,7 +60,7 @@ export default function ClientShell({ children }: ClientShellProps) {
     }
 
     restoreAuth();
-  }, [setAuth, pathname]);
+  }, [setAuth, clearAuth, pathname]);
 
   // Route guard — redirect to /setup if not authenticated
   useEffect(() => {

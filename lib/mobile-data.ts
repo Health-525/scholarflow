@@ -78,11 +78,12 @@ export async function readData(type: string): Promise<unknown> {
   const { schoolId, userId } = getCurrentUser();
   const params = new URLSearchParams({ type, schoolId });
   if (userId) params.set("userId", userId);
-  try {
-    const res = await fetch(`/api/local-data?${params.toString()}`);
-    if (res.ok) return await res.json();
-  } catch (e) { console.error("[MobileData] readData fetch failed:", e); }
-  return null;
+  const res = await fetch(`/api/local-data?${params.toString()}`);
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`读取失败 (${res.status}): ${text || res.statusText}`);
+  }
+  return await res.json();
 }
 
 export async function writeData(file: string, content: string, action = "更新"): Promise<void> {
@@ -95,11 +96,15 @@ export async function writeData(file: string, content: string, action = "更新"
   const { schoolId, userId } = getCurrentUser();
   const body: Record<string, string> = { file, content, action, schoolId };
   if (userId) body.userId = userId;
-  await fetch("/api/local-save", {
+  const res = await fetch("/api/local-save", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`保存失败 (${res.status}): ${text || res.statusText}`);
+  }
 }
 
 

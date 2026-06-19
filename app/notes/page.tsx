@@ -113,6 +113,8 @@ export default function NotesPage() {
 
   const { content, setContent, isLoading: contentLoading, error: contentError, reload: reloadContent } = useNoteContent(selectedPath);
 
+  const editorKey = isSample ? "__sample__" : selectedPath ?? "__none__";
+
   const notes = useMemo(() => flattenTree(tree), [tree]);
   const filteredNotes = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -323,6 +325,7 @@ export default function NotesPage() {
               isLoading={workspaceLoading}
               error={workspaceError}
               reload={reloadContent}
+              editorKey={editorKey}
               mobileMode={mobileMode}
               onMobileModeChange={setMobileMode}
               saving={saving}
@@ -416,6 +419,7 @@ export default function NotesPage() {
             isLoading={workspaceLoading}
             error={workspaceError}
             reload={reloadContent}
+            editorKey={editorKey}
             mobileMode={mobileMode}
             onMobileModeChange={setMobileMode}
             saving={saving}
@@ -453,6 +457,7 @@ interface WorkspaceProps {
   isLoading: boolean;
   error: Error | null;
   reload: () => void;
+  editorKey: string;
   mobileMode: "edit" | "view";
   onMobileModeChange: (m: "edit" | "view") => void;
   saving: boolean;
@@ -484,6 +489,7 @@ function Workspace(props: WorkspaceProps) {
     isLoading,
     error,
     reload,
+    editorKey,
     mobileMode,
     onMobileModeChange,
     saving,
@@ -626,7 +632,7 @@ function Workspace(props: WorkspaceProps) {
         {!isLoading && !error && (
           <div className="flex h-full">
             <div className={`flex-1 min-w-0 h-full ${mobileMode === "view" ? "hidden md:block" : "block"}`}>
-              <NoteEditor content={content} onSave={onSave} onChange={onPreviewChange} />
+              <NoteEditor key={editorKey} content={content} onSave={onSave} onChange={onPreviewChange} />
             </div>
             <div
               className={`flex-1 min-w-0 h-full border-l border-border bg-secondary/20 overflow-y-auto ${
