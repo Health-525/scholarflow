@@ -410,6 +410,13 @@ function PomodoroTimerInner({
   });
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastPersistedRef = useRef(0);
+  const stateRef = useRef(state);
+
+  // Keep stateRef in sync with the latest state for event handlers
+  useEffect(() => {
+    stateRef.current = state;
+  });
 
   // Detect dark mode
   useEffect(() => {
@@ -464,11 +471,26 @@ function PomodoroTimerInner({
     };
   }, [state.isRunning]);
 
-  // Persist timer state on changes (only relevant fields, not entire state)
+  // Persist timer state on changes (only relevant fields, not entire state).
+  // Throttle to at most once every 5 seconds while running to avoid blocking
+  // the main thread with localStorage writes every tick.
   useEffect(() => {
+    const now = Date.now();
+    const throttled = state.isRunning && now - lastPersistedRef.current < 5000;
+    if (throttled) return;
+
     persistTimerState(state);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.phase, state.remaining, state.total, state.completedFocus, state.isRunning]);
+    lastPersistedRef.current = now;
+  }, [state]);
+
+  // Always persist before the page unloads so users don't lose the last seconds.
+  // stateRef 保证读取最新 state，因此不需要将 state 加入依赖数组。
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const handleBeforeUnload = () => persistTimerState(stateRef.current);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
 
   // Side effects on phase completion (moved out of reducer)
   useEffect(() => {

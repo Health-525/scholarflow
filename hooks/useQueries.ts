@@ -26,11 +26,7 @@ export const queryKeys = {
   assignments: (schoolId?: string | null, userId?: string | null) => ["assignments", schoolId ?? "active", userId ?? "active"] as const,
   running: (schoolId?: string | null, userId?: string | null) => ["running", schoolId ?? "active", userId ?? "active"] as const,
   jwcNews: ["jwcNews"] as const,
-  dailyReports: ["dailyReports"] as const,
-  weeklyReports: ["weeklyReports"] as const,
-  notes: ["notes"] as const,
   exams: (schoolId?: string | null, userId?: string | null) => ["exams", schoolId ?? "active", userId ?? "active"] as const,
-  health: ["health"] as const,
 } as const;
 
 // ═══════════════════════════════════════════════════════════════
