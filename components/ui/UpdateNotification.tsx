@@ -53,7 +53,7 @@ export function UpdateNotification() {
   if (state === "idle" || dismissed) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[100] w-[340px] rounded-2xl overflow-hidden animate-fade-up bg-card border border-border shadow-lg">
+    <div className="fixed top-4 right-4 z-[100] w-[calc(100vw-2rem)] max-w-[340px] rounded-2xl overflow-hidden animate-fade-up bg-card border border-border shadow-lg">
       {/* Available */}
       {state === "available" && (
         <div className="p-4">
@@ -72,6 +72,7 @@ export function UpdateNotification() {
             <button
               onClick={() => setDismissed(true)}
               className="p-1 rounded-lg shrink-0 text-muted-foreground"
+              aria-label="关闭更新提示"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -110,7 +111,14 @@ export function UpdateNotification() {
               </p>
             </div>
           </div>
-          <div className="w-full rounded-full bg-secondary overflow-hidden h-2">
+          <div
+            className="w-full rounded-full bg-secondary overflow-hidden h-2"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress?.percent ?? 0}
+            aria-label="下载进度"
+          >
             <div
               className="h-full rounded-full bg-primary transition-all duration-300"
               style={{ width: `${progress?.percent ?? 0}%` }}

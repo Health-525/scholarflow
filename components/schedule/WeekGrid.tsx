@@ -131,10 +131,10 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
 
       {/* Grid */}
       <div className="overflow-x-auto -mx-5 px-5">
-        <div className="min-w-[660px]">
+        <div className="min-w-full md:min-w-[660px]">
           {/* Header row */}
           <div
-            className="grid grid-cols-[44px_repeat(7,1fr)] border-b border-border dark:border-white/10"
+            className="grid grid-cols-[36px_repeat(7,minmax(0,1fr))] md:grid-cols-[44px_repeat(7,1fr)] border-b border-border dark:border-white/10"
             style={{ height: HEADER_H }}
           >
             <div className="flex items-center justify-center text-[11px] text-muted-foreground">
@@ -207,7 +207,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                     )}
                   </div>
                   <div
-                    className="absolute left-[44px] right-0 border-b border-border/30 dark:border-white/5"
+                    className="absolute left-[36px] md:left-[44px] right-0 border-b border-border/30 dark:border-white/5"
                     style={{ top: top + ROW_H - 1 }}
                   />
                 </div>
@@ -216,7 +216,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
 
             {/* Day columns */}
             <div
-              className="absolute left-[44px] right-0 grid grid-cols-7"
+              className="absolute left-[36px] md:left-[44px] right-0 grid grid-cols-7"
               style={{ top: 0, bottom: 0 }}
             >
               {weekInfo.days.map((day, dayIdx) => {

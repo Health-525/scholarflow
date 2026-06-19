@@ -19,6 +19,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/input";
 import { ListSkeleton } from "@/components/ui/skeleton";
@@ -406,6 +407,7 @@ function ExamItem({
   const cd = formatCountdown(exam.date);
   const isCompleted = exam.status === "completed";
   const style = urgencyStyle[cd.urgency];
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   return (
     <div className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:bg-muted/40">
@@ -488,7 +490,7 @@ function ExamItem({
                 type="button"
                 variant="ghost"
                 size="icon"
-                onClick={() => onDelete(exam.id)}
+                onClick={() => setShowDeleteConfirm(true)}
                 className="size-8 opacity-0 transition-opacity group-hover:opacity-100"
                 aria-label={`删除「${exam.subject}」`}
                 title="删除"
@@ -502,7 +504,7 @@ function ExamItem({
             type="button"
             variant="ghost"
             size="icon"
-            onClick={() => onDelete(exam.id)}
+            onClick={() => setShowDeleteConfirm(true)}
             className="size-8 opacity-0 transition-opacity group-hover:opacity-100"
             aria-label={`删除「${exam.subject}」`}
             title="删除"
@@ -511,6 +513,15 @@ function ExamItem({
           </Button>
         )}
       </div>
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="删除考试"
+        description={`确定要删除「${exam.subject}」吗？此操作不可撤销。`}
+        confirmText="删除"
+        onConfirm={() => onDelete(exam.id)}
+      />
     </div>
   );
 }

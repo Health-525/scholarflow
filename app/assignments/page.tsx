@@ -19,7 +19,8 @@ import { useForm } from "react-hook-form";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, cardClasses, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { Input } from "@/components/ui/input";
@@ -115,29 +116,42 @@ function StatCard({
   onClick?: () => void;
 }) {
   const style = TONE_STYLES[tone];
-  return (
-    <Card
-      hover={false}
-      onClick={onClick}
-      className={cn(
-        "p-3 cursor-pointer transition-all",
-        active && "ring-2 ring-primary/30"
-      )}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className="flex size-10 shrink-0 items-center justify-center rounded-xl"
-          style={{ backgroundColor: style.bg, color: style.color }}
-        >
-          <Icon className="size-5" />
-        </div>
-        <div>
-          <div className="text-2xl font-bold tabular-nums leading-none text-foreground">
-            {value}
-          </div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">{label}</div>
-        </div>
+  const content = (
+    <div className="flex items-center gap-3">
+      <div
+        className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+        style={{ backgroundColor: style.bg, color: style.color }}
+      >
+        <Icon className="size-5" />
       </div>
+      <div>
+        <div className="text-2xl font-bold tabular-nums leading-none text-foreground">
+          {value}
+        </div>
+        <div className="text-[11px] text-muted-foreground mt-0.5">{label}</div>
+      </div>
+    </div>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn(
+          cardClasses,
+          "p-3 text-left cursor-pointer transition-all",
+          active && "ring-2 ring-primary/30"
+        )}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Card hover={false} className={cn("p-3", active && "ring-2 ring-primary/30")}>
+      {content}
     </Card>
   );
 }
@@ -392,6 +406,7 @@ function AssignmentItem({
   onDelete: (id: string) => Promise<unknown>;
 }) {
   const [editing, setEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (editing) {
     return (
@@ -489,20 +504,29 @@ function AssignmentItem({
           type="button"
           variant="ghost"
           size="icon"
-          onClick={async () => {
-            try {
-              await onDelete(a.id);
-              showToast("success", "作业已删除");
-            } catch (err) {
-              showToast("error", err instanceof Error ? err.message : "删除失败");
-            }
-          }}
+          onClick={() => setShowDeleteConfirm(true)}
           className="size-8"
           title="删除"
         >
           <Trash2 className="size-4" />
         </Button>
       </div>
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="删除作业"
+        description={`确定要删除「${a.title}」吗？此操作不可撤销。`}
+        confirmText="删除"
+        onConfirm={async () => {
+          try {
+            await onDelete(a.id);
+            showToast("success", "作业已删除");
+          } catch (err) {
+            showToast("error", err instanceof Error ? err.message : "删除失败");
+          }
+        }}
+      />
     </div>
   );
 }
