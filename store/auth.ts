@@ -23,12 +23,16 @@ interface AuthState {
   username: string | null;
   /** 旧 token 字段（兼容旧代码，现在为空） */
   token: string | null;
+  /** persist 已完成 rehydrate */
+  _hasHydrated: boolean;
   /** 设置认证信息 */
   setAuth: (schoolId: string, userId: string) => void;
   /** 清除认证信息（兼容旧代码的 clearToken） */
   clearAuth: () => void;
   /** 清除 token（别名 clearAuth） */
   clearToken: () => void;
+  /** 内部使用：标记 rehydrate 完成 */
+  setHasHydrated: (value: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -39,6 +43,7 @@ export const useAuthStore = create<AuthState>()(
       userId: null,
       username: null,
       token: null,
+      _hasHydrated: false,
 
       setAuth: (schoolId: string, userId: string) => {
         set({ schoolId, userId, username: userId, isAuthenticated: true });
@@ -51,6 +56,10 @@ export const useAuthStore = create<AuthState>()(
       clearToken: () => {
         set({ schoolId: null, userId: null, username: null, isAuthenticated: false, token: null });
       },
+
+      setHasHydrated: (value: boolean) => {
+        set({ _hasHydrated: value });
+      },
     }),
     {
       name: "sf_auth",
@@ -61,6 +70,9 @@ export const useAuthStore = create<AuthState>()(
         username: state.username,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

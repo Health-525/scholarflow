@@ -80,6 +80,7 @@ function parseLocalRecords(local: unknown): RunRecord[] | null {
 // ── Schedule Hook ──────────────────────────────────────────
 export function useScheduleQuery() {
   const userId = useAuthStore((s) => s.userId);
+  const hasHydrated = useAuthStore((s) => s._hasHydrated);
   return useQuery({
     queryKey: queryKeys.schedule(userId ?? undefined),
     queryFn: async () => {
@@ -91,7 +92,7 @@ export function useScheduleQuery() {
       }
       return { schedule: null, adjustments: [] };
     },
-    enabled: true,
+    enabled: hasHydrated,
     staleTime: 2 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: 1,
@@ -102,6 +103,7 @@ export function useScheduleQuery() {
 export function useAssignmentsQuery() {
   const queryClient = useQueryClient();
   const userId = useAuthStore((s) => s.userId);
+  const hasHydrated = useAuthStore((s) => s._hasHydrated);
   const assignmentsKey = queryKeys.assignments(userId ?? undefined);
   const [undoBuffer, setUndoBuffer] = useState<{ assignment: Assignment; expiresAt: number } | null>(null);
 
@@ -113,15 +115,23 @@ export function useAssignmentsQuery() {
       if (localAssignments && localAssignments.length > 0) return sortAssignments(localAssignments);
       return localAssignments || [];
     },
-    enabled: true,
+    enabled: hasHydrated,
     staleTime: 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: 1,
   });
 
+  /** 优先读 React Query 缓存；若缓存未加载，回退到本地持久化数据，避免空缓存覆盖。 */
+  const getCurrentAssignments = async (): Promise<Assignment[]> => {
+    const cached = queryClient.getQueryData<Assignment[]>(assignmentsKey);
+    if (cached !== undefined) return cached;
+    const local = await tryLocalApi("assignments");
+    return parseLocalAssignments(local) ?? [];
+  };
+
   const addMutation = useMutation({
     mutationFn: async (draft: AssignmentDraft) => {
-      const current = queryClient.getQueryData<Assignment[]>(assignmentsKey) ?? [];
+      const current = await getCurrentAssignments();
       const newAssignment = buildAssignment(draft);
       const updated = sortAssignments([...current, newAssignment]);
       const content = JSON.stringify(updated, null, 2);
@@ -135,7 +145,7 @@ export function useAssignmentsQuery() {
 
   const markDoneMutation = useMutation({
     mutationFn: async (id: string) => {
-      const current = queryClient.getQueryData<Assignment[]>(assignmentsKey) ?? [];
+      const current = await getCurrentAssignments();
       const target = current.find((a) => a.id === id);
       const updated = current.map((a) =>
         a.id === id ? { ...a, done: true, completedAt: new Date().toISOString() } : a
@@ -154,7 +164,7 @@ export function useAssignmentsQuery() {
 
   const undoMutation = useMutation({
     mutationFn: async (id: string) => {
-      const current = queryClient.getQueryData<Assignment[]>(assignmentsKey) ?? [];
+      const current = await getCurrentAssignments();
       const updated = current.map((a) =>
         a.id === id ? { ...a, done: false, completedAt: undefined } : a
       );
@@ -208,6 +218,7 @@ export function useAssignmentsQuery() {
 export function useRunningQuery() {
   const queryClient = useQueryClient();
   const userId = useAuthStore((s) => s.userId);
+  const hasHydrated = useAuthStore((s) => s._hasHydrated);
   const runningKey = queryKeys.running(userId ?? undefined);
 
   const query = useQuery({
@@ -218,7 +229,7 @@ export function useRunningQuery() {
       if (localRecords && localRecords.length > 0) return localRecords;
       return [];
     },
-    enabled: true,
+    enabled: hasHydrated,
     staleTime: 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: 1,

@@ -170,9 +170,9 @@ export function useReserveSeat() {
 export function useCancelReserve() {
   const queryClient = useQueryClient();
   return useMutation<Record<string, unknown>, Error, { sToken?: string }>({
-    mutationFn: async () => {
+    mutationFn: async ({ sToken } = {}) => {
       // 取消预约必须使用预约成功时返回的 sToken（reserve-status 里的 token 不是它）
-      const cancelToken = loadCancelToken();
+      const cancelToken = sToken || loadCancelToken();
       if (!cancelToken) {
         throw new Error("取消令牌已过期或不存在，请在官方页面取消，或重新预约");
       }
