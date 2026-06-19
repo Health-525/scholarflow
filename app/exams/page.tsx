@@ -1,16 +1,16 @@
 "use client";
 
 import {
-  Plus,
-  Trash2,
-  Clock,
-  Circle,
-  CheckCircle2,
-  RotateCcw,
-  RefreshCw,
-  ChevronDown,
-  MapPin,
   CalendarDays,
+  CheckCircle2,
+  Circle,
+  Clock,
+  MapPin,
+  Plus,
+  RefreshCw,
+  RotateCcw,
+  Trash2,
+  TrendingUp,
 } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/input";
 import { ListSkeleton } from "@/components/ui/skeleton";
+import { SubjectSelector } from "@/components/ui/subject-selector";
 import { showToast } from "@/components/ui/ToastContainer";
 import { useScheduleQuery } from "@/hooks/useQueries";
 import { parseExamDate } from "@/lib/parse-exam-date";
@@ -143,6 +144,14 @@ function formatCountdown(
   return { text: `${days} 天后`, urgency: "normal" };
 }
 
+function daysUntil(dateStr: string): number | null {
+  const now = new Date();
+  const target = new Date(dateStr + "T23:59:59");
+  const diffMs = target.getTime() - now.getTime();
+  if (diffMs < 0) return null;
+  return Math.floor(diffMs / 86400000);
+}
+
 const urgencyColor = {
   today: "text-destructive",
   soon: "text-amber-600 dark:text-amber-400",
@@ -150,16 +159,110 @@ const urgencyColor = {
   past: "text-muted-foreground",
 };
 
-const urgencyBadgeVariant = {
-  today: "destructive" as const,
-  soon: "secondary" as const,
-  normal: "secondary" as const,
-  past: "secondary" as const,
+const urgencyStyle = {
+  today: {
+    bg: "rgba(var(--status-error-rgb), 0.1)",
+    color: "var(--status-error)",
+  },
+  soon: {
+    bg: "rgba(var(--status-warning-rgb), 0.1)",
+    color: "var(--status-warning)",
+  },
+  normal: {
+    bg: "rgba(var(--primary-rgb), 0.08)",
+    color: "var(--primary)",
+  },
+  past: {
+    bg: "rgba(var(--primary-rgb), 0.06)",
+    color: "var(--muted-foreground)",
+  },
 };
 
 // ── 常量 ─────────────────────────────────────────────────────
 
-const OTHER_KEY = "__other__";
+type Tone = "primary" | "success" | "warning" | "danger";
+
+const TONE_STYLES: Record<Tone, { bg: string; color: string }> = {
+  primary: {
+    bg: "rgba(var(--primary-rgb), 0.1)",
+    color: "var(--primary)",
+  },
+  success: {
+    bg: "rgba(var(--status-success-rgb), 0.1)",
+    color: "var(--status-success)",
+  },
+  warning: {
+    bg: "rgba(var(--status-warning-rgb), 0.1)",
+    color: "var(--status-warning)",
+  },
+  danger: {
+    bg: "rgba(var(--status-error-rgb), 0.1)",
+    color: "var(--status-error)",
+  },
+};
+
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: number | string;
+  tone: Tone;
+}) {
+  const style = TONE_STYLES[tone];
+  return (
+    <Card hover={false} className="p-3">
+      <div className="flex items-center gap-3">
+        <div
+          className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+          style={{ backgroundColor: style.bg, color: style.color }}
+        >
+          <Icon className="size-5" />
+        </div>
+        <div>
+          <div className="text-2xl font-bold tabular-nums leading-none text-foreground">
+            {value}
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">{label}</div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function todayLabel(): string {
+  return new Date().toLocaleDateString("zh-CN", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+// ── 统计 ─────────────────────────────────────────────────────
+
+function ExamStats({ exams }: { exams: Exam[] }) {
+  const visible = exams.filter((e) => e.status !== "deleted");
+  const upcoming = visible.filter((e) => e.status === "upcoming");
+  const completed = visible.filter((e) => e.status === "completed");
+  const next = upcoming.sort((a, b) => a.date.localeCompare(b.date))[0];
+  const nextDays = next ? daysUntil(next.date) : null;
+
+  return (
+    <div className="grid grid-cols-3 gap-3">
+      <StatCard icon={Clock} label="待考" value={upcoming.length} tone="primary" />
+      <StatCard
+        icon={TrendingUp}
+        label="最近考试"
+        value={nextDays === null ? "—" : `${nextDays} 天`}
+        tone={nextDays !== null && nextDays <= 3 ? "danger" : "primary"}
+      />
+      <StatCard icon={CheckCircle2} label="已完成" value={completed.length} tone="success" />
+    </div>
+  );
+}
 
 // ── 快捷添加表单 ─────────────────────────────────────────────
 
@@ -173,19 +276,14 @@ function QuickAddForm({
   disabled?: boolean;
 }) {
   const [subject, setSubject] = useState("");
-  const [customSubject, setCustomSubject] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
 
-  const isOther = subject === OTHER_KEY;
-  const hasSubjects = subjects.length > 0;
-  const finalSubject = isOther ? customSubject.trim() : subject.trim();
-  const canSubmit = Boolean(finalSubject && date);
+  const canSubmit = Boolean(subject.trim() && date);
 
   const reset = useCallback(() => {
     setSubject("");
-    setCustomSubject("");
     setDate("");
     setTime("");
     setLocation("");
@@ -195,7 +293,7 @@ function QuickAddForm({
     e.preventDefault();
     if (!canSubmit) return;
     await onAdd({
-      subject: finalSubject,
+      subject: subject.trim(),
       date,
       time: time || undefined,
       location: location || undefined,
@@ -204,62 +302,20 @@ function QuickAddForm({
   };
 
   return (
-    <Card hover={false}>
+    <Card className="border-dashed bg-transparent">
       <CardHeader>
         <CardTitle className="text-base">添加考试</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="exam-subject" className="mb-1.5 block text-sm font-medium text-foreground">
-              科目
-            </label>
-            {hasSubjects ? (
-              <div className="space-y-2">
-                <div className="relative">
-                  <select
-                    id="exam-subject"
-                    value={subject}
-                    onChange={(e) => {
-                      setSubject(e.target.value);
-                      if (e.target.value !== OTHER_KEY) setCustomSubject("");
-                    }}
-                    disabled={disabled}
-                    className="h-10 w-full appearance-none rounded-lg border border-input bg-transparent px-3 pr-9 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
-                  >
-                    <option value="" disabled>
-                      选择科目
-                    </option>
-                    {subjects.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                    <option value={OTHER_KEY}>其他…</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                </div>
-                {isOther && (
-                  <Input
-                    id="exam-custom-subject"
-                    value={customSubject}
-                    onChange={(e) => setCustomSubject(e.target.value)}
-                    placeholder="输入科目"
-                    disabled={disabled}
-                    className="h-10"
-                  />
-                )}
-              </div>
-            ) : (
-              <Input
-                id="exam-subject"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="科目"
-                disabled={disabled}
-                className="h-10"
-              />
-            )}
+            <span className="mb-1.5 block text-sm font-medium text-foreground">科目</span>
+            <SubjectSelector
+              subjects={subjects}
+              value={subject}
+              onChange={setSubject}
+              className="max-h-32 overflow-y-auto"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -337,43 +393,45 @@ function ExamItem({
 }) {
   const cd = formatCountdown(exam.date);
   const isCompleted = exam.status === "completed";
+  const style = urgencyStyle[cd.urgency];
 
   return (
-    <div
-      className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:bg-muted/40"
-    >
+    <div className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:bg-muted/40">
       {isCompleted ? (
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="icon"
           onClick={() => onUncomplete(exam.id)}
-          className="size-8 shrink-0"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
           aria-label={`取消「${exam.subject}」的完成状态`}
-          title="取消完成"
+          title="撤销完成"
         >
-          <CheckCircle2 className="size-5 text-primary" />
-        </Button>
+          <CheckCircle2 className="size-5" />
+        </button>
       ) : (
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="icon"
           onClick={() => onComplete(exam.id)}
-          className="size-8 shrink-0"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full border-2 border-muted-foreground/30 text-muted-foreground/60 transition-colors hover:border-primary hover:text-primary"
           aria-label={`标记「${exam.subject}」已完成`}
           title="标记完成"
         >
-          <Circle className="size-5 text-muted-foreground/60 transition-colors group-hover:text-primary" />
-        </Button>
+          <Circle className="size-5" />
+        </button>
       )}
 
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-        <Clock className={`size-4 ${urgencyColor[cd.urgency]}`} />
+      <div
+        className="flex size-9 shrink-0 items-center justify-center rounded-xl"
+        style={{ backgroundColor: style.bg, color: style.color }}
+      >
+        <Clock className="size-4" />
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className={`text-sm font-medium truncate ${isCompleted ? "text-muted-foreground line-through" : "text-foreground"}`}>
+        <div
+          className={`text-sm font-medium truncate ${
+            isCompleted ? "text-muted-foreground line-through" : "text-foreground"
+          }`}
+        >
           {exam.subject}
         </div>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
@@ -382,14 +440,20 @@ function ExamItem({
           {exam.location && <span>{exam.location}</span>}
           {exam.source === "jwgl" && <Badge variant="secondary">教务</Badge>}
           {isCompleted && exam.completedAt && (
-            <span>完成于 {new Date(exam.completedAt).toLocaleDateString("zh-CN", { month: "numeric", day: "numeric" })}</span>
+            <span>
+              完成于{" "}
+              {new Date(exam.completedAt).toLocaleDateString("zh-CN", { month: "numeric", day: "numeric" })}
+            </span>
           )}
         </div>
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
         {!isCompleted && (
-          <Badge variant={urgencyBadgeVariant[cd.urgency]} className="tabular-nums">
+          <Badge
+            variant="secondary"
+            className={`tabular-nums text-xs font-semibold ${urgencyColor[cd.urgency]}`}
+          >
             {cd.text}
           </Badge>
         )}
@@ -529,7 +593,9 @@ export default function ExamsPage() {
   };
 
   const handleUncomplete = async (id: string) => {
-    setExams((prev) => prev.map((e) => (e.id === id ? { ...e, status: "upcoming", completedAt: undefined } : e)));
+    setExams((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, status: "upcoming", completedAt: undefined } : e))
+    );
     await apiPatch(id, "upcoming", schoolId, userId);
   };
 
@@ -605,8 +671,8 @@ export default function ExamsPage() {
   const headerDescription = loading
     ? "加载中…"
     : upcoming.length > 0
-      ? `${upcoming.length} 场待考`
-      : "暂无待考科目";
+      ? `${todayLabel()} · ${upcoming.length} 场待考`
+      : `${todayLabel()} · 暂无待考科目`;
 
   // 没有待考科目时，默认展开已完成列表，避免用户以为数据丢失
   useEffect(() => {
@@ -650,6 +716,8 @@ export default function ExamsPage() {
             description="在下方添加第一场考试，自动开启倒计时"
           />
         )}
+
+        {!loading && visible.length > 0 && <ExamStats exams={exams} />}
 
         {!loading && upcoming.length > 0 && (
           <Card hover={false}>

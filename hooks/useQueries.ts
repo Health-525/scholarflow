@@ -178,6 +178,42 @@ export function useAssignmentsQuery() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, draft }: { id: string; draft: AssignmentDraft }) => {
+      const current = await getCurrentAssignments();
+      const updated = current.map((a) =>
+        a.id === id
+          ? {
+              ...a,
+              subject: draft.subject,
+              title: draft.title,
+              deadline: draft.deadline,
+              note: draft.note,
+            }
+          : a
+      );
+      const content = JSON.stringify(updated, null, 2);
+      await saveLocally("data/assignments.json", content, "更新作业");
+      return updated;
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(assignmentsKey, updated);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const current = await getCurrentAssignments();
+      const updated = current.filter((a) => a.id !== id);
+      const content = JSON.stringify(updated, null, 2);
+      await saveLocally("data/assignments.json", content, "删除作业");
+      return updated;
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(assignmentsKey, updated);
+    },
+  });
+
   const reorderMutation = useMutation({
     mutationFn: async (next: Assignment[]) => {
       const updated = sortAssignments(next);
@@ -206,6 +242,8 @@ export function useAssignmentsQuery() {
     add: addMutation.mutateAsync,
     markDone: markDoneMutation.mutateAsync,
     reorder: reorderMutation.mutateAsync,
+    update: updateMutation.mutateAsync,
+    delete: deleteMutation.mutateAsync,
     undo,
     undoBuffer,
     isAdding: addMutation.isPending,
