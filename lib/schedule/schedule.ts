@@ -50,7 +50,14 @@ export interface SpecialView {
   location?: string;
 }
 
-export type DayItem = CourseView | SpecialView;
+export interface HolidayView {
+  kind: "holiday";
+  title: string;
+  timeText?: string;
+  location?: string;
+}
+
+export type DayItem = CourseView | SpecialView | HolidayView;
 
 /**
  * 解析周次规格字符串，如 "2-13" 或 "1,3,5-7"

@@ -1,3 +1,4 @@
+import { getHolidayInfo } from "./holidays";
 import type {
   RawCourse,
   RawScheduleData,
@@ -66,11 +67,26 @@ export function getAdjustedItemsForDate(
   adjustments: Adjustment[]
 ): { weekNum: number; items: DayItem[] } {
   const weekNum = getWeekNumber(date, schedule.meta.week1_monday);
-  const wday = weekday1to7(date);
+
+  // 法定节假日：不显示课程，只显示节假日标记
+  const holiday = getHolidayInfo(date);
+  if (holiday?.type === "holiday") {
+    return {
+      weekNum,
+      items: [{ kind: "holiday" as const, title: holiday.name + "放假" }],
+    };
+  }
+
+  // 调休上班日：按国务院/学校默认映射显示「补周几」的课程
+  const wday = holiday?.substituteWeekday ?? weekday1to7(date);
 
   const activeAdjs = adjustments.filter((adj) => isAdjustmentActive(adj, weekNum));
 
   const items: DayItem[] = [];
+
+  if (holiday?.type === "workday") {
+    items.push({ kind: "holiday" as const, title: holiday.name });
+  }
 
   for (const c of schedule.courses || []) {
     // Check if this course should exist this week
@@ -109,9 +125,13 @@ export function getAdjustedItemsForDate(
     }
   }
 
-  // 排序
+  // 排序：节假日 > 特殊安排 > 课程
   items.sort((a, b) => {
-    if (a.kind !== b.kind) return a.kind === "special" ? -1 : 1;
+    if (a.kind !== b.kind) {
+      if (a.kind === "holiday") return -1;
+      if (b.kind === "holiday") return 1;
+      return a.kind === "special" ? -1 : 1;
+    }
     if (a.kind === "special" && b.kind === "special")
       return a.timeText.localeCompare(b.timeText);
     const ap = (a as CourseView).periods?.[0] ?? 999;

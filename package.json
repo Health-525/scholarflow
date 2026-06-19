@@ -114,6 +114,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.4.0",
+    "@kang8/chinese-holidays": "^1.0.1",
     "@tanstack/react-query": "^5.101.0",
     "active-win": "^9.0.0",
     "better-sqlite3": "^12.11.1",

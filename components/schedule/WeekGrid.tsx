@@ -69,6 +69,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
       const { items } = getAdjustedItemsForDate(schedule, day, adjustments);
       const courses: CourseBlock[] = [];
       const specials: DayItem[] = [];
+      const holidays: DayItem[] = [];
       for (const item of items) {
         if (item.kind === "course") {
           const cv = item as CourseView;
@@ -77,11 +78,13 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
             firstPeriod: cv.periods[0],
             span: cv.periods.length,
           });
+        } else if (item.kind === "holiday") {
+          holidays.push(item);
         } else {
           specials.push(item);
         }
       }
-      return { courses, specials };
+      return { courses, specials, holidays };
     });
   }, [schedule, weekInfo.days, adjustments]);
 
@@ -217,7 +220,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
               style={{ top: 0, bottom: 0 }}
             >
               {weekInfo.days.map((day, dayIdx) => {
-                const { courses } = dayData[dayIdx];
+                const { courses, holidays } = dayData[dayIdx];
                 const isToday =
                   normalizeDate(day).getTime() === today.getTime();
                 const todayBg = isToday ? "bg-primary/5" : "";
@@ -237,6 +240,14 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                         style={{ top: (p - 1) * ROW_H, height: ROW_H }}
                       />
                     ))}
+                    {/* Holiday banner */}
+                    {holidays.length > 0 && (
+                      <div className="absolute inset-x-1 top-2 z-10">
+                        <div className="rounded-lg px-2 py-1.5 text-center text-[11px] font-semibold bg-[var(--status-warning)]/10 text-[var(--status-warning)] border border-[var(--status-warning)]/20">
+                          {holidays[0].title}
+                        </div>
+                      </div>
+                    )}
                     {/* Course blocks */}
                     {courses.map((cb, i) => {
                       const colors = courseColor(cb.item.title);
@@ -250,7 +261,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                             setSelectedItem(cb.item);
                             setSelectedDate(day);
                           }}
-                          className="absolute left-1 right-1 rounded-lg px-2 py-1.5 text-left transition-all active:scale-[0.97] hover:shadow-sm overflow-hidden items-start justify-start whitespace-nowrap"
+                          className="absolute left-1 right-1 rounded-lg px-1.5 py-1 text-left transition-all active:scale-[0.97] hover:shadow-sm overflow-hidden items-start justify-start whitespace-normal"
                           style={{
                             top: blockTop,
                             height: blockHeight,
@@ -260,23 +271,26 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                           aria-label={
                             cb.item.title + " " + (cb.item.timeText || "")
                           }
+                          title={cb.item.title + (cb.item.timeText ? ` · ${cb.item.timeText}` : "")}
                         >
-                          <div
-                            className="text-xs font-semibold leading-tight truncate"
-                            style={{ color: colors.accent }}
-                          >
-                            {cb.item.title}
+                          <div className="flex flex-col leading-tight w-full">
+                            <div
+                              className={`text-[11px] font-semibold ${cb.span >= 2 ? "line-clamp-2" : "line-clamp-1"}`}
+                              style={{ color: colors.accent }}
+                            >
+                              {cb.item.title}
                             </div>
-                          {cb.item.location && blockHeight > 50 && (
-                            <div className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                              {cb.item.location}
-                            </div>
-                          )}
-                          {cb.item.timeText && blockHeight > 64 && (
-                            <div className="text-[11px] text-muted-foreground/70 mt-0.5 truncate">
-                              {cb.item.timeText}
-                            </div>
-                          )}
+                            {cb.item.location && blockHeight > 52 && (
+                              <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                                {cb.item.location}
+                              </div>
+                            )}
+                            {cb.item.timeText && blockHeight >= 36 && (
+                              <div className="text-[10px] text-muted-foreground/70 mt-0.5 truncate">
+                                {cb.item.timeText}
+                              </div>
+                            )}
+                          </div>
                         </Button>
                       );
                     })}
