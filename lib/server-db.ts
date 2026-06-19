@@ -121,6 +121,12 @@ export class ServerDB {
     console.log("[ServerDB] store path:", this.storePath); // 绝对路径 (R2.6)
 
     this.db = openSqlite(this.storePath); // R4.5: try/catch 包裹
+    // 限制数据库文件权限为仅属主读写，防止同机其他应用读取明文数据
+    try {
+      fs.chmodSync(this.storePath, 0o600);
+    } catch {
+      // Windows 不支持 chmod，静默忽略
+    }
     this.applyPragmas();
     this.createTables();
     this.prepareStatements();

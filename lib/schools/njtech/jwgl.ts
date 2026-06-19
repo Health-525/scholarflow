@@ -5,7 +5,7 @@
 
 import type { CourseData, ExamData } from "../types";
 
-import { encryptPassword } from "./jwgl-crypto";
+import { encryptJwglPassword } from "./jwgl-crypto";
 import { createClient, createClientWithCookie } from "./jwgl-http";
 
 const BASE = "https://jwgl.njtech.edu.cn";
@@ -59,7 +59,7 @@ export async function loginJwgl(
   const { modulus, exponent } = keyData;
 
   // Step 3: RSA 加密密码
-  const ep = encryptPassword(password, modulus, exponent);
+  const ep = encryptJwglPassword(password, modulus, exponent);
 
   // Step 4: 登录
   const loginResp = await client.req("/xtgl/login_slogin.html", {

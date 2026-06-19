@@ -14,7 +14,7 @@ import crypto from "crypto";
  * @param exponentB64 - RSA exponent (base64)
  * @returns base64 编码的加密结果
  */
-export function encryptPassword(
+export function encryptJwglPassword(
   pwd: string,
   modulusB64: string,
   exponentB64: string

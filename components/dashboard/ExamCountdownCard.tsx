@@ -103,7 +103,7 @@ export function ExamCountdownCard() {
     queryKey: queryKeys.exams(schoolId, userId),
     queryFn: fetchNextExam,
     refetchInterval: 60_000,
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000,
   });
 
   const nextExam = data?.nextExam ?? null;

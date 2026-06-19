@@ -5,32 +5,6 @@
 // ---- 主题 ----
 export type ThemeValue = "light" | "dark" | "system";
 
-// ---- GitHub 错误类型 ----
-export type GitHubErrorType =
-  | "network_timeout"
-  | "unauthorized"
-  | "forbidden"
-  | "not_found"
-  | "rate_limit"
-  | "conflict"
-  | "server_error"
-  | "unknown";
-
-export interface GitHubError {
-  type: GitHubErrorType;
-  message: string;
-  statusCode?: number;
-}
-
-// ---- GitHub API 类型 ----
-export type GitHubRepo = "content" | "execution";
-
-export interface FileContent {
-  content: string; // Base64 已解码
-  sha: string;
-  path: string;
-}
-
 export interface DirectoryEntry {
   name: string;
   path: string;
@@ -56,10 +30,6 @@ export interface Assignment {
   order?: number; // 自定义排序权重（越大越靠前）
 }
 
-export interface AssignmentsFile {
-  assignments: Assignment[];
-}
-
 export interface AssignmentDraft {
   subject: string;
   title: string;
@@ -74,10 +44,6 @@ export interface RunRecord {
   date: string; // YYYY-MM-DD
   type: RunType;
   createdAt: string; // ISO 8601 时间戳
-}
-
-export interface RunningFile {
-  records: RunRecord[];
 }
 
 export interface RunStats {

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 import { getCurrentUser } from "@/lib/mobile-data";
+import { accountParams } from "@/lib/api/client";
 import type { DirectoryEntry } from "@/types";
 
 interface ReportsState {
@@ -14,9 +15,7 @@ interface ReportsState {
 
 function getAuthParams(): string {
   const { schoolId, userId } = getCurrentUser();
-  const params = new URLSearchParams({ schoolId });
-  if (userId) params.set("userId", userId);
-  return params.toString();
+  return accountParams(schoolId, userId ?? null);
 }
 
 /**
