@@ -230,6 +230,8 @@ export function useAssignmentsQuery() {
       return;
     }
     await undoMutation.mutateAsync(undoBuffer.assignment.id);
+  // undoMutation 是 useMutation 的稳定引用，不加入依赖避免循环重建
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [undoBuffer, undoMutation.mutateAsync]);
 
   return {

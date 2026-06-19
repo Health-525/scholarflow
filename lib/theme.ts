@@ -37,6 +37,7 @@ export function setTheme(t: ThemeValue): void {
   try {
     localStorage.setItem(THEME_KEY, t);
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.error("[Theme] setTheme failed:", e);
   }
 }

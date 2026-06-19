@@ -74,6 +74,7 @@ export function saveReminder(key: string, entry: ReminderEntry): void {
     store[key] = rest;
     localStorage.setItem(REMINDERS_KEY, JSON.stringify(store));
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.error("[Notification] saveReminder failed:", e);
   }
 }
@@ -94,6 +95,7 @@ export function clearReminder(key: string): void {
       localStorage.setItem(REMINDERS_KEY, JSON.stringify(store));
     }
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.error("[Notification] clearReminder failed:", e);
   }
 }

@@ -47,6 +47,7 @@ export async function isSecureStorageAvailable(): Promise<boolean> {
     if (typeof api?.secureStorageAvailable !== "function") return false;
     return (await api.secureStorageAvailable()) === true;
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.error("[RuntimeEnv] secureStorageAvailable failed:", e);
     return false;
   }

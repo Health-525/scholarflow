@@ -6,11 +6,12 @@
  * 2. cookie 过期 + 记住密码启用 + 未超30天 → authenticated: true（关键修复点）
  * 3. cookie 过期 + 记住密码未启用 → authenticated: false
  */
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import Database from "better-sqlite3";
 import fs from "fs";
-import path from "path";
 import os from "os";
+import path from "path";
+
+import Database from "better-sqlite3";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 
 import { encryptPassword, decryptPassword } from "@/lib/crypto-password";
 
@@ -100,15 +101,15 @@ describe("remember-password session logic", () => {
   }
 
   function findActiveCredentials(now: number) {
-    return stmts.credActive.get(now) as any;
+    return stmts.credActive.get(now) as Record<string, unknown> | undefined;
   }
 
   function findMostRecentCredential() {
-    return stmts.credRecent.get() as any;
+    return stmts.credRecent.get() as Record<string, unknown> | undefined;
   }
 
   function readRememberSetting() {
-    const row = stmts.readData.get("remember-setting:njtech:202321144057") as any;
+    const row = stmts.readData.get("remember-setting:njtech:202321144057") as { content: string } | undefined;
     if (!row) return { enabled: false, lastManualLoginAt: null };
     return JSON.parse(row.content);
   }
@@ -119,7 +120,7 @@ describe("remember-password session logic", () => {
 
     const active = findActiveCredentials(Date.now());
     expect(active).not.toBeFalsy();
-    expect(active.school_id).toBe("njtech");
+    expect(active!.school_id).toBe("njtech");
   });
 
   it("场景2: cookie 已过期 → findActiveCredentials 返回 null，但 findMostRecentCredential 仍能找到", () => {
@@ -131,7 +132,7 @@ describe("remember-password session logic", () => {
 
     const recent = findMostRecentCredential();
     expect(recent).not.toBeFalsy(); // 新增方法能找到过期凭证
-    expect(recent.school_id).toBe("njtech");
+    expect(recent!.school_id).toBe("njtech");
   });
 
   it("场景3: cookie 过期 + 记住密码启用 + 未超30天 → 应返回 authenticated: true", () => {
@@ -240,7 +241,7 @@ describe("remember-password session logic", () => {
     expect(savedCreds).toBeFalsy(); // cookie 过期
 
     // 从 DB 读取并解密
-    const storedPasswordRow = stmts.readData.get(passwordKey) as any;
+    const storedPasswordRow = stmts.readData.get(passwordKey) as { content: string } | undefined;
     const storedEncrypted = storedPasswordRow
       ? (JSON.parse(storedPasswordRow.content) as { password?: string }).password
       : undefined;
@@ -270,7 +271,7 @@ describe("remember-password session logic", () => {
     // remember=false → delete (直接使用 db.exec 删除)
     db.exec("DELETE FROM data_store WHERE key = 'credential-password:njtech:202321144057'");
 
-    const row = stmts.readData.get("credential-password:njtech:202321144057") as any;
+    const row = stmts.readData.get("credential-password:njtech:202321144057") as { content: string } | undefined;
     expect(row).toBeFalsy();
   });
 });

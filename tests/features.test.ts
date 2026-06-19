@@ -6,14 +6,14 @@
  * - 倒计时格式化
  * - 成绩文字缩写
  */
-import { describe, it, expect, vi } from "vitest";
+import { Target } from "lucide-react";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { Target } from "lucide-react";
+import { describe, it, expect, vi } from "vitest";
 
-import { formatCountdown } from "@/lib/schedule/timezone";
-import { getScoreDisplay } from "@/lib/gpa";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { getScoreDisplay } from "@/lib/gpa";
+import { formatCountdown } from "@/lib/schedule/timezone";
 
 describe("EmptyState component", () => {
   it("渲染标题与描述", () => {

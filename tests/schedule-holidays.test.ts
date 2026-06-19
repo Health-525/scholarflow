@@ -5,8 +5,8 @@
  */
 import { describe, it, expect } from "vitest";
 
-import { getHolidayInfo, getSubstituteWeekday } from "@/lib/schedule/holidays";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
+import { getHolidayInfo, getSubstituteWeekday } from "@/lib/schedule/holidays";
 import type { RawScheduleData } from "@/lib/schedule/schedule";
 
 // ════════════════════════════════════════════════════
