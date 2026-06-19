@@ -104,9 +104,8 @@ export function getAdjustedItemsForDate(
         items.push(buildCourseView(c, matchingAdj.targetPeriods, schedule));
       }
       // 原位置不显示此课程
-    } else if (c.weekday === wday) {
-      // 正常显示（需要检查周次是否在范围内）
-      if (courseWeeks.length && !courseWeeks.includes(weekNum)) continue;
+    } else if (c.weekday === wday && courseActiveThisWeek) {
+      // 正常显示
       items.push(buildCourseView(c, c.periods, schedule));
     }
   }

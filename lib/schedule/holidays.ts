@@ -30,6 +30,8 @@ const SUBSTITUTE_WEEKDAYS_2026: Record<string, Weekday> = {
   "2026-05-09": 2, // 劳动节调休上班，补 5 月 5 日（周二）的课
   "2026-09-20": 2, // 国庆节调休上班，补 10 月 6 日（周二）的课
   "2026-10-10": 3, // 国庆节调休上班，补 10 月 7 日（周三）的课
+  // TODO: 2027 年及以后的调休上班日映射，待国务院通知公布后补充，
+  // 或迁移到 schedule.json / 数据库配置中支持按年更新。
 };
 
 function formatLocalDate(d: Date): string {
