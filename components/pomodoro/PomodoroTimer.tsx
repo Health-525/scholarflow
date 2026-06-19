@@ -30,10 +30,7 @@ import {
   persistTimerState,
   restoreTimerState,
 } from "./lib/pomodoro-storage";
-import {
-  DEFAULT_SETTINGS,
-  phaseLabel,
-} from "./lib/pomodoro-types";
+import { phaseLabel } from "./lib/pomodoro-types";
 import type { PomodoroPhase, PomodoroSettings } from "./lib/pomodoro-types";
 import {
   formatTime,
