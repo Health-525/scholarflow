@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { DEFAULT_SCHOOL_ID } from "@/lib/account-prefix";
 import { resolveAccountPrefix, resolveSchoolId, resolveUserId } from "@/lib/account-prefix";
+import { isTrustedOrigin } from "@/lib/auth/origin";
 import { getDashboardSummary } from "@/lib/dashboard/summary";
 import { getServerDB } from "@/lib/server-db";
 
@@ -12,6 +13,10 @@ import { getServerDB } from "@/lib/server-db";
  * 实现账号隔离 — 不同账号的数据互不可见
  */
 export async function GET(request: Request) {
+  if (!isTrustedOrigin(request)) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type") || "dashboard";
   const schoolIdParam = searchParams.get("schoolId");

@@ -2,10 +2,26 @@ import { NextResponse } from "next/server";
 
 import { DEFAULT_SCHOOL_ID } from "@/lib/account-prefix";
 import { resolveAccountPrefix } from "@/lib/account-prefix";
+import { isTrustedOrigin } from "@/lib/auth/origin";
 import { getServerDB } from "@/lib/server-db";
+
+/** 禁止通过 local-save 写入的敏感 key 前缀/模式 */
+const SENSITIVE_KEY_PATTERNS = [
+  /^credential-/,
+  /^secure-/,
+  /password/i,
+];
+
+function isSensitiveKey(key: string): boolean {
+  return SENSITIVE_KEY_PATTERNS.some((pattern) => pattern.test(key));
+}
 
 export async function POST(request: Request) {
   try {
+    if (!isTrustedOrigin(request)) {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
+
     const body = await request.json() as { file?: string; content?: string; action?: string; schoolId?: string; userId?: string };
     const { file, content, action, schoolId, userId } = body;
 
@@ -57,6 +73,10 @@ export async function POST(request: Request) {
       .replace(/^data\//, "")
       .replace(/^_out\//, "")
       .replace(/\.json$/, "");
+
+    if (isSensitiveKey(key)) {
+      return NextResponse.json({ error: "forbidden key" }, { status: 403 });
+    }
 
     const fullKey = `${key}:${prefix}`;
 

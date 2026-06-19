@@ -2,16 +2,25 @@ import { NextResponse } from "next/server";
 
 import { getCachedJWT, graphql } from "../_lib";
 
+interface UserStatusResponse {
+  data?: {
+    userAuth?: {      reserve?: { reserve?: { status?: number; token?: string; seat_name?: string; lib_name?: string } | null } | null;
+      user?: { rank?: { rank?: number } | null } | null;
+    };
+  };
+  errors?: Array<{ msg?: string; message?: string }>;
+  error?: string;
+}
+
 // Check user account status (blacklist, rank, etc.)
 export async function GET() {
-  const jwt = getCachedJWT();
-  if (!jwt) {
+  const jwt = getCachedJWT();  if (!jwt) {
     return NextResponse.json({ error: "JWT_EXPIRED" }, { status: 401 });
   }
 
   try {
     // Query user auth info including blacklist status
-    const res = await graphql(jwt, `{
+    const res = await graphql<UserStatusResponse>(jwt, `{
       userAuth {
         reserve { reserve { status token seat_name lib_name } }
         user { rank(type: "total") { rank } }

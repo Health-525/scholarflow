@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { resolveUserId } from "@/lib/account-prefix";
+import { isTrustedOrigin } from "@/lib/auth/origin";
 import { decryptPassword } from "@/lib/crypto-password";
 import { buildDashboardSummary } from "@/lib/dashboard/summary";
 import { mergeExams } from "@/lib/exams/merge";
@@ -8,24 +9,6 @@ import { NJTECH_PERIOD_TIMES } from "@/lib/schools/njtech/jwgl";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
 import type { Exam } from "@/types/exam";
-
-const DEFAULT_ALLOWED_ORIGINS = [
-  "http://localhost:3000",
-  "http://localhost:3456",
-  "https://localhost:3456",
-  "http://127.0.0.1:3000",
-  "http://127.0.0.1:3456",
-];
-
-function isTrustedOrigin(request: Request): boolean {
-  const configured = process.env.CORS_ORIGIN;
-  const allowed = configured
-    ? configured.split(",").map((s) => s.trim()).filter(Boolean)
-    : DEFAULT_ALLOWED_ORIGINS;
-  const origin = request.headers.get("origin");
-  if (!origin) return true; // 服务器内部调用(如 Electron 主进程)
-  return allowed.includes(origin);
-}
 
 /**
  * POST /api/fetch/all

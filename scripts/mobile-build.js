@@ -12,21 +12,53 @@ const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const BACKUP_DIR = path.join(ROOT, ".mobile-build-backup");
 
-// 需要临时移除的文件（API routes + "use client" 动态路由）
-const EXCLUDED = [
-  "app/api/auth/jwt/route.ts",
-  "app/api/jwc-news/route.ts",
-  "app/api/local-data/route.ts",
-  "app/api/local-save/route.ts",
-  "app/api/vpn-proxy/route.ts",
-  "app/notes/[...path]/page.tsx",
-  "app/reports/daily/[date]/page.tsx",
-  "app/reports/weekly/[slug]/page.tsx",
-  "app/manifest.webmanifest/route.ts",
-];
+/**
+ * 扫描需要临时移除的文件：
+ * 1. 所有 API routes (app/api/ * /route.ts 或 route.js)
+ * 2. 动态路由页面 (app/.../[...slug]/page.tsx 或 app/.../[param]/page.tsx)
+ * 静态导出不允许 API 路由和动态路由。
+ */
+function scanExcluded() {
+  const excluded = [];
+
+  function walk(dir, callback) {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(full, callback);
+      } else {
+        callback(full, entry.name);
+      }
+    }
+  }
+
+  const apiDir = path.join(ROOT, "app", "api");
+  walk(apiDir, (full, name) => {
+    if (name === "route.ts" || name === "route.js") {
+      excluded.push(path.relative(ROOT, full));
+    }
+  });
+
+  const appDir = path.join(ROOT, "app");
+  walk(appDir, (full, name) => {
+    const rel = path.relative(ROOT, full);
+    if (rel.startsWith("api" + path.sep)) return;
+    const dirParts = path.dirname(rel).split(path.sep);
+    const isDynamic = dirParts.some((part) => part.startsWith("["));
+    if (isDynamic && (name === "page.tsx" || name === "page.ts")) {
+      excluded.push(rel);
+    }
+  });
+
+  return excluded;
+}
+
+let EXCLUDED = [];
 
 function backup() {
-  console.log("[mobile-build] 备份不兼容文件...");
+  EXCLUDED = scanExcluded();
+  console.log(`[mobile-build] 发现 ${EXCLUDED.length} 个不兼容文件，开始备份...`);
   fs.rmSync(BACKUP_DIR, { recursive: true, force: true });
   for (const rel of EXCLUDED) {
     const src = path.join(ROOT, rel);
@@ -36,18 +68,6 @@ function backup() {
       fs.renameSync(src, dst);
       console.log(`  移除: ${rel}`);
     }
-  }
-  // 也需要移除空的目录结构
-  for (const rel of EXCLUDED) {
-    const dir = path.join(ROOT, path.dirname(rel));
-    try {
-      if (fs.readdirSync(dir).length === 0) {
-        fs.rmdirSync(dir);
-        // 也尝试移除父目录
-        const parent = path.dirname(dir);
-        if (fs.readdirSync(parent).length === 0) fs.rmdirSync(parent);
-      }
-    } catch {}
   }
 }
 

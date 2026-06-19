@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   const query = `mutation ReserveSeat($libId: Int!, $seatKey: String!) {
     userAuth {
       reserve {
-        reserueSeat(libId: $libId, seatKey: $seatKey)
+        reserveSeat(libId: $libId, seatKey: $seatKey)
       }
     }
   }`;
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  const result = r.data.data?.userAuth?.reserve?.reserueSeat;
+  const result = r.data.data?.userAuth?.reserve?.reserveSeat;
   // result 结构由 NJTECH 系统决定，通常包含取消预约需要的 sToken
   return NextResponse.json({ success: !!result, data: result });
 }

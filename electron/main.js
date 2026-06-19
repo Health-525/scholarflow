@@ -14,7 +14,7 @@ function logToFile(level, msg) {
     fs.appendFileSync(logPath, `${new Date().toISOString()} [${level}] ${msg}\n`);
   } catch {}
 }
-logToFile('info', `Main process starting, argv: ${process.argv.join(' ')}`);
+logToFile('info', 'Main process starting');
 
 process.on('uncaughtException', (err) => {
   logToFile('fatal', `uncaughtException: ${err.stack || err.message}`);
@@ -127,6 +127,7 @@ function launchServer() {
         PORT: String(PORT),
         HOSTNAME: '127.0.0.1',
         SCHOLARFLOW_DATA_DIR: dataDir,
+        ELECTRON_USER_DATA: dataDir,
         // 子进程以纯 Node 模式运行 Electron 二进制(Electron ABI),
         // 以便 better-sqlite3 原生模块按 Electron ABI 加载 (见 design §1.1)
         ELECTRON_RUN_AS_NODE: '1',
@@ -341,17 +342,22 @@ async function openLibraryLoginWindow() {
     },
   });
 
-  // 信任南京工业大学校内 / VPN 域名的自签名证书。
-  // 使用正则锚定到域名末尾，防止 evil-njtech.edu.cn.attacker.com 等绕过。
-  const TRUSTED_HOST_RE = /^(?:[a-z0-9-]+\.)*njtech\.edu\.cn$/i;
-  loginSession.setCertificateVerifyProc((request, callback) => {
-    const { hostname } = request;
-    if (TRUSTED_HOST_RE.test(hostname)) {
-      callback(0); // 信任
-    } else {
-      callback(-2); // 使用默认验证
-    }
-  });
+  // 证书校验：生产环境默认使用系统信任库；仅在开发环境或显式开启
+  // LIBRARY_ALLOW_INSECURE 时才为校内/VPN 域名放宽校验，并记录审计日志。
+  const allowInsecure = IS_DEV || process.env.LIBRARY_ALLOW_INSECURE === 'true';
+  if (allowInsecure) {
+    // 使用正则锚定到域名末尾，防止 evil-njtech.edu.cn.attacker.com 等绕过。
+    const TRUSTED_HOST_RE = /^(?:[a-z0-9-]+\.)*njtech\.edu\.cn$/i;
+    loginSession.setCertificateVerifyProc((request, callback) => {
+      const { hostname } = request;
+      if (TRUSTED_HOST_RE.test(hostname)) {
+        logToFile('warn', `[LibraryLogin] certificate trust bypassed for ${hostname}`);
+        callback(0); // 信任
+      } else {
+        callback(-2); // 使用默认验证
+      }
+    });
+  }
 
   // 设置Chrome UA，防止网站拒绝Electron
   libraryLoginWindow.webContents.setUserAgent(
@@ -639,11 +645,30 @@ function createWindow() {
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (!url.startsWith(`http://localhost:${PORT}`)) {
+    try {
+      const { protocol, hostname } = new URL(url);
+      // 只允许 http/https 协议，禁止 javascript: / file: / data: 等危险 scheme
+      if (protocol !== 'http:' && protocol !== 'https:') {
+        logToFile('warn', `[WindowOpen] blocked dangerous scheme: ${url}`);
+        return { action: 'deny' };
+      }
+      // 内部页面放行
+      if (url.startsWith(`http://localhost:${PORT}`)) {
+        return { action: 'allow' };
+      }
+      // 外部链接：仅打开已知安全域或用户确认后的链接
+      const allowedExternalHosts = process.env.ALLOWED_EXTERNAL_HOSTS
+        ? process.env.ALLOWED_EXTERNAL_HOSTS.split(',').map(h => h.trim()).filter(Boolean)
+        : [];
+      if (allowedExternalHosts.length > 0 && !allowedExternalHosts.includes(hostname)) {
+        logToFile('warn', `[WindowOpen] blocked external host: ${hostname}`);
+        return { action: 'deny' };
+      }
       shell.openExternal(url);
-      return { action: 'deny' };
+    } catch {
+      logToFile('warn', `[WindowOpen] blocked invalid url: ${url}`);
     }
-    return { action: 'allow' };
+    return { action: 'deny' };
   });
 
   mainWindow.webContents.on('did-fail-load', (_, code, desc) => {

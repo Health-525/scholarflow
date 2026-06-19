@@ -15,7 +15,12 @@ dist*/
 win-unpacked/
 
 # Mobile build
-android/
+android/app/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+android/captures/
+android/*.iml
 .mobile-build-backup/
 
 # env files

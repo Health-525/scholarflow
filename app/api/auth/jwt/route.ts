@@ -44,9 +44,10 @@ function loadPersistedJWT(): { token: string; expiry: number } | null {
     const data = JSON.parse(fs.readFileSync(storePath, "utf-8"));
     if (!data?.token || !data?.expiry) return null;
     if (data.expiry * 1000 <= Date.now()) return null;
-    // 新版：token 为加密字符串；旧版为明文 JWT，解密失败时回退到明文
+    // 新版：token 为加密字符串；解密失败则视为无效，不再回退明文
     const decrypted = decryptPassword(data.token);
-    return { token: decrypted || data.token, expiry: data.expiry };
+    if (!decrypted) return null;
+    return { token: decrypted, expiry: data.expiry };
   } catch {}
   return null;
 }
