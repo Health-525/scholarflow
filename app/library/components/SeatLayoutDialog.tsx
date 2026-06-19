@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowLeft,
   RefreshCw,
   Loader2,
   Move,
@@ -283,6 +282,7 @@ export function SeatLayoutDialog({
             onPointerUp={onPointerUp}
             onWheel={onWheel}
             categoryStyle={CATEGORY_STYLE}
+            dragState={dragState}
           />
         )}
       </div>
@@ -312,6 +312,14 @@ interface SeatLayoutContentProps {
   onPointerUp: () => void;
   onWheel: (e: React.WheelEvent) => void;
   categoryStyle: Record<SeatCategory, CategoryStyle>;
+  dragState: React.MutableRefObject<{
+    active: boolean;
+    startX: number;
+    startY: number;
+    startScrollX: number;
+    startScrollY: number;
+    moved: boolean;
+  }>;
 }
 
 function SeatLayoutContent({
@@ -335,6 +343,7 @@ function SeatLayoutContent({
   onPointerUp,
   onWheel,
   categoryStyle,
+  dragState,
 }: SeatLayoutContentProps) {
   const seats = layout.lib_layout.seats;
   const visibleSeats = seats.filter((s) => s.seat_status !== 0);

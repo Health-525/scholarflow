@@ -1,37 +1,33 @@
 "use client";
 
-import { ClipboardList, RotateCcw, X } from "lucide-react";
+import { ChevronDown, ClipboardList, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import type { Assignment, AssignmentDraft } from "@/types";
+import { cn } from "@/lib/utils";
+import type { Assignment } from "@/types";
 
 import { classifyAssignment, type Filter } from "../utils";
+
 import { AssignmentItem } from "./AssignmentItem";
 
 export function AssignmentList({
   assignments,
   filter,
-  subjects,
   onMarkDone,
-  onUpdate,
   onDelete,
-  undoBuffer,
-  onUndo,
   onResetFilter,
 }: {
   assignments: Assignment[];
   filter: Filter;
-  subjects: string[];
   onMarkDone: (id: string) => Promise<unknown>;
-  onUpdate: (id: string, draft: AssignmentDraft) => Promise<unknown>;
   onDelete: (id: string) => Promise<unknown>;
-  undoBuffer: { assignment: Assignment; expiresAt: number } | null;
-  onUndo: () => Promise<void>;
   onResetFilter: () => void;
 }) {
+  const [showCompleted, setShowCompleted] = useState(false);
+
   const now = Date.now();
   const overdue = assignments.filter((a) => classifyAssignment(a, now) === "overdue");
   const today = assignments.filter((a) => classifyAssignment(a, now) === "today");
@@ -39,25 +35,33 @@ export function AssignmentList({
   const completed = assignments.filter((a) => a.done);
   const pending = [...overdue, ...today, ...future];
 
-  const visibleGroups = (() => {
-    switch (filter) {
-      case "pending":
-        return [{ title: "待完成", items: pending }];
-      case "today":
-        return [{ title: "今天截止", items: today }];
-      case "overdue":
-        return [{ title: "已逾期", items: overdue }];
-      case "completed":
-        return [{ title: "已完成", items: completed }];
-      default:
-        return [
-          { title: "待完成", items: pending },
-          { title: "已完成", items: completed },
-        ];
+  // 没有待完成时自动展开已完成
+  useEffect(() => {
+    if (pending.length === 0 && completed.length > 0) {
+      setShowCompleted(true);
     }
-  })();
+  }, [pending.length, completed.length]);
 
-  const totalVisible = visibleGroups.reduce((sum, g) => sum + g.items.length, 0);
+  const groups: { title: string; items: Assignment[]; collapsible?: boolean }[] = [];
+  switch (filter) {
+    case "pending":
+      groups.push({ title: "待完成", items: pending });
+      break;
+    case "today":
+      groups.push({ title: "今天截止", items: today });
+      break;
+    case "overdue":
+      groups.push({ title: "已逾期", items: overdue });
+      break;
+    case "completed":
+      groups.push({ title: "已完成", items: completed });
+      break;
+    default:
+      groups.push({ title: "待完成", items: pending });
+      groups.push({ title: "已完成", items: completed, collapsible: true });
+  }
+
+  const totalVisible = groups.reduce((sum, g) => sum + g.items.length, 0);
 
   const filterLabels: Record<Filter, string> = {
     all: "全部",
@@ -103,50 +107,55 @@ export function AssignmentList({
         </div>
       )}
 
-      {undoBuffer && Date.now() < undoBuffer.expiresAt && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 animate-fade-up shadow-sm">
-          <div className="flex-1 min-w-0">
-            <span className="font-medium">已完成</span>
-            <span className="ml-1 truncate">「{undoBuffer.assignment.title}」</span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onUndo}
-            className="gap-1.5 border-emerald-500/30 hover:bg-emerald-500/10 shrink-0"
-          >
-            <RotateCcw size={14} />
-            撤销
-          </Button>
-        </div>
-      )}
-
-      {visibleGroups.map(
+      {groups.map(
         (group, index) =>
           group.items.length > 0 && (
             <Card hover={false} key={group.title} className={index > 0 ? "mt-4" : ""}>
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold">{group.title}</CardTitle>
-                  <Badge variant="secondary" className="text-xs">
-                    {group.items.length} 项
-                  </Badge>
-                </div>
+                {group.collapsible ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowCompleted((v) => !v)}
+                    className="flex w-full items-center justify-between text-left"
+                  >
+                    <CardTitle className="text-sm font-semibold text-muted-foreground">
+                      {group.title}
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {group.items.length} 项
+                      </Badge>
+                      <ChevronDown
+                        className={cn(
+                          "size-4 text-muted-foreground transition-transform duration-200",
+                          showCompleted && "rotate-180"
+                        )}
+                      />
+                    </div>
+                  </button>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-semibold">{group.title}</CardTitle>
+                    <Badge variant="secondary" className="text-xs">
+                      {group.items.length} 项
+                    </Badge>
+                  </div>
+                )}
               </CardHeader>
-              <CardContent className="space-y-2">
-                {group.items.map((a) => (
-                  <AssignmentItem
-                    key={a.id}
-                    a={a}
-                    now={now}
-                    type={classifyAssignment(a, now)}
-                    subjects={subjects}
-                    onMarkDone={onMarkDone}
-                    onUpdate={onUpdate}
-                    onDelete={onDelete}
-                  />
-                ))}
-              </CardContent>
+              {(!group.collapsible || showCompleted) && (
+                <CardContent className="space-y-2">
+                  {group.items.map((a) => (
+                    <AssignmentItem
+                      key={a.id}
+                      a={a}
+                      now={now}
+                      type={classifyAssignment(a, now)}
+                      onMarkDone={onMarkDone}
+                      onDelete={onDelete}
+                    />
+                  ))}
+                </CardContent>
+              )}
             </Card>
           )
       )}

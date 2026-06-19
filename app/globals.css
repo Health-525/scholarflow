@@ -210,6 +210,10 @@ h3 {
   border-radius: var(--radius-sm);
 }
 
+/* ── No Scrollbar ── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar {
   width: 5px;

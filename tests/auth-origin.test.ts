@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { isTrustedOrigin, forbiddenResponse, INTERNAL_TOKEN_HEADER } from "@/lib/auth/origin";
 
@@ -71,14 +71,14 @@ describe("isTrustedOrigin", () => {
   });
 
   it("开发环境未配置 token 时放行", () => {
-    process.env.NODE_ENV = "development";
+    vi.stubEnv("NODE_ENV", "development");
     delete process.env.SCHOLARFLOW_INTERNAL_TOKEN;
     const request = new Request("http://localhost:3000/api/test");
     expect(isTrustedOrigin(request, { allowInternalToken: true })).toBe(true);
   });
 
   it("生产环境未配置 token 时拒绝", () => {
-    process.env.NODE_ENV = "production";
+    vi.stubEnv("NODE_ENV", "production");
     delete process.env.SCHOLARFLOW_INTERNAL_TOKEN;
     const request = new Request("http://localhost:3000/api/test");
     expect(isTrustedOrigin(request, { allowInternalToken: true })).toBe(false);

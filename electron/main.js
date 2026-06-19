@@ -880,7 +880,7 @@ app.whenReady().then(async () => {
       console.log('[SF] Waiting for port', PORT);
       await waitForPort(PORT, 60000);
     } else {
-      console.log('[SF] Dev mode — connecting to next dev on port 3000');
+      console.log('[SF] Dev mode — connecting to next dev on port', PORT);
       await waitForPort(PORT, 30000);
     }
     console.log('[SF] Ready, opening window');

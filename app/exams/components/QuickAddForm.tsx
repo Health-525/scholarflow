@@ -162,10 +162,11 @@ export function QuickAddForm({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">
+              <label htmlFor="exam-location" className="mb-1.5 block text-sm font-medium text-foreground">
                 考场
               </label>
               <input
+                id="exam-location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="选填"

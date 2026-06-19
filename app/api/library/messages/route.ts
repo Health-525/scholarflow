@@ -21,12 +21,16 @@ export async function GET(request: Request) {
   const num = parse.success ? parse.data.num : 20;
   const type = parse.success ? parse.data.type : 1;
 
-  const query = `{userAuth{message{list(page:${page},num:${num},type:${type}){message_id title content create_time isread isused}}}}`;
+  const query = `query($page: Int!, $num: Int!, $type: Int!) {
+    userAuth { message { list(page: $page, num: $num, type: $type) {
+      message_id title content create_time isread isused
+    } } }
+  }`;
   type Response = {
     errors?: Array<{ msg?: string }>;
     data?: { userAuth?: { message?: { list?: unknown[] } } };
   };
-  const r = await graphql<Response>(jwt, query);
+  const r = await graphql<Response>(jwt, query, { page, num, type });
   if (!r.ok || r.data.errors) {
     const msg = r.data.errors?.[0]?.msg || "请求失败";
     if (msg === "access denied!") return NextResponse.json({ error: "access_denied" }, { status: 403 });
@@ -61,12 +65,16 @@ export async function POST(request: Request) {
     const page = Math.max(1, body.page || 1);
     const num = Math.max(1, Math.min(100, body.num || 50));
     const type = body.type || 1;
-    const listQuery = `{userAuth{message{list(page:${page},num:${num},type:${type}){message_id isread}}}}`;
+    const listQuery = `query($page: Int!, $num: Int!, $type: Int!) {
+      userAuth { message { list(page: $page, num: $num, type: $type) {
+        message_id isread
+      } } }
+    }`;
     type ListResponse = {
       errors?: Array<{ msg?: string }>;
       data?: { userAuth?: { message?: { list?: Array<{ message_id?: number; isread?: number }> } } };
     };
-    const listRes = await graphql<ListResponse>(jwt, listQuery);
+    const listRes = await graphql<ListResponse>(jwt, listQuery, { page, num, type });
     const list = listRes.data?.data?.userAuth?.message?.list || [];
     targetIds = list.filter(m => m.isread === 0).map(m => m.message_id).filter((id): id is number => typeof id === "number");
   }
@@ -75,12 +83,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, marked: 0 });
   }
 
-  const query = `mutation { userAuth { message { readed(messageIds: [${targetIds.join(",")}]) } } }`;
+  const query = `mutation($messageIds: [Int!]!) {
+    userAuth { message { readed(messageIds: $messageIds) } }
+  }`;
   type MarkResponse = {
     errors?: Array<{ msg?: string }>;
     data?: { userAuth?: { message?: { readed?: boolean } } };
   };
-  const r = await graphql<MarkResponse>(jwt, query);
+  const r = await graphql<MarkResponse>(jwt, query, { messageIds: targetIds });
   if (!r.ok || r.data.errors) {
     const msg = r.data.errors?.[0]?.msg || "请求失败";
     if (msg === "access denied!") return NextResponse.json({ error: "access_denied" }, { status: 403 });

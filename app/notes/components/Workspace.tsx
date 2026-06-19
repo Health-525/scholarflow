@@ -1,12 +1,14 @@
 "use client";
 
 import { FileText, Trash2, CheckCircle2, XCircle, Eye, PenLine } from "lucide-react";
+import { useState } from "react";
 
 import { NoteEditor } from "@/components/notes/NoteEditor";
 import { NoteViewer } from "@/components/notes/NoteViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/input";
 import { parseNotePath } from "@/lib/note-utils";
 
@@ -74,6 +76,8 @@ export function Workspace(props: WorkspaceProps) {
     deletedBuffer,
     onUndoDelete,
   } = props;
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (isCreating) {
     return (
@@ -153,7 +157,7 @@ export function Workspace(props: WorkspaceProps) {
               </Button>
             </div>
             {!isSample && (
-              <Button variant="ghost" size="icon-sm" onClick={onDelete} aria-label="删除笔记" className="text-muted-foreground hover:text-destructive">
+              <Button variant="ghost" size="icon-sm" onClick={() => setShowDeleteConfirm(true)} aria-label="删除笔记" className="text-muted-foreground hover:text-destructive">
                 <Trash2 className="w-4 h-4" />
               </Button>
             )}
@@ -220,6 +224,15 @@ export function Workspace(props: WorkspaceProps) {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="删除笔记"
+        description={`确定要删除「${title}」吗？删除后可在 5 秒内撤销。`}
+        confirmText="删除"
+        onConfirm={onDelete}
+      />
     </Card>
   );
 }

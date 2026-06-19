@@ -37,6 +37,8 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback;
 
+      const isDev = process.env.NODE_ENV === "development";
+
       return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center text-foreground">
           <ErrorFallback
@@ -49,12 +51,14 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           >
             刷新页面
           </button>
-          <details className="mt-4 text-muted-foreground text-xs max-w-[500px] text-left">
-            <summary className="cursor-pointer">错误详情</summary>
-            <pre className="mt-2 p-3 bg-secondary/50 rounded-md overflow-auto text-[11px] leading-relaxed">
-              {this.state.error?.stack || this.state.error?.message || "无详情"}
-            </pre>
-          </details>
+          {isDev && (
+            <details className="mt-4 text-muted-foreground text-xs max-w-[500px] text-left">
+              <summary className="cursor-pointer">错误详情</summary>
+              <pre className="mt-2 p-3 bg-secondary/50 rounded-md overflow-auto text-[11px] leading-relaxed">
+                {this.state.error?.stack || this.state.error?.message || "无详情"}
+              </pre>
+            </details>
+          )}
         </div>
       );
     }

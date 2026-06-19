@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 
 import { buildAssignment, sortAssignments } from "@/lib/assignment-utils";
 import { readData, writeData } from "@/lib/mobile-data";
@@ -103,7 +103,6 @@ export function useAssignmentsQuery() {
   const userId = useAuthStore((s) => s.userId);
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
   const assignmentsKey = queryKeys.assignments(schoolId, userId);
-  const [undoBuffer, setUndoBuffer] = useState<{ assignment: Assignment; expiresAt: number } | null>(null);
 
   const query = useQuery({
     queryKey: assignmentsKey,
@@ -145,34 +144,17 @@ export function useAssignmentsQuery() {
     mutationFn: async (id: string) => {
       const current = await getCurrentAssignments();
       const target = current.find((a) => a.id === id);
+      if (!target) return { updated: current };
+      const wasDone = target.done;
       const updated = current.map((a) =>
-        a.id === id ? { ...a, done: true, completedAt: new Date().toISOString() } : a
+        a.id === id ? { ...a, done: !wasDone, completedAt: wasDone ? undefined : new Date().toISOString() } : a
       );
       const content = JSON.stringify(updated, null, 2);
-      await saveLocally("data/assignments.json", content, "完成作业");
-      return { updated, id, target };
+      await saveLocally("data/assignments.json", content, wasDone ? "撤销完成" : "完成作业");
+      return { updated };
     },
-    onSuccess: ({ updated, target }) => {
+    onSuccess: ({ updated }) => {
       queryClient.setQueryData(assignmentsKey, updated);
-      if (target) {
-        setUndoBuffer({ assignment: target, expiresAt: Date.now() + 10_000 });
-      }
-    },
-  });
-
-  const undoMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const current = await getCurrentAssignments();
-      const updated = current.map((a) =>
-        a.id === id ? { ...a, done: false, completedAt: undefined } : a
-      );
-      const content = JSON.stringify(updated, null, 2);
-      await saveLocally("data/assignments.json", content, "撤销完成");
-      return updated;
-    },
-    onSuccess: (updated) => {
-      queryClient.setQueryData(assignmentsKey, updated);
-      setUndoBuffer(null);
     },
   });
 
@@ -224,16 +206,6 @@ export function useAssignmentsQuery() {
     },
   });
 
-  const undo = useCallback(async () => {
-    if (!undoBuffer || Date.now() > undoBuffer.expiresAt) {
-      setUndoBuffer(null);
-      return;
-    }
-    await undoMutation.mutateAsync(undoBuffer.assignment.id);
-  // undoMutation 是 useMutation 的稳定引用，不加入依赖避免循环重建
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [undoBuffer, undoMutation.mutateAsync]);
-
   return {
     assignments: query.data ?? [],
     isLoading: query.isLoading,
@@ -244,8 +216,6 @@ export function useAssignmentsQuery() {
     reorder: reorderMutation.mutateAsync,
     update: updateMutation.mutateAsync,
     delete: deleteMutation.mutateAsync,
-    undo,
-    undoBuffer,
     isAdding: addMutation.isPending,
     isMarking: markDoneMutation.isPending,
     isReordering: reorderMutation.isPending,

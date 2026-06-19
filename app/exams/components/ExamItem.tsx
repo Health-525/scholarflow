@@ -82,7 +82,7 @@ export function ExamItem({
         <button
           type="button"
           onClick={() => onUncomplete(exam.id)}
-          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
+          className="flex min-w-[44px] min-h-[44px] shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
           aria-label={`取消「${exam.subject}」的完成状态`}
           title="撤销完成"
         >
@@ -92,7 +92,7 @@ export function ExamItem({
         <button
           type="button"
           onClick={() => onComplete(exam.id)}
-          className="flex size-8 shrink-0 items-center justify-center rounded-full border-2 border-muted-foreground/30 text-muted-foreground/60 transition-colors hover:border-primary hover:text-primary"
+          className="flex min-w-[44px] min-h-[44px] shrink-0 items-center justify-center rounded-full border-2 border-muted-foreground/30 text-muted-foreground/60 transition-colors hover:border-primary hover:text-primary"
           aria-label={`标记「${exam.subject}」已完成`}
           title="标记完成"
         >
@@ -147,7 +147,7 @@ export function ExamItem({
           variant="ghost"
           size="icon"
           onClick={() => isCompleted ? onUncomplete(exam.id) : setShowDeleteConfirm(true)}
-          className="size-8 text-muted-foreground/50 hover:text-primary"
+          className="min-w-[44px] min-h-[44px] text-muted-foreground/50 hover:text-primary"
           aria-label={isCompleted ? "撤销完成" : `删除「${exam.subject}」`}
           title={isCompleted ? "撤销完成" : "删除"}
         >
@@ -163,7 +163,7 @@ export function ExamItem({
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
         title="删除考试"
-        description={`确定要删除「${exam.subject}」吗？此操作不可撤销。`}
+        description={`确定要删除「${exam.subject}」吗？删除后可在 5 秒内撤销。`}
         confirmText="删除"
         onConfirm={() => onDelete(exam.id)}
       />

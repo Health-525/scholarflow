@@ -1,7 +1,7 @@
 "use client";
 
 import { ClipboardList } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
@@ -9,7 +9,6 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { useAssignmentsQuery, useScheduleQuery } from "@/hooks/useQueries";
-import type { AssignmentDraft } from "@/types";
 
 import {
   AssignmentList,
@@ -25,10 +24,7 @@ export default function AssignmentsPage() {
     error,
     add,
     markDone,
-    update,
     delete: deleteAssignment,
-    undoBuffer,
-    undo,
     reload,
   } = useAssignmentsQuery();
   const { data: scheduleData } = useScheduleQuery();
@@ -43,31 +39,18 @@ export default function AssignmentsPage() {
   const headerDescription = useMemo(() => {
     const pending = assignments.filter((a) => !a.done).length;
     const status = pending === 0 ? "所有作业已完成" : `还剩 ${pending} 项作业`;
-    return `今天是 ${formatDateLabel()} · ${status}`;
+    return `${formatDateLabel()} · ${status}`;
   }, [assignments]);
 
-  const focusInput = () => {
-    const el = document.getElementById("title") as HTMLInputElement | null;
-    el?.focus();
-    el?.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
-
-  const handleUpdate = useCallback(
-    async (id: string, draft: AssignmentDraft) => {
-      await update({ id, draft });
-    },
-    [update]
-  );
-
   return (
-    <div className="max-w-3xl mx-auto min-h-screen bg-background text-foreground animate-page">
+    <div className="max-w-3xl mx-auto min-h-screen bg-background text-foreground animate-page pb-24 md:pb-8">
       <PageHeader
         icon={<ClipboardList className="size-5 text-primary" />}
         title="作业"
         description={headerDescription}
       />
 
-      <div className="pb-8 space-y-5">
+      <div className="space-y-5">
         {isLoading && (
           <Card hover={false} className="p-4">
             <ListSkeleton count={4} />
@@ -86,18 +69,14 @@ export default function AssignmentsPage() {
               <EmptyState
                 icon={ClipboardList}
                 title="暂无待办作业"
-                description="添加一条作业，开始规划你的学习任务"
+                description="在上方添加第一项作业，开始规划你的学习任务"
               />
             ) : (
               <AssignmentList
                 assignments={assignments}
                 filter={filter}
-                subjects={subjects}
                 onMarkDone={markDone}
-                onUpdate={handleUpdate}
                 onDelete={deleteAssignment}
-                undoBuffer={undoBuffer}
-                onUndo={undo}
                 onResetFilter={() => setFilter("all")}
               />
             )}
