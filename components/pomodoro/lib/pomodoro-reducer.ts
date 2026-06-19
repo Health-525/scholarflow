@@ -2,13 +2,13 @@
  * 番茄钟 reducer（纯函数，无副作用，可独立单测）
  */
 
-import { computeStats } from "./pomodoro-utils";
 import type {
   PomodoroAction,
   PomodoroPhase,
   PomodoroSession,
   PomodoroState,
 } from "./pomodoro-types";
+import { computeStats } from "./pomodoro-utils";
 
 export function pomodoroReducer(
   state: PomodoroState,

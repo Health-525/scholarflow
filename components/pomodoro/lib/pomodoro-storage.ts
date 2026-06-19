@@ -8,7 +8,6 @@ import type {
   PomodoroSession,
   PomodoroState,
   PersistedTimerState,
-  DEFAULT_SETTINGS,
 } from "./pomodoro-types";
 import { DEFAULT_SETTINGS as DEFAULTS } from "./pomodoro-types";
 
