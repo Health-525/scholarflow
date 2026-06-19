@@ -6,8 +6,8 @@ export function tomorrowDate(): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function dateToDeadline(date: string): string {
-  return `${date}T23:59`;
+export function dateToDeadline(date: string, time?: string): string {
+  return `${date}T${time || "23:59"}`;
 }
 
 export function classifyAssignment(
@@ -39,11 +39,26 @@ export function formatDateLabel(d = new Date()): string {
 }
 
 export function formatDeadline(iso: string): string {
-  return new Date(iso).toLocaleDateString("zh-CN", {
+  const d = new Date(iso);
+  const dateStr = d.toLocaleDateString("zh-CN", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   });
+  
+  // 如果时间是 23:59，则只显示日期（默认截止时间）
+  const hours = d.getHours();
+  const minutes = d.getMinutes();
+  if (hours === 23 && minutes === 59) {
+    return dateStr;
+  }
+  
+  // 否则显示日期和时间
+  const timeStr = d.toLocaleTimeString("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${dateStr} ${timeStr}`;
 }
 
 export type Filter = "all" | "pending" | "today" | "overdue" | "completed";

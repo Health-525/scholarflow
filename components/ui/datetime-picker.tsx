@@ -2,11 +2,10 @@
 
 import { format, addDays } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Calendar as CalendarIcon, Check, Clock } from "lucide-react";
 import * as React from "react";
 
 import { Calendar } from "@/components/ui/calendar";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
@@ -61,55 +60,37 @@ export function DatePicker({
     }
   };
 
+  const displayText = date
+    ? format(date, "yyyy-MM-dd")
+    : placeholder;
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         disabled={disabled}
         className={cn(
-          "flex h-10 w-full items-center justify-between rounded-lg border border-input bg-transparent px-3 py-2 text-sm transition-colors hover:border-ring/50 hover:bg-accent/30 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer",
+          "flex h-10 w-full items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm transition-all cursor-pointer",
+          "hover:border-primary",
+          "focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(var(--primary-rgb),0.1)]",
+          "disabled:cursor-not-allowed disabled:opacity-50",
           !date && "text-muted-foreground",
           className
         )}
       >
-        <span className="flex items-center gap-2">
-          <CalendarIcon className="h-4 w-4 shrink-0" />
-          {date ? format(date, "yyyy年MM月dd日", { locale: zhCN }) : placeholder}
-        </span>
-        <ChevronIcon open={open} />
+        <input
+          readOnly
+          value={displayText}
+          placeholder={placeholder}
+          className="flex-1 bg-transparent outline-none text-sm cursor-pointer"
+        />
+        <CalendarIcon className="size-4 shrink-0 text-muted-foreground/60" />
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        {/* 快捷选项 */}
-        <div className="flex flex-wrap gap-1.5 px-3 pt-3">
-          {DATE_SHORTCUTS.map((s) => {
-            const active = value === s.fn();
-            return (
-              <button
-                key={s.label}
-                type="button"
-                onClick={() => {
-                  onChange?.(s.fn());
-                  setOpen(false);
-                }}
-                className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium transition-all border",
-                  active
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : "bg-muted/60 text-muted-foreground border-transparent hover:bg-primary/10 hover:text-primary"
-                )}
-              >
-                {s.label}
-              </button>
-            );
-          })}
-        </div>
-        {/* 日历 */}
-        <div className="border-t mt-3">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={handleSelect}
-          />
-        </div>
+      <PopoverContent className="w-auto p-0" align="start" sideOffset={4}>
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={handleSelect}
+        />
       </PopoverContent>
     </Popover>
   );
@@ -180,16 +161,21 @@ export function TimePicker({
       <PopoverTrigger
         disabled={disabled}
         className={cn(
-          "flex h-10 w-full items-center justify-between rounded-lg border border-input bg-transparent px-3 py-2 text-sm transition-colors hover:border-ring/50 hover:bg-accent/30 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer",
+          "flex h-10 w-full items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm transition-all cursor-pointer",
+          "hover:border-primary",
+          "focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(var(--primary-rgb),0.1)]",
+          "disabled:cursor-not-allowed disabled:opacity-50",
           !value && "text-muted-foreground",
           className
         )}
       >
-        <span className="flex items-center gap-2">
-          <Clock className="h-4 w-4 shrink-0" />
-          {value || placeholder}
-        </span>
-        <ChevronIcon open={open} />
+        <input
+          readOnly
+          value={value || placeholder}
+          placeholder={placeholder}
+          className="flex-1 bg-transparent outline-none text-sm cursor-pointer"
+        />
+        <Clock className="size-4 shrink-0 text-muted-foreground/60" />
       </PopoverTrigger>
       <PopoverContent className="w-60 p-0" align="start">
         <div className="p-3 space-y-3">
