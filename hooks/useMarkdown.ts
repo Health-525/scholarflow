@@ -51,6 +51,8 @@ export function useMarkdown(
       });
 
     return () => { cancelled = true; };
+  // options 对象每次渲染可能重新创建，只依赖稳定的 noteDir/noteName 字段
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [markdown, options?.noteDir, options?.noteName]);
 
   return { html, isLoading };

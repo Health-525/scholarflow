@@ -3,6 +3,7 @@
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import type { ReactNode } from "react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export interface ConfirmDialogProps {
@@ -61,18 +62,17 @@ export function ConfirmDialog({
           )}
           <div className="mt-6 flex justify-end gap-2">
             <AlertDialog.Close
-              className="rounded-xl px-4 py-2 text-[13px] font-medium text-muted-foreground bg-secondary/60 hover:bg-secondary active:translate-y-0.5 transition-colors"
+              render={
+                <Button variant="secondary" size="sm" />
+              }
             >
               {cancelText}
             </AlertDialog.Close>
             <AlertDialog.Close
               onClick={onConfirm}
-              className={cn(
-                "rounded-xl px-4 py-2 text-[13px] font-medium active:translate-y-0.5 transition-colors",
-                danger
-                  ? "bg-destructive/10 text-destructive hover:bg-destructive/20"
-                  : "bg-primary text-primary-foreground hover:opacity-90"
-              )}
+              render={
+                <Button variant={danger ? "destructive" : "default"} size="sm" />
+              }
             >
               {confirmText}
             </AlertDialog.Close>

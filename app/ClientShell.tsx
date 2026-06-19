@@ -33,7 +33,8 @@ export default function ClientShell({ children }: ClientShellProps) {
     return () => unwatch();
   }, [currentTheme]);
 
-  // Restore auth state on mount / route change
+  // Restore auth state once on mount only
+  // pathname 不应作为依赖，避免每次路由变化都重新调用 /api/auth/session
   useEffect(() => {
     async function restoreAuth() {
       // Server-side session is the source of truth.
@@ -60,7 +61,8 @@ export default function ClientShell({ children }: ClientShellProps) {
     }
 
     restoreAuth();
-  }, [setAuth, clearAuth, pathname]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setAuth, clearAuth]); // intentionally omit pathname — only restore once on mount
 
   // Route guard — redirect to /setup if not authenticated
   useEffect(() => {

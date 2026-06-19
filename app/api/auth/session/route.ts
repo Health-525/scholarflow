@@ -66,6 +66,7 @@ export async function GET() {
 
     return NextResponse.json({ authenticated: false, schoolId: null });
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error("[/api/auth/session] unexpected error:", (err as Error)?.message ?? err);
     return NextResponse.json({ authenticated: false, schoolId: null });
   }

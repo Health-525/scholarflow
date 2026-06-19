@@ -89,7 +89,20 @@ export function useNoteContent(path: string | null) {
     } finally {
       setIsLoading(false);
     }
-  }, [path, schoolId, userId]); // 账号变化时重新加载
+  // getAuthParams() 从 store 读取最新值，不需要把 schoolId/userId 加入依赖数组
+  // 改为通过 accountKey effect 在账号变化时手动触发 load
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [path]);
+
+  // 账号变化时重新加载
+  const prevAccountKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    const key = `${schoolId || ""}:${userId || ""}`;
+    if (prevAccountKeyRef.current !== key) {
+      prevAccountKeyRef.current = key;
+      load();
+    }
+  }, [schoolId, userId, load]);
 
   useEffect(() => {
     load();
