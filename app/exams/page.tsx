@@ -637,8 +637,6 @@ export default function ExamsPage() {
       />
 
       <div className="space-y-5">
-        <QuickAddForm subjects={subjects} onAdd={handleAdd} disabled={loading} />
-
         {loading && (
           <Card hover={false} className="p-4">
             <ListSkeleton count={4} />
@@ -649,7 +647,7 @@ export default function ExamsPage() {
           <EmptyState
             icon={Clock}
             title="暂无考试"
-            description="在上方添加第一场考试，自动开启倒计时"
+            description="在下方添加第一场考试，自动开启倒计时"
           />
         )}
 
@@ -702,6 +700,8 @@ export default function ExamsPage() {
             )}
           </Card>
         )}
+
+        <QuickAddForm subjects={subjects} onAdd={handleAdd} disabled={loading} />
       </div>
     </div>
   );
