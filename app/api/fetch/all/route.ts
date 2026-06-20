@@ -6,7 +6,6 @@ import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { decryptPassword } from "@/lib/crypto-password";
 import { buildDashboardSummary } from "@/lib/dashboard/summary";
 import { mergeExams } from "@/lib/exams/merge";
-import { NJTECH_PERIOD_TIMES } from "@/lib/schools/njtech/jwgl";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
 import type { Exam } from "@/types/exam";
@@ -133,7 +132,7 @@ export async function POST(request: Request) {
           semester: `${yearNum}-${yearNum + 1}-${semesterInfo.semester}`,
           schoolId,
         },
-        periodTimes: NJTECH_PERIOD_TIMES,
+        periodTimes: adapter.periodTimes,
       });
       results.schedule = `${courses.length} 门课程`;
     } catch (e) {

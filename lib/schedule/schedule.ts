@@ -64,6 +64,13 @@ export type DayItem = CourseView | SpecialView | HolidayView;
  */
 export function parseWeekSpec(spec: string): number[] {
   const s = String(spec || "").replace(/，/g, ",");
+  if (/^[01]{8,}$/.test(s)) {
+    const bitWeeks: number[] = [];
+    for (let i = 0; i < s.length; i++) {
+      if (s[i] === "1") bitWeeks.push(i + 1);
+    }
+    return bitWeeks;
+  }
   const out = new Set<number>();
   for (const raw of s.split(",")) {
     const part = raw.trim();
@@ -189,5 +196,3 @@ export function getItemsForDate(
 
   return { weekNum, items };
 }
-
-
