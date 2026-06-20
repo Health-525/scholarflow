@@ -25,7 +25,8 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: "ScholarFlow",
-  description: "统一学习管理中枢 — 课表、作业、跑步、日报",
+  description:
+    "本地优先的校园学习工作台，整合教务数据、图书馆流程、作业、笔记与学习报告。",
   manifest: "/manifest.json",
   icons: {
     icon: [{ url: "/icons/logo.png", type: "image/png" }],

@@ -1,8 +1,8 @@
 <div align="center">
   <img src="public/icons/logo.png" alt="ScholarFlow Logo" width="96" />
   <h1>ScholarFlow</h1>
-  <p><strong>面向大学生的本地优先学习中枢</strong></p>
-  <p><strong>A local-first student workspace for campus life and study workflows</strong></p>
+  <p><strong>本地优先的校园学习工作台</strong></p>
+  <p><strong>A local-first campus study workspace</strong></p>
 
   <p>
     <a href="https://github.com/Health-525/scholarflow/releases">下载 Download</a> ·
@@ -32,7 +32,7 @@
 
 ### ScholarFlow 是什么
 
-ScholarFlow 把大学生日常分散在教务系统、图书馆系统和个人效率工具里的信息，收束到一个本地优先、离线可用、桌面体验完整的工作台里。
+ScholarFlow 把大学生日常分散在教务系统、图书馆系统和个人效率工具里的信息，收束到一个本地优先、离线可用、桌面体验完整的校园学习工作台里。
 
 它不是一个单点应用，而是围绕真实学习流程组织起来的学生工作台：
 
@@ -169,7 +169,7 @@ npm run electron:build
 
 ### What ScholarFlow Is
 
-ScholarFlow is a local-first student workspace that brings together academic data, library workflows, and personal study tools into one desktop-oriented product.
+ScholarFlow is a local-first campus study workspace that brings together academic data, library workflows, and personal study tools into one desktop-oriented product.
 
 It is designed around real student workflows rather than a single feature:
 

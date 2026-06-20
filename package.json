@@ -2,7 +2,7 @@
   "name": "scholarflow",
   "version": "1.0.0",
   "private": true,
-  "description": "ScholarFlow — 独立学习管理中枢",
+  "description": "A local-first campus study workspace for academic data, library workflows, assignments, notes, and study reports.",
   "author": "Health-525 <health-525@users.noreply.github.com>",
   "repository": {
     "type": "git",
