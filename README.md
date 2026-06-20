@@ -1,15 +1,22 @@
 # ScholarFlow
 
-面向大学生的本地优先学习中枢，把课表、考试、成绩、图书馆、自习、任务、笔记和周报收进一个桌面应用。
+> 面向大学生的本地优先学习中枢，把课表、考试、成绩、图书馆、任务、笔记和周报收进一个桌面应用。
 
 [![CI](https://github.com/Health-525/scholarflow/actions/workflows/ci.yml/badge.svg)](https://github.com/Health-525/scholarflow/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/github/license/Health-525/scholarflow)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
 [![Release](https://img.shields.io/github/v/release/Health-525/scholarflow?include_prereleases)](https://github.com/Health-525/scholarflow/releases)
 
-[下载最新版](https://github.com/Health-525/scholarflow/releases) | [提交问题](https://github.com/Health-525/scholarflow/issues/new?template=bug_report.md) | [功能建议](https://github.com/Health-525/scholarflow/issues/new?template=feature_request.md)
+[下载最新版](https://github.com/Health-525/scholarflow/releases) | [学校接入指南](docs/school-adapter-guide.md) | [提交问题](https://github.com/Health-525/scholarflow/issues/new?template=bug_report.md) | [功能建议](https://github.com/Health-525/scholarflow/issues/new?template=feature_request.md)
 
+## 产品预览
 ![ScholarFlow Dashboard](docs/dashboard.png)
+
+当前更推荐的使用方式：
+
+- 普通用户：优先下载 Electron 桌面版
+- 开发者：优先从源码运行 Web / Electron 开发环境
+- 学校扩展贡献者：从 `SchoolAdapter` 架构接入新学校
 
 ## 为什么它有价值
 
@@ -86,24 +93,6 @@ Electron 版本包含明确的桌面能力增强：
 | 日报 / 周报 | 学习数据沉淀与趋势复盘 |
 | 设置 | 主题、数据导出、刷新策略、账户与设备信息 |
 
-## 截图
-
-### 桌面端
-
-| 仪表盘 | 课表 | 图书馆 |
-| --- | --- | --- |
-| ![](screenshots/desktop-_.png) | ![](screenshots/desktop-_schedule.png) | ![](screenshots/desktop-_library.png) |
-
-| 作业 | 笔记 | 成绩 |
-| --- | --- | --- |
-| ![](screenshots/desktop-_assignments.png) | ![](screenshots/desktop-_notes.png) | ![](screenshots/desktop-_gpa.png) |
-
-### 移动端
-
-| 首页 | 课表 | 笔记 |
-| --- | --- | --- |
-| ![](screenshots/mobile-_.png) | ![](screenshots/mobile-_schedule.png) | ![](screenshots/mobile-_notes.png) |
-
 ## 平台支持
 
 | 能力 | Electron 桌面端 | Web / PWA | Android / Capacitor |
@@ -115,7 +104,7 @@ Electron 版本包含明确的桌面能力增强：
 | 活动窗口统计 | 支持 | 不支持 | 不支持 |
 | 后台自动刷新 | 支持 | 不支持 | 不支持 |
 
-结论很明确：如果你是普通用户，优先下载桌面版；如果你是开发者，Web / PWA 更适合调试和二次开发。
+结论很明确：桌面版是主形态，Web / PWA 是补充形态。
 
 ## 项目定位
 
@@ -212,6 +201,16 @@ npm run electron:build:installer
 - `mock`：用于本地开发和适配器调试
 
 如果你想接入新的学校系统，请阅读 [docs/school-adapter-guide.md](docs/school-adapter-guide.md)。
+
+## 为什么这个 README 这样组织
+
+这版结构遵循了高 star 产品型仓库常见做法：
+
+- 首屏先给一句产品定位，而不是先铺技术细节
+- 只保留一张主截图，避免截图墙分散注意力
+- 把下载、文档、问题反馈放在首屏附近，降低转化阻力
+- 功能、平台支持、安装、贡献按用户决策顺序往下排
+- 开发细节保留，但不抢占产品价值表达
 
 ## 项目结构
 
