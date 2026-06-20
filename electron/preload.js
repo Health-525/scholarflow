@@ -7,11 +7,40 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("electronAPI", {
   isElectron: true,
 
+  // ── Internal API Token (用于同源请求的 403 防护) ──
+  getInternalToken: () => ipcRenderer.invoke("internal-token:get"),
+
   // ── Token 安全存储 ──
   encryptAndStoreToken: (token) =>
     ipcRenderer.invoke("token:encrypt-store", token),
   retrieveToken: () => ipcRenderer.invoke("token:retrieve"),
   clearToken: () => ipcRenderer.invoke("token:clear"),
+
+  // ── 凭证(教务密码)安全存储 — local-first-sync 记住密码 ──
+  /** 加密存储教务密码(safeStorage) */
+  storeCredential: (plaintext) => ipcRenderer.invoke("credential:store", plaintext),
+  /** 读取并解密教务密码,失败/不存在返回 null */
+  retrieveCredential: () => ipcRenderer.invoke("credential:retrieve"),
+  /** 清除已记住的教务密码 */
+  clearCredential: () => ipcRenderer.invoke("credential:clear"),
+  /** 查询 OS 级加密是否可用 */
+  secureStorageAvailable: () => ipcRenderer.invoke("credential:secure-available"),
+
+  // ── Auth state 安全存储 — 替代 localStorage 明文 sf_auth ──
+  /** 加密存储 auth state(safeStorage) */
+  storeAuthState: (plaintext) => ipcRenderer.invoke("auth-state:store", plaintext),
+  /** 读取并解密 auth state,失败/不存在返回 null */
+  retrieveAuthState: () => ipcRenderer.invoke("auth-state:retrieve"),
+  /** 清除已存储的 auth state */
+  clearAuthState: () => ipcRenderer.invoke("auth-state:clear"),
+
+  // ── Activity data 安全存储 — 替代 localStorage 明文 sf_activity_v3 ──
+  /** 加密存储 activity data(safeStorage) */
+  storeActivityData: (plaintext) => ipcRenderer.invoke("activity-data:store", plaintext),
+  /** 读取并解密 activity data,失败/不存在返回 null */
+  retrieveActivityData: () => ipcRenderer.invoke("activity-data:retrieve"),
+  /** 清除已存储的 activity data */
+  clearActivityData: () => ipcRenderer.invoke("activity-data:clear"),
 
   // ── 活动窗口追踪 ──
   /** 获取当前活动窗口信息 */
@@ -50,26 +79,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("update-downloaded", handler);
     return () => ipcRenderer.removeListener("update-downloaded", handler);
   },
-
-  // ── Vision-Model API ──
-  /** 检查 Vision-Model API 是否运行 */
-  visionModelStatus: () => ipcRenderer.invoke("vision-model:status"),
-  /** 启动 Vision-Model API */
-  visionModelStart: () => ipcRenderer.invoke("vision-model:start"),
-
-  // ── 桌面宠物 ──
-  /** 显示桌面宠物 */
-  petShow: () => ipcRenderer.invoke("pet:show"),
-  /** 隐藏桌面宠物 */
-  petHide: () => ipcRenderer.invoke("pet:hide"),
-
-  // ── 抬头纹后台监控 ──
-  /** 启动后台抬眉监控 */
-  browMonitorStart: () => ipcRenderer.invoke("brow-monitor:start"),
-  /** 停止后台抬眉监控 */
-  browMonitorStop: () => ipcRenderer.invoke("brow-monitor:stop"),
-  /** 查询监控状态 */
-  browMonitorStatus: () => ipcRenderer.invoke("brow-monitor:status"),
+  /** 监听：更新出错 */
+  onUpdateError: (callback) => {
+    const handler = (_event, err) => callback(err);
+    ipcRenderer.on("update-error", handler);
+    return () => ipcRenderer.removeListener("update-error", handler);
+  },
 
   // ── 图书馆 JWT ──
   /** 刷新JWT（先检查是否有效，过期则弹登录窗口） */

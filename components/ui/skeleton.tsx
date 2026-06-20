@@ -39,16 +39,3 @@ export function ListSkeleton({ count = 3 }: { count?: number }) {
   );
 }
 
-export function PageSkeleton() {
-  return (
-    <div className="pb-24 md:pb-0 max-w-3xl mx-auto space-y-4">
-      <Skeleton className="h-8 w-48" />
-      <CardSkeleton />
-      <CardSkeleton />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <CardSkeleton />
-        <CardSkeleton />
-      </div>
-    </div>
-  );
-}

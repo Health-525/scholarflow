@@ -1,0 +1,1067 @@
+
+> scholarflow@2.0.3 electron:hot:win
+> node scripts/switch-abi.js node && set ELECTRON_DEV=1 && concurrently "next dev" "electron ."
+
+[switch-abi] better-sqlite3 → 系统 Node ABI
+(node:16376) [DEP0176] DeprecationWarning: fs.R_OK is deprecated, use fs.constants.R_OK instead
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[switch-abi] 完成
+(node:15504) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[1] 
+[1] [SF] Starting...
+[1] [SF] Dev mode — connecting to next dev on port 3000
+[1] [SF] Ready, opening window
+[1] [SF] Library JWT auto-refresh check every 30 min
+[0]    ▲ Next.js 15.5.19
+[0]    - Local:        http://localhost:3000
+[0]    - Network:      http://192.168.198.1:3000
+[0]    - Environments: .env.local
+[0] 
+[0]  ✓ Starting...
+[0] > [PWA] PWA support is disabled
+[0] > [PWA] PWA support is disabled
+[0]  ✓ Ready in 3.9s
+[0]  ○ Compiling / ...
+[1] [SF] Vision-Model already running on :8000
+[1] [SF] Vision-Model launch: success
+[0]  ✓ Compiled / in 2.1s (2054 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 2396ms
+[0]  GET / 200 in 2940ms
+[0]  GET /api/auth/session 200 in 36ms
+[0]  ○ Compiling /api/local-data ...
+[1] [SF] Library JWT expired, user needs to login
+[0]  ✓ Compiled /api/auth/jwt in 3.8s (2063 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 3969ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 3969ms
+[0]  GET /api/local-data?type=exams 200 in 3969ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 3969ms
+[0]  GET /api/local-data?type=jwc-news 200 in 3969ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 3972ms
+[0]  GET /api/local-data?type=dashboard 200 in 66ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 104ms
+[0]  GET /api/local-data?type=dashboard 200 in 166ms
+[0]  GET / 200 in 246ms
+[0]  ○ Compiling /schedule ...
+[0]  ✓ Compiled /schedule in 992ms (2088 modules)
+[0]  GET /schedule 200 in 1162ms
+[0]  GET /schedule 200 in 44ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 52ms
+[0]  GET / 200 in 38ms
+[0]  GET /api/local-data?type=exams 200 in 47ms
+[0]  GET /api/auth/session 200 in 60ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 77ms
+[0]  GET /api/local-data?type=dashboard 200 in 75ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 30ms
+[0]  GET /api/local-data?type=dashboard 200 in 45ms
+[0]  GET /schedule 200 in 30ms
+[0]  GET /api/auth/session 200 in 24ms
+[0]  ○ Compiling /exams ...
+[0]  ✓ Compiled /exams in 846ms (2105 modules)
+[0]  GET /exams 200 in 932ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 46ms
+[0]  ✓ Compiled /api/exams in 411ms (2107 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 489ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 24ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 38ms
+[0]  POST /api/exams 200 in 24ms
+[0]  GET / 200 in 133ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 59ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 119ms
+[0]  GET /api/local-data?type=exams 200 in 118ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 118ms
+[0]  GET /api/local-data?type=dashboard 200 in 118ms
+[0]  GET /api/auth/session 200 in 154ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 77ms
+[0]  GET /api/local-data?type=dashboard 200 in 102ms
+[0]  GET /schedule 200 in 103ms
+[0]  GET /api/auth/session 200 in 47ms
+[0]  ○ Compiling /assignments ...
+[0]  ✓ Compiled /assignments in 2.1s (2296 modules)
+[0]  GET /assignments 200 in 2392ms
+[0]  GET /assignments 200 in 68ms
+[0]  GET /assignments 200 in 72ms
+[0]  GET /assignments 200 in 62ms
+[0]  GET /assignments 200 in 80ms
+[0]  GET /assignments 200 in 77ms
+[0]  GET /assignments 200 in 54ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 65ms
+[0]  GET /exams 200 in 57ms
+[0]  ✓ Compiled /api/exams in 402ms (1243 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 879ms
+[0]  GET /api/auth/session 200 in 886ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 40ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 52ms
+[0]  POST /api/exams 200 in 26ms
+[0]  PATCH /api/exams 200 in 32ms
+[0]  PATCH /api/exams 200 in 22ms
+[0]  ○ Compiling /gpa ...
+[0]  ✓ Compiled /gpa in 1462ms (2280 modules)
+[0]  GET /gpa 200 in 1681ms
+[0]  ✓ Compiled /api/local-data in 349ms (1244 modules)
+[0]  ✓ Compiled (1251 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=grades&schoolId=njtech&userId=202321144057 200 in 770ms
+[0]  GET /api/auth/session 200 in 786ms
+[0]  GET /api/local-data?type=grades&schoolId=njtech&userId=202321144057 200 in 27ms
+[0]  ○ Compiling /goals ...
+[0]  ✓ Compiled /goals in 851ms (2328 modules)
+[0]  GET /goals 200 in 993ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 94ms
+[0]  ○ Compiling /api/goals ...
+[0]  ✓ Compiled /api/goals in 654ms (2330 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/goals?schoolId=njtech&userId=202321144057 200 in 748ms
+[0]  GET /api/goals?schoolId=njtech&userId=202321144057 200 in 29ms
+[0]  POST /api/goals 200 in 28ms
+[0]  ○ Compiling /knowledge ...
+[0]  ✓ Compiled /knowledge in 1197ms (3237 modules)
+[0]  GET /knowledge 200 in 1365ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 39ms
+[0]  GET /gpa 200 in 48ms
+[0]  GET /api/local-data?type=grades&schoolId=njtech&userId=202321144057 200 in 44ms
+[0]  GET /api/auth/session 200 in 57ms
+[0]  GET /api/local-data?type=grades&schoolId=njtech&userId=202321144057 200 in 31ms
+[0]  GET / 200 in 57ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 46ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 82ms
+[0]  GET /api/local-data?type=exams 200 in 81ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 81ms
+[0]  GET /api/local-data?type=dashboard 200 in 80ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 86ms
+[0]  GET /api/auth/session 200 in 83ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 48ms
+[0]  GET /api/local-data?type=dashboard 200 in 64ms
+[0]  ✓ Compiled in 1747ms (3254 modules)
+[0]  ✓ Compiled in 0ms (1717 modules)
+[0]  ✓ Compiled in 1ms (1717 modules)
+[0]  ✓ Compiled in 0ms (1717 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 2365ms
+[0]  ✓ Compiled in 0ms (1717 modules)
+[0]  GET / 200 in 2507ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 1242ms
+[0]  GET /api/local-data?type=dashboard 200 in 1242ms
+[0]  GET /api/local-data?type=exams 200 in 1243ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 38ms
+[0]  GET /api/local-data?type=dashboard 200 in 60ms
+[0]  ✓ Compiled in 1985ms (3256 modules)
+[0]  ✓ Compiled in 0ms (1718 modules)
+[0]  ✓ Compiled in 0ms (1718 modules)
+[0]  ✓ Compiled in 0ms (1718 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 2204ms
+[0]  ✓ Compiled in 0ms (1718 modules)
+[0]  GET / 200 in 2048ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 1567ms
+[0]  GET /api/local-data?type=dashboard 200 in 1567ms
+[0]  GET /api/local-data?type=exams 200 in 1568ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 59ms
+[0]  GET /api/local-data?type=dashboard 200 in 80ms
+[0]  ✓ Compiled in 1679ms (2790 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 161ms
+[0]  GET / 200 in 311ms
+[0]  ✓ Compiled in 559ms (1538 modules)
+[0]  GET /api/local-data?type=exams 200 in 130ms
+[0]  GET /api/local-data?type=dashboard 200 in 130ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 177ms
+[0]  GET /api/local-data?type=dashboard 200 in 101ms
+[0]  GET / 200 in 151ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 81ms
+[0]  ○ Compiling /settings ...
+[0]  ✓ Compiled /settings in 1789ms (2914 modules)
+[0]  GET /settings 200 in 2283ms
+[0]  GET / 200 in 1035ms
+[0]  GET /settings 200 in 52ms
+[0]  GET /settings 200 in 39ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 54ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 48ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 73ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 43ms
+[0]  GET / 200 in 35ms
+[0]  GET /api/local-data?type=exams 200 in 34ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 59ms
+[0]  GET /api/local-data?type=dashboard 200 in 59ms
+[0]  GET /api/auth/session 200 in 64ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 37ms
+[0]  GET /api/local-data?type=dashboard 200 in 56ms
+[0]  GET /schedule 200 in 46ms
+[0]  GET /api/auth/session 200 in 23ms
+[0]  GET / 200 in 60ms
+[0]  GET /api/local-data?type=exams 200 in 45ms
+[0]  GET /api/auth/session 200 in 65ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 83ms
+[0]  GET /api/local-data?type=dashboard 200 in 82ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 51ms
+[0]  GET /api/local-data?type=dashboard 200 in 65ms
+[0]  GET /settings 200 in 39ms
+[0]  GET /api/auth/session 200 in 42ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 55ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 65ms
+[0]  GET / 200 in 38ms
+[0]  GET /api/local-data?type=exams 200 in 48ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 64ms
+[0]  GET /api/local-data?type=dashboard 200 in 63ms
+[0]  GET /api/auth/session 200 in 73ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 53ms
+[0]  GET /api/local-data?type=dashboard 200 in 64ms
+[0]  GET /api/local-data?type=exams 200 in 20ms
+[0]  GET /api/local-data?type=exams 200 in 29ms
+[0]  GET /api/local-data?type=exams 200 in 23ms
+[0]  GET /api/local-data?type=exams 200 in 32ms
+[0]  GET /api/local-data?type=exams 200 in 28ms
+[0]  ✓ Compiled in 1766ms (2846 modules)
+[0]  GET / 200 in 189ms
+[0]  ✓ Compiled in 300ms (1598 modules)
+[0]  GET / 200 in 54ms
+[0]  ✓ Compiled in 274ms (1598 modules)
+[0]  GET / 200 in 45ms
+[0]  ✓ Compiled in 982ms (2846 modules)
+[0]  GET / 200 in 123ms
+[0]  ✓ Compiled in 267ms (1598 modules)
+[0]  GET / 200 in 38ms
+[0]  ✓ Compiled in 505ms (2846 modules)
+[0]  GET / 200 in 89ms
+[0]  ✓ Compiled in 1796ms (2846 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 812ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 812ms
+[0]  GET /api/local-data?type=exams 200 in 812ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 812ms
+[0]  GET /api/local-data?type=jwc-news 200 in 811ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 813ms
+[0]  GET / 200 in 77ms
+[0]  ✓ Compiled in 895ms (2846 modules)
+[0]  GET / 200 in 97ms
+[0]  ✓ Compiled in 1325ms (2846 modules)
+[0]  GET / 200 in 100ms
+[0]  ✓ Compiled in 663ms (1598 modules)
+[0]  GET / 200 in 54ms
+[0]  ○ Compiling /api/auth/session ...
+[0]  ✓ Compiled /api/auth/session in 1492ms (2850 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 1241ms
+[0]  GET / 200 in 220ms
+[0]  GET /api/auth/session 200 in 21ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 54ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 84ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 82ms
+[0]  GET /api/local-data?type=exams 200 in 78ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 78ms
+[0]  GET /api/local-data?type=jwc-news 200 in 78ms
+[0]  ✓ Compiled in 967ms (2850 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=dashboard 200 in 1045ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 1028ms
+[0]  GET /api/local-data?type=dashboard 200 in 42ms
+[0]  GET / 200 in 103ms
+[0]  ✓ Compiled in 1222ms (2850 modules)
+[0]  GET / 200 in 87ms
+[0]  ✓ Compiled in 250ms (1598 modules)
+[0]  GET / 200 in 49ms
+[0]  ✓ Compiled in 242ms (1598 modules)
+[0]  GET / 200 in 49ms
+[0]  ✓ Compiled in 1035ms (2850 modules)
+[0]  GET / 200 in 99ms
+[0]  ✓ Compiled in 261ms (1598 modules)
+[0]  GET / 200 in 41ms
+[0]  ✓ Compiled in 316ms (1598 modules)
+[0]  GET / 200 in 56ms
+[0]  ✓ Compiled in 286ms (1598 modules)
+[0]  GET / 200 in 69ms
+[0]  ⚠ Fast Refresh had to perform a full reload when \\scholarflow\\app\\assignments\\page.tsx","ids":[]} changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[0]  ✓ Compiled in 3.8s (2850 modules)
+[0]  GET / 200 in 3847ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 31ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 185ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 211ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 210ms
+[0]  GET /api/local-data?type=exams 200 in 210ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 208ms
+[0]  GET /api/local-data?type=jwc-news 200 in 206ms
+[0]  GET /api/local-data?type=dashboard 200 in 70ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 157ms
+[0]  GET /api/local-data?type=dashboard 200 in 161ms
+[0]  ✓ Compiled in 732ms (2850 modules)
+[0]  GET / 200 in 84ms
+[0]  ✓ Compiled in 252ms (1598 modules)
+[0]  GET / 200 in 46ms
+[0]  ✓ Compiled in 1703ms (2850 modules)
+[0]  GET / 200 in 126ms
+[0]  ✓ Compiled in 441ms (1598 modules)
+[0]  ✓ Compiled in 3.5s (2850 modules)
+[0]  GET / 200 in 3608ms
+[0]  GET / 200 in 37ms
+[0]  ✓ Compiled in 298ms (1598 modules)
+[0]  GET / 200 in 54ms
+[0]  ✓ Compiled in 260ms (1598 modules)
+[0]  GET / 200 in 87ms
+[0]  ✓ Compiled in 322ms (1598 modules)
+[0]  GET / 200 in 46ms
+[0]  ✓ Compiled in 281ms (1598 modules)
+[0]  GET / 200 in 46ms
+[0]  ✓ Compiled in 250ms (1598 modules)
+[0]  GET / 200 in 56ms
+[0]  ✓ Compiled in 260ms (1595 modules)
+[0]  GET / 200 in 421ms
+[0]  ✓ Compiled in 605ms (1598 modules)
+[0]  GET / 200 in 206ms
+[0]  ✓ Compiled in 353ms (1595 modules)
+[0]  ✓ Compiled in 355ms (1598 modules)
+[0]  GET / 200 in 199ms
+[0]  GET / 200 in 51ms
+[0]  ✓ Compiled in 274ms (1598 modules)
+[0]  GET / 200 in 56ms
+[0]  ✓ Compiled in 336ms (1598 modules)
+[0]  GET / 200 in 47ms
+[0]  ✓ Compiled in 363ms (1598 modules)
+[0]  GET / 200 in 207ms
+[0]  ✓ Compiled in 370ms (1595 modules)
+[0]  GET / 200 in 141ms
+[0]  ✓ Compiled in 301ms (1598 modules)
+[0]  GET / 200 in 43ms
+[0]  ✓ Compiled in 263ms (1598 modules)
+[0]  GET / 200 in 46ms
+[0]  ✓ Compiled in 313ms (1598 modules)
+[0]  GET / 200 in 78ms
+[0]  ✓ Compiled in 382ms (1598 modules)
+[0]  GET / 200 in 199ms
+[0]  ✓ Compiled in 361ms (1598 modules)
+[0]  GET / 200 in 64ms
+[0]  ✓ Compiled in 380ms (1598 modules)
+[0]  GET / 200 in 63ms
+[0]  ✓ Compiled in 429ms (1598 modules)
+[0]  GET / 200 in 69ms
+[0]  ✓ Compiled in 380ms (1598 modules)
+[0]  GET / 200 in 53ms
+[0]  ✓ Compiled in 353ms (1598 modules)
+[0]  GET / 200 in 61ms
+[0]  ✓ Compiled in 361ms (1598 modules)
+[0]  GET / 200 in 53ms
+[0]  ✓ Compiled in 381ms (1598 modules)
+[0]  GET / 200 in 61ms
+[0]  ✓ Compiled in 306ms (1598 modules)
+[0]  GET / 200 in 47ms
+[0]  ✓ Compiled in 234ms (1598 modules)
+[0]  GET / 200 in 60ms
+[0]  ✓ Compiled in 505ms (1598 modules)
+[0]  GET / 200 in 100ms
+[0]  ✓ Compiled in 408ms (1598 modules)
+[0]  GET / 200 in 73ms
+[0]  ✓ Compiled in 240ms (1598 modules)
+[0]  GET / 200 in 45ms
+[0]  ✓ Compiled in 1310ms (2850 modules)
+[0]  GET / 200 in 117ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 36ms
+[0]  ✓ Compiled in 1296ms (2846 modules)
+[0]  ✓ Compiled in 0ms (1248 modules)
+[0]  ✓ Compiled in 0ms (1248 modules)
+[0]  ✓ Compiled in 0ms (1248 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 853ms
+[0]  GET / 200 in 992ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 25ms
+[0]  GET /api/local-data?type=exams 200 in 21ms
+[0]  ✓ Compiled in 485ms (1598 modules)
+[0]  GET / 200 in 65ms
+[0]  ✓ Compiled in 409ms (1598 modules)
+[0]  GET / 200 in 46ms
+[0]  ✓ Compiled in 320ms (1598 modules)
+[0]  GET / 200 in 45ms
+[0]  ✓ Compiled in 307ms (1598 modules)
+[0]  GET / 200 in 43ms
+[0]  ✓ Compiled in 612ms (1598 modules)
+[0]  GET / 200 in 43ms
+[0]  ✓ Compiled in 326ms (1598 modules)
+[0]  GET / 200 in 45ms
+[0]  ✓ Compiled in 286ms (1598 modules)
+[0]  GET / 200 in 43ms
+[0]  ✓ Compiled in 277ms (1598 modules)
+[0]  GET / 200 in 44ms
+[0]  ✓ Compiled in 248ms (1598 modules)
+[0]  GET / 200 in 59ms
+[0]  ✓ Compiled in 337ms (1598 modules)
+[0]  GET / 200 in 43ms
+[0]  GET /api/local-data?type=exams 200 in 29ms
+[0]  ✓ Compiled in 671ms (1598 modules)
+[0]  GET / 200 in 42ms
+[0]  ✓ Compiled in 309ms (1598 modules)
+[0]  GET / 200 in 45ms
+[0]  ✓ Compiled in 1808ms (2846 modules)
+[0]  ✓ Compiled in 0ms (1248 modules)
+[0]  ✓ Compiled in 0ms (1248 modules)
+[0]  ✓ Compiled in 1ms (1248 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 1019ms
+[0]  GET / 200 in 978ms
+[0]  ✓ Compiled in 511ms (2846 modules)
+[0]  GET / 200 in 138ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 131ms
+[0]  ✓ Compiled in 864ms (2846 modules)
+[0]  GET / 200 in 81ms
+[0]  ✓ Compiled in 578ms (2846 modules)
+[0]  GET / 200 in 106ms
+[0]  ✓ Compiled /api/auth/session in 1164ms (2846 modules)
+[0]  ✓ Compiled in 0ms (1252 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 569ms
+[0]  GET / 200 in 489ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 51ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 69ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 67ms
+[0]  GET /api/local-data?type=exams 200 in 67ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 67ms
+[0]  GET /api/local-data?type=dashboard 200 in 49ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 48ms
+[0]  GET /api/local-data?type=dashboard 200 in 39ms
+[0]  ○ Compiling /settings ...
+[0]  ✓ Compiled /settings in 740ms (1316 modules)
+[0]  GET /settings 200 in 858ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 33ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 21ms
+[0]  GET / 200 in 38ms
+[0]  GET /api/local-data?type=exams 200 in 20ms
+[0]  GET /api/auth/session 200 in 36ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 43ms
+[0]  GET /api/local-data?type=dashboard 200 in 42ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 32ms
+[0]  GET /api/local-data?type=dashboard 200 in 40ms
+[0]  GET /schedule 200 in 38ms
+[0]  GET /api/auth/session 200 in 28ms
+[0]  GET /assignments 200 in 49ms
+[0]  GET /api/auth/session 200 in 21ms
+[0]  GET /exams 200 in 37ms
+[0]  GET /api/auth/session 200 in 38ms
+[0]  ○ Compiling /api/exams ...
+[0]  ✓ Compiled /api/exams in 1358ms (1318 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 1964ms
+[0]  GET / 200 in 1285ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 38ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 62ms
+[0]  GET / 200 in 87ms
+[0]  POST /api/exams 200 in 38ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 47ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 64ms
+[0]  GET /api/local-data?type=exams 200 in 63ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 63ms
+[0]  GET /api/local-data?type=dashboard 200 in 61ms
+[0]  GET /api/auth/session 200 in 68ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 40ms
+[0]  GET /api/local-data?type=dashboard 200 in 50ms
+[0]  GET / 200 in 250ms
+[0]  GET /api/auth/session 200 in 23ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 38ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 65ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 65ms
+[0]  GET /api/local-data?type=exams 200 in 65ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 65ms
+[0]  GET /api/local-data?type=jwc-news 200 in 65ms
+[0]  GET /api/local-data?type=dashboard 200 in 31ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 52ms
+[0]  GET /api/local-data?type=dashboard 200 in 42ms
+[0]  GET /settings 200 in 104ms
+[0]  GET /api/auth/session 200 in 33ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 30ms
+[0]  GET / 200 in 43ms
+[0]  GET /api/local-data?type=exams 200 in 49ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 61ms
+[0]  GET /api/local-data?type=dashboard 200 in 61ms
+[0]  GET /api/auth/session 200 in 76ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 48ms
+[0]  GET /api/local-data?type=dashboard 200 in 64ms
+[0]  ✓ Compiled in 1326ms (1598 modules)
+[0]  GET / 200 in 74ms
+[0]  ✓ Compiled in 3.9s (2901 modules)
+[0]  GET / 200 in 229ms
+[0]  ✓ Compiled in 1957ms (2901 modules)
+[0]  GET / 200 in 190ms
+[0]  ✓ Compiled in 1416ms (2901 modules)
+[0]  GET / 200 in 134ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 61ms
+[0]  ✓ Compiled in 13.5s (2897 modules)
+[0]  GET / 200 in 275ms
+[0]  ✓ Compiled in 1439ms (2897 modules)
+[0]  GET / 200 in 206ms
+[0]  ✓ Compiled in 11.1s (2897 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 7331ms
+[0]  GET / 200 in 324ms
+[0]  GET /settings 200 in 64ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 59ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 106ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 112ms
+[0]  ○ Compiling /api/auth/session ...
+[0]  ✓ Compiled /api/auth/session in 1407ms (1303 modules)
+[0]  ✓ Compiled in 0ms (1303 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 1869ms
+[0]  ✓ Compiled in 0ms (1303 modules)
+[0]  ✓ Compiled in 1ms (1303 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 2565ms
+[0]  GET / 200 in 1372ms
+[0]  GET / 200 in 40ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 81ms
+[0]  GET /api/auth/session 200 in 90ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 120ms
+[0]  GET /api/local-data?type=dashboard 200 in 114ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 71ms
+[0]  GET /api/local-data?type=dashboard 200 in 108ms
+[0]  ○ Compiling /schedule ...
+[0]  ✓ Compiled /schedule in 2.1s (1316 modules)
+[0]  GET /schedule 200 in 2223ms
+[0]  GET /schedule 200 in 57ms
+[0]  GET /schedule 200 in 67ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 54ms
+[0]  GET /assignments 200 in 46ms
+[0]  GET /api/auth/session 200 in 27ms
+[0]  GET / 200 in 38ms
+[0]  GET /api/local-data?type=exams 200 in 59ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 58ms
+[0]  GET /api/local-data?type=dashboard 200 in 57ms
+[0]  GET /api/auth/session 200 in 62ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 41ms
+[0]  GET /api/local-data?type=dashboard 200 in 50ms
+[0]  GET /api/local-data?type=exams 200 in 21ms
+[0]  ✓ Compiled in 1099ms (2897 modules)
+[0]  GET / 200 in 97ms
+[0]  ✓ Compiled in 450ms (2897 modules)
+[0]  GET / 200 in 82ms
+[0]  GET / 200 in 283ms
+[0]  ✓ Compiled /api/auth/session in 218ms (1303 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 264ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 48ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 84ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 85ms
+[0]  GET /api/local-data?type=exams 200 in 80ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 80ms
+[0]  GET /api/local-data?type=jwc-news 200 in 80ms
+[0]  GET /api/local-data?type=dashboard 200 in 47ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 72ms
+[0]  GET /api/local-data?type=dashboard 200 in 46ms
+[0]  ✓ Compiled in 1609ms (2901 modules)
+[0]  GET / 200 in 126ms
+[0]  ✓ Compiled in 567ms (2901 modules)
+[0]  GET / 200 in 79ms
+[0]  ✓ Compiled in 350ms (1598 modules)
+[0]  GET / 200 in 150ms
+[0]  ✓ Compiled in 274ms (1598 modules)
+[0]  GET / 200 in 42ms
+[0]  ✓ Compiled in 248ms (1598 modules)
+[0]  GET / 200 in 130ms
+[0]  ✓ Compiled in 248ms (1598 modules)
+[0]  GET / 200 in 41ms
+[0]  ✓ Compiled in 742ms (1598 modules)
+[0]  GET / 200 in 34ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 39ms
+[0]  ✓ Compiled in 1414ms (2897 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 125ms
+[0]  GET / 200 in 149ms
+[0]  ○ Compiling /api/auth/jwt ...
+[0]  ✓ Compiled /api/auth/jwt in 1481ms (1290 modules)
+[0]  GET /api/auth/jwt 200 in 1669ms
+[0]  ✓ Compiled /api/local-data in 304ms (1301 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 394ms
+[0]  GET /api/local-data?type=exams 200 in 370ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 369ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 395ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 35ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 47ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 110ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 109ms
+[0]  GET /api/local-data?type=exams 200 in 109ms
+[0]  GET /api/local-data?type=jwc-news 200 in 109ms
+[0]  GET /api/local-data?type=exams 200 in 94ms
+[0]  ○ Compiling /schedule ...
+[0]  ✓ Compiled /schedule in 5.3s (1312 modules)
+[0]  GET /schedule 200 in 6719ms
+[0]  GET /assignments 200 in 4256ms
+[0]  GET /schedule 200 in 102ms
+[0]  GET /schedule 200 in 118ms
+[0]  GET /schedule 200 in 94ms
+[0]  ○ Compiling /api/auth/session ...
+[0]  ✓ Compiled /api/auth/session in 558ms (1316 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 668ms
+[0]  GET / 200 in 160ms
+[0]  GET /api/local-data?type=exams 200 in 96ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 178ms
+[0]  GET /api/local-data?type=dashboard 200 in 172ms
+[0]  GET /api/auth/session 200 in 197ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 103ms
+[0]  GET /api/local-data?type=dashboard 200 in 133ms
+[0]  GET /settings 200 in 116ms
+[0]  GET /api/auth/session 200 in 78ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 48ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 73ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 49ms
+[0]  GET / 200 in 82ms
+[0]  GET /api/local-data?type=exams 200 in 73ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 136ms
+[0]  GET /api/auth/session 200 in 149ms
+[0]  GET /api/local-data?type=dashboard 200 in 168ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 136ms
+[0]  GET /api/local-data?type=dashboard 200 in 129ms
+[0]  ✓ Compiled in 5.3s (2914 modules)
+[0]  ○ Compiling /library ...
+[0]  ✓ Compiled /library in 17.2s (2939 modules)
+[0]  GET /library 200 in 17662ms
+[0]  GET /library 200 in 124ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 118ms
+[0]  ○ Compiling /api/library/user-status ...
+[0]  ✓ Compiled /api/library/user-status in 3.7s (2932 modules)
+[0]  GET /api/library/messages?page=1&num=20&type=1 200 in 3987ms
+[0]  GET /api/library/reserve-status 200 in 3991ms
+[0]  GET /api/library/user-status 200 in 3993ms
+[0]  GET /api/vpn-proxy 200 in 4025ms
+[0]  ○ Compiling /library/layout ...
+[0]  ✓ Compiled /library/layout in 2.4s (2951 modules)
+[0]  GET /library/layout?lib_id=122783 200 in 2620ms
+[0]  ○ Compiling /api/library/seat-layout ...
+[0]  ✓ Compiled /api/library/seat-layout in 1307ms (2953 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 1432ms
+[0]  GET /api/library/seat-layout?lib_id=122783 200 in 1569ms
+[0]  ○ Compiling /api/library/reserve ...
+[0]  ✓ Compiled /api/library/reserve in 712ms (2942 modules)
+[0]  POST /api/library/reserve 200 in 1028ms
+[0]  GET /api/library/reserve-status 200 in 85ms
+[0]  GET /api/library/user-status 200 in 112ms
+[0]  GET /api/vpn-proxy 200 in 148ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 43ms
+[0]  GET /api/library/reserve-status 200 in 78ms
+[0]  GET /api/library/user-status 200 in 187ms
+[0]  GET /api/library/reserve-status 200 in 189ms
+[0]  GET /api/library/messages?page=1&num=20&type=1 200 in 192ms
+[0]  GET /api/vpn-proxy 200 in 195ms
+[0]  GET / 200 in 1256ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 202ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 299ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 293ms
+[0]  GET /api/local-data?type=exams 200 in 292ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 289ms
+[0]  GET /api/local-data?type=dashboard 200 in 289ms
+[0]  GET /api/auth/session 200 in 201ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 123ms
+[0]  GET /api/local-data?type=dashboard 200 in 172ms
+[0]  GET /settings 200 in 133ms
+[0]  GET /api/auth/session 200 in 55ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 87ms
+[0]  GET / 200 in 106ms
+[0]  GET /api/local-data?type=exams 200 in 142ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 180ms
+[0]  GET /api/local-data?type=dashboard 200 in 180ms
+[0]  GET /api/auth/session 200 in 197ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 117ms
+[0]  GET /api/local-data?type=dashboard 200 in 177ms
+[0]  ✓ Compiled in 7.1s (2913 modules)
+[0]  ✓ Compiled in 1952ms (2930 modules)
+[0]  ✓ Compiled in 2.5s (2920 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 152ms
+[0]  ○ Compiling /schedule ...
+[0]  ✓ Compiled /schedule in 2.4s (1312 modules)
+[0]  GET /schedule 200 in 2702ms
+[0]  ○ Compiling /api/auth/session ...
+[0]  ✓ Compiled /api/auth/session in 512ms (1316 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 611ms
+[0]  GET / 200 in 171ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 112ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 109ms
+[0]  GET /api/local-data?type=exams 200 in 109ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 109ms
+[0]  GET /api/local-data?type=dashboard 200 in 109ms
+[0]  GET /api/auth/session 200 in 120ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 76ms
+[0]  GET /api/local-data?type=dashboard 200 in 74ms
+[0]  GET /schedule 200 in 128ms
+[0]  GET /api/auth/session 200 in 56ms
+[0]  GET /assignments 200 in 90ms
+[0]  GET /api/auth/session 200 in 71ms
+[0]  GET /exams 200 in 100ms
+[0]  GET /api/auth/session 200 in 59ms
+[0]  ○ Compiling /api/exams ...
+[0]  ✓ Compiled /api/exams in 1033ms (1318 modules)
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 1130ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 56ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 54ms
+[0]  POST /api/exams 200 in 35ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 57ms
+[0]  POST /api/exams 200 in 47ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 37ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 65ms
+[0]  POST /api/exams 200 in 38ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 42ms
+[0]  GET / 200 in 106ms
+[0]  GET /api/local-data?type=exams 200 in 74ms
+[0]  GET /api/local-data?type=dashboard 200 in 121ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 121ms
+[0]  GET /api/auth/session 200 in 135ms
+[0]  GET /api/local-data?type=dashboard 200 in 59ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 84ms
+[0]  GET /api/local-data?type=exams 200 in 50ms
+[0]  GET /schedule 200 in 122ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 122ms
+[0]  GET /api/auth/session 200 in 145ms
+[0]  GET /assignments 200 in 100ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 80ms
+[0]  GET /api/auth/session 200 in 121ms
+[0]  GET /exams 200 in 86ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 118ms
+[0]  GET /api/auth/session 200 in 140ms
+[0]  GET /api/exams?schoolId=njtech&userId=202321144057 200 in 88ms
+[0]  GET /api/local-data?type=exams&schoolId=njtech&userId=202321144057 200 in 90ms
+[0]  POST /api/exams 200 in 49ms
+[0]  GET /gpa 200 in 132ms
+[0]  GET /api/auth/session 200 in 59ms
+[0]  GET /api/local-data?type=grades&schoolId=njtech&userId=202321144057 200 in 43ms
+[0]  GET /api/local-data?type=grades&schoolId=njtech&userId=202321144057 200 in 45ms
+[0]  ○ Compiling /knowledge ...
+[0]  ✓ Compiled /library in 3.5s (1773 modules)
+[0]  ✓ Compiled in 0ms (1787 modules)
+[0]  ✓ Compiled in 1ms (1787 modules)
+[0]  ✓ Compiled in 1ms (1787 modules)
+[0]  GET /knowledge 200 in 8384ms
+[0]  GET / 200 in 2964ms
+[0]  GET /library 200 in 6945ms
+[0]  GET /library 200 in 75ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 192ms
+[0]  GET /api/local-data?type=exams 200 in 184ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 183ms
+[0]  GET /api/local-data?type=dashboard 200 in 181ms
+[0]  GET /api/auth/session 200 in 204ms
+[0]  GET /api/local-data?type=dashboard 200 in 77ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 101ms
+[0]  GET / 200 in 94ms
+[0]  GET / 200 in 101ms
+[0]  ○ Compiling /wrinkle ...
+[0]  ✓ Compiled /monitoring in 7.9s (3407 modules)
+[0]  GET /monitoring 200 in 6918ms
+[0]  GET /wrinkle 200 in 8152ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 85ms
+[0]  GET /api/local-data?type=health 200 in 114ms
+[0]  GET /api/local-data?type=health 200 in 33ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 86ms
+[0]  GET /api/local-data?type=health 200 in 113ms
+[0]  GET /api/local-data?type=health 200 in 39ms
+[0]  GET / 200 in 109ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 118ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 236ms
+[0]  GET /api/local-data?type=exams 200 in 210ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 185ms
+[0]  GET /api/local-data?type=dashboard 200 in 185ms
+[0]  GET /api/auth/session 200 in 217ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 100ms
+[0]  GET /api/local-data?type=dashboard 200 in 133ms
+[0]  GET /settings 200 in 204ms
+[0]  GET /api/auth/session 200 in 375ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 983ms
+[0]  ✓ Compiled in 2.3s (1624 modules)
+[0]  ✓ Compiled in 497ms (1624 modules)
+[0]  ✓ Compiled in 3.6s (2927 modules)
+[0]  ✓ Compiled in 979ms (2928 modules)
+[0]  ✓ Compiled in 1761ms (2928 modules)
+[0]  ✓ Compiled in 1269ms (2928 modules)
+[0]  ✓ Compiled in 1313ms (2928 modules)
+[0]  GET / 200 in 255ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=exams 200 in 142ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 224ms
+[0]  GET /api/local-data?type=jwc-news 200 in 224ms
+[0]  GET /api/local-data?type=dashboard 200 in 252ms
+[0]  GET /api/auth/session 200 in 277ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 124ms
+[0]  GET /api/local-data?type=dashboard 200 in 94ms
+[0]  ✓ Compiled in 2.2s (2928 modules)
+[0]  ✓ Compiled in 696ms (2928 modules)
+[0]  ✓ Compiled in 1045ms (2928 modules)
+[0]  ✓ Compiled in 761ms (2928 modules)
+[0]  ✓ Compiled in 763ms (2928 modules)
+[0]  ✓ Compiled in 1476ms (1624 modules)
+[0]  ✓ Compiled in 1318ms (2928 modules)
+[0]  ✓ Compiled in 323ms (1624 modules)
+[0]  ✓ Compiled in 350ms (1624 modules)
+[0]  ✓ Compiled in 367ms (1624 modules)
+[0]  ✓ Compiled in 344ms (1624 modules)
+[0]  GET /settings 200 in 434ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 200 in 511ms
+[0]  GET /api/local-data?type=running&schoolId=njtech&userId=202321144057 200 in 637ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 605ms
+[0]  GET /api/auth/session 200 in 650ms
+[0]  GET / 200 in 106ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 56ms
+[0]  GET /api/auth/session 200 in 116ms
+[0]  GET /api/local-data?type=exams 200 in 163ms
+[0]  GET /api/local-data?type=dashboard 200 in 157ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 165ms
+[0]  GET /api/local-data?type=dashboard 200 in 114ms
+[0]  GET /settings 200 in 117ms
+[0]  GET /api/auth/session 200 in 87ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 95ms
+[0]  GET / 200 in 50ms
+[0]  GET /api/local-data?type=exams 200 in 76ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 146ms
+[0]  GET /api/local-data?type=dashboard 200 in 140ms
+[0]  GET /api/auth/session 200 in 148ms
+[0]  GET /api/local-data?type=dailyReports&schoolId=njtech&userId=202321144057 200 in 74ms
+[0]  GET /api/local-data?type=dashboard 200 in 132ms
+[0]  GET /api/local-data?type=schedule&schoolId=njtech&userId=202321144057 200 in 99ms
+[0]  GET /api/local-data?type=exams 200 in 139ms
+[0]  GET /settings 200 in 110ms
+[0]  GET /api/auth/session 200 in 152ms
+[0]  GET /api/local-data?type=student&schoolId=njtech&userId=202321144057 200 in 178ms
+[0]  ○ Compiling /schedule ...
+[0]  ✓ Compiled /schedule in 2.1s (1316 modules)
+[0]  GET /schedule 200 in 2218ms
+[0] [ServerDB] store path: D:\A\scholarflow\data\scholarflow.db
+[0]  GET /api/auth/session 200 in 58ms
+[0]  ✓ Compiled in 1150ms (2940 modules)
+[0]  ○ Compiling /_not-found ...
+[0]  ✓ Compiled /_not-found in 3.7s (2908 modules)
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] <w> [webpack.cache.PackFileCacheStrategy] Restoring pack failed from D:\A\scholarflow\.next\cache\webpack\client-development-fallback.pack.gz: Error: invalid block type
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\server\app\page.js'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\server\\app\\page.js',
+[0]   page: '/'
+[0] }
+[0]  ○ Compiling /_error ...
+[0]  ✓ Compiled /_error in 5.1s (3255 modules)
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\server\app\page.js'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\server\\app\\page.js',
+[0]   page: '/'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0]  GET / 500 in 6584ms
+[0]  GET / 500 in 339ms
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 500 in 14079ms
+[0]  GET /api/local-data?type=assignments&schoolId=njtech&userId=202321144057 500 in 338ms
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json',
+[0]   page: '/'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json',
+[0]   page: '/'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json',
+[0]   page: '/'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json',
+[0]   page: '/'
+[0] }
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0]  GET / 500 in 2033ms
+[0]  GET / 500 in 650ms
+[0]  GET / 500 in 1465ms
+[0]  GET / 500 in 231ms
+[0]  ⨯ [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] [Error: ENOENT: no such file or directory, open 'D:\A\scholarflow\.next\routes-manifest.json'] {
+[0]   errno: -4058,
+[0]   code: 'ENOENT',
+[0]   syscall: 'open',
+[0]   path: 'D:\\A\\scholarflow\\.next\\routes-manifest.json'
+[0] }
+[0] <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'D:\A\scholarflow\.next\server\vendor-chunks\clsx.js'
+[0] <w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/clsx' in D:\A\scholarflow\.next\server for build dependencies doesn't lead to expected result 'D:\A\scholarflow\.next\server\vendor-chunks\clsx.js', but to 'Error: Can't resolve './vendor-chunks/clsx' in 'D:\A\scholarflow\.next\server'' instead. Resolving dependencies are ignored for this path.
+[0] <w>  at resolve commonjs file ./vendor-chunks/clsx (expected D:\A\scholarflow\.next\server\vendor-chunks\clsx.js)
+[0] <w>  at file dependencies D:\A\scholarflow\.next\server\webpack-runtime.js
+[0] <w>  at file D:\A\scholarflow\.next\server\webpack-runtime.js
+[0] <w>  at file dependencies D:\A\scholarflow\.next\server\pages\_document.js
+[0] <w>  at file D:\A\scholarflow\.next\server\pages\_document.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\server\require.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\server\require.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\server\load-components.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\server\load-components.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\utils.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\utils.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\swc\options.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\swc\options.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\swc\index.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\swc\index.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\webpack\bundle5.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\webpack\bundle5.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack-lib.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack-lib.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next-pwa\build-fallback-worker.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next-pwa\build-fallback-worker.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next-pwa\index.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next-pwa\index.js
+[0] <w>  at file dependencies D:\A\scholarflow\next.config.js
+[0] <w>  at file D:\A\scholarflow\next.config.js
+[0] <w>  at resolve commonjs D:\A\scholarflow\next.config.js
+[0] <w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/use-sync-external-store' in D:\A\scholarflow\.next\server for build dependencies doesn't lead to expected result 'D:\A\scholarflow\.next\server\vendor-chunks\use-sync-external-store.js', but to 'Error: Can't resolve './vendor-chunks/use-sync-external-store' in 'D:\A\scholarflow\.next\server'' instead. Resolving dependencies are ignored for this path.
+[0] <w>  at resolve commonjs file ./vendor-chunks/use-sync-external-store (expected D:\A\scholarflow\.next\server\vendor-chunks\use-sync-external-store.js)
+[0] <w>  at file dependencies D:\A\scholarflow\.next\server\webpack-runtime.js
+[0] <w>  at file D:\A\scholarflow\.next\server\webpack-runtime.js
+[0] <w>  at file dependencies D:\A\scholarflow\.next\server\pages\_document.js
+[0] <w>  at file D:\A\scholarflow\.next\server\pages\_document.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\server\require.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\server\require.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\server\load-components.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\server\load-components.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\utils.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\utils.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\swc\options.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\swc\options.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\swc\index.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\swc\index.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\webpack\bundle5.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\webpack\bundle5.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack-lib.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next\dist\compiled\webpack\webpack-lib.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next-pwa\build-fallback-worker.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next-pwa\build-fallback-worker.js
+[0] <w>  at file dependencies D:\A\scholarflow\node_modules\next-pwa\index.js
+[0] <w>  at file D:\A\scholarflow\node_modules\next-pwa\index.js
+[0] <w>  at file dependencies D:\A\scholarflow\next.config.js
+[0] <w>  at file D:\A\scholarflow\next.config.js
+[0] <w>  at resolve commonjs D:\A\scholarflow\next.config.js
+[1] ^C
+[1] electron . exited with code 3221225786
+[0] ^C
+[0] next dev exited with code 3221225786

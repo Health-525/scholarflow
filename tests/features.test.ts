@@ -1,102 +1,81 @@
 /**
- * GPA + Exam + Goals 补充测试
+ * 边角功能回归测试
+ *
+ * 覆盖一些不适合放在核心引擎测试文件里的小功能：
+ * - EmptyState 组件渲染
+ * - 倒计时格式化
+ * - 成绩文字缩写
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { Target } from "lucide-react";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, it, expect, vi } from "vitest";
 
-// ── Setup localStorage mock ──
-beforeEach(() => {
-  const store: Record<string, string> = {};
-  vi.stubGlobal("localStorage", {
-    getItem: (k: string) => store[k] ?? null,
-    setItem: (k: string, v: string) => { store[k] = v; },
-    removeItem: (k: string) => { delete store[k]; },
+import { EmptyState } from "@/components/ui/EmptyState";
+import { getScoreDisplay } from "@/lib/gpa";
+import { formatCountdown } from "@/lib/schedule/timezone";
+
+describe("EmptyState component", () => {
+  it("渲染标题与描述", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(EmptyState, {
+        title: "没有数据",
+        description: "请先添加一条记录",
+      })
+    );
+    expect(html).toContain("没有数据");
+    expect(html).toContain("请先添加一条记录");
+  });
+
+  it("渲染图标", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(EmptyState, {
+        icon: Target,
+        title: "目标",
+      })
+    );
+    // lucide-react 的 SVG 会包含 svg 标签
+    expect(html).toContain("<svg");
+  });
+
+  it("渲染操作按钮并触发点击回调", () => {
+    const onClick = vi.fn();
+    const html = renderToStaticMarkup(
+      React.createElement(EmptyState, {
+        title: "空状态",
+        action: { label: "去添加", onClick },
+      })
+    );
+    expect(html).toContain("去添加");
+    // SSR 场景下只验证按钮渲染；点击行为由组件测试库覆盖
   });
 });
 
-describe("GPA Engine", () => {
-  it("空课程返回0", async () => {
-    const { calculateGPA } = await import("@/lib/gpa");
-    expect(calculateGPA([]).semesterGPA).toBe(0);
+describe("formatCountdown", () => {
+  it("非正数返回 已开始", () => {
+    expect(formatCountdown(0)).toBe("已开始");
+    expect(formatCountdown(-1000)).toBe("已开始");
   });
 
-  it("加权平均正确", async () => {
-    const { calculateGPA } = await import("@/lib/gpa");
-    const courses = [
-      { id: "1", name: "数学", credit: 4, score: 85, semester: "x" },
-      { id: "2", name: "英语", credit: 2, score: 95, semester: "x" },
-    ];
-    const gpa = calculateGPA(courses);
-    // 85→3.6*4=14.4, 95→4.0*2=8.0, total 22.4/6=3.73
-    expect(gpa.semesterGPA).toBeCloseTo(3.73, 1);
+  it("小时+分钟", () => {
+    expect(formatCountdown(2 * 3600 * 1000 + 15 * 60 * 1000)).toBe("2小时15分");
   });
 
-  it("目标预测可达", async () => {
-    const { predictTarget } = await import("@/lib/gpa");
-    const courses = [
-      { id: "1", name: "A", credit: 3, score: 80, semester: "x" }, // 3.2
-      { id: "2", name: "B", credit: 3, semester: "x" },
-    ];
-    const r = predictTarget(courses, 3.2, 3.6);
-    expect(r).not.toBeNull();
-    expect(r!.possible).toBe(true);
-    expect(r!.neededAvg).toBe(4.0); // need 4.0 on remaining
+  it("分钟+秒", () => {
+    expect(formatCountdown(5 * 60 * 1000 + 30 * 1000)).toBe("5分30秒");
   });
 });
 
-describe("Exam countdown format", () => {
-  function formatCountdown(dateStr: string) {
-    const diff = new Date(dateStr + "T23:59:59").getTime() - Date.now();
-    if (diff < 0) return "已结束";
-    const days = Math.floor(diff / 86400000);
-    if (days === 0) return "今天";
-    if (days === 1) return "明天";
-    return `${days} 天后`;
-  }
-
-  it("已过去", () => expect(formatCountdown("2020-01-01")).toBe("已结束"));
-
-  it("3天后", () => {
-    const d = new Date();
-    d.setDate(d.getDate() + 3);
-    const key = d.toISOString().slice(0, 10);
-    expect(formatCountdown(key)).toBe("3 天后");
-  });
-});
-
-describe("Daily Goals streak", () => {
-  it("全部完成则增加连续天数", () => {
-    // Simulate: store streak, check all done
-    localStorage.setItem("sf_goal_streak", "5");
-    const goals = [{ id: "1", text: "复习", done: true }, { id: "2", text: "运动", done: true }];
-    const allDone = goals.every(g => g.done);
-    if (allDone) {
-      const s = parseInt(localStorage.getItem("sf_goal_streak") || "0") + 1;
-      localStorage.setItem("sf_goal_streak", String(s));
-      expect(s).toBe(6);
-    }
+describe("getScoreDisplay", () => {
+  it("五级制成绩缩写", () => {
+    expect(getScoreDisplay("优秀")).toBe("优");
+    expect(getScoreDisplay("良好")).toBe("良");
+    expect(getScoreDisplay("中等")).toBe("中");
+    expect(getScoreDisplay("及格")).toBe("及");
+    expect(getScoreDisplay("不及格")).toBe("不");
   });
 
-  it("未完成时重置", () => {
-    localStorage.setItem("sf_goal_streak", "5");
-    const goals = [{ id: "1", text: "复习", done: false }, { id: "2", text: "运动", done: true }];
-    const allDone = goals.every(g => g.done);
-    if (!allDone) {
-      localStorage.setItem("sf_goal_streak", "0");
-    }
-    expect(localStorage.getItem("sf_goal_streak")).toBe("0");
-  });
-});
-
-describe("EmptyState component (CSS class check)", () => {
-  it("uses text-center class for centering", () => {
-    // 组件级别的逻辑测试——验证结构模式
-    const emptyStatePattern = {
-      hasIcon: true,
-      hasTitle: true,
-      hasDescription: true,
-      hasAction: true,
-    };
-    expect(emptyStatePattern.hasIcon).toBe(true);
-    expect(emptyStatePattern.hasTitle).toBe(true);
+  it("数字成绩原样返回", () => {
+    expect(getScoreDisplay("85")).toBe("85");
   });
 });

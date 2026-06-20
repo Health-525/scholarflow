@@ -1,3 +1,4 @@
+import { getHolidayInfo } from "./holidays";
 import type {
   RawCourse,
   RawScheduleData,
@@ -47,18 +48,6 @@ export function loadAdjustments(): Adjustment[] {
 }
 
 /**
- * 保存调课记录到 localStorage
- */
-export function saveAdjustments(adjustments: Adjustment[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(adjustments));
-  } catch {
-    // ignore
-  }
-}
-
-/**
  * 检查调课是否对指定周次生效
  */
 export function isAdjustmentActive(adj: Adjustment, weekNum: number): boolean {
@@ -78,11 +67,26 @@ export function getAdjustedItemsForDate(
   adjustments: Adjustment[]
 ): { weekNum: number; items: DayItem[] } {
   const weekNum = getWeekNumber(date, schedule.meta.week1_monday);
-  const wday = weekday1to7(date);
+
+  // 法定节假日：不显示课程，只显示节假日标记
+  const holiday = getHolidayInfo(date);
+  if (holiday?.type === "holiday") {
+    return {
+      weekNum,
+      items: [{ kind: "holiday" as const, title: holiday.name + "放假" }],
+    };
+  }
+
+  // 调休上班日：按国务院/学校默认映射显示「补周几」的课程
+  const wday = holiday?.substituteWeekday ?? weekday1to7(date);
 
   const activeAdjs = adjustments.filter((adj) => isAdjustmentActive(adj, weekNum));
 
   const items: DayItem[] = [];
+
+  if (holiday?.type === "workday") {
+    items.push({ kind: "holiday" as const, title: holiday.name });
+  }
 
   for (const c of schedule.courses || []) {
     // Check if this course should exist this week
@@ -100,9 +104,8 @@ export function getAdjustedItemsForDate(
         items.push(buildCourseView(c, matchingAdj.targetPeriods, schedule));
       }
       // 原位置不显示此课程
-    } else if (c.weekday === wday) {
-      // 正常显示（需要检查周次是否在范围内）
-      if (courseWeeks.length && !courseWeeks.includes(weekNum)) continue;
+    } else if (c.weekday === wday && courseActiveThisWeek) {
+      // 正常显示
       items.push(buildCourseView(c, c.periods, schedule));
     }
   }
@@ -121,9 +124,13 @@ export function getAdjustedItemsForDate(
     }
   }
 
-  // 排序
+  // 排序：节假日 > 特殊安排 > 课程
   items.sort((a, b) => {
-    if (a.kind !== b.kind) return a.kind === "special" ? -1 : 1;
+    if (a.kind !== b.kind) {
+      if (a.kind === "holiday") return -1;
+      if (b.kind === "holiday") return 1;
+      return a.kind === "special" ? -1 : 1;
+    }
     if (a.kind === "special" && b.kind === "special")
       return a.timeText.localeCompare(b.timeText);
     const ap = (a as CourseView).periods?.[0] ?? 999;
@@ -170,39 +177,4 @@ function arraysEqual(a: number[], b: number[]): boolean {
   return a.every((v, i) => v === b[i]);
 }
 
-/**
- * 检查目标槽位是否有冲突
- */
-export function checkConflict(
-  schedule: RawScheduleData,
-  adjustments: Adjustment[],
-  targetWeekday: Weekday,
-  targetPeriods: number[],
-  weekNum: number,
-  excludeAdjId?: string
-): { hasConflict: boolean; conflictWith?: string } {
-  const activeAdjs = adjustments.filter(
-    (adj) => adj.id !== excludeAdjId && isAdjustmentActive(adj, weekNum)
-  );
 
-  for (const c of schedule.courses || []) {
-    // Skip courses that aren't active this week
-    const courseWeeks = parseWeekSpec(c.weeks);
-    if (courseWeeks.length && !courseWeeks.includes(weekNum)) continue;
-
-    const adj = activeAdjs.find(
-      (a) => a.sourceWeekday === c.weekday && arraysEqual(a.sourcePeriods, c.periods)
-    );
-    const actualWeekday = adj ? adj.targetWeekday : c.weekday;
-    const actualPeriods = adj ? adj.targetPeriods : c.periods;
-    if (actualWeekday === targetWeekday && periodsOverlap(actualPeriods, targetPeriods)) {
-      return { hasConflict: true, conflictWith: c.title };
-    }
-  }
-
-  return { hasConflict: false };
-}
-
-function periodsOverlap(a: number[], b: number[]): boolean {
-  return a.some((p) => b.includes(p));
-}

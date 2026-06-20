@@ -48,7 +48,7 @@ export default function WeeklyReportPage() {
 
       {error && !isLoading && (
         <ErrorFallback
-          message={error.type === "not_found" ? "该周报不存在" : error.message}
+          message={error.message || "该周报不存在"}
         />
       )}
 

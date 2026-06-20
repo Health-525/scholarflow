@@ -5,32 +5,6 @@
 // ---- 主题 ----
 export type ThemeValue = "light" | "dark" | "system";
 
-// ---- GitHub 错误类型 ----
-export type GitHubErrorType =
-  | "network_timeout"
-  | "unauthorized"
-  | "forbidden"
-  | "not_found"
-  | "rate_limit"
-  | "conflict"
-  | "server_error"
-  | "unknown";
-
-export interface GitHubError {
-  type: GitHubErrorType;
-  message: string;
-  statusCode?: number;
-}
-
-// ---- GitHub API 类型 ----
-export type GitHubRepo = "content" | "execution";
-
-export interface FileContent {
-  content: string; // Base64 已解码
-  sha: string;
-  path: string;
-}
-
 export interface DirectoryEntry {
   name: string;
   path: string;
@@ -56,10 +30,6 @@ export interface Assignment {
   order?: number; // 自定义排序权重（越大越靠前）
 }
 
-export interface AssignmentsFile {
-  assignments: Assignment[];
-}
-
 export interface AssignmentDraft {
   subject: string;
   title: string;
@@ -76,15 +46,11 @@ export interface RunRecord {
   createdAt: string; // ISO 8601 时间戳
 }
 
-export interface RunningFile {
-  records: RunRecord[];
-}
-
 export interface RunStats {
   total: number;
   morning: number;
   free: number;
-  progressPercent: number; // Math.min(total / 50 * 100, 100)
+  progressPercent: number; // Math.min(total / RUNNING_GOAL * 100, 100)
 }
 
 export interface HeatmapDay {
@@ -158,14 +124,10 @@ export interface LibraryData {
   libs: LibraryRoom[];
 }
 
-// ---- 知识画像类型 ----
-export interface TechItem {
+// ---- 笔记文件树类型 ----
+export interface NoteTreeNode {
   name: string;
-  stars: number; // 1~5
-  category?: string;
-}
-
-export interface GapItem {
-  name: string;
-  description?: string;
+  path: string;
+  type: "file" | "dir";
+  children?: NoteTreeNode[];
 }

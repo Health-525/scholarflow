@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_SC, Geist } from "next/font/google";
+import { headers } from "next/headers";
 
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -46,11 +47,14 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const h = await headers();
+  const nonce = h.get("x-nonce") ?? undefined;
+
   return (
     <html
       lang="zh-CN"
@@ -75,6 +79,8 @@ export default function RootLayout({
 
         {/* Inline theme init to prevent flash of wrong theme */}
         <script
+          nonce={nonce}
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `
               (function() {

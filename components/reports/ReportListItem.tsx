@@ -1,7 +1,10 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import type { DirectoryEntry } from "@/types";
 
 interface ReportListItemProps {
@@ -46,20 +49,20 @@ export function ReportListItem({ entry, type }: ReportListItemProps) {
   return (
     <Link
       href={href}
-      className="flex items-center justify-between px-4 py-3 rounded-2xl transition-opacity active:opacity-70 bg-card border border-border"
+      className="block"
       aria-label={`查看${type === "daily" ? "日报" : "周报"}：${label}`}
     >
-      <div>
-        <div className="text-sm font-medium text-foreground">
-          {label}
+      <Card className="flex-row items-center justify-between px-4 py-3">
+        <div>
+          <div className="text-sm font-medium text-foreground">
+            {label}
+          </div>
+          <Badge variant="secondary" className="mt-1.5">
+            {type === "daily" ? "日报" : "周报"}
+          </Badge>
         </div>
-        <div className="text-xs mt-0.5 text-muted-foreground">
-          {type === "daily" ? "📄 日报" : "📋 周报"}
-        </div>
-      </div>
-      <span className="text-muted-foreground" aria-hidden="true">
-        ›
-      </span>
+        <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
+      </Card>
     </Link>
   );
 }

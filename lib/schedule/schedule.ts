@@ -5,6 +5,8 @@ export type Weekday = 1 | 2 | 3 | 4 | 5 | 6 | 7; // 1=Mon..7=Sun
 export interface RawScheduleMeta {
   tz?: string; // e.g. Asia/Shanghai
   week1_monday: string; // ISO date
+  semester?: string; // e.g. "2025-2026-2"
+  schoolId?: string; // e.g. "njtech"
 }
 
 export interface RawCourse {
@@ -48,7 +50,14 @@ export interface SpecialView {
   location?: string;
 }
 
-export type DayItem = CourseView | SpecialView;
+export interface HolidayView {
+  kind: "holiday";
+  title: string;
+  timeText?: string;
+  location?: string;
+}
+
+export type DayItem = CourseView | SpecialView | HolidayView;
 
 /**
  * 解析周次规格字符串，如 "2-13" 或 "1,3,5-7"
@@ -181,41 +190,4 @@ export function getItemsForDate(
   return { weekNum, items };
 }
 
-/**
- * 格式化单日课程响应文本
- */
-export function formatDayResponse(
-  date: Date,
-  weekNum: number,
-  items: DayItem[]
-): string {
-  const dateStr = date.toLocaleDateString("zh-CN", {
-    month: "long",
-    day: "numeric",
-    weekday: "long",
-  });
 
-  if (!items.length) {
-    return `${dateStr}（第${weekNum}周）\n\n今天没有课`;
-  }
-
-  const lines: string[] = [];
-  lines.push(`${dateStr}（第${weekNum}周）`);
-  lines.push("");
-
-  for (const it of items) {
-    if (it.kind === "special") {
-      const loc = it.location ? `｜${it.location}` : "";
-      lines.push(`- ${it.timeText}｜${it.title}${loc}`);
-      continue;
-    }
-    const p = it.periods;
-    const ptxt =
-      p.length ? (p.length === 1 ? `${p[0]}` : `${p[0]}-${p[p.length - 1]}`) : "?";
-    const ttxt = it.timeText ? ` ${it.timeText}` : "";
-    const loc = it.location ? `｜${it.location}` : "";
-    lines.push(`- 第${ptxt}节${ttxt}｜${it.title}${loc}`);
-  }
-
-  return lines.join("\n");
-}

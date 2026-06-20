@@ -6,7 +6,11 @@
  * 获取指定时区的当前时间
  */
 export function getNowInTimeZone(tz: string): Date {
-  return new Date(new Date().toLocaleString("en-US", { timeZone: tz }));
+  try {
+    return new Date(new Date().toLocaleString("en-US", { timeZone: tz }));
+  } catch {
+    return new Date();
+  }
 }
 
 /**
@@ -15,7 +19,9 @@ export function getNowInTimeZone(tz: string): Date {
 export function parseTimeToDate(today: Date, timeStr: string): Date {
   const [hours, minutes] = timeStr.split(":").map(Number);
   const d = new Date(today);
-  d.setHours(hours, minutes, 0, 0);
+  if (Number.isFinite(hours) && Number.isFinite(minutes)) {
+    d.setHours(hours, minutes, 0, 0);
+  }
   return d;
 }
 
@@ -39,4 +45,16 @@ export function normalizeDate(d: Date): Date {
   const normalized = new Date(d);
   normalized.setHours(0, 0, 0, 0);
   return normalized;
+}
+
+/**
+ * 将 Date 按指定时区格式化为 YYYY-MM-DD
+ */
+export function formatDateInTimeZone(date: Date, tz: string): string {
+  return date.toLocaleDateString("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 }

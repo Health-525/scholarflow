@@ -1,10 +1,31 @@
 const { app, BrowserWindow, shell, dialog, ipcMain, safeStorage, session } = require('electron');
+
 const { fork } = require('child_process');
 const path = require('path');
-const net = require('net');
 const fs = require('fs');
-const { activeWindow } = require('active-win');
-const { autoUpdater } = require('electron-updater');
+const crypto = require('crypto');
+const { createAutoRefreshScheduler } = require('./auto-refresh');
+
+const INTERNAL_TOKEN_HEADER = 'x-scholarflow-internal-token';
+
+// ── 进程级日志（早于控制台，用于排查双击无反应/闪退）─────────────
+const logDir = path.join(app.getPath('userData'), 'logs');
+const logPath = path.join(logDir, 'main.log');
+try { fs.mkdirSync(logDir, { recursive: true }); } catch {}
+function logToFile(level, msg) {
+  try {
+    fs.appendFileSync(logPath, `${new Date().toISOString()} [${level}] ${msg}\n`);
+  } catch {}
+}
+logToFile('info', 'Main process starting');
+
+process.on('uncaughtException', (err) => {
+  logToFile('fatal', `uncaughtException: ${err.stack || err.message}`);
+});
+process.on('unhandledRejection', (reason) => {
+  logToFile('error', `unhandledRejection: ${reason}`);
+});
+
 
 const PORT = process.env.ELECTRON_DEV ? 3000 : 3456;
 const APP_URL = `http://localhost:${PORT}`;
@@ -12,7 +33,7 @@ const IS_DEV = !!process.env.ELECTRON_DEV;
 
 let mainWindow = null;
 let serverProcess = null;
-let visionModelProcess = null;
+let autoRefreshScheduler = null;
 
 // ── 获取 app 根目录 ──────────────────────────────────────────
 function getAppRoot() {
@@ -53,6 +74,46 @@ function waitForPort(port, timeoutMs = 60000) {
   });
 }
 
+// ── 计算稳定数据目录(打包产物之外)──────────────────────────
+/**
+ * 计算稳定数据目录,位于打包产物之外,使重装/更新不丢数据。
+ * 纯函数:仅依赖入参,便于单元/属性测试(见 task 8.2)。
+ * @param {{ PORTABLE_EXECUTABLE_DIR?: string }} env  process.env 子集
+ * @param {{ getPath: (name: string) => string }} app electron app
+ * @returns {string} 绝对路径
+ */
+function resolveStableDataDir(env, app) {
+  // 便携版:exe 同级 ScholarFlowData (R2.3)
+  if (env.PORTABLE_EXECUTABLE_DIR) {
+    return path.join(env.PORTABLE_EXECUTABLE_DIR, 'ScholarFlowData');
+  }
+  // 安装版:userData/data,位于 %APPDATA%,不被卸载/更新覆盖 (R2.4)
+  return path.join(app.getPath('userData'), 'data');
+}
+
+// ── 内部调用 token ──────────────────────────────────────────
+/**
+ * 生成或复用稳定的内部调用 token。
+ * token 持久化在稳定数据目录,供主进程与 standalone server 共享。
+ */
+function getOrCreateInternalToken(dataDir) {
+  const tokenPath = path.join(dataDir, '.internal-token');
+  try {
+    if (fs.existsSync(tokenPath)) {
+      const existing = fs.readFileSync(tokenPath, 'utf-8').trim();
+      if (existing) return existing;
+    }
+  } catch {}
+
+  const token = crypto.randomBytes(32).toString('hex');
+  try {
+    fs.writeFileSync(tokenPath, token, { mode: 0o600 });
+  } catch {
+    fs.writeFileSync(tokenPath, token);
+  }
+  return token;
+}
+
 // ── 启动 standalone server ──────────────────────────────────
 function launchServer() {
   return new Promise((resolve, reject) => {
@@ -75,6 +136,16 @@ function launchServer() {
       ));
     }
 
+    // 数据目录:便携版放在 exe 同级 ScholarFlowData 文件夹;安装版放在 userData/data
+    // (提取为 resolveStableDataDir 纯函数,见上方;R2.3/R2.4)
+    const dataDir = resolveStableDataDir(process.env, app);
+    fs.mkdirSync(dataDir, { recursive: true });
+    logToFile('info', `[SF] Data directory (stable): ${dataDir}`);
+    console.log('[SF] Data directory:', dataDir);
+
+    const internalToken = getOrCreateInternalToken(dataDir);
+    globalThis.__scholarflowInternalToken = internalToken;
+
     // fork 比 spawn 更可靠，直接用 Node 运行，不需要 shell
     const cwd = path.dirname(serverScript);
     serverProcess = fork(serverScript, [], {
@@ -84,6 +155,12 @@ function launchServer() {
         NODE_ENV: 'production',
         PORT: String(PORT),
         HOSTNAME: '127.0.0.1',
+        SCHOLARFLOW_DATA_DIR: dataDir,
+        ELECTRON_USER_DATA: dataDir,
+        SCHOLARFLOW_INTERNAL_TOKEN: internalToken,
+        // 子进程以纯 Node 模式运行 Electron 二进制(Electron ABI),
+        // 以便 better-sqlite3 原生模块按 Electron ABI 加载 (见 design §1.1)
+        ELECTRON_RUN_AS_NODE: '1',
         // standalone 需要知道 public 和 .next/static 的位置
         // 通过 symlink 或者环境变量传递
       },
@@ -109,222 +186,7 @@ function launchServer() {
 
 // ── 创建窗口 ────────────────────────────────────────────────
 
-// ── 启动 Vision-Model API (FastAPI on :8000) ──────────────
-function findVisionModelDir() {
-  const exeDir = path.dirname(app.getPath('exe'));
-  const candidates = [
-    // 1. D:\A\vision-model（开发模式：项目根目录）
-    path.join(__dirname, '..', '..', 'vision-model'),
-    // 2. exe 同级目录（部署模式：ScholarFlow.exe 旁边放 vision-model/）
-    path.join(exeDir, 'vision-model'),
-  ];
-  for (const dir of candidates) {
-    const serverPath = path.join(dir, 'src', 'api', 'server.py');
-    if (fs.existsSync(serverPath)) return dir;
-  }
-  // 3. 读取 exe 同级的 vision-model-path.txt（一行，写入 vision-model 的绝对路径）
-  const pathFile = path.join(exeDir, 'vision-model-path.txt');
-  if (fs.existsSync(pathFile)) {
-    const customDir = fs.readFileSync(pathFile, 'utf-8').trim();
-    if (customDir && fs.existsSync(path.join(customDir, 'src', 'api', 'server.py'))) {
-      return customDir;
-    }
-  }
-  return null;
-}
-
-function launchVisionModel() {
-  const vmDir = findVisionModelDir();
-  if (!vmDir) {
-    console.log('[SF] Vision-Model directory not found, skipping');
-    return false;
-  }
-
-  // 检查 8000 端口是否已占用
-  return new Promise((resolve) => {
-    const sock = new net.Socket();
-    sock.setTimeout(500);
-    sock.once('connect', () => {
-      sock.destroy();
-      console.log('[SF] Vision-Model already running on :8000');
-      resolve(true);
-    });
-    sock.once('error', () => {
-      sock.destroy();
-      // 端口空闲，启动服务
-      console.log('[SF] Launching Vision-Model from', vmDir);
-      const { spawn } = require('child_process');
-      const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-
-      visionModelProcess = spawn(pythonCmd, ['src/api/server.py'], {
-        cwd: vmDir,
-        env: { ...process.env },
-        stdio: 'pipe',
-        shell: true,
-      });
-
-      visionModelProcess.stdout && visionModelProcess.stdout.on('data', d => {
-        console.log('[VisionModel]', d.toString().trim());
-      });
-      visionModelProcess.stderr && visionModelProcess.stderr.on('data', d => {
-        console.error('[VisionModel ERR]', d.toString().trim());
-      });
-      visionModelProcess.on('error', (err) => {
-        console.error('[SF] Vision-Model launch error:', err.message);
-        resolve(false);
-      });
-      visionModelProcess.on('exit', (code) => {
-        console.log('[SF] Vision-Model exited with code', code);
-        visionModelProcess = null;
-      });
-
-      // 给 3 秒启动时间，不阻塞主流程
-      setTimeout(() => resolve(true), 3000);
-    });
-    sock.once('timeout', () => {
-      sock.destroy();
-      resolve(false);
-    });
-    sock.connect(8000, '127.0.0.1');
-  });
-}
-
-// ── IPC: 启动/检查 Vision-Model ───────────────────────────
-ipcMain.handle('vision-model:status', async () => {
-  return new Promise((resolve) => {
-    const sock = new net.Socket();
-    sock.setTimeout(1500);
-    sock.once('connect', () => { sock.destroy(); resolve(true); });
-    sock.once('error', () => { sock.destroy(); resolve(false); });
-    sock.once('timeout', () => { sock.destroy(); resolve(false); });
-    sock.connect(8000, '127.0.0.1');
-  });
-});
-
-ipcMain.handle('vision-model:start', async () => {
-  const running = await ipcMain.handle('vision-model:status');
-  if (running) return { ok: true, message: '已运行' };
-  const result = await launchVisionModel();
-  return { ok: result, message: result ? '启动成功' : '启动失败' };
-});
-
-// ── IPC: 桌面宠物 ────────────────────────────────────────
-let petWindow = null;
-
-ipcMain.handle('pet:show', async () => {
-  if (petWindow && !petWindow.isDestroyed()) {
-    petWindow.show();
-    return { ok: true };
-  }
-
-  petWindow = new BrowserWindow({
-    width: 160,
-    height: 180,
-    frame: false,
-    transparent: true,
-    resizable: false,
-    alwaysOnTop: true,
-    skipTaskbar: true,
-    hasShadow: false,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
-  });
-
-  petWindow.setVisibleOnAllWorkspaces(true);
-  petWindow.setAlwaysOnTop(true, 'floating');
-
-  // 加载宠物页面
-  const petPath = path.join(__dirname, 'pet.html');
-  petWindow.loadFile(petPath);
-
-  // 右下角位置
-  const { width: screenW, height: screenH } = require('electron').screen.getPrimaryDisplay().workAreaSize;
-  petWindow.setPosition(screenW - 180, screenH - 200);
-
-  petWindow.on('closed', () => { petWindow = null; });
-
-  // 右键关闭
-  ipcMain.once('pet:close', () => {
-    if (petWindow && !petWindow.isDestroyed()) petWindow.close();
-  });
-
-  return { ok: true };
-});
-
-ipcMain.handle('pet:hide', async () => {
-  if (petWindow && !petWindow.isDestroyed()) petWindow.close();
-  return { ok: true };
-});
-
-ipcMain.handle('pet:status', async () => {
-  return { visible: petWindow !== null && !petWindow.isDestroyed() };
-});
-
-// ── IPC: 抬头纹后台监控 ──────────────────────────────────
-let browMonitorProcess = null;
-
-ipcMain.handle('brow-monitor:start', async () => {
-  if (browMonitorProcess && !browMonitorProcess.killed) {
-    return { ok: true, message: '监控已运行' };
-  }
-  const vmDir = findVisionModelDir();
-  console.log('[SF] brow-monitor:start vmDir =', vmDir);
-  if (!vmDir) return { ok: false, message: '未找到vision-model目录' };
-
-  const { spawn } = require('child_process');
-  const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-
-  browMonitorProcess = spawn(pythonCmd, ['src/brow_monitor_daemon.py'], {
-    cwd: vmDir,
-    env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
-    stdio: 'pipe',
-    shell: true,
-  });
-
-  console.log('[SF] brow-monitor spawned PID =', browMonitorProcess.pid, 'killed =', browMonitorProcess.killed);
-
-  browMonitorProcess.stdout?.on('data', d => {
-    const line = d.toString().trim();
-    if (line) console.log('[BrowMonitor]', line);
-    // 检测ALERT行，转发到宠物窗口（IPC比HTTP轮询更快）
-    if (line.includes('[BrowMonitor] ALERT:')) {
-      const match = line.match(/评分\s+(\d+)/);
-      const score = match ? parseInt(match[1]) : 50;
-      if (petWindow && !petWindow.isDestroyed()) {
-        petWindow.webContents.send('brow-alert', { score });
-      }
-    }
-  });
-  browMonitorProcess.stderr?.on('data', d => {
-    const line = d.toString().trim();
-    if (line) console.error('[BrowMonitor ERR]', line);
-  });
-  browMonitorProcess.on('exit', code => {
-    console.log('[BrowMonitor] exited with code', code);
-    browMonitorProcess = null;
-  });
-
-  return { ok: true, message: '监控已启动' };
-});
-
-ipcMain.handle('brow-monitor:stop', async () => {
-  if (browMonitorProcess && !browMonitorProcess.killed) {
-    browMonitorProcess.kill();
-    browMonitorProcess = null;
-    return { ok: true, message: '监控已停止' };
-  }
-  return { ok: true, message: '监控未运行' };
-});
-
-ipcMain.handle('brow-monitor:status', async () => {
-  const running = browMonitorProcess !== null && !browMonitorProcess.killed;
-  console.log('[SF] brow-monitor:status =', running, 'process =', browMonitorProcess?.pid);
-  return { running };
-});
-
-// IPC: 动态更新 titleBarOverlay 颜色（跟随主题）
+// ── IPC: 动态更新 titleBarOverlay 颜色（跟随主题）
 ipcMain.handle('window:set-titlebar-overlay', async (_event, options) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.setTitleBarOverlay(options);
@@ -369,10 +231,154 @@ function setupSecureTokenIPC() {
     if (fs.existsSync(encPath)) fs.unlinkSync(encPath);
     return true;
   });
+
+  ipcMain.handle('internal-token:get', async () => {
+    return globalThis.__scholarflowInternalToken || null;
+  });
+}
+
+// ── 凭证存储路径(与图书馆 token 隔离)────────────────────────
+function getCredentialStorePath() {
+  const userDataPath = app.getPath('userData');
+  return path.join(userDataPath, 'secure-credential.enc');
+}
+
+// ── IPC: 凭证(密码)加密存储与检索 ─────────────────────────
+// 独立于 token:* IPC,使用单独的 secure-credential.enc 文件,
+// 避免与图书馆 token 的 secure-token.enc 互相覆盖 (design §5, R3.3/3.4/3.6/4.2/9.5)
+function setupSecureCredentialIPC() {
+  ipcMain.handle('credential:store', async (_event, plaintext) => {
+    if (!safeStorage.isEncryptionAvailable()) {
+      throw new Error('系统加密不可用');
+    }
+    const encrypted = safeStorage.encryptString(plaintext);
+    const buf = Buffer.from(encrypted).toString('base64');
+    fs.writeFileSync(getCredentialStorePath(), buf, 'utf-8');
+    return true;
+  });
+
+  ipcMain.handle('credential:retrieve', async () => {
+    const encPath = getCredentialStorePath();
+    if (!fs.existsSync(encPath)) return null;
+    if (!safeStorage.isEncryptionAvailable()) return null;
+    try {
+      const buf = fs.readFileSync(encPath, 'utf-8');
+      const encrypted = Buffer.from(buf, 'base64');
+      return safeStorage.decryptString(encrypted);
+    } catch {
+      return null;
+    }
+  });
+
+  ipcMain.handle('credential:clear', async () => {
+    const encPath = getCredentialStorePath();
+    if (fs.existsSync(encPath)) fs.unlinkSync(encPath);
+    return true;
+  });
+
+  ipcMain.handle('credential:secure-available', async () => {
+    return safeStorage.isEncryptionAvailable();
+  });
+}
+
+// ── Auth state 安全存储路径(与用户凭证隔离)──────────────────
+function getAuthStateStorePath() {
+  const userDataPath = app.getPath('userData');
+  return path.join(userDataPath, 'secure-auth-state.enc');
+}
+
+// ── IPC: Auth state 加密存储与检索 ──────────────────────────
+function setupAuthStateIPC() {
+  ipcMain.handle('auth-state:store', async (_event, plaintext) => {
+    if (!safeStorage.isEncryptionAvailable()) {
+      throw new Error('系统加密不可用');
+    }
+    const encrypted = safeStorage.encryptString(plaintext);
+    const buf = Buffer.from(encrypted).toString('base64');
+    fs.writeFileSync(getAuthStateStorePath(), buf, 'utf-8');
+    return true;
+  });
+
+  ipcMain.handle('auth-state:retrieve', async () => {
+    const encPath = getAuthStateStorePath();
+    if (!fs.existsSync(encPath)) return null;
+    if (!safeStorage.isEncryptionAvailable()) return null;
+    try {
+      const buf = fs.readFileSync(encPath, 'utf-8');
+      const encrypted = Buffer.from(buf, 'base64');
+      return safeStorage.decryptString(encrypted);
+    } catch {
+      return null;
+    }
+  });
+
+  ipcMain.handle('auth-state:clear', async () => {
+    const encPath = getAuthStateStorePath();
+    if (fs.existsSync(encPath)) fs.unlinkSync(encPath);
+    return true;
+  });
+}
+
+// ── Activity data 安全存储路径(与 auth state 隔离)────────────
+function getActivityDataStorePath() {
+  const userDataPath = app.getPath('userData');
+  return path.join(userDataPath, 'secure-activity-data.enc');
+}
+
+// ── IPC: Activity data 加密存储与检索 ───────────────────────
+function setupActivityDataIPC() {
+  ipcMain.handle('activity-data:store', async (_event, plaintext) => {
+    if (!safeStorage.isEncryptionAvailable()) {
+      throw new Error('系统加密不可用');
+    }
+    const encrypted = safeStorage.encryptString(plaintext);
+    const buf = Buffer.from(encrypted).toString('base64');
+    fs.writeFileSync(getActivityDataStorePath(), buf, 'utf-8');
+    return true;
+  });
+
+  ipcMain.handle('activity-data:retrieve', async () => {
+    const encPath = getActivityDataStorePath();
+    if (!fs.existsSync(encPath)) return null;
+    if (!safeStorage.isEncryptionAvailable()) return null;
+    try {
+      const buf = fs.readFileSync(encPath, 'utf-8');
+      const encrypted = Buffer.from(buf, 'base64');
+      return safeStorage.decryptString(encrypted);
+    } catch {
+      return null;
+    }
+  });
+
+  ipcMain.handle('activity-data:clear', async () => {
+    const encPath = getActivityDataStorePath();
+    if (fs.existsSync(encPath)) fs.unlinkSync(encPath);
+    return true;
+  });
+}
+
+// ── 取记住的(已解密)密码,供 AutoRefreshScheduler 静默重登使用 ──────
+// 复用 getCredentialStorePath() 读取 secure-credential.enc,逻辑等价于
+// credential:retrieve handler:文件不存在 / 加密不可用 / 解密失败均返回 null。
+function retrieveCredentialPassword() {
+  try {
+    const encPath = getCredentialStorePath();
+    if (!fs.existsSync(encPath)) return null;
+    if (!safeStorage.isEncryptionAvailable()) return null;
+    const buf = fs.readFileSync(encPath, 'utf-8');
+    const encrypted = Buffer.from(buf, 'base64');
+    return safeStorage.decryptString(encrypted);
+  } catch {
+    return null;
+  }
 }
 
 // ── 图书馆座位数据获取（VPN代理模式）──────────────────────────
 const http = require('http');
+const net = require('net');
+
+const { activeWindow } = require('active-win');
+const { autoUpdater } = require('electron-updater');
 const SSO_LOGIN_URL = 'https://vpnlib.njtech.edu.cn/enlink/sso/login';
 const LIB_URL_VPN = 'https://vpnlib.njtech.edu.cn/https/webvpn0c5f34c56af636878cf47cc94ad9e75558ae631157ae3a788556cf416867bf92/web/index.html';
 const LIB_GRAPHQL_VPN = 'https://vpnlib.njtech.edu.cn/https/7765772e7a65612e6e6a746563682e6564752e636e/index.php/graphql/';
@@ -385,7 +391,11 @@ function syncJWTToApp(jwtValue) {
   return new Promise(resolve => {
     const req = http.request({
       hostname: '127.0.0.1', port: PORT, path: '/api/auth/jwt',
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        [INTERNAL_TOKEN_HEADER]: globalThis.__scholarflowInternalToken,
+      },
     }, r => { let d = ''; r.on('data', c => d += c); r.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve({ ok: false }); } }); });
     req.on('error', () => resolve({ ok: false }));
     req.write(body); req.end();
@@ -407,6 +417,9 @@ async function checkCurrentJWT() {
       const req = http.request({
         hostname: '127.0.0.1', port: PORT, path: '/api/auth/jwt',
         method: 'GET',
+        headers: {
+          [INTERNAL_TOKEN_HEADER]: globalThis.__scholarflowInternalToken,
+        },
       }, r => { let d = ''; r.on('data', c => d += c); r.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve({ valid: false }); } }); });
       req.on('error', () => resolve({ valid: false }));
       req.setTimeout(3000, () => { req.destroy(); resolve({ valid: false }); });
@@ -446,15 +459,22 @@ async function openLibraryLoginWindow() {
     },
   });
 
-  // 忽略VPN证书错误（VPN代理可能有自签名证书）
-  loginSession.setCertificateVerifyProc((request, callback) => {
-    const { hostname } = request;
-    if (hostname.includes('njtech.edu.cn')) {
-      callback(0); // 信任
-    } else {
-      callback(-2); // 使用默认验证
-    }
-  });
+  // 证书校验：生产环境默认使用系统信任库；仅在开发环境或显式开启
+  // LIBRARY_ALLOW_INSECURE 时才为校内/VPN 域名放宽校验，并记录审计日志。
+  const allowInsecure = IS_DEV || process.env.LIBRARY_ALLOW_INSECURE === 'true';
+  if (allowInsecure) {
+    // 使用正则锚定到域名末尾，防止 evil-njtech.edu.cn.attacker.com 等绕过。
+    const TRUSTED_HOST_RE = /^(?:[a-z0-9-]+\.)*njtech\.edu\.cn$/i;
+    loginSession.setCertificateVerifyProc((request, callback) => {
+      const { hostname } = request;
+      if (TRUSTED_HOST_RE.test(hostname)) {
+        logToFile('warn', `[LibraryLogin] certificate trust bypassed for ${hostname}`);
+        callback(0); // 信任
+      } else {
+        callback(-2); // 使用默认验证
+      }
+    });
+  }
 
   // 设置Chrome UA，防止网站拒绝Electron
   libraryLoginWindow.webContents.setUserAgent(
@@ -742,11 +762,30 @@ function createWindow() {
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (!url.startsWith(`http://localhost:${PORT}`)) {
+    try {
+      const { protocol, hostname } = new URL(url);
+      // 只允许 http/https 协议，禁止 javascript: / file: / data: 等危险 scheme
+      if (protocol !== 'http:' && protocol !== 'https:') {
+        logToFile('warn', `[WindowOpen] blocked dangerous scheme: ${url}`);
+        return { action: 'deny' };
+      }
+      // 内部页面放行
+      if (url.startsWith(`http://localhost:${PORT}`)) {
+        return { action: 'allow' };
+      }
+      // 外部链接：仅打开已知安全域或用户确认后的链接
+      const allowedExternalHosts = process.env.ALLOWED_EXTERNAL_HOSTS
+        ? process.env.ALLOWED_EXTERNAL_HOSTS.split(',').map(h => h.trim()).filter(Boolean)
+        : [];
+      if (allowedExternalHosts.length > 0 && !allowedExternalHosts.includes(hostname)) {
+        logToFile('warn', `[WindowOpen] blocked external host: ${hostname}`);
+        return { action: 'deny' };
+      }
       shell.openExternal(url);
-      return { action: 'deny' };
+    } catch {
+      logToFile('warn', `[WindowOpen] blocked invalid url: ${url}`);
     }
-    return { action: 'allow' };
+    return { action: 'deny' };
   });
 
   mainWindow.webContents.on('did-fail-load', (_, code, desc) => {
@@ -798,6 +837,9 @@ function setupAutoUpdater() {
 
   autoUpdater.on('error', (err) => {
     console.error('[SF] Update error:', err.message);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-error', { message: err.message });
+    }
   });
 
   // IPC: 手动检查更新
@@ -834,6 +876,9 @@ function setupAutoUpdater() {
 // ── 主流程 ──────────────────────────────────────────────────
 app.whenReady().then(async () => {
   setupSecureTokenIPC();
+  setupSecureCredentialIPC();
+  setupAuthStateIPC();
+  setupActivityDataIPC();
   setupAutoUpdater();
   try {
     console.log('[SF] Starting...');
@@ -842,39 +887,30 @@ app.whenReady().then(async () => {
       console.log('[SF] Waiting for port', PORT);
       await waitForPort(PORT, 60000);
     } else {
-      console.log('[SF] Dev mode — connecting to next dev on port 3000');
+      console.log('[SF] Dev mode — connecting to next dev on port', PORT);
       await waitForPort(PORT, 30000);
     }
     console.log('[SF] Ready, opening window');
     createWindow();
     startActiveWindowTracking();
 
-    // Auto-refresh local data
-    try {
-      const { execSync } = require('child_process');
-      const timetableDir = path.join(__dirname, '..', '..', 'timetable');
-      if (require('fs').existsSync(timetableDir)) {
-        console.log('[SF] Auto-refreshing local data...');
-        setTimeout(() => {
-          try { execSync('node scripts/ci/dashboard-summary.js', { cwd: timetableDir, timeout: 15000, stdio: 'pipe' }); } catch {}
-        }, 3000);
-      }
-    } catch {}
-
-    // Auto-launch Vision-Model API (non-blocking)
-    setTimeout(async () => {
-      try {
-        const launched = await launchVisionModel();
-        console.log('[SF] Vision-Model launch:', launched ? 'success' : 'skipped');
-      } catch (err) {
-        console.log('[SF] Vision-Model launch skipped:', err.message);
-      }
-    }, 5000);
+    // 本地优先:不再「启动即爬取」。改由 AutoRefreshScheduler 按抖动周期
+    // 静默调度刷新(关窗后仍可触发),退出时清理定时器 (task 11.2, R5.1/R5.5)。
+    autoRefreshScheduler = createAutoRefreshScheduler({
+      port: PORT,
+      internalToken: globalThis.__scholarflowInternalToken,
+      getMainWindow: () => mainWindow,
+      retrievePassword: retrieveCredentialPassword,
+      log: (level, msg) => logToFile(level, `[AutoRefresh] ${msg}`),
+    });
+    autoRefreshScheduler.start();
 
     // Auto-refresh library JWT (non-blocking)
     autoRefreshLibraryJWT();
     startJWTAutoRefresh();
   } catch (err) {
+    const errMsg = err instanceof Error ? err.stack || err.message : String(err);
+    logToFile('fatal', `startup failed: ${errMsg}`);
     console.error('[SF] Fatal:', err);
     dialog.showErrorBox('ScholarFlow 启动失败', `${err.message}`);
     app.quit();
@@ -882,8 +918,8 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
+  if (autoRefreshScheduler) { autoRefreshScheduler.stop(); }
   if (serverProcess) { serverProcess.kill(); serverProcess = null; }
-  if (visionModelProcess) { visionModelProcess.kill(); visionModelProcess = null; }
   if (process.platform !== 'darwin') app.quit();
 });
 
@@ -894,6 +930,10 @@ app.on('activate', () => {
 app.on('before-quit', () => {
   stopActiveWindowTracking();
   stopJWTAutoRefresh();
+  if (autoRefreshScheduler) { autoRefreshScheduler.stop(); }
   if (serverProcess) { serverProcess.kill('SIGTERM'); serverProcess = null; }
-  if (visionModelProcess) { visionModelProcess.kill(); visionModelProcess = null; }
 });
+
+// 导出纯函数供测试引用(task 8.2);在 Electron 中作为入口正常运行,
+// module.exports 不影响主进程逻辑(CommonJS)。
+module.exports = { resolveStableDataDir };

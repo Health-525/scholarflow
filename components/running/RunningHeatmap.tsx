@@ -1,8 +1,19 @@
 "use client";
 
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Flame,
+  Footprints,
+  Sunrise,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { buildHeatmapData } from "@/lib/running-utils";
-import type { HeatmapDay } from "@/types";
-import type { RunRecord } from "@/types";
+import type { HeatmapDay, RunRecord } from "@/types";
 
 interface RunningHeatmapProps {
   records: RunRecord[];
@@ -11,10 +22,10 @@ interface RunningHeatmapProps {
 const WEEKDAY_LABELS = ["一", "二", "三", "四", "五", "六", "日"];
 
 function getCellColor(day: HeatmapDay): string {
-  if (day.hasMorning && day.hasFree) return "#22c55e";
-  if (day.hasMorning) return "rgba(52,199,89,0.5)";
-  if (day.hasFree) return "rgba(37,99,235,0.5)";
-  return "hsl(var(--border))";
+  if (day.hasMorning && day.hasFree) return "rgb(var(--status-success-rgb))";
+  if (day.hasMorning) return "rgba(var(--status-success-rgb), 0.5)";
+  if (day.hasFree) return "rgba(var(--primary-rgb), 0.5)";
+  return "hsl(var(--muted))";
 }
 
 function getCellLabel(day: HeatmapDay): string {
@@ -26,78 +37,125 @@ function getCellLabel(day: HeatmapDay): string {
 }
 
 export function RunningHeatmap({ records }: RunningHeatmapProps) {
-  const days = buildHeatmapData(records);
+  const [viewDate, setViewDate] = useState(() => new Date());
 
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+
+  const days = useMemo(() => buildHeatmapData(records, viewDate), [records, viewDate]);
 
   const firstDay = new Date(year, month, 1);
   const jsFirst = firstDay.getDay();
   const offsetCells = jsFirst === 0 ? 6 : jsFirst - 1;
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  function prevMonth() {
+    setViewDate(new Date(year, month - 1, 1));
+  }
+
+  function nextMonth() {
+    setViewDate(new Date(year, month + 1, 1));
+  }
+
   return (
-    <div className="rounded-2xl p-5 bg-card border border-border shadow-sm">
-      <div className="flex items-center gap-2 mb-3">
-        <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        <span className="text-[13px] font-semibold text-foreground">
-          {now.getFullYear()} 年 {now.getMonth() + 1} 月跑步热力图
-        </span>
-      </div>
-
-      <div className="grid grid-cols-7 gap-1 mb-1">
-        {WEEKDAY_LABELS.map((label) => (
-          <div key={label} className="text-center text-[10px] text-muted-foreground">
-            {label}
+    <Card>
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-primary" />
+            <span className="text-base font-semibold text-foreground">
+              {year} 年 {month + 1} 月跑步热力图
+            </span>
           </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-7 gap-1">
-        {Array.from({ length: offsetCells }, (_, i) => (
-          <div key={`offset-${i}`} />
-        ))}
-
-        {days.map((day) => {
-          const dateNum = parseInt(day.date.split("-")[2], 10);
-          const isToday = day.date === now.toISOString().slice(0, 10);
-
-          return (
-            <div
-              key={day.date}
-              className="aspect-square rounded-md flex items-center justify-center text-[10px] font-medium"
-              style={{
-                backgroundColor: getCellColor(day),
-                outline: isToday ? "2px solid hsl(var(--primary))" : "none",
-                outlineOffset: "1px",
-                color: day.hasMorning || day.hasFree ? "#fff" : "hsl(var(--muted-foreground))",
-              }}
-              title={getCellLabel(day)}
-              aria-label={getCellLabel(day)}
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={prevMonth}
+              aria-label="上个月"
             >
-              {dateNum}
-            </div>
-          );
-        })}
-      </div>
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={nextMonth}
+              aria-label="下个月"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
 
-      <div className="flex items-center gap-3 mt-3 text-[10px] text-muted-foreground">
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "rgba(52,199,89,0.5)" }} />
-          <span>晨跑</span>
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {WEEKDAY_LABELS.map((label) => (
+            <div key={label} className="text-center text-xs text-muted-foreground py-1">
+              {label}
+            </div>
+          ))}
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "rgba(37,99,235,0.5)" }} />
-          <span>自由跑</span>
+
+        <div className="grid grid-cols-7 gap-1">
+          {Array.from({ length: offsetCells }, (_, i) => (
+            <div key={`offset-${i}`} />
+          ))}
+
+          {days.map((day) => {
+            const dateNum = parseInt(day.date.split("-")[2], 10);
+            const isToday = day.date === todayStr;
+
+            return (
+              <div
+                key={day.date}
+                className="aspect-square rounded-md flex items-center justify-center text-xs font-medium h-8"
+                style={{
+                  backgroundColor: getCellColor(day),
+                  outline: isToday ? "2px solid hsl(var(--primary))" : "none",
+                  outlineOffset: "1px",
+                  color: day.hasMorning || day.hasFree
+                    ? "hsl(var(--primary-foreground))"
+                    : "hsl(var(--muted-foreground))",
+                }}
+                title={getCellLabel(day)}
+                aria-label={getCellLabel(day)}
+              >
+                {dateNum}
+              </div>
+            );
+          })}
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-sm bg-green-500" />
-          <span>双打卡</span>
+
+        <div className="flex flex-wrap items-center gap-3 mt-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-4 h-4 rounded-sm flex items-center justify-center"
+              style={{ backgroundColor: "rgba(var(--status-success-rgb), 0.5)" }}
+            >
+              <Sunrise className="w-3 h-3 text-primary-foreground" />
+            </div>
+            <span>晨跑</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-4 h-4 rounded-sm flex items-center justify-center"
+              style={{ backgroundColor: "rgba(var(--primary-rgb), 0.5)" }}
+            >
+              <Footprints className="w-3 h-3 text-primary-foreground" />
+            </div>
+            <span>自由跑</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded-sm flex items-center justify-center bg-[var(--status-success)]">
+              <Flame className="w-3 h-3 text-primary-foreground" />
+            </div>
+            <span>双打卡</span>
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 

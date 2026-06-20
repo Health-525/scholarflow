@@ -4,30 +4,14 @@ import { ArrowLeft, RefreshCw, Loader2, Move, ZoomIn, ZoomOut, RotateCcw } from 
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 
-interface Seat {
-  x: number;
-  y: number;
-  key: string;
-  name: string | null;
-  seat_status: number;
-  status: boolean;
-}
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useLibraryLayout, useReserveSeat } from "@/hooks/useLibraryQuery";
+import type { LibraryLayoutInput } from "@/lib/schemas/library";
+import { semanticColor, semanticBg, semanticBorder, isDarkMode } from "@/lib/theme-colors";
 
-interface LayoutData {
-  lib_id: number;
-  lib_name: string;
-  lib_floor: string;
-  lib_rt: {
-    seats_total: number;
-    seats_used: number;
-    seats_has: number;
-    open_time_str: string;
-    close_time_str: string;
-  };
-  lib_layout: {
-    seats: Seat[];
-  };
-}
+type Seat = LibraryLayoutInput["lib_layout"]["seats"][number];
 
 type SeatCategory = "empty" | "available" | "reserved" | "occupied" | "maintenance";
 
@@ -40,13 +24,18 @@ function categorize(seat: Seat): SeatCategory {
   return "empty";
 }
 
-const CATEGORY_STYLE: Record<SeatCategory, { bg: string; border: string; color: string; label: string; hoverBg: string }> = {
-  empty:      { bg: "transparent", border: "transparent", color: "transparent", label: "", hoverBg: "transparent" },
-  available:  { bg: "rgba(34,197,94,0.2)", border: "rgba(34,197,94,0.6)", color: "#22c55e", label: "空闲", hoverBg: "rgba(34,197,94,0.4)" },
-  reserved:   { bg: "rgba(59,130,246,0.15)", border: "rgba(59,130,246,0.4)", color: "#3b82f6", label: "已预约", hoverBg: "rgba(59,130,246,0.25)" },
-  occupied:   { bg: "rgba(239,68,68,0.12)", border: "rgba(239,68,68,0.3)", color: "#ef4444", label: "占用", hoverBg: "rgba(239,68,68,0.2)" },
-  maintenance:{ bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.3)", color: "#f59e0b", label: "维护", hoverBg: "rgba(245,158,11,0.2)" },
-};
+type CategoryStyle = { bg: string; border: string; color: string; label: string; hoverBg: string };
+
+function getCategoryStyles(): Record<SeatCategory, CategoryStyle> {
+  const dark = isDarkMode();
+  return {
+    empty:      { bg: "transparent", border: "transparent", color: "transparent", label: "", hoverBg: "transparent" },
+    available:  { bg: semanticBg("success"),  border: semanticBorder("success"),  color: semanticColor("success"),  label: "空闲", hoverBg: dark ? "rgba(63,185,80,0.25)"  : "rgba(34,197,94,0.20)" },
+    reserved:   { bg: semanticBg("info"),     border: semanticBorder("info"),     color: semanticColor("info"),     label: "已预约", hoverBg: dark ? "rgba(132,150,240,0.22)" : "rgba(59,130,246,0.18)" },
+    occupied:   { bg: semanticBg("error"),    border: semanticBorder("error"),    color: semanticColor("error"),    label: "占用", hoverBg: dark ? "rgba(248,81,73,0.20)"   : "rgba(239,68,68,0.16)" },
+    maintenance:{ bg: semanticBg("warning"),  border: semanticBorder("warning"),  color: semanticColor("warning"),  label: "维护", hoverBg: dark ? "rgba(210,153,34,0.20)"  : "rgba(245,158,11,0.16)" },
+  };
+}
 
 export default function LibraryLayoutPage() {
   return (
@@ -65,66 +54,46 @@ function LibraryLayoutInner() {
   const searchParams = useSearchParams();
   const libId = searchParams.get("lib_id");
 
-  const [layout, setLayout] = useState<LayoutData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: layout, isLoading, error, refetch } = useLibraryLayout(libId);
+  const reserveSeat = useReserveSeat();
+
   const [selectedSeat, setSelectedSeat] = useState<Seat | null>(null);
-  const [reserving, setReserving] = useState(false);
   const [reserveResult, setReserveResult] = useState<string | null>(null);
   const [hoverSeat, setHoverSeat] = useState<Seat | null>(null);
   const [scale, setScale] = useState(1);
   const [dragging, setDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragState = useRef({ active: false, startX: 0, startY: 0, startScrollX: 0, startScrollY: 0, moved: false });
+  const CATEGORY_STYLE = getCategoryStyles();
 
-  const fetchLayout = useCallback(() => {
-    if (!libId) { setError("缺少阅览室ID"); setLoading(false); return; }
-    setLoading(true); setError(null); setSelectedSeat(null); setReserveResult(null);
-    fetch(`/api/library/layout?lib_id=${libId}`)
-      .then(r => { if (r.status === 401) throw new Error("JWT_EXPIRED"); return r.json(); })
-      .then(json => { if (json.error) throw new Error(json.error); setLayout(json); })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [libId]);
-
-  useEffect(() => { fetchLayout(); }, [fetchLayout]);
-
-  // 自动刷新座位状态（30秒）
+  // 切换阅览室时重置选区与结果
   useEffect(() => {
-    const timer = setInterval(() => {
-      if (!libId) return;
-      fetch(`/api/library/layout?lib_id=${libId}`)
-        .then(r => r.json())
-        .then(json => { if (!json.error) setLayout(json); })
-        .catch(() => {});
-    }, 30000);
-    return () => clearInterval(timer);
+    setSelectedSeat(null);
+    setReserveResult(null);
   }, [libId]);
 
-  const handleReserve = async () => {
+  const handleRefresh = useCallback(() => {
+    setSelectedSeat(null);
+    setReserveResult(null);
+    refetch();
+  }, [refetch]);
+
+  const handleReserve = useCallback(async () => {
     if (!selectedSeat || !libId) return;
-    setReserving(true); setReserveResult(null);
-    try {
-      const r = await fetch("/api/library/reserve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lib_id: parseInt(libId), key: selectedSeat.key }),
-      });
-      const json = await r.json();
-      if (json.error) {
-        setReserveResult(`❌ ${json.error}`);
-      } else if (json.success) {
-        setReserveResult("✅ 选座成功！请按时到馆签到");
-        setTimeout(fetchLayout, 1500);
-      } else {
-        setReserveResult(`⚠️ 未知响应: ${JSON.stringify(json)}`);
+    setReserveResult(null);
+    reserveSeat.mutate(
+      { libId: parseInt(libId, 10), key: selectedSeat.key },
+      {
+        onSuccess: () => {
+          setReserveResult("✅ 选座成功！请按时到馆签到");
+          setSelectedSeat(null);
+        },
+        onError: (err) => {
+          setReserveResult(`❌ ${err.message}`);
+        },
       }
-    } catch {
-      setReserveResult("❌ 网络错误，请检查连接");
-    } finally {
-      setReserving(false);
-    }
-  };
+    );
+  }, [selectedSeat, libId, reserveSeat]);
 
   // Pan with mouse drag (scroll-driven)
   const onPointerDown = useCallback((e: React.PointerEvent) => {
@@ -176,7 +145,7 @@ function LibraryLayoutInner() {
   const zoomOut = useCallback(() => setScale((s) => Math.max(0.5, Math.round((s - 0.2) * 10) / 10)), []);
   const resetZoom = useCallback(() => setScale(1), []);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="pb-24 md:pb-8 py-16 text-center">
         <Loader2 className="w-6 h-6 mx-auto animate-spin text-primary" />
@@ -188,10 +157,10 @@ function LibraryLayoutInner() {
   if (error) {
     return (
       <div className="pb-24 md:pb-8 max-w-md mx-auto py-16 px-4 text-center">
-        <p className="text-[13px] text-red-500">{error}</p>
-        <button onClick={fetchLayout} className="mt-4 px-4 py-2 rounded-xl text-[13px] font-medium bg-primary text-primary-foreground">
-          <RefreshCw className="w-3.5 h-3.5 inline mr-1" />重试
-        </button>
+        <p className="text-[13px] text-destructive">{error.message}</p>
+        <Button className="mt-4" onClick={handleRefresh}>
+          <RefreshCw className="w-3.5 h-3.5 mr-1" /> 重试
+        </Button>
       </div>
     );
   }
@@ -240,44 +209,53 @@ function LibraryLayoutInner() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <button onClick={() => window.history.back()} className="p-2 rounded-xl bg-card border border-border text-muted-foreground">
+          <Button variant="outline" size="icon" onClick={() => window.history.back()} aria-label="返回">
             <ArrowLeft className="w-4 h-4" />
-          </button>
+          </Button>
           <div>
             <h1 className="text-lg font-bold text-foreground">{layout.lib_name}</h1>
             <p className="text-[11px] text-muted-foreground">{layout.lib_floor} · {rt.open_time_str}-{rt.close_time_str}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={fetchLayout} className="p-2 rounded-xl bg-card border border-border text-muted-foreground">
-            <RefreshCw className="w-4 h-4" />
-          </button>
-        </div>
+        <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="刷新">
+          <RefreshCw className="w-4 h-4" />
+        </Button>
       </div>
 
       {/* Stats bar */}
-      <div className="flex flex-wrap items-center gap-3 mb-4 rounded-xl p-3 bg-card border border-border">
-        <span className="text-xs font-medium text-green-500">● {counts.available} 空闲</span>
-        <span className="text-xs font-medium text-blue-500">● {counts.reserved} 已预约</span>
-        <span className="text-xs font-medium text-red-500">● {counts.occupied} 占用</span>
-        {counts.maintenance > 0 && <span className="text-xs font-medium text-amber-500">● {counts.maintenance} 维护</span>}
+      <Card className="flex flex-wrap items-center gap-3 p-3 mb-4">
+        <Badge variant="outline" className="gap-1 text-[11px]" style={{ color: semanticColor("success"), borderColor: semanticBorder("success"), backgroundColor: semanticBg("success") }}>
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: semanticColor("success") }} /> {counts.available} 空闲
+        </Badge>
+        <Badge variant="outline" className="gap-1 text-[11px]" style={{ color: semanticColor("info"), borderColor: semanticBorder("info"), backgroundColor: semanticBg("info") }}>
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: semanticColor("info") }} /> {counts.reserved} 已预约
+        </Badge>
+        <Badge variant="outline" className="gap-1 text-[11px]" style={{ color: semanticColor("error"), borderColor: semanticBorder("error"), backgroundColor: semanticBg("error") }}>
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: semanticColor("error") }} /> {counts.occupied} 占用
+        </Badge>
+        {counts.maintenance > 0 && (
+          <Badge variant="outline" className="gap-1 text-[11px]" style={{ color: semanticColor("warning"), borderColor: semanticBorder("warning"), backgroundColor: semanticBg("warning") }}>
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: semanticColor("warning") }} /> {counts.maintenance} 维护
+          </Badge>
+        )}
         <span className="text-xs text-muted-foreground">共 {rt.seats_total} 座</span>
         <div className="ml-auto flex items-center gap-2">
-          <button onClick={zoomOut} className="p-1.5 rounded-lg bg-secondary border border-border text-muted-foreground hover:text-foreground" title="缩小">
+          <Button variant="outline" size="icon" onClick={zoomOut} title="缩小">
             <ZoomOut className="w-3.5 h-3.5" />
-          </button>
+          </Button>
           <span className="text-[11px] tabular-nums text-muted-foreground min-w-[42px] text-center">{Math.round(scale * 100)}%</span>
-          <button onClick={zoomIn} className="p-1.5 rounded-lg bg-secondary border border-border text-muted-foreground hover:text-foreground" title="放大">
+          <Button variant="outline" size="icon" onClick={zoomIn} title="放大">
             <ZoomIn className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={resetZoom} className="p-1.5 rounded-lg bg-secondary border border-border text-muted-foreground hover:text-foreground" title="重置缩放">
+          </Button>
+          <Button variant="outline" size="icon" onClick={resetZoom} title="重置缩放">
             <RotateCcw className="w-3.5 h-3.5" />
-          </button>
-          <span className="hidden sm:flex items-center gap-1 text-[10px] text-muted-foreground border-l border-border pl-2 ml-1">
-            <Move className="w-3 h-3" />拖拽移动
-          </span>
+          </Button>
         </div>
-      </div>
+      </Card>
+
+      <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 mb-3">
+        <Move className="w-3 h-3" /> Ctrl/⌘ + 滚轮缩放，拖拽移动
+      </p>
 
       {/* Seat map */}
       <div ref={containerRef}
@@ -303,59 +281,74 @@ function LibraryLayoutInner() {
             const top = (seat.y - minY) * (CELL + GAP);
 
             return (
-              <button key={seat.key}
+              <Button
+                key={seat.key}
+                variant="ghost"
+                type="button"
+                aria-label={`座位 ${seat.name || seat.key}，${isAvailable ? "空闲可选" : st.label}`}
+                aria-pressed={isAvailable ? isSelected : undefined}
+                aria-disabled={!isAvailable}
+                tabIndex={isAvailable ? 0 : -1}
                 onClick={(e) => { e.stopPropagation(); if (!dragState.current.moved && isAvailable) setSelectedSeat(seat); }}
                 onMouseEnter={() => setHoverSeat(seat)}
                 onMouseLeave={() => setHoverSeat(null)}
-                className="absolute rounded-md font-medium transition-all flex items-center justify-center group"
+                className="absolute rounded-md font-medium transition-all flex items-center justify-center p-0"
                 style={{
                   left, top,
                   width: CELL, height: CELL,
                   fontSize: 10,
-                  backgroundColor: isSelected ? "#22c55e" : (hoverSeat?.key === seat.key ? st.hoverBg : st.bg),
-                  color: isSelected ? "#fff" : st.color,
-                  border: isSelected ? "2px solid #16a34a" : `1px solid ${st.border}`,
+                  backgroundColor: isSelected ? semanticColor("success") : (hoverSeat?.key === seat.key ? st.hoverBg : st.bg),
+                  color: isSelected ? "var(--primary-foreground)" : st.color,
+                  border: isSelected ? `2px solid ${semanticColor("success")}` : `1px solid ${st.border}`,
                   cursor: isAvailable ? "pointer" : "default",
-                  boxShadow: isSelected ? "0 0 0 2px rgba(34,197,94,0.24)" : (hoverSeat?.key === seat.key ? "0 0 0 1px rgba(138,164,255,0.12)" : "none"),
+                  boxShadow: isSelected ? "0 0 0 2px rgba(var(--status-success-rgb), 0.24)" : (hoverSeat?.key === seat.key ? "0 0 0 1px rgba(var(--primary-rgb), 0.12)" : "none"),
                   transform: hoverSeat?.key === seat.key && isAvailable ? "scale(1.15)" : "scale(1)",
                   zIndex: hoverSeat?.key === seat.key ? 10 : 1,
                 }}
               >
                 {seat.name || "·"}
-              </button>
+              </Button>
             );
           })}
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-3 mt-3 text-[11px] text-muted-foreground">
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.5)" }} />空闲可约</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.5)" }} />已预约</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.5)" }} />占用</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ backgroundColor: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.5)" }} />维护</span>
-      </div>
+      <Card className="flex flex-wrap items-center gap-3 mt-3 p-3">
+        <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticBg("success"), border: `1px solid ${semanticBorder("success")}` }} /> 空闲可约
+        </span>
+        <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticBg("info"), border: `1px solid ${semanticBorder("info")}` }} /> 已预约
+        </span>
+        <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticBg("error"), border: `1px solid ${semanticBorder("error")}` }} /> 占用
+        </span>
+        <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticBg("warning"), border: `1px solid ${semanticBorder("warning")}` }} /> 维护
+        </span>
+      </Card>
 
       {/* Reserve panel */}
       {selectedSeat && (
-        <div className="mt-4 rounded-xl p-4 bg-card border border-border">
+        <Card className="mt-4 p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-foreground">座位 {selectedSeat.name}</p>
               <p className="text-[11px] text-muted-foreground">{layout.lib_name}</p>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => setSelectedSeat(null)} className="px-3 py-2 rounded-xl text-[12px] bg-card border border-border text-muted-foreground">取消</button>
-              <button onClick={handleReserve} disabled={reserving} className="px-4 py-2 rounded-xl text-[13px] font-medium disabled:opacity-50 bg-primary text-primary-foreground">
-                {reserving ? <Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1" /> : null}
-                {reserving ? "选座中..." : "确认选座"}
-              </button>
+              <Button variant="outline" onClick={() => setSelectedSeat(null)}>取消</Button>
+              <Button onClick={handleReserve} disabled={reserveSeat.isPending}>
+                {reserveSeat.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
+                {reserveSeat.isPending ? "选座中..." : "确认选座"}
+              </Button>
             </div>
           </div>
           {reserveResult && (
-            <p className="mt-2 text-[12px]" style={{ color: reserveResult.includes("成功") ? "#22c55e" : "#ef4444" }}>{reserveResult}</p>
+            <p className="mt-2 text-[12px]" style={{ color: reserveResult.includes("成功") ? semanticColor("success") : semanticColor("error") }}>{reserveResult}</p>
           )}
-        </div>
+        </Card>
       )}
     </div>
   );

@@ -1,62 +1,74 @@
 "use client";
 
-import {
-  Sun, Moon, Monitor, LogOut, ChevronRight,
-  Calendar, ClipboardList, Activity, Database,
-  BarChart3, Trash2, Download, CloudDownload, CloudUpload,
-} from "lucide-react";
+import { Palette, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SettingsSection } from "@/components/ui/settings-section";
-import { useScheduleQuery, useAssignmentsQuery, useRunningQuery, useSyncFromGitHub, useSyncToGitHub } from "@/hooks/useQueries";
-import { downloadActivityCSV, clearActivityData } from "@/lib/activity-tracker-v3";
-import { getDB } from "@/lib/db";
-import { exportAssignmentsCSV, exportRunningCSV, buildWeekICS, downloadICS } from "@/lib/export";
+import { showToast } from "@/components/ui/ToastContainer";
+import {
+  useScheduleQuery,
+  useAssignmentsQuery,
+  useRunningQuery,
+  useRefreshData,
+} from "@/hooks/useQueries";
+import {
+  clearActivityData,
+  downloadActivityCSV,
+} from "@/lib/activity-tracker-v3";
+import {
+  exportAssignmentsCSV,
+  exportRunningCSV,
+  buildWeekICS,
+  downloadICS,
+} from "@/lib/export";
+import { isElectron } from "@/lib/runtime-env";
 import { applySkin, getSkin, setSkin, type SkinValue } from "@/lib/skin";
 import { useAuthStore } from "@/store/auth";
 import { useThemeStore } from "@/store/theme";
-import type { ThemeValue } from "@/types";
 
-const THEME_OPTIONS: { value: ThemeValue; label: string; Icon: typeof Sun }[] = [
-  { value: "light", label: "浅色", Icon: Sun },
-  { value: "dark", label: "深色", Icon: Moon },
-  { value: "system", label: "跟随系统", Icon: Monitor },
-];
+import {
+  AboutCard,
+  AccountSecuritySection,
+  DataExportSection,
+  DataRefreshSection,
+  StorageInfoCard,
+  ThemeSection,
+  UserProfileCard,
+} from "./components";
+import type { ConfirmState, StudentInfo } from "./types";
 
 const SKIN_OPTIONS: { value: SkinValue; label: string; dot: string }[] = [
   { value: "ximi", label: "粉色小咪", dot: "#ffb7ce" },
   { value: "blue", label: "清新青", dot: "#0d9488" },
 ];
 
-interface StudentInfo {
-  studentId: string;
-  gpa: string;
-  totalCredits: number;
-  courseCount: number;
-}
-
 export default function SettingsPage() {
   const router = useRouter();
   const { theme, setTheme } = useThemeStore();
-  const token = useAuthStore((s) => s.token);
-  const clearToken = useAuthStore((s) => s.clearToken);
+  const { schoolId, userId, username, clearToken } = useAuthStore((s) => s);
   const { data: scheduleData } = useScheduleQuery();
   const { assignments } = useAssignmentsQuery();
   const { records } = useRunningQuery();
-  const [cacheSize, setCacheSize] = useState<number | null>(null);
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [showClearPassword, setShowClearPassword] = useState(false);
+  const [clearingPassword, setClearingPassword] = useState(false);
+  const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
   const [skin, setSkinState] = useState<SkinValue>("ximi");
-  const [syncMessage, setSyncMessage] = useState<string | null>(null);
-  const [historyMessage, setHistoryMessage] = useState<string | null>(null);
 
-  const syncFromGitHub = useSyncFromGitHub();
-  const syncToGitHub = useSyncToGitHub();
+  const refreshData = useRefreshData();
 
-  useEffect(() => { setMounted(true); }, []);
-  useEffect(() => { setSkinState(getSkin()); }, []);
+  useEffect(() => {
+    setMounted(true);
+    setShowClearPassword(isElectron());
+  }, []);
+
+  useEffect(() => {
+    setSkinState(getSkin());
+  }, []);
 
   const changeSkin = (s: SkinValue) => {
     setSkinState(s);
@@ -64,21 +76,101 @@ export default function SettingsPage() {
     applySkin(s);
   };
 
-  useEffect(() => {
-    if (mounted) {
-      getDB().cachedFiles.count().then(n => setCacheSize(n)).catch(() => setCacheSize(0));
-      fetch("/api/local-data?type=student")
-        .then(r => r.json())
-        .then(d => { if (d?.studentId) setStudentInfo(d); })
-        .catch(() => {});
-    }
-  }, [mounted]);
+  // 复用的学生信息(GPA/学分/课程)加载器,刷新成功后可再次调用以更新卡片。
+  const loadStudentInfo = useCallback(() => {
+    const sid = schoolId || "njtech";
+    const uid = userId || username || "default";
+    fetch(`/api/local-data?type=student&schoolId=${sid}&userId=${uid}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.studentId) setStudentInfo(d);
+      })
+      .catch(() => {});
+  }, [schoolId, userId, username]);
 
-  const handleLogout = () => {
-    if (confirm("确定要退出登录吗？")) {
-      clearToken();
-      router.replace("/setup");
+  useEffect(() => {
+    if (mounted) loadStudentInfo();
+  }, [mounted, loadStudentInfo]);
+
+  // 通过 Secure_Storage 删除已记住的加密密码（Electron 专用，Web 形态为 no-op）。
+  const clearRememberedCredential = async () => {
+    try {
+      await window.electronAPI?.clearCredential?.();
+    } catch {
+      // 加密存储不可用 / IPC 缺失时静默忽略，不阻断主流程。
     }
+  };
+
+  const handleLogout = async () => {
+    // 1. Call logout API to clear credentials from DB（并关闭记住密码偏好）
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          schoolId: schoolId || "njtech",
+          userId: userId || username || "default",
+        }),
+      });
+    } catch {}
+    // 2. 清除已记住的加密密码（Req 4.4）
+    await clearRememberedCredential();
+    // 3. Clear Zustand auth state
+    clearToken();
+    // 4. Navigate to setup page
+    router.replace("/setup");
+  };
+
+  // 退出登录 — 经二次确认(破坏性操作,清凭证并跳转登录页)。
+  const confirmLogout = () => {
+    setConfirmState({
+      title: "退出登录",
+      description:
+        "将清除本地登录凭证并返回登录页。已同步的课表、成绩等本地数据会保留。",
+      confirmText: "退出登录",
+      danger: true,
+      action: handleLogout,
+    });
+  };
+
+  // 「清除已记住的密码」控件：删除加密密码并将偏好开关置为关闭（Req 4.1/4.2/4.3）。
+  const handleClearPassword = async () => {
+    setClearingPassword(true);
+    await clearRememberedCredential();
+    try {
+      await fetch("/api/auth/remember", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          schoolId: schoolId || "njtech",
+          userId: userId || username || "default",
+        }),
+      });
+    } catch {}
+    setClearingPassword(false);
+    showToast("success", "已清除记住的密码");
+  };
+
+  const confirmClearPassword = () => {
+    setConfirmState({
+      title: "清除已记住的密码",
+      description: "清除后自动刷新将停止,下次需要手动重新登录。",
+      confirmText: "清除",
+      danger: true,
+      action: handleClearPassword,
+    });
+  };
+
+  const confirmClearActivity = () => {
+    setConfirmState({
+      title: "清除屏幕时间数据",
+      description: "将永久删除本地记录的屏幕使用时间数据,此操作不可撤销。",
+      confirmText: "清除",
+      danger: true,
+      action: async () => {
+        await clearActivityData();
+      },
+    });
   };
 
   function handleExportICS() {
@@ -87,317 +179,137 @@ export default function SettingsPage() {
     downloadICS(ics, `schedule-${new Date().toISOString().slice(0, 10)}.ics`);
   }
 
-  const currentThemeOption = THEME_OPTIONS.find(t => t.value === theme) || THEME_OPTIONS[2];
-  const avatarLetter = studentInfo?.studentId ? studentInfo.studentId[0] : "?";
+  const handleRefreshFromSchool = async () => {
+    if (!schoolId || !username) {
+      showToast("warning", "请先登录学校账号");
+      return;
+    }
+    try {
+      // 凭证由服务端从本地数据库读取(含 cookie 过期静默重登),无需前端传 cookie。
+      const result = await refreshData.mutateAsync({
+        schoolId,
+        cookie: "",
+        username,
+      });
+      if (result.success) {
+        showToast(
+          "success",
+          `数据刷新成功：${result.fetched?.join("、") || "全部"}`,
+        );
+        loadStudentInfo(); // 刷新成功后更新用户卡片的 GPA/学分/课程
+      } else if (result.needsManualLogin) {
+        showToast("warning", "登录已过期，请退出后重新登录再刷新");
+      } else {
+        showToast("error", `刷新失败：${result.error || "未知错误"}`);
+      }
+    } catch (e) {
+      showToast(
+        "error",
+        `刷新失败：${e instanceof Error ? e.message : "未知错误"}`,
+      );
+    }
+  };
+
+  // ── Derived display values ──────────────────────────────────
+  const displayName =
+    studentInfo?.studentId || userId || username || "ScholarFlow 用户";
+  const avatarLetter = displayName[0]?.toUpperCase() || "S";
+  const schoolName =
+    schoolId === "njtech" ? "南京工业大学" : schoolId || "未绑定";
+  const isSynced = !!studentInfo?.studentId || !!schoolId;
 
   return (
     <div className="pb-20 md:pb-0 max-w-lg mx-auto animate-page">
       <PageHeader
-        icon={
-          <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.313.255-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.117.737.43.992l1.004.827c.424.35.534.955.26 1.43l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.312-.255.437-.613.43-.992a7.723 7.723 0 010-.255c.007-.38-.118-.737-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.331-.183.581-.495.644-.869l.214-1.28z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        }
+        icon={<User className="w-5 h-5 text-primary" />}
         title="用户中心"
       />
 
-      {/* 用户卡片 */}
-      <div className="rounded-2xl p-5 mb-4 relative overflow-hidden bg-card border border-border shadow-sm">
-        <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full pointer-events-none opacity-[0.06] bg-gradient-to-br from-primary to-transparent" />
-        <div className="relative flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-primary text-primary-foreground font-[serif] text-[22px] font-bold">
-            {avatarLetter}
-          </div>
-          <div className="flex-1 min-w-0">
-            {studentInfo ? (
-              <>
-                <div className="text-[16px] font-semibold tabular-nums text-foreground">{studentInfo.studentId}</div>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                  <span className="text-[12px] text-muted-foreground">已同步教务系统</span>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="text-[16px] font-semibold text-foreground">ScholarFlow 用户</div>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
-                  <span className="text-[12px] text-muted-foreground">未同步教务系统</span>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-        <div className="grid grid-cols-4 gap-2 mt-4">
-          {studentInfo && (
-            <>
-              <StatChip value={studentInfo.gpa} label="GPA" accent />
-              <StatChip value={String(studentInfo.totalCredits)} label="学分" />
-              <StatChip value={String(studentInfo.courseCount)} label="课程" />
-            </>
-          )}
-          {!studentInfo && (
-            <>
-              <StatChip value={String(scheduleData?.schedule?.courses?.length ?? 0)} label="课程" />
-              <StatChip value={String(assignments.filter(a => !a.done).length)} label="待办" />
-            </>
-          )}
-          <StatChip value={String(records.length)} label="跑步" />
-        </div>
-      </div>
+      <UserProfileCard
+        displayName={displayName}
+        avatarLetter={avatarLetter}
+        schoolName={schoolName}
+        isSynced={isSynced}
+        schoolId={schoolId}
+        studentInfo={studentInfo}
+        scheduleCourseCount={scheduleData?.schedule?.courses?.length ?? 0}
+        pendingAssignmentsCount={assignments.filter((a) => !a.done).length}
+        recordsCount={records.length}
+        onLogout={confirmLogout}
+      />
 
-      {/* 外观 */}
-      <SettingsSection icon={<currentThemeOption.Icon className="w-4 h-4" />} title="外观">
+      <ThemeSection theme={theme} onChange={setTheme} />
+
+      <SettingsSection icon={<Palette className="w-4 h-4" />} title="配色">
+        <div className="mb-2">
+          <span className="text-[11px] text-muted-foreground/70">
+            仅手机端生效
+          </span>
+        </div>
         <div className="flex gap-1.5 p-1 rounded-xl bg-secondary">
-          {THEME_OPTIONS.map(opt => (
+          {SKIN_OPTIONS.map((opt) => (
             <button
               key={opt.value}
-              onClick={() => setTheme(opt.value)}
+              onClick={() => changeSkin(opt.value)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-medium transition-all duration-200 ${
-                theme === opt.value ? "bg-card text-primary shadow-sm" : "text-muted-foreground"
+                skin === opt.value
+                  ? "bg-card text-primary shadow-sm"
+                  : "text-muted-foreground"
               }`}
-              aria-pressed={theme === opt.value}
+              aria-pressed={skin === opt.value}
             >
-              <opt.Icon className="w-3.5 h-3.5" />
+              <span
+                className="w-3 h-3 rounded-full border border-black/10"
+                style={{ backgroundColor: opt.dot }}
+              />
               <span>{opt.label}</span>
-              {theme === opt.value && <span className="w-1 h-1 rounded-full bg-primary" />}
             </button>
           ))}
         </div>
-
-        {/* 配色 / 皮肤(仅移动端生效) */}
-        <div className="mt-3">
-          <div className="mb-1.5 flex items-center gap-2">
-            <span className="text-[11px] font-medium text-muted-foreground">配色</span>
-            <span className="text-[10px] text-muted-foreground/70">仅手机端生效</span>
-          </div>
-          <div className="flex gap-1.5 p-1 rounded-xl bg-secondary">
-            {SKIN_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => changeSkin(opt.value)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-medium transition-all duration-200 ${
-                  skin === opt.value ? "bg-card text-primary shadow-sm" : "text-muted-foreground"
-                }`}
-                aria-pressed={skin === opt.value}
-              >
-                <span className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: opt.dot }} />
-                <span>{opt.label}</span>
-                {skin === opt.value && <span className="w-1 h-1 rounded-full bg-primary" />}
-              </button>
-            ))}
-          </div>
-        </div>
       </SettingsSection>
 
-      {/* 数据导出 */}
-      <SettingsSection icon={<Download className="w-4 h-4" />} title="数据导出">
-        <MenuItem icon={Calendar} label="导出课表 (ICS)" onClick={handleExportICS} disabled={!scheduleData?.schedule} />
-        <MenuItem icon={ClipboardList} label="导出作业 (CSV)" onClick={() => exportAssignmentsCSV(assignments)} disabled={!assignments.length} />
-        <MenuItem icon={Activity} label="导出跑步 (CSV)" onClick={() => exportRunningCSV(records)} disabled={!records.length} />
-        <MenuItem icon={BarChart3} label="导出屏幕时间 (CSV)" onClick={downloadActivityCSV} />
-        <MenuItem icon={Trash2} label="清除屏幕时间数据" onClick={() => { if (confirm("确定清除？")) clearActivityData(); }} danger last />
-      </SettingsSection>
+      <DataRefreshSection
+        isPending={refreshData.isPending}
+        onRefresh={handleRefreshFromSchool}
+      />
 
-      {/* GitHub 同步 */}
-      <SettingsSection
-        icon={<GitHubIcon />}
-        title="GitHub 同步"
-        badge={token ? <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-600">已连接</span> : undefined}
-      >
-        <p className="text-[11px] mb-3 text-muted-foreground">
-          {token ? "数据默认保存本地，可手动从 GitHub 导入或同步到 GitHub" : "配置 GitHub Token 后可使用云端同步功能"}
-        </p>
-        {syncMessage && (
-          <div className={`mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line ${
-            syncMessage.includes("失败") || syncMessage.includes("错误") ? "bg-red-500/8 text-red-500" : "bg-green-500/8 text-green-600"
-          }`}>
-            {syncMessage}
-          </div>
-        )}
-        <div className="space-y-2">
-          <SyncButton
-            icon={CloudDownload}
-            label={syncFromGitHub.isPending ? "导入中..." : "从 GitHub 导入数据"}
-            sub="课表 · 作业 · 跑步"
-            disabled={!token || syncFromGitHub.isPending}
-            onClick={async () => {
-              if (!token) { setSyncMessage("请先在登录页配置 GitHub Token"); return; }
-              setSyncMessage(null);
-              try {
-                const result = await syncFromGitHub.mutateAsync(["schedule", "assignments", "running"]);
-                if (result.imported.length > 0) {
-                  const lines = result.imported.map(t => result.details[t]).filter(Boolean);
-                  setSyncMessage(lines.length > 0 ? lines.join("\n") : `导入成功：${result.imported.join("、")}`);
-                } else {
-                  setSyncMessage(result.errors.length ? `导入失败：${result.errors.join("、")}` : "无新数据");
-                }
-              } catch (e) {
-                setSyncMessage(`导入失败：${e instanceof Error ? e.message : "未知错误"}`);
-              }
-            }}
-          />
-          <SyncButton
-            icon={CloudUpload}
-            label={syncToGitHub.isPending ? "同步中..." : "同步到 GitHub"}
-            sub="课表 · 作业 · 跑步"
-            disabled={!token || syncToGitHub.isPending}
-            onClick={async () => {
-              if (!token) { setSyncMessage("请先在登录页配置 GitHub Token"); return; }
-              setSyncMessage(null);
-              try {
-                const result = await syncToGitHub.mutateAsync(["schedule", "assignments", "running"]);
-                if (result.pushed.length > 0) {
-                  setSyncMessage(`同步成功：${result.pushed.join("、")}${result.errors.length ? `；失败：${result.errors.join("、")}` : ""}`);
-                } else {
-                  setSyncMessage(result.errors.length ? `同步失败：${result.errors.join("、")}` : "无数据可同步");
-                }
-              } catch (e) {
-                setSyncMessage(`同步失败：${e instanceof Error ? e.message : "未知错误"}`);
-              }
-            }}
-          />
-        </div>
-      </SettingsSection>
-
-      {/* 缓存与存储 */}
-      <SettingsSection icon={<Database className="w-4 h-4" />} title="缓存与存储">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[12px] text-muted-foreground">
-            IndexedDB: <span className="font-semibold tabular-nums">{cacheSize === null ? "--" : cacheSize}</span> 文件
-          </span>
-          <div className="flex gap-1.5">
-            <button onClick={() => getDB().cachedFiles.count().then(n => setCacheSize(n)).catch(() => {})} className="text-[11px] px-2.5 py-1 rounded-lg font-medium bg-primary/10 text-primary">刷新</button>
-            <button onClick={() => { getDB().cachedFiles.clear(); getDB().mutationsQueue.clear(); setCacheSize(0); }} className="text-[11px] px-2.5 py-1 rounded-lg font-medium bg-red-500/8 text-red-500">清除</button>
-          </div>
-        </div>
-        <div className="space-y-1.5 text-[11px] pt-3 border-t border-border">
-          <InfoRow label="Token" value="安全加密存储" />
-          <InfoRow label="课表/作业/跑步" value="本地优先，自动 Git 版本管理" />
-          <InfoRow label="考试/主题/目标" value="localStorage" />
-        </div>
-      </SettingsSection>
-
-      {/* 版本历史 */}
-      <SettingsSection icon={<Database className="w-4 h-4" />} title="版本历史">
-        <p className="text-[11px] mb-3 text-muted-foreground">
-          每次数据变更自动生成 Git 提交记录，可在 timetable 目录用 git log 回溯
-        </p>
-        {historyMessage && (
-          <div className="mb-3 px-3 py-2.5 rounded-xl text-[11px] animate-fade-up whitespace-pre-line bg-secondary text-foreground max-h-48 overflow-y-auto">
-            {historyMessage}
-          </div>
-        )}
-        <button
-          onClick={async () => {
-            try {
-              const res = await fetch("/api/local-save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "view-history" }) });
-              const data = await res.json();
-              if (data.history) setHistoryMessage(data.history);
-            } catch { setHistoryMessage("获取历史失败"); }
-          }}
-          className="text-[11px] px-3 py-1.5 rounded-lg font-medium bg-primary/10 text-primary"
-        >
-          查看最近记录
-        </button>
-      </SettingsSection>
-
-      {/* 关于 */}
-      <SettingsSection icon={<GitHubIcon />} title="关于">
-        <div className="text-center">
-          <div className="text-[14px] font-semibold mb-1 text-primary font-[serif]">ScholarFlow</div>
-          <div className="text-[11px] text-muted-foreground">v1.3.0 · Electron + Next.js</div>
-          <div className="text-[10px] mt-0.5 text-muted-foreground">统一学习管理中枢</div>
-          <div className="mt-3 flex flex-wrap gap-1.5 justify-center">
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium">AI 助手</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-green-500/10 text-green-600 font-medium">PWA</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 font-medium">离线优先</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 font-medium">GitHub 同步</span>
-          </div>
-          <div className="mt-3 text-[10px] text-muted-foreground">
-            按 <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-secondary border border-border">?</kbd> 查看快捷键
-          </div>
-        </div>
-      </SettingsSection>
-
-      {/* 退出 */}
-      {token && (
-        <button
-          onClick={handleLogout}
-          className="w-full rounded-2xl p-4 flex items-center justify-center gap-2 text-[13px] font-medium transition-all mb-4 bg-card border border-border text-red-500 shadow-sm"
-        >
-          <LogOut className="w-4 h-4" />退出登录
-        </button>
+      {showClearPassword && (
+        <AccountSecuritySection
+          clearingPassword={clearingPassword}
+          onClearPassword={confirmClearPassword}
+        />
       )}
+
+      <DataExportSection
+        scheduleData={scheduleData}
+        assignments={assignments}
+        records={records}
+        onExportICS={handleExportICS}
+        onExportAssignments={() => exportAssignmentsCSV(assignments)}
+        onExportRunning={() => exportRunningCSV(records)}
+        onExportActivity={() => downloadActivityCSV().catch(() => {})}
+        onConfirmClearActivity={confirmClearActivity}
+      />
+
+      <StorageInfoCard />
+
+      <AboutCard />
+
+      {/* ── 确认对话框(替代原生 confirm) ─────────────────────── */}
+      <ConfirmDialog
+        open={confirmState !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmState(null);
+        }}
+        title={confirmState?.title ?? ""}
+        description={confirmState?.description}
+        confirmText={confirmState?.confirmText}
+        danger={confirmState?.danger ?? true}
+        onConfirm={() => {
+          confirmState?.action();
+          setConfirmState(null);
+        }}
+      />
     </div>
-  );
-}
-
-// ── 子组件 ──
-
-function StatChip({ value, label, accent }: { value: string; label: string; accent?: boolean }) {
-  return (
-    <div className="rounded-xl p-2.5 text-center bg-secondary">
-      <div className={`text-[16px] font-semibold tabular-nums ${accent ? "text-green-700" : "text-foreground"}`}>{value}</div>
-      <div className="text-[10px] text-muted-foreground">{label}</div>
-    </div>
-  );
-}
-
-function MenuItem({
-  icon: Icon, label, onClick, disabled, danger, last,
-}: {
-  icon: typeof Sun; label: string; onClick: () => void; disabled?: boolean; danger?: boolean; last?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`w-full flex items-center gap-3 px-2 py-3 text-left transition-colors ${
-        !last ? "border-b border-border" : ""
-      } ${disabled ? "text-muted-foreground opacity-50" : danger ? "text-red-500" : "text-foreground"}`}
-    >
-      <Icon className="w-4 h-4 shrink-0" />
-      <span className="text-[13px]">{label}</span>
-      {!disabled && <ChevronRight className="w-3.5 h-3.5 ml-auto shrink-0 text-muted-foreground" />}
-    </button>
-  );
-}
-
-function SyncButton({
-  icon: Icon, label, sub, disabled, onClick,
-}: {
-  icon: typeof CloudDownload; label: string; sub: string; disabled: boolean; onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
-        disabled ? "bg-secondary text-muted-foreground opacity-60" : "bg-primary/10 text-primary"
-      }`}
-    >
-      <Icon className="w-4 h-4 shrink-0" />
-      <span className="text-[13px] font-medium">{label}</span>
-      <span className="text-[10px] ml-auto text-muted-foreground">{sub}</span>
-    </button>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-right max-w-[60%] text-foreground">{value}</span>
-    </div>
-  );
-}
-
-function GitHubIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-    </svg>
   );
 }

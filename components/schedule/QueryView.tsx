@@ -1,12 +1,21 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { CalendarDays } from "lucide-react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Input } from "@/components/ui/input";
 import type { Adjustment } from "@/lib/schedule/adjustments";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
 import { courseColor } from "@/lib/schedule/course-color";
-import type { RawScheduleData, DayItem } from "@/lib/schedule/schedule";
-import { normalizeDate } from "@/lib/schedule/timezone";
+import type { DayItem, RawScheduleData } from "@/lib/schedule/schedule";
+import {
+  formatDateInTimeZone,
+  getNowInTimeZone,
+  normalizeDate,
+} from "@/lib/schedule/timezone";
 
 import { CourseDrawer } from "./CourseDrawer";
 
@@ -16,8 +25,9 @@ interface QueryViewProps {
 }
 
 export function QueryView({ schedule, adjustments }: QueryViewProps) {
+  const tz = schedule.meta.tz || "Asia/Shanghai";
   const [inputDate, setInputDate] = useState(() => {
-    return new Date().toISOString().slice(0, 10);
+    return formatDateInTimeZone(getNowInTimeZone(tz), tz);
   });
   const [queryDate, setQueryDate] = useState<string>(inputDate);
   const [selectedItem, setSelectedItem] = useState<DayItem | null>(null);
@@ -35,7 +45,11 @@ export function QueryView({ schedule, adjustments }: QueryViewProps) {
     if (!queryDate) return null;
     const date = normalizeDate(new Date(queryDate));
     if (isNaN(date.getTime())) return null;
-    const { items, weekNum } = getAdjustedItemsForDate(schedule, date, adjustments);
+    const { items, weekNum } = getAdjustedItemsForDate(
+      schedule,
+      date,
+      adjustments,
+    );
     return { items, weekNum, date };
   }, [queryDate, schedule, adjustments]);
 
@@ -49,12 +63,11 @@ export function QueryView({ schedule, adjustments }: QueryViewProps) {
         >
           选择日期
         </label>
-        <input
+        <Input
           id="query-date"
           type="date"
           value={inputDate}
           onChange={(e) => handleChange(e.target.value)}
-          className="w-full px-4 py-2.5 rounded-xl text-sm outline-none bg-secondary border border-border text-foreground focus:border-primary/30 focus:ring-1 focus:ring-primary/20 transition-all"
           aria-label="选择查询日期"
         />
       </div>
@@ -70,29 +83,29 @@ export function QueryView({ schedule, adjustments }: QueryViewProps) {
                 weekday: "short",
               })}
             </span>
-            <span className="sf-chip sf-chip-accent">
-              第 {result.weekNum} 周
-            </span>
+            <Badge variant="secondary">第 {result.weekNum} 周</Badge>
           </div>
 
           {result.items.length === 0 ? (
-            <div className="rounded-2xl p-6 text-center bg-card border border-border">
-              <div className="w-12 h-12 mx-auto rounded-xl bg-muted flex items-center justify-center mb-3">
-                <span className="text-xl">📭</span>
-              </div>
-              <p className="text-sm text-foreground font-medium">该日无课程</p>
-            </div>
+            <EmptyState
+              icon={CalendarDays}
+              title="该日无课程"
+              description="选择其他日期再看看"
+            />
           ) : (
             <div className="space-y-2">
               {result.items.map((item, idx) => {
                 const colors = courseColor(item.title);
                 return (
-                  <button
+                  <Button
                     key={idx}
-                    type="button"
+                    variant="secondary"
                     onClick={() => setSelectedItem(item)}
-                    className="w-full text-left rounded-xl p-4 transition-all active:scale-[0.98] hover:shadow-sm"
-                    style={{ backgroundColor: colors.bg, border: `1px solid ${colors.border}` }}
+                    className="w-full h-auto text-left rounded-xl p-4 transition-all active:scale-[0.98] hover:shadow-sm items-start justify-start whitespace-normal"
+                    style={{
+                      backgroundColor: colors.bg,
+                      border: `1px solid ${colors.border}`,
+                    }}
                     aria-label={`查看 ${item.title} 详情`}
                   >
                     <div className="flex items-start gap-3">
@@ -101,20 +114,25 @@ export function QueryView({ schedule, adjustments }: QueryViewProps) {
                         style={{ backgroundColor: colors.accent }}
                       />
                       <div>
-                        <div className="font-semibold text-sm" style={{ color: colors.accent }}>
+                        <div
+                          className="font-semibold text-sm"
+                          style={{ color: colors.accent }}
+                        >
                           {item.title}
                         </div>
                         {item.timeText && (
-                          <div className="text-xs text-muted-foreground mt-0.5">
+                          <div className="text-[11px] text-muted-foreground mt-0.5">
                             {item.timeText}
                             {item.location && (
-                              <span className="ml-1.5 opacity-70">· {item.location}</span>
+                              <span className="ml-1.5 opacity-70">
+                                · {item.location}
+                              </span>
                             )}
                           </div>
                         )}
                       </div>
                     </div>
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -125,6 +143,7 @@ export function QueryView({ schedule, adjustments }: QueryViewProps) {
       <CourseDrawer
         item={selectedItem}
         date={result?.date ?? new Date()}
+        timeZone={tz}
         onClose={() => setSelectedItem(null)}
       />
     </div>

@@ -7,7 +7,9 @@
 
 import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
-import { Preferences } from "@capacitor/preferences";
+
+import { getCurrentAuth } from "./api/auth-params";
+import { apiFetch } from "./api-client";
 
 export const isNative = Capacitor.isNativePlatform();
 
@@ -47,6 +49,18 @@ export async function mobileWriteFile(fileName: string, content: string): Promis
 
 // ── 统一接口 ──
 
+/**
+ * 获取当前登录用户的 schoolId 和 userId
+ * 优先从 Zustand auth store 读取(兼容 Electron 加密存储)
+ */
+export function getCurrentUser(): { schoolId: string; userId: string | undefined } {
+  const { schoolId, userId } = getCurrentAuth();
+  return {
+    schoolId: schoolId || "njtech",
+    userId: userId || undefined,
+  };
+}
+
 export async function readData(type: string): Promise<unknown> {
   if (isNative) {
     const fileName = `data/${type}.json`;
@@ -55,12 +69,16 @@ export async function readData(type: string): Promise<unknown> {
     try { return JSON.parse(raw); } catch { return null; }
   }
 
-  // Web/Electron: 走 API
-  try {
-    const res = await fetch(`/api/local-data?type=${type}`);
-    if (res.ok) return await res.json();
-  } catch {}
-  return null;
+  // Web/Electron: 赳 API — 带 schoolId/userId 实现账号隔离
+  const { schoolId, userId } = getCurrentUser();
+  const params = new URLSearchParams({ type, schoolId });
+  if (userId) params.set("userId", userId);
+  const res = await apiFetch(`/api/local-data?${params.toString()}`);
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`读取失败 (${res.status}): ${text || res.statusText}`);
+  }
+  return await res.json();
 }
 
 export async function writeData(file: string, content: string, action = "更新"): Promise<void> {
@@ -70,35 +88,16 @@ export async function writeData(file: string, content: string, action = "更新"
   }
 
   // Web/Electron: 走 API (带 git commit)
-  await fetch("/api/local-save", {
+  const { schoolId, userId } = getCurrentUser();
+  const body: Record<string, string> = { file, content, action, schoolId };
+  if (userId) body.userId = userId;
+  const res = await apiFetch("/api/local-save", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ file, content, action }),
+    body: JSON.stringify(body),
   });
-}
-
-// ── 设置存储 (key-value) ──
-
-export async function getSetting(key: string): Promise<string | null> {
-  if (isNative) {
-    const { value } = await Preferences.get({ key });
-    return value;
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`保存失败 (${res.status}): ${text || res.statusText}`);
   }
-  return localStorage.getItem(key);
-}
-
-export async function setSetting(key: string, value: string): Promise<void> {
-  if (isNative) {
-    await Preferences.set({ key, value });
-    return;
-  }
-  localStorage.setItem(key, value);
-}
-
-export async function removeSetting(key: string): Promise<void> {
-  if (isNative) {
-    await Preferences.remove({ key });
-    return;
-  }
-  localStorage.removeItem(key);
 }

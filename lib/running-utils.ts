@@ -1,5 +1,8 @@
 import type { RunRecord, RunStats, HeatmapDay, RunType } from "@/types";
 
+/** 跑步目标次数 */
+export const RUNNING_GOAL = 50;
+
 /**
  * 计算跑步统计数据
  */
@@ -7,7 +10,7 @@ export function calculateRunStats(records: RunRecord[]): RunStats {
   const total = records.length;
   const morning = records.filter((r) => r.type === "morning").length;
   const free = records.filter((r) => r.type === "free").length;
-  const progressPercent = Math.min((total / 50) * 100, 100);
+  const progressPercent = Math.min((total / RUNNING_GOAL) * 100, 100);
 
   return { total, morning, free, progressPercent };
 }
@@ -27,7 +30,10 @@ export function isDuplicateRun(
  * 构建热力图数据（按月）
  * 返回当月每天的跑步状态
  */
-export function buildHeatmapData(records: RunRecord[]): HeatmapDay[] {
+export function buildHeatmapData(
+  records: RunRecord[],
+  referenceDate: Date = new Date()
+): HeatmapDay[] {
   const recordMap = new Map<string, { hasMorning: boolean; hasFree: boolean }>();
 
   for (const r of records) {
@@ -37,10 +43,9 @@ export function buildHeatmapData(records: RunRecord[]): HeatmapDay[] {
     recordMap.set(r.date, entry);
   }
 
-  // Generate days for current month
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
+  // Generate days for the reference month
+  const year = referenceDate.getFullYear();
+  const month = referenceDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const result: HeatmapDay[] = [];

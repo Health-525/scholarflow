@@ -1,28 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { Calendar, CalendarDays, RotateCcw, Search, Sun } from "lucide-react";
+import { useMemo, useState } from "react";
 
+import { PageHeader } from "@/components/layout/PageHeader";
 import { QueryView } from "@/components/schedule/QueryView";
 import { TodayView } from "@/components/schedule/TodayView";
 import { WeekGrid } from "@/components/schedule/WeekGrid";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { SegmentedControl, type SegmentedOption } from "@/components/ui/segmented-control";
 import { MobileSchedule } from "@/components/ximi/MobileSchedule";
 import { useScheduleQuery } from "@/hooks/useQueries";
+import { getWeekNumber } from "@/lib/schedule/schedule";
+import { getNowInTimeZone, normalizeDate } from "@/lib/schedule/timezone";
 
 type Tab = "today" | "week" | "query";
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "today", label: "今日", icon: "☀️" },
-  { id: "week", label: "本周", icon: "📅" },
-  { id: "query", label: "查询", icon: "🔍" },
+const TABS: SegmentedOption[] = [
+  { id: "today", label: "今日", icon: Sun },
+  { id: "week", label: "本周", icon: CalendarDays },
+  { id: "query", label: "查询", icon: Search },
 ];
 
 export default function SchedulePage() {
-  const [activeTab, setActiveTab] = useState<Tab>("today");
+  const [activeTab, setActiveTab] = useState<Tab>("week");
   const { data, isLoading, error, refetch } = useScheduleQuery();
   const schedule = data?.schedule ?? null;
   const adjustments = data?.adjustments ?? [];
+
+  // Calculate current week number
+  const weekInfo = useMemo(() => {
+    if (!schedule) return null;
+    const tz = schedule.meta.tz || "Asia/Shanghai";
+    const now = getNowInTimeZone(tz);
+    const weekNum = getWeekNumber(normalizeDate(now), schedule.meta.week1_monday);
+    const semester = schedule.meta.semester || "";
+    return { weekNum, semester, tz };
+  }, [schedule]);
 
   return (
     <>
@@ -31,45 +49,46 @@ export default function SchedulePage() {
 
       {/* 桌面端：原版课表（保持不变） */}
       <div className="hidden md:flex max-w-5xl mx-auto min-h-screen bg-background text-foreground flex-col animate-page">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6 py-4 animate-fade-up">
-        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
-          <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <div>
-          <h1 className="text-xl font-bold font-display text-foreground">课表</h1>
-          <p className="text-[12px] text-muted-foreground">今日课程与周视图</p>
-        </div>
-      </div>
-
-      {/* Tabs — segmented control style */}
-      <div className="mb-4 animate-fade-up stagger-1">
-        <div
-          className="flex rounded-xl p-1 bg-secondary border border-border"
-          role="tablist"
-          aria-label="课表视图切换"
-        >
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all duration-200 ${
-                activeTab === tab.id
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-              aria-label={tab.label}
+      <PageHeader
+        icon={<Calendar className="w-5 h-5 text-primary" />}
+        title="课表"
+        actions={
+          weekInfo ? (
+            <div className="flex items-center gap-2">
+              {weekInfo.semester && (
+                <Badge variant="secondary">{weekInfo.semester}</Badge>
+              )}
+              <Badge>第{weekInfo.weekNum}周</Badge>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => refetch()}
+                aria-label="刷新课表"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => refetch()}
+              aria-label="刷新课表"
             >
-              <span className="mr-1" aria-hidden="true">{tab.icon}</span>
-              {tab.label}
-            </button>
-          ))}
-        </div>
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+          )
+        }
+      />
+
+      {/* Tabs */}
+      <div className="mb-4 animate-fade-up stagger-1">
+        <SegmentedControl
+          options={TABS}
+          value={activeTab}
+          onChange={(id) => setActiveTab(id as Tab)}
+          aria-label="课表视图切换"
+        />
       </div>
 
       {/* Content */}
@@ -102,13 +121,11 @@ export default function SchedulePage() {
         )}
 
         {!schedule && !isLoading && !error && (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-muted flex items-center justify-center mb-4">
-              <span className="text-2xl">📋</span>
-            </div>
-            <p className="text-sm font-medium text-foreground">暂无课表数据</p>
-            <p className="text-xs text-muted-foreground mt-1">请在设置中导入课表</p>
-          </div>
+          <EmptyState
+            icon={Calendar}
+            title="暂无课表数据"
+            description="请在设置中登录并同步数据"
+          />
         )}
       </div>
     </div>

@@ -1,101 +1,111 @@
-import { execSync } from "child_process";
-import fs from "fs";
-import path from "path";
-
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
-// 复用 local-data 的时间表目录探测
-function findTimetableDir(): string {
-  const envDir = process.env.TIMETABLE_DIR;
-  if (envDir) try { if (fs.existsSync(path.join(envDir, "data"))) return envDir; } catch {}
-  const candidates = [
-    path.join(process.cwd(), "..", "timetable"),
-    path.join(process.cwd(), "..", "..", "timetable"),
-    path.join(process.cwd(), "..", "..", "..", "timetable"),
-  ];
-  for (const c of candidates) {
-    try { if (fs.existsSync(path.join(c, "data"))) return c; } catch {}
-  }
-  throw new Error("Cannot find timetable directory");
-}
+import { DEFAULT_SCHOOL_ID } from "@/lib/account-prefix";
+import { resolveAccountPrefix } from "@/lib/account-prefix";
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+import { getServerDB } from "@/lib/server-db";
 
-/**
- * 自动 git commit 数据变更
- * - 如果是 git 仓库且有变更，自动 stage + commit
- * - commit message 包含文件名和操作描述
- * - 如果没有变更或不是 git 仓库，静默跳过
- * - 5秒超时防止阻塞
- */
-function autoGitCommit(dir: string, filePath: string, action: string) {
-  try {
-    // 检查是否是 git 仓库
-    const gitDir = path.join(dir, ".git");
-    if (!fs.existsSync(gitDir)) return;
+const localSaveBodySchema = z.object({
+  file: z.string().min(1).optional(),
+  content: z.string().optional(),
+  action: z.string().optional(),
+  schoolId: z.string().optional(),
+  userId: z.string().optional(),
+});
 
-    // 检查是否有变更
-    const status = execSync("git status --porcelain -- " + JSON.stringify(filePath), {
-      cwd: dir, timeout: 3000, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"],
-    }).trim();
-    if (!status) return; // 无变更
+/** 禁止通过 local-save 写入的敏感 key 前缀/模式 */
+const SENSITIVE_KEY_PATTERNS = [
+  /^credential-/,
+  /^secure-/,
+  /password/i,
+];
 
-    // stage + commit
-    execSync(`git add -- ${JSON.stringify(filePath)}`, {
-      cwd: dir, timeout: 3000, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"],
-    });
-
-    // 生成简要 commit message
-    const fileName = path.basename(filePath);
-    const dirName = path.dirname(filePath).split(path.sep).pop() || "";
-    const label = dirName ? `${dirName}/${fileName}` : fileName;
-    execSync(`git commit -m "${action}: ${label}" --no-verify`, {
-      cwd: dir, timeout: 5000, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"],
-    });
-  } catch {
-    // git 操作失败不影响主流程（可能无用户配置、detached HEAD 等）
-  }
-}
-
-/**
- * 获取最近的 git 提交历史（仅 data/ 目录）
- */
-function getGitHistory(dir: string): string {
-  try {
-    const gitDir = path.join(dir, ".git");
-    if (!fs.existsSync(gitDir)) return "非 Git 仓库";
-
-    const log = execSync(
-      'git log --oneline -10 -- "data/*"',
-      { cwd: dir, timeout: 3000, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] }
-    ).trim();
-
-    if (!log) return "暂无数据变更记录";
-    return log;
-  } catch {
-    return "获取历史失败";
-  }
+function isSensitiveKey(key: string): boolean {
+  return SENSITIVE_KEY_PATTERNS.some((pattern) => pattern.test(key));
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { file?: string; content?: string; action?: string };
-    const { file, content, action } = body;
-
-    // 特殊操作：查看版本历史
-    if (action === "view-history" && !file) {
-      const td = findTimetableDir();
-      const history = getGitHistory(td);
-      return NextResponse.json({ ok: true, history });
+    if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+      return forbiddenResponse();
     }
 
-    if (!file || !content) return NextResponse.json({ error: "missing file/content" }, { status: 400 });
+    const parse = localSaveBodySchema.safeParse(await request.json());
+    if (!parse.success) {
+      return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
+    }
+    const { file, content, action, schoolId, userId } = parse.data;
 
-    const td = findTimetableDir();
-    const filePath = path.join(td, file);
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, content, "utf8");
+    const db = getServerDB();
 
-    // 自动 git commit
-    autoGitCommit(td, file, action || "更新");
+    // Special action: view data history (from SQLite timestamps)
+    if (action === "view-history" && !file) {
+      const keys = db.listKeys();
+      const history = keys.map(key => {
+        const updatedAt = db.getUpdatedAt(key);
+        return `${key} — ${updatedAt ? new Date(updatedAt).toISOString() : "unknown"}`;
+      });
+      return NextResponse.json({ ok: true, history: history.join("\n") });
+    }
+
+    if (!file || content === undefined || content === null) {
+      return NextResponse.json({ error: "missing file/content" }, { status: 400 });
+    }
+
+    // Prefix key with schoolId:userId for account isolation
+    const active = db.findActiveCredentials();
+    let prefix = resolveAccountPrefix({ schoolId, userId }, active);
+
+    // 凭证过期但本地已有数据时，回退到本地最近使用的账号，避免写到空 default。
+    if (!active && !userId) {
+      const localPrefix = db.findLocalAccountPrefix(schoolId || DEFAULT_SCHOOL_ID);
+      if (localPrefix) {
+        prefix = localPrefix;
+      }
+    }
+
+    // Special-case report markdown files to match local-data read keys
+    const dailyMatch = file.match(/^日报\/(.+)\.md$/);
+    if (dailyMatch) {
+      const date = dailyMatch[1];
+      db.writeData(`dailyReport:${prefix}:${date}`, content);
+      return NextResponse.json({ ok: true });
+    }
+
+    const weeklyMatch = file.match(/^周报\/(.+)\.md$/);
+    if (weeklyMatch) {
+      const slug = weeklyMatch[1];
+      db.writeData(`weeklyReport:${prefix}:${slug}`, content);
+      return NextResponse.json({ ok: true });
+    }
+
+    // Extract key from file path: "data/schedule.json" → "schedule"
+    const key = file
+      .replace(/^data\//, "")
+      .replace(/^_out\//, "")
+      .replace(/\.json$/, "");
+
+    if (isSensitiveKey(key)) {
+      return NextResponse.json({ error: "forbidden key" }, { status: 403 });
+    }
+
+    const fullKey = `${key}:${prefix}`;
+
+    // Parse content if it's JSON string, store as parsed object
+    let data: unknown;
+    try {
+      data = JSON.parse(content);
+    } catch {
+      data = content; // Store as raw string if not JSON
+    }
+
+    db.writeData(fullKey, data);
+
+    // 作业/课表/跑步/成绩变更后，清除仪表盘当天缓存，下次请求时重新计算
+    if (["assignments", "schedule", "running", "grades"].includes(key)) {
+      db.deleteData(`dashboard-summary:${prefix}`);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {

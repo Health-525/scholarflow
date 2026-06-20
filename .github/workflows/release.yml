@@ -1,0 +1,96 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Build Windows Electron App
+    runs-on: windows-2022
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      # node-gyp / npm 10+ 通过环境变量读取这些配置
+      npm_config_msvs_version: 2022
+      npm_config_python: python
+      # 2026-09-16 后 Node 20 action 运行时将停止支持，提前适配 Node 24
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Cache Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-
+
+      - name: Get Electron version
+        id: electron-version
+        shell: pwsh
+        run: |
+          $v = (Get-Content package.json | ConvertFrom-Json).devDependencies.electron
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Cache native module rebuilds
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules/better-sqlite3/build
+            node_modules/active-win/build
+          key: ${{ runner.os }}-native-${{ hashFiles('package-lock.json') }}-${{ steps.electron-version.outputs.version }}
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build Electron app
+        shell: pwsh
+        run: |
+          npm run build
+          node electron/postbuild.js
+          npx electron-builder --win nsis --publish never
+
+      - name: List build outputs
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path dist/ |
+            Select-Object Name, @{Name="SizeMB";Expression={[math]::Round($_.Length/1MB,2)}}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          name: scholarflow-windows-${{ github.ref_name || github.run_id }}
+          path: |
+            dist/*.exe
+            dist/*.blockmap
+            dist/latest.yml
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.exe
+            dist/*.blockmap
+            dist/latest.yml
+          generate_release_notes: true

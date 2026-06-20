@@ -1,35 +1,39 @@
-"use client";
+import type { LucideIcon } from "lucide-react";
 
-import { type LucideIcon } from "lucide-react";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface EmptyStateProps {
-  Icon: LucideIcon;
+  icon?: LucideIcon;
   title: string;
-  description: string;
-  action?: { label: string; href: string };
+  description?: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
-export function EmptyState({ Icon, title, description, action }: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (
-    <div className="text-center py-16 px-4">
-      <div className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-primary/10">
-        <Icon className="w-6 h-6 text-primary" />
-      </div>
-      <h3 className="text-[14px] font-semibold mb-1.5 text-foreground">
-        {title}
-      </h3>
-      <p className="text-[12px] leading-relaxed mb-5 max-w-[280px] mx-auto text-muted-foreground">
-        {description}
-      </p>
-      {action && (
-        <Link
-          href={action.href}
-          className="inline-flex px-4 py-2 rounded-xl text-[12px] font-medium transition-colors bg-primary text-primary-foreground"
-        >
-          {action.label}
-        </Link>
+    <Card className="py-10 text-center items-center gap-3">
+      {Icon && (
+        <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center">
+          <Icon className="w-6 h-6 text-muted-foreground" />
+        </div>
       )}
-    </div>
+      <div>
+        <p className="text-sm font-medium text-foreground">{title}</p>
+        {description && (
+          <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        )}
+      </div>
+      {action && (
+        <Button size="sm" onClick={action.onClick}>
+          {action.label}
+        </Button>
+      )}
+    </Card>
   );
 }
+
+export default EmptyState;

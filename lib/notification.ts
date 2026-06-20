@@ -73,8 +73,9 @@ export function saveReminder(key: string, entry: ReminderEntry): void {
     const { timerHandle: _, ...rest } = entry;
     store[key] = rest;
     localStorage.setItem(REMINDERS_KEY, JSON.stringify(store));
-  } catch {
-    // ignore
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("[Notification] saveReminder failed:", e);
   }
 }
 
@@ -93,30 +94,10 @@ export function clearReminder(key: string): void {
       delete store[key];
       localStorage.setItem(REMINDERS_KEY, JSON.stringify(store));
     }
-  } catch {
-    // ignore
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("[Notification] clearReminder failed:", e);
   }
 }
 
-/**
- * 页面加载后重建所有提醒（因为 setTimeout 句柄不持久化）
- */
-export function rebuildAllReminders(): void {
-  if (typeof window === "undefined") return;
-  if (Notification.permission !== "granted") return;
 
-  const store = loadReminders();
-  for (const [key, entry] of Object.entries(store)) {
-    if (entry.remindAt > Date.now()) {
-      scheduleReminder(key, entry);
-    } else {
-      // Expired, clean up
-      delete store[key];
-    }
-  }
-  try {
-    localStorage.setItem(REMINDERS_KEY, JSON.stringify(store));
-  } catch {
-    // ignore
-  }
-}

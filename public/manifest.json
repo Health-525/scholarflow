@@ -1,7 +1,7 @@
 {
   "name": "ScholarFlow",
   "short_name": "ScholarFlow",
-  "description": "AI学习伙伴 — 课表、作业、绩点、考试、屏幕时间",
+  "description": "独立学习管理中枢 — 课表、作业、绩点、考试、屏幕时间",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -41,18 +41,6 @@
       "name": "作业",
       "short_name": "作业",
       "url": "/assignments",
-      "icons": [{ "src": "/icons/logo.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "AI 助手",
-      "short_name": "AI",
-      "url": "/chat",
-      "icons": [{ "src": "/icons/logo.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "学习进度",
-      "short_name": "进度",
-      "url": "/progress",
       "icons": [{ "src": "/icons/logo.png", "sizes": "96x96" }]
     }
   ]

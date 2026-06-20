@@ -14,6 +14,7 @@ export default defineConfig({
       "**/.next/**",
       "**/e2e/**",
       "**/dist/**",
+      "**/skills/**",
     ],
   },
   resolve: {

@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+
+
 import { getCachedJWT, graphql } from "../_lib";
 
 // GET /api/library/reserve-status — 查询当前预约状态
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
+  }
+
+
   const jwt = getCachedJWT();
   if (!jwt) return NextResponse.json({ error: "JWT未配置或已过期" }, { status: 401 });
 

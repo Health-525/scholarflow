@@ -67,5 +67,6 @@ export function useKeyboardShortcuts() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [router]);
+  // setOpen 是 zustand 的稳定引用，加入依赖数组消除 lint 警告
+  }, [router, setOpen]);
 }

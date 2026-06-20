@@ -3,8 +3,8 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 export const cardClasses = cn(
-  "group/card card-glow flex flex-col gap-3 overflow-hidden rounded-xl bg-card border border-border py-3 text-sm text-card-foreground shadow-none",
-  "transition-colors duration-150 hover:border-border-strong"
+  "group/card card-glow flex flex-col gap-3 overflow-hidden rounded-2xl bg-card border border-[rgba(0,0,0,0.04)] dark:border-white/[0.06] py-3 text-sm text-card-foreground shadow-sm",
+  "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
 )
 
 function Card({
@@ -19,10 +19,10 @@ function Card({
       data-size={size}
       className={cn(
         cardClasses,
-        !hover && "hover:border-border",
+        !hover && "hover:shadow-sm hover:translate-y-0",
         "has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0",
         "data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0",
-        "*:[img:first-child]:rounded-t-lg *:[img:last-child]:rounded-b-lg",
+        "*:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
         className
       )}
       {...props}
@@ -35,7 +35,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-header"
       className={cn(
-        "group/card-header grid auto-rows-min items-start gap-1 rounded-t-lg px-3 group-data-[size=sm]/card:px-2.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] has-[.border-b]:pb-3 group-data-[size=sm]/card:has-[.border-b]:pb-2.5",
+        "group/card-header grid auto-rows-min items-start gap-1 rounded-t-xl px-3 group-data-[size=sm]/card:px-2.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] has-[.border-b]:pb-3 group-data-[size=sm]/card:has-[.border-b]:pb-2.5",
         className
       )}
       {...props}
@@ -48,7 +48,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-title"
       className={cn(
-        "font-heading text-base leading-snug font-semibold group-data-[size=sm]/card:text-sm",
+        "font-heading text-base leading-snug font-medium group-data-[size=sm]/card:text-sm",
         className
       )}
       {...props}
@@ -94,7 +94,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-footer"
       className={cn(
-        "flex items-center rounded-b-lg border-t border-border bg-muted/35 p-3 group-data-[size=sm]/card:p-2.5",
+        "flex items-center rounded-b-xl border-t border-border bg-muted/50 p-3 group-data-[size=sm]/card:p-2.5",
         className
       )}
       {...props}

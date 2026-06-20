@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 仅暴露应用专用子目录，禁止共享根目录 -->
+    <external-path name="scholarflow_images" path="Pictures/ScholarFlow" />
+    <cache-path name="scholarflow_cache_images" path="images" />
+</paths>

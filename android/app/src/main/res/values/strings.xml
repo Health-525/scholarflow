@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ScholarFlow</string>
+    <string name="title_activity_main">ScholarFlow</string>
+    <string name="package_name">com.health525.scholarflow</string>
+    <string name="custom_url_scheme">com.health525.scholarflow</string>
+</resources>

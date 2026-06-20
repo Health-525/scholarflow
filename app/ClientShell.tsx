@@ -1,22 +1,19 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import type { ReactNode} from "react";
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import {
-  secureRetrieveToken,
-  migrateLegacyToken,
-} from "@/lib/secure-auth";
-import { applyTheme } from "@/lib/theme";
+import { installApiFetchGuard } from "@/lib/install-fetch-guard";
+import { applyTheme, watchSystemTheme } from "@/lib/theme";
 import { useAuthStore } from "@/store/auth";
+import { useThemeStore } from "@/store/theme";
+
+installApiFetchGuard();
 
 const PUBLIC_PATHS = ["/setup"];
-
-// Check if running without GitHub config (pure local mode)
-const isLocalOnly = !process.env.NEXT_PUBLIC_GH_TOKEN && !process.env.NEXT_PUBLIC_E2E_TOKEN;
 
 interface ClientShellProps {
   children: ReactNode;
@@ -26,87 +23,68 @@ export default function ClientShell({ children }: ClientShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const setToken = useAuthStore((s) => s.setToken);
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const currentTheme = useThemeStore((s) => s.theme);
   const isOnline = useOnlineStatus();
   const [isRestoring, setIsRestoring] = useState(true);
 
-  // Apply theme + restore secure token on mount
+  // Apply theme and watch system theme changes
   useEffect(() => {
-    applyTheme();
+    applyTheme(currentTheme);
+    const unwatch = watchSystemTheme(() => applyTheme("system"));
+    return () => unwatch();
+  }, [currentTheme]);
 
-    async function restoreToken() {
-      // If already authenticated from Zustand persist, skip
-      if (useAuthStore.getState().isAuthenticated) {
-        setIsRestoring(false);
-        return;
-      }
-
-      // 0) 直接读localStorage — Zustand persist是异步的，可能还没恢复
+  // Restore auth state once on mount only
+  // pathname 不应作为依赖，避免每次路由变化都重新调用 /api/auth/session
+  useEffect(() => {
+    async function restoreAuth() {
+      // Server-side session is the source of truth.
+      // Zustand persist already provides a synchronous fallback.
       try {
-        const raw = localStorage.getItem("sf_auth");
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          const stored = parsed?.state || parsed;
-          if (stored?.token && stored?.isAuthenticated) {
-            setToken(stored.token);
-            setIsRestoring(false);
-            return;
+        const res = await fetch("/api/auth/session");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && data.schoolId && data.userId) {
+            // Local-first: only mark the session as authenticated and let the
+            // user into the app. Data is read locally via /api/local-data by
+            // each page; we never auto-fetch from the school server on startup.
+            setAuth(data.schoolId, data.userId);
+          } else {
+            // 服务端已无有效会话，清除前端缓存的登录态，避免双数据源不一致
+            clearAuth();
           }
         }
-      } catch {}
-
-      // 1) Try to retrieve from secure storage (Electron safeStorage or localStorage)
-      const secureToken = await secureRetrieveToken();
-      if (secureToken) {
-        setToken(secureToken);
+      } catch {
+        // Offline or server error — rely on Zustand persist state
+      } finally {
         setIsRestoring(false);
-        return;
       }
-
-      // 2) Try to migrate legacy localStorage token to secure storage
-      const migrated = await migrateLegacyToken();
-      if (migrated) {
-        const migratedToken = await secureRetrieveToken();
-        if (migratedToken) {
-          setToken(migratedToken);
-          setIsRestoring(false);
-          return;
-        }
-      }
-
-      // 3) Fallback to env token (development convenience, NOT for production)
-      const envToken = process.env.NEXT_PUBLIC_GH_TOKEN;
-      if (envToken) {
-        setToken(envToken);
-        setIsRestoring(false);
-        return;
-      }
-
-      // 4) Local mode — skip GitHub, use local API
-      // Always fallback to local mode when no GitHub token configured
-      setToken("local-mode");
-      setIsRestoring(false);
-      return;
     }
 
-    restoreToken().catch(() => setIsRestoring(false));
-  }, [setToken]);
+    restoreAuth();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setAuth, clearAuth]); // intentionally omit pathname — only restore once on mount
 
-  // Route guard — skip in local-only mode, wait for restoration first
+  // Route guard — redirect to /setup if not authenticated
   useEffect(() => {
-    if (isLocalOnly || isRestoring) return;
-    if (!isAuthenticated && !PUBLIC_PATHS.includes(pathname)) {
+    if (isRestoring) return;
+    // Already on a public path — no redirect needed
+    if (PUBLIC_PATHS.includes(pathname)) return;
+    // Not authenticated and on a protected path — redirect to setup
+    if (!isAuthenticated) {
       router.replace("/setup");
     }
   }, [isAuthenticated, pathname, router, isRestoring]);
 
   // On /setup page, render without AppShell
-  if (isLocalOnly ? false : PUBLIC_PATHS.includes(pathname)) {
+  if (PUBLIC_PATHS.includes(pathname)) {
     return <>{children}</>;
   }
 
-  // While restoring auth state, render a minimal loader to avoid redirect flash
-  if (!isLocalOnly && isRestoring) {
+  // While restoring auth state, render a minimal loader
+  if (isRestoring) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 rounded-xl bg-primary/10 animate-breathe" />
@@ -114,9 +92,13 @@ export default function ClientShell({ children }: ClientShellProps) {
     );
   }
 
-  // While not authenticated (and about to redirect), render nothing
-  if (!isLocalOnly && !isAuthenticated) {
-    return null;
+  // Not authenticated but not yet on /setup — show loading while redirect happens
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 rounded-xl bg-primary/10 animate-breathe" />
+      </div>
+    );
   }
 
   return <AppShell isOnline={isOnline}>{children}</AppShell>;

@@ -15,7 +15,12 @@ dist*/
 win-unpacked/
 
 # Mobile build
-android/
+android/app/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+android/captures/
+android/*.iml
 .mobile-build-backup/
 
 # env files
@@ -38,6 +43,21 @@ Thumbs.db
 *.tsbuildinfo
 next-env.d.ts
 
+# SQLite runtime data
+data/
+.data/
+
+# build log
+build_log.txt
+
+# PWA generated files
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+public/fallback-*.js
+public/fallback-*.js.map
+
 # Test coverage
 coverage/
 
@@ -46,3 +66,6 @@ coverage/
 .idea/
 *.swp
 *.swo
+
+# Temporary screenshots
+screenshots/

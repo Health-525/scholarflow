@@ -43,30 +43,75 @@ function todayKey(): string { const d = new Date(); return `${d.getFullYear()}-$
 function nowMs() { return Date.now(); }
 
 // ── Storage ──
-function loadLog(): DayLog {
-  if (typeof window === "undefined") return { date: todayKey(), segments: [], idleMs: 0, awayMs: 0 };
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const store = JSON.parse(raw);
-      const today = todayKey();
-      // saveLog 存的是 { "日期": DayLog } 格式
-      if (store[today] && store[today].segments) return store[today];
-      // 兼容旧格式：顶层直接有 segments
-      if (store.segments) return store;
+function isSecureStorageAvailable(): boolean {
+  return typeof window !== "undefined" &&
+    !!window.electronAPI?.storeActivityData &&
+    !!window.electronAPI?.retrieveActivityData &&
+    !!window.electronAPI?.clearActivityData;
+}
+
+async function readRawStorage(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  const api = window.electronAPI;
+  if (isSecureStorageAvailable()) {
+    const legacy = window.localStorage.getItem(STORAGE_KEY);
+    if (legacy) {
+      try {
+        await api!.storeActivityData!(legacy);
+        window.localStorage.removeItem(STORAGE_KEY);
+        return legacy;
+      } catch {
+        return legacy;
+      }
     }
+    return api!.retrieveActivityData!();
+  }
+  return window.localStorage.getItem(STORAGE_KEY);
+}
+
+async function writeRawStorage(value: string): Promise<void> {
+  if (typeof window === "undefined") return;
+  if (isSecureStorageAvailable()) {
+    await window.electronAPI!.storeActivityData!(value);
+  } else {
+    window.localStorage.setItem(STORAGE_KEY, value);
+  }
+}
+
+function parseLog(raw: string | null): DayLog {
+  if (!raw) return { date: todayKey(), segments: [], idleMs: 0, awayMs: 0 };
+  try {
+    const store = JSON.parse(raw);
+    const today = todayKey();
+    if (store[today] && store[today].segments) return store[today];
+    if (store.segments) return store;
   } catch {}
   return { date: todayKey(), segments: [], idleMs: 0, awayMs: 0 };
 }
-function saveLog(log: DayLog) {
+
+async function loadLog(): Promise<DayLog> {
+  const raw = await readRawStorage();
+  return parseLog(raw);
+}
+
+async function saveLog(log: DayLog) {
   try {
     const store: Record<string, DayLog> = {};
-    try { const r = localStorage.getItem(STORAGE_KEY); if (r) Object.assign(store, JSON.parse(r)); } catch {}
+    try {
+      const raw = await readRawStorage();
+      if (raw) Object.assign(store, JSON.parse(raw));
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[ActivityTracker] loadLog JSON parse failed:", e);
+    }
     store[log.date] = log;
     const keys = Object.keys(store).sort();
     while (keys.length > MAX_DAYS) delete store[keys.shift()!];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-  } catch {}
+    await writeRawStorage(JSON.stringify(store));
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("[ActivityTracker] saveLog failed:", e);
+  }
 }
 
 // ── Global singleton ── survives Next.js page navigation
@@ -74,9 +119,12 @@ let _segs: AppSegment[] = [];
 let _curApp = "启动中";
 let _curTitle = "";
 let _curCategory: Category = "system";
+// idle / away 检测暂未接入；当前恒为 0，仅保留字段占位以保持 ActivityStateV3 / DayLog API 不变
 const _idle = 0; const _away = 0;
 let _subs: Array<() => void> = [];
 let _inited = false;
+let _refCount = 0;
+let _unsubActiveWindow: (() => void) | null = null;
 let _latest: ActivityStateV3 | null = null;
 
 function notify() { _latest = null; _subs.forEach(f => f()); }
@@ -140,13 +188,14 @@ function extractObsidianVault(title: string): string | undefined {
 
 let _flushTimer: ReturnType<typeof setInterval> | null = null;
 
-// ── Init (called once) ──
-function init() {
+// ── Init / cleanup ──
+async function init() {
+  _refCount++;
   if (_inited) return;
   const isElectron = !!window.electronAPI?.isElectron;
   if (!isElectron) return;
   _inited = true;
-  const log = loadLog();
+  const log = await loadLog();
   _segs = [...log.segments];
   if (_segs.length>0 && _segs[_segs.length-1].end===0) _segs[_segs.length-1].end = nowMs();
 
@@ -154,14 +203,22 @@ function init() {
   api.getActiveWindow().then((win: WindowInfo|null) => {
     if (win) { pushSeg(win); notify(); }
   }).catch(() => {});
-  api.onActiveWindowChanged((win: WindowInfo) => {
+  _unsubActiveWindow = api.onActiveWindowChanged((win: WindowInfo) => {
     pushSeg(win); notify();
   });
   _flushTimer = setInterval(() => {
     if (_segs.length>0 && _segs[_segs.length-1].end===0) _segs[_segs.length-1].end = nowMs();
-    saveLog(buildLog());
+    saveLog(buildLog()).catch(() => {});
     _segs.push({ app: _curApp, title: _curTitle, category: _curCategory, start: nowMs(), end: 0 });
   }, 30000);
+}
+
+function cleanupSingleton() {
+  _refCount--;
+  if (_refCount > 0) return;
+  if (_flushTimer) { clearInterval(_flushTimer); _flushTimer = null; }
+  if (_unsubActiveWindow) { _unsubActiveWindow(); _unsubActiveWindow = null; }
+  _inited = false;
 }
 
 function pushSeg(win: WindowInfo) {
@@ -205,29 +262,37 @@ export interface ActivityStateV3 {
   currentApp: string; currentTitle: string;
   appBreakdown: Array<{app:string;minutes:number}>;
   categoryBreakdown: Array<{category:Category;minutes:number;color:string}>;
-  totalActiveMs: number; idleMs: number; awayMs: number;
+  totalActiveMs: number;
+  /** 暂未实现：idle/away 检测尚未接入，当前始终为 0 */
+  idleMs: number;
+  /** 暂未实现：idle/away 检测尚未接入，当前始终为 0 */
+  awayMs: number;
   todayLog: DayLog; isElectron: boolean;
 }
 
 export function useActivityTrackerV3(): ActivityStateV3 {
   const [, tick] = useState(0);
   useEffect(() => {
-    init();
+    init().catch(() => {});
     const fn = () => tick(n=>n+1);
     _subs.push(fn);
     return () => {
       _subs = _subs.filter(f=>f!==fn);
-      // Cleanup flush timer on unmount
-      if (_flushTimer) { clearInterval(_flushTimer); _flushTimer = null; }
-      _inited = false; // Allow re-init if component remounts
+      cleanupSingleton();
     };
   }, []);
   return _latest || computeState();
 }
 
-export function downloadActivityCSV() {
+export async function downloadActivityCSV() {
   const store: Record<string, DayLog> = {};
-  try { const r = localStorage.getItem(STORAGE_KEY); if (r) Object.assign(store, JSON.parse(r)); } catch {}
+  try {
+    const r = await readRawStorage();
+    if (r) Object.assign(store, JSON.parse(r));
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("[ActivityTracker] loadLog JSON parse failed:", e);
+  }
   let csv = "Date,App,Minutes\n";
   for (const [date, log] of Object.entries(store).sort()) {
     if (!log?.segments) continue;
@@ -248,6 +313,17 @@ export function downloadActivityCSV() {
   URL.revokeObjectURL(url);
 }
 
-export function clearActivityData() {
-  try { localStorage.removeItem(STORAGE_KEY); _segs = []; _latest = null; } catch {}
+export async function clearActivityData() {
+  try {
+    if (isSecureStorageAvailable()) {
+      await window.electronAPI!.clearActivityData!();
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+    _segs = [];
+    _latest = null;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("[ActivityTracker] clearActivityData failed:", e);
+  }
 }

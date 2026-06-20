@@ -1,28 +1,102 @@
 "use client";
 
+import { Clock, ListChecks, MapPin, User, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { courseColor } from "@/lib/schedule/course-color";
-import type { DayItem, CourseView } from "@/lib/schedule/schedule";
+import type { CourseView, DayItem } from "@/lib/schedule/schedule";
+import { formatDateInTimeZone } from "@/lib/schedule/timezone";
 
 import { ReminderButton } from "./ReminderButton";
 
 interface CourseDrawerProps {
   item: DayItem | null;
   date: Date;
+  timeZone: string;
   onClose: () => void;
 }
 
-export function CourseDrawer({ item, date, onClose }: CourseDrawerProps) {
+const FOCUSABLE_SELECTOR = [
+  "button",
+  "[href]",
+  "input",
+  "select",
+  "textarea",
+  '[tabindex]:not([tabindex="-1"])',
+].join(", ");
+
+export function CourseDrawer({
+  item,
+  date,
+  timeZone,
+  onClose,
+}: CourseDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
+  const previousActiveElement = useRef<Element | null>(null);
 
   useEffect(() => {
     if (!item) return;
+
+    // Save previously focused element and lock background scroll.
+    previousActiveElement.current = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    // Move focus to the first focusable element inside the drawer.
+    const drawer = drawerRef.current;
+    if (drawer) {
+      const focusable = drawer.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      const first = focusable[0];
+      if (first) first.focus();
+    }
+
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (e.key !== "Tab" || !drawer) return;
+
+      const focusable = Array.from(
+        drawer.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      ).filter(
+        (el) =>
+          !("disabled" in el && (el as HTMLButtonElement).disabled) &&
+          el.offsetParent !== null,
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (e.shiftKey) {
+        if (active === first || !drawer.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (active === last || !drawer.contains(active)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
+
     document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = previousOverflow;
+      // Restore focus if it was moved inside the drawer.
+      const prev = previousActiveElement.current as HTMLElement | null;
+      if (prev && typeof prev.focus === "function") {
+        prev.focus();
+      }
+    };
   }, [item, onClose]);
 
   if (!item) return null;
@@ -33,21 +107,24 @@ export function CourseDrawer({ item, date, onClose }: CourseDrawerProps) {
 
   // Compute startAt timestamp for reminder
   let startAt = 0;
-  if (item.timeText) {
+  if (item.timeText && item.timeText.includes("-")) {
     const startStr = item.timeText.split("-")[0].trim();
     const [hours, minutes] = startStr.split(":").map(Number);
-    const d = new Date(date);
-    d.setHours(hours, minutes, 0, 0);
-    startAt = d.getTime();
+    if (Number.isFinite(hours) && Number.isFinite(minutes)) {
+      const d = new Date(date);
+      d.setHours(hours, minutes, 0, 0);
+      const t = d.getTime();
+      if (Number.isFinite(t)) startAt = t;
+    }
   }
 
-  const courseKey = `${date.toISOString().slice(0, 10)}-${item.title}`;
+  const courseKey = `${formatDateInTimeZone(date, timeZone)}-${item.title}`;
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] animate-fade-in"
+        className="fixed inset-0 z-40 bg-[var(--overlay)] backdrop-blur-[2px] animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -69,26 +146,24 @@ export function CourseDrawer({ item, date, onClose }: CourseDrawerProps) {
           />
           <div className="relative px-5 pt-6 pb-4 flex items-start justify-between">
             <div>
-              <div
-                className="inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold mb-2"
+              <Badge
+                className="mb-2"
                 style={{ backgroundColor: colors.bg, color: colors.accent }}
               >
                 {isCourse ? "课程" : "特殊课程"}
-              </div>
+              </Badge>
               <h2 className="text-lg font-bold font-display text-foreground">
                 {item.title}
               </h2>
             </div>
-            <button
-              type="button"
+            <Button
+              size="icon"
+              variant="ghost"
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
               aria-label="关闭"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </div>
 
@@ -96,9 +171,13 @@ export function CourseDrawer({ item, date, onClose }: CourseDrawerProps) {
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
           {item.timeText && (
             <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/60">
-              <span className="text-lg" aria-hidden="true">🕐</span>
+              <div className="w-5 h-5 flex items-center justify-center text-muted-foreground">
+                <Clock className="w-4 h-4" />
+              </div>
               <div>
-                <div className="text-[10px] text-muted-foreground font-medium">时间</div>
+                <div className="text-xs text-muted-foreground font-medium">
+                  时间
+                </div>
                 <div className="text-sm font-medium text-foreground">
                   {item.timeText}
                 </div>
@@ -108,9 +187,13 @@ export function CourseDrawer({ item, date, onClose }: CourseDrawerProps) {
 
           {item.location && (
             <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/60">
-              <span className="text-lg" aria-hidden="true">📍</span>
+              <div className="w-5 h-5 flex items-center justify-center text-muted-foreground">
+                <MapPin className="w-4 h-4" />
+              </div>
               <div>
-                <div className="text-[10px] text-muted-foreground font-medium">地点</div>
+                <div className="text-xs text-muted-foreground font-medium">
+                  地点
+                </div>
                 <div className="text-sm font-medium text-foreground">
                   {item.location}
                 </div>
@@ -120,9 +203,13 @@ export function CourseDrawer({ item, date, onClose }: CourseDrawerProps) {
 
           {course?.teacher && (
             <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/60">
-              <span className="text-lg" aria-hidden="true">👨‍🏫</span>
+              <div className="w-5 h-5 flex items-center justify-center text-muted-foreground">
+                <User className="w-4 h-4" />
+              </div>
               <div>
-                <div className="text-[10px] text-muted-foreground font-medium">教师</div>
+                <div className="text-xs text-muted-foreground font-medium">
+                  教师
+                </div>
                 <div className="text-sm font-medium text-foreground">
                   {course.teacher}
                 </div>
@@ -132,9 +219,13 @@ export function CourseDrawer({ item, date, onClose }: CourseDrawerProps) {
 
           {course?.periods && course.periods.length > 0 && (
             <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/60">
-              <span className="text-lg" aria-hidden="true">📋</span>
+              <div className="w-5 h-5 flex items-center justify-center text-muted-foreground">
+                <ListChecks className="w-4 h-4" />
+              </div>
               <div>
-                <div className="text-[10px] text-muted-foreground font-medium">节次</div>
+                <div className="text-xs text-muted-foreground font-medium">
+                  节次
+                </div>
                 <div className="text-sm font-medium text-foreground">
                   第 {course.periods.join("、")} 节
                 </div>

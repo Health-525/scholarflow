@@ -1,134 +1,144 @@
-import fs from "fs";
-import path from "path";
-
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
-// 自动探测 timetable 目录
-function findTimetableDir(): string | null {
-  const envDir = process.env.TIMETABLE_DIR;
-  if (envDir) try { if (fs.existsSync(path.join(envDir, "data", "schedule.json"))) return envDir; } catch {}
+import { DEFAULT_SCHOOL_ID } from "@/lib/account-prefix";
+import { resolveAccountPrefix, resolveSchoolId, resolveUserId } from "@/lib/account-prefix";
+import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+import { getDashboardSummary } from "@/lib/dashboard/summary";
+import { getServerDB } from "@/lib/server-db";
 
-  const candidates = [
-    path.join(process.cwd(), "..", "timetable"),
-    path.join(process.cwd(), "..", "..", "timetable"),
-    path.join(process.cwd(), "..", "..", "..", "timetable"),
-  ];
-  for (const c of candidates) {
-    try { if (fs.existsSync(path.join(c, "data", "schedule.json"))) return c; } catch {}
-  }
-  return null; // Not found — return empty data instead of crashing
-}
+const localDataQuerySchema = z.object({
+  type: z.string().default("dashboard"),
+  schoolId: z.string().optional(),
+  userId: z.string().optional(),
+  date: z.string().optional(),
+  slug: z.string().optional(),
+});
 
-const TIMETABLE_DIR = findTimetableDir();
-
-function safeRead(filePath: string) {
-  try {
-    if (fs.existsSync(filePath)) {
-      return JSON.parse(fs.readFileSync(filePath, "utf8"));
-    }
-  } catch {}
-  return null;
-}
-
-interface CourseEntry {
-  title: string;
-  [key: string]: unknown;
-}
-
-interface AssignmentEntry {
-  done?: boolean;
-  deadline?: string;
-  [key: string]: unknown;
-}
-
-interface RunningRecord {
-  type?: string;
-  [key: string]: unknown;
-}
-
+/**
+ * GET /api/local-data?type=<type>&schoolId=<schoolId>&userId=<userId>
+ *
+ * 数据 key 格式: "<type>:<schoolId>:<userId>"
+ * 实现账号隔离 — 不同账号的数据互不可见
+ */
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const type = searchParams.get("type") || "dashboard";
-
-  if (!TIMETABLE_DIR) {
-    // No timetable dir — return empty data
-    return NextResponse.json(type === "library" ? { libs: [], summary: { total: 0, used: 0, avail: 0, rate: 0 } } : type === "dashboard" ? { updatedAt: new Date().toISOString(), overview: {} } : {});
+  if (!isTrustedOrigin(request, { allowInternalToken: true })) {
+    return forbiddenResponse();
   }
 
-  const dataDir = path.join(TIMETABLE_DIR, "data");
-  const outDir = path.join(TIMETABLE_DIR, "_out");
+  const { searchParams } = new URL(request.url);
+  const parse = localDataQuerySchema.safeParse(Object.fromEntries(searchParams));
+  if (!parse.success) {
+    return NextResponse.json({ error: "invalid query", issues: parse.error.issues }, { status: 400 });
+  }
+  const { type, schoolId: schoolIdParam, userId: userIdParam, date, slug } = parse.data;
+
+  const db = getServerDB();
+  const active = db.findActiveCredentials();
+  let prefix = resolveAccountPrefix({ schoolId: schoolIdParam, userId: userIdParam }, active);
+  const schoolId = resolveSchoolId({ schoolId: schoolIdParam }, active);
+
+  // 凭证过期但本地已有数据时，回退到本地最近使用的账号，避免显示空 default。
+  if (!active && !userIdParam) {
+    const localPrefix = db.findLocalAccountPrefix(schoolIdParam || DEFAULT_SCHOOL_ID);
+    if (localPrefix) {
+      prefix = localPrefix;
+    }
+  }
+
+  // Auto-seed missing data from timetable on first access
+  db.seedFromTimetable(prefix);
 
   switch (type) {
-    case "dashboard": {
-      // Return dashboard summary — auto-generate if not exists
-      let summary = safeRead(path.join(outDir, "dashboard-summary.json"));
-      if (!summary) {
-        const schedule = safeRead(path.join(dataDir, "schedule.json")) || { courses: [] };
-        const assignments: AssignmentEntry[] = safeRead(path.join(dataDir, "assignments.json")) || [];
-        const running: { records: RunningRecord[]; completed?: boolean } = safeRead(path.join(dataDir, "running.json")) || { records: [] };
-        const grades = safeRead(path.join(outDir, "jwgl_grades_all.json")) || { gpa: "0.00" };
-        const today = new Date().toISOString().slice(0, 10);
-        const courses: CourseEntry[] = schedule.courses || [];
-        summary = {
-          updatedAt: new Date().toISOString(),
-          date: today,
-          overview: {
-            courses: new Set(courses.map(c => c.title)).size,
-            pendingAssignments: assignments.filter(a => !a.done).length,
-            urgentAssignments: assignments.filter(a => !a.done && a.deadline && a.deadline <= today).length,
-            running: {
-              total: Array.isArray(running.records) ? running.records.length : 0,
-              morning: Array.isArray(running.records) ? running.records.filter(r => r.type === "morning").length : 0,
-              completed: running.completed === true,
-            },
-            gpa: grades.gpa || "0.00",
-          },
-          health: { agents: 0, total: 0, failing: 0 },
-          knowledge: { gapsRemaining: 0, estimatedHours: 0 },
-        };
-      }
-      return NextResponse.json(summary);
-    }
+    case "dashboard":
+      return NextResponse.json(getDashboardSummary(db, prefix));
 
     case "schedule":
-      return NextResponse.json(safeRead(path.join(dataDir, "schedule.json")) || { courses: [] });
+      return NextResponse.json(db.readData(`schedule:${prefix}`) || { courses: [] });
 
     case "assignments":
-      return NextResponse.json(safeRead(path.join(dataDir, "assignments.json")) || []);
+      return NextResponse.json(db.readData(`assignments:${prefix}`) || []);
 
     case "running":
-      return NextResponse.json(safeRead(path.join(dataDir, "running.json")) || { records: [] });
-
-    case "health":
-      return NextResponse.json(safeRead(path.join(outDir, "health-status.json")) || { agents: [] });
-
-    case "roadmap":
-      return NextResponse.json(safeRead(path.join(outDir, "knowledge-roadmap.json")) || { phases: [] });
+      return NextResponse.json(db.readData(`running:${prefix}`) || { records: [] });
 
     case "jwc-news":
-      return NextResponse.json(safeRead(path.join(outDir, "jwc_news.json")) || []);
+      // 教务通知是全校共享的，按 schoolId 区分
+      return NextResponse.json(db.readData(`jwc-news:${schoolId}`) || []);
 
     case "exams":
-      return NextResponse.json(safeRead(path.join(outDir, "jwgl_exams.json")) || []);
+      return NextResponse.json(db.readData(`exams:${prefix}`) || []);
 
     case "grades":
-      return NextResponse.json(safeRead(path.join(outDir, "jwgl_grades_all.json")) || { gpa: 0, allCourses: [] });
+      return NextResponse.json(db.readData(`grades:${prefix}`) || { gpa: 0, allCourses: [] });
 
     case "library":
-      return NextResponse.json(safeRead(path.join(dataDir, "library.json")) || { libs: [], summary: { total: 0, used: 0, avail: 0, rate: 0 } });
+      return NextResponse.json(db.readData(`library:${prefix}`) || { libs: [], summary: { total: 0, used: 0, avail: 0, rate: 0 } });
+
+    case "dailyReports": {
+      const reportPrefix = `dailyReport:${prefix}:`;
+      const entries = db
+        .listKeys()
+        .filter((key) => key.startsWith(reportPrefix))
+        .map((key) => {
+          const date = key.slice(reportPrefix.length);
+          return { name: `${date}.md`, path: `日报/${date}.md`, type: "file" as const };
+        })
+        .sort((a, b) => b.name.localeCompare(a.name));
+      return NextResponse.json(entries);
+    }
+
+    case "weeklyReports": {
+      const reportPrefix = `weeklyReport:${prefix}:`;
+      const entries = db
+        .listKeys()
+        .filter((key) => key.startsWith(reportPrefix))
+        .map((key) => {
+          const slug = key.slice(reportPrefix.length);
+          return { name: `${slug}.md`, path: `周报/${slug}.md`, type: "file" as const };
+        })
+        .sort((a, b) => b.name.localeCompare(a.name));
+      return NextResponse.json(entries);
+    }
+
+    case "dailyReport": {
+      if (!date) {
+        return NextResponse.json({ error: "missing date" }, { status: 400 });
+      }
+      const data = db.readData(`dailyReport:${prefix}:${date}`);
+      return NextResponse.json(typeof data === "string" ? data : "");
+    }
+
+    case "weeklyReport": {
+      if (!slug) {
+        return NextResponse.json({ error: "missing slug" }, { status: 400 });
+      }
+      const data = db.readData(`weeklyReport:${prefix}:${slug}`);
+      return NextResponse.json(typeof data === "string" ? data : "");
+    }
 
     case "student": {
-      let studentId = "";
-      try {
-        const envPath = path.join(TIMETABLE_DIR, ".env");
-        if (fs.existsSync(envPath)) {
-          const envContent = fs.readFileSync(envPath, "utf8");
-          const match = envContent.match(/JWGL_USERNAME=(.+)/);
-          if (match) studentId = match[1].trim();
-        }
-      } catch {}
-      const grades = safeRead(path.join(outDir, "jwgl_grades_all.json")) || { allCourses: [] };
-      return NextResponse.json({ studentId, gpa: grades.gpa || "0", totalCredits: grades.totalCredits || 0, courseCount: (grades.allCourses || []).length });
+      const studentInfo = db.readData(`student:${prefix}`) as { studentId?: string; gpa?: string; totalCredits?: number; courseCount?: number } | null;
+      if (studentInfo) {
+        return NextResponse.json(studentInfo);
+      }
+      const grades = (db.readData(`grades:${prefix}`) as { gpa?: string; totalCredits?: number; allCourses?: unknown[] }) || { allCourses: [] };
+      return NextResponse.json({
+        studentId: "",
+        gpa: grades.gpa || "0",
+        totalCredits: grades.totalCredits || 0,
+        courseCount: (grades.allCourses || []).length,
+      });
+    }
+
+    case "credentials": {
+      // userId 单独解析:显式提供则用之，否则回退有效凭证的 userId，再否则默认
+      const userId =
+        userIdParam && userIdParam.trim()
+          ? resolveUserId(userIdParam)
+          : active?.userId ?? resolveUserId(userIdParam);
+      const creds = db.getCredentials(schoolId, userId);
+      return NextResponse.json(creds || {});
     }
 
     default:

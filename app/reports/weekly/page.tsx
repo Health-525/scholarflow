@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { CalendarDays } from "lucide-react";
+import { useMemo, useState } from "react";
 
+import { PageHeader } from "@/components/layout/PageHeader";
 import { DateRangeFilter } from "@/components/reports/DateRangeFilter";
 import { ReportListItem } from "@/components/reports/ReportListItem";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useWeeklyReports } from "@/hooks/useReports";
@@ -26,18 +29,11 @@ export default function WeeklyReportsPage() {
 
   return (
     <div className="max-w-5xl mx-auto py-6 animate-page">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
-          <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <div>
-          <h1 className="text-xl font-bold font-display text-foreground">周报</h1>
-          <p className="text-[12px] text-muted-foreground">每周学习趋势分析</p>
-        </div>
-      </div>
+      <PageHeader
+        icon={<CalendarDays className="w-5 h-5 text-primary" />}
+        title="周报"
+        description="每周学习趋势分析"
+      />
 
       <div className="mb-4">
         <DateRangeFilter
@@ -62,9 +58,14 @@ export default function WeeklyReportsPage() {
       {!isLoading && !error && (
         <div className="space-y-2">
           {filtered.length === 0 ? (
-            <div className="rounded-2xl p-8 text-center bg-card border border-border">
-              <p className="text-muted-foreground">暂无周报</p>
-            </div>
+            <EmptyState
+              title="暂无周报"
+              description={
+                startDate || endDate
+                  ? "当前筛选条件下没有周报，尝试调整日期范围"
+                  : "系统会根据学习数据自动生成周报，快来开始学习吧"
+              }
+            />
           ) : (
             filtered.map((entry) => (
               <ReportListItem key={entry.path} entry={entry} type="weekly" />

@@ -1,10 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { FileText } from "lucide-react";
+import { useMemo, useState } from "react";
 
+import { PageHeader } from "@/components/layout/PageHeader";
 import { DailyEditor } from "@/components/reports/DailyEditor";
 import { DateRangeFilter } from "@/components/reports/DateRangeFilter";
 import { ReportListItem } from "@/components/reports/ReportListItem";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useDailyReports } from "@/hooks/useReports";
@@ -27,30 +31,17 @@ export default function DailyReportsPage() {
 
   return (
     <div className="max-w-5xl mx-auto py-6 animate-page">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary/10">
-          <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </div>
-        <div>
-          <h1 className="text-xl font-bold font-display text-foreground">日报</h1>
-          <p className="text-[12px] text-muted-foreground">每日学习总结与反思</p>
-        </div>
-      </div>
+      <PageHeader
+        icon={<FileText className="w-5 h-5 text-primary" />}
+        title="日报"
+        description="每日学习总结与反思"
+        actions={
+          <Button onClick={() => setShowEditor((v) => !v)}>
+            {showEditor ? "收起" : "新建日报"}
+          </Button>
+        }
+      />
 
-      {/* New report button */}
-      {!showEditor && (
-        <button
-          onClick={() => setShowEditor(true)}
-          className="mb-4 px-4 py-2 rounded-xl text-sm font-medium bg-primary text-primary-foreground"
-        >
-          + 新建日报
-        </button>
-      )}
-
-      {/* Editor */}
       {showEditor && (
         <DailyEditor
           onSaved={() => { setShowEditor(false); reload(); }}
@@ -81,9 +72,14 @@ export default function DailyReportsPage() {
       {!isLoading && !error && (
         <div className="space-y-2">
           {filtered.length === 0 ? (
-            <div className="rounded-2xl p-8 text-center bg-card border border-border">
-              <p className="text-muted-foreground">暂无日报</p>
-            </div>
+            <EmptyState
+              title="暂无日报"
+              description={
+                startDate || endDate
+                  ? "当前筛选条件下没有日报，尝试调整日期范围"
+                  : "点击右上角“新建日报”按钮，开始记录今天的学习总结"
+              }
+            />
           ) : (
             filtered.map((entry) => (
               <ReportListItem key={entry.path} entry={entry} type="daily" />
