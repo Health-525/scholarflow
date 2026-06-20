@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { schoolUsernameBodySchema } from "@/lib/schemas/fetch";
-import { NJTECH_PERIOD_TIMES } from "@/lib/schools/njtech/jwgl";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
 
@@ -44,17 +43,18 @@ export async function POST(request: Request) {
 
     const courses = await adapter.fetchSchedule(credentials);
     const prefix = `${schoolId}:${userId}`;
-    const week1Monday = "2026-03-02";
+    const semInfo = adapter.getCurrentSemester?.() || { year: "2025", semester: "2", week1Monday: "2026-03-02" };
+    const y = Number.parseInt(semInfo.year, 10);
 
     db.writeData(`schedule:${prefix}`, {
       courses,
       meta: {
-        week1_monday: week1Monday,
+        week1_monday: semInfo.week1Monday,
         tz: "Asia/Shanghai",
-        semester: "2025-2026-2",
+        semester: `${y}-${y + 1}-${semInfo.semester}`,
         schoolId,
       },
-      periodTimes: NJTECH_PERIOD_TIMES,
+      periodTimes: adapter.periodTimes,
     });
 
     return NextResponse.json({ ok: true, count: courses.length });
