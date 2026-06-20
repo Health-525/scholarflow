@@ -15,6 +15,7 @@ interface DownloadProgress {
 
 interface ElectronAPI {
   isElectron: boolean;
+  getInternalToken: () => Promise<string | null>;
   encryptAndStoreToken: (token: string) => Promise<boolean>;
   retrieveToken: () => Promise<string | null>;
   clearToken: () => Promise<boolean>;

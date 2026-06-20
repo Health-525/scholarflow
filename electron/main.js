@@ -231,6 +231,10 @@ function setupSecureTokenIPC() {
     if (fs.existsSync(encPath)) fs.unlinkSync(encPath);
     return true;
   });
+
+  ipcMain.handle('internal-token:get', async () => {
+    return globalThis.__scholarflowInternalToken || null;
+  });
 }
 
 // ── 凭证存储路径(与图书馆 token 隔离)────────────────────────

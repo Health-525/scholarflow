@@ -6,9 +6,12 @@ import { useEffect, useState } from "react";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { installApiFetchGuard } from "@/lib/install-fetch-guard";
 import { applyTheme, watchSystemTheme } from "@/lib/theme";
 import { useAuthStore } from "@/store/auth";
 import { useThemeStore } from "@/store/theme";
+
+installApiFetchGuard();
 
 const PUBLIC_PATHS = ["/setup"];
 

@@ -7,6 +7,9 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("electronAPI", {
   isElectron: true,
 
+  // ── Internal API Token (用于同源请求的 403 防护) ──
+  getInternalToken: () => ipcRenderer.invoke("internal-token:get"),
+
   // ── Token 安全存储 ──
   encryptAndStoreToken: (token) =>
     ipcRenderer.invoke("token:encrypt-store", token),
