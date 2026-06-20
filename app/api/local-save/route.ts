@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { DEFAULT_SCHOOL_ID } from "@/lib/account-prefix";
-import { resolveAccountPrefix } from "@/lib/account-prefix";
+import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getServerDB } from "@/lib/server-db";
 
@@ -54,16 +53,11 @@ export async function POST(request: Request) {
     }
 
     // Prefix key with schoolId:userId for account isolation
-    const active = db.findActiveCredentials();
-    let prefix = resolveAccountPrefix({ schoolId, userId }, active);
-
-    // 凭证过期但本地已有数据时，回退到本地最近使用的账号，避免写到空 default。
-    if (!active && !userId) {
-      const localPrefix = db.findLocalAccountPrefix(schoolId || DEFAULT_SCHOOL_ID);
-      if (localPrefix) {
-        prefix = localPrefix;
-      }
+    const account = getAuthorizedAccount({ schoolId, userId }, db);
+    if (!account) {
+      return forbiddenResponse({ error: "unauthorized account access" });
     }
+    const prefix = `${account.schoolId}:${account.userId}`;
 
     // Special-case report markdown files to match local-data read keys
     const dailyMatch = file.match(/^日报\/(.+)\.md$/);

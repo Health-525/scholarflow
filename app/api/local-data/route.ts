@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { DEFAULT_SCHOOL_ID } from "@/lib/account-prefix";
-import { resolveAccountPrefix, resolveSchoolId, resolveUserId } from "@/lib/account-prefix";
+import { resolveUserId } from "@/lib/account-prefix";
+import { getAuthorizedAccount, getAuthorizedSchoolId } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getDashboardSummary } from "@/lib/dashboard/summary";
 import { getServerDB } from "@/lib/server-db";
@@ -34,17 +34,14 @@ export async function GET(request: Request) {
   const { type, schoolId: schoolIdParam, userId: userIdParam, date, slug } = parse.data;
 
   const db = getServerDB();
-  const active = db.findActiveCredentials();
-  let prefix = resolveAccountPrefix({ schoolId: schoolIdParam, userId: userIdParam }, active);
-  const schoolId = resolveSchoolId({ schoolId: schoolIdParam }, active);
+  const account = getAuthorizedAccount({ schoolId: schoolIdParam, userId: userIdParam }, db);
+  const schoolId = getAuthorizedSchoolId(schoolIdParam, db);
 
-  // 凭证过期但本地已有数据时，回退到本地最近使用的账号，避免显示空 default。
-  if (!active && !userIdParam) {
-    const localPrefix = db.findLocalAccountPrefix(schoolIdParam || DEFAULT_SCHOOL_ID);
-    if (localPrefix) {
-      prefix = localPrefix;
-    }
+  if (!account || !schoolId) {
+    return forbiddenResponse({ error: "unauthorized account access" });
   }
+
+  const prefix = `${account.schoolId}:${account.userId}`;
 
   // Auto-seed missing data from timetable on first access
   db.seedFromTimetable(prefix);
@@ -133,10 +130,9 @@ export async function GET(request: Request) {
 
     case "credentials": {
       // userId 单独解析:显式提供则用之，否则回退有效凭证的 userId，再否则默认
-      const userId =
-        userIdParam && userIdParam.trim()
-          ? resolveUserId(userIdParam)
-          : active?.userId ?? resolveUserId(userIdParam);
+      const userId = userIdParam && userIdParam.trim()
+        ? resolveUserId(userIdParam)
+        : account.userId;
       const creds = db.getCredentials(schoolId, userId);
       return NextResponse.json(creds || {});
     }

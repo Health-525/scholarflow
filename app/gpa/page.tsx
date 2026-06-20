@@ -68,7 +68,7 @@ function calcCredits(courses: JwglCourse[]): number {
 }
 
 export default function GPAPage() {
-  const { schoolId, userId, username } = useAuthStore((s) => s);
+  const { schoolId, userId } = useAuthStore((s) => s);
   const [grades, setGrades] = useState<JwglGrades | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeSemester, setActiveSemester] = useState<string>("all");
@@ -80,16 +80,18 @@ export default function GPAPage() {
   }, []);
 
   useEffect(() => {
-    const sid = schoolId || "njtech";
-    const uid = userId || username || "default";
-    fetch(`/api/local-data?type=grades&schoolId=${sid}&userId=${uid}`)
+    if (!schoolId || !userId) {
+      setLoading(false);
+      return;
+    }
+    fetch(`/api/local-data?type=grades&schoolId=${schoolId}&userId=${userId}`)
       .then((r) => r.json())
       .then((d) => {
         if (d?.allCourses?.length > 0) setGrades(d);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [schoolId, userId, username]);
+  }, [schoolId, userId]);
 
   const toggleSemester = (sem: string) => {
     setExpandedSemesters((prev) => ({ ...prev, [sem]: !prev[sem] }));

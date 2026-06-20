@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 
+import { resolveUserId } from "@/lib/account-prefix";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { schoolUsernameBodySchema } from "@/lib/schemas/fetch";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
+
+const DEFAULT_SEMESTER_INFO = {
+  year: "2025",
+  semester: "2",
+  week1Monday: "2026-03-02",
+};
 
 /**
  * POST /api/fetch/schedule
@@ -28,7 +35,7 @@ export async function POST(request: Request) {
     }
 
     const db = getServerDB();
-    const userId = username || "default";
+    const userId = resolveUserId(username);
     const savedCreds = db.getCredentials(schoolId, userId);
 
     if (!savedCreds) {
@@ -43,8 +50,14 @@ export async function POST(request: Request) {
 
     const courses = await adapter.fetchSchedule(credentials);
     const prefix = `${schoolId}:${userId}`;
-    const semInfo = adapter.getCurrentSemester?.() || { year: "2025", semester: "2", week1Monday: "2026-03-02" };
+    const semInfo = adapter.getCurrentSemester?.() || DEFAULT_SEMESTER_INFO;
     const y = Number.parseInt(semInfo.year, 10);
+    if (!courses.length) {
+      return NextResponse.json({ error: "课表为空，已保留本地已有数据" }, { status: 502 });
+    }
+    if (!semInfo.week1Monday) {
+      return NextResponse.json({ error: "缺少学期起始周配置，已保留本地已有数据" }, { status: 500 });
+    }
 
     db.writeData(`schedule:${prefix}`, {
       courses,

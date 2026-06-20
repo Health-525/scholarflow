@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { resolveUserId } from "@/lib/account-prefix";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { schoolCookieBodySchema } from "@/lib/schemas/fetch";
 import { getAdapter } from "@/lib/schools/registry";
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
     const grades = await adapter.fetchGrades(credentials);
 
     const db = getServerDB();
-    const userId = username || "default";
+    const userId = resolveUserId(username);
     const prefix = `${schoolId}:${userId}`;
     db.writeData(`grades:${prefix}`, grades);
     // Also update student info

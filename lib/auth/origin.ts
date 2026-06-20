@@ -34,10 +34,6 @@ export function isTrustedOrigin(
   if (options.allowInternalToken) {
     const token = request.headers.get(INTERNAL_TOKEN_HEADER);
     const expected = process.env.SCHOLARFLOW_INTERNAL_TOKEN;
-    // 生产环境必须配置 token；开发环境未配置时降级放行，避免本地联调受阻
-    if (!expected && process.env.NODE_ENV === 'development') {
-      return true;
-    }
     return !!token && token === expected;
   }
 
