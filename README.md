@@ -19,7 +19,7 @@
 
 ## 它能做什么
 
-ScholarFlow 把散落在各处的大学生日常工具整合进一个 **本地优先** 的桌面应用——教务数据自动同步、课表作业一览无余、还能用摄像头提醒你别皱眉。
+ScholarFlow 把散落在各处的大学生日常工具整合进一个 **本地优先** 的桌面应用——教务数据自动同步、课表作业一览无余。
 
 | 模块 | 功能要点 |
 |------|---------|
@@ -30,11 +30,9 @@ ScholarFlow 把散落在各处的大学生日常工具整合进一个 **本地�
 | ⏱ **番茄钟** | 专注/休息循环计时，支持自定义时长 |
 | 🏃 **跑步打卡** | 跑步记录与进度追踪，Goal 环形进度 |
 | 🎯 **每日目标** | 当日目标 + 连续完成 Streak + 历史日历 |
-| 📊 **数据统计** | 课程/作业/跑步多维图表，一页看清学期进展 |
 | 🖥️ **活动分析** | Electron 独占：自动统计各应用使用时长，分类饼图 |
-| 🧠 **抬头纹监控** | 摄像头实时检测皱眉，桌面宠物出来提醒你放松额头 |
 | 📰 **教务公告** | 教务处新闻自动推送到仪表板 |
-| 📓 **笔记 & 知识库** | Markdown 全功能渲染，支持 GFM 语法 |
+| 📓 **笔记** | Markdown 全功能渲染，支持 GFM 语法 |
 | 🔔 **智能提醒** | 考试倒计时、作业 DDL 桌面通知 |
 
 ![仪表板截图](docs/dashboard.png)
@@ -54,8 +52,6 @@ ScholarFlow 以 **Electron 桌面端**为第一公民，PWA 和移动端为轻�
 | 教务密码加密存储（记住密码） | ✅ DPAPI / Keychain | ❌ 不保存 | ❌ |
 | 本地 SQLite 数据库 | ✅ | ✅ standalone | ❌ |
 | 活动窗口分析 | ✅ | ❌ | ❌ |
-| 摄像头皱眉检测 | ✅ 本地推理 | ❌ | ❌ |
-| 桌面宠物 | ✅ | ❌ | ❌ |
 | 后台自动刷新（关窗运行） | ✅ | ❌ | ❌ |
 | PWA 离线访问 | — | ✅ | — |
 
@@ -131,12 +127,8 @@ scholarflow/
 │   ├── goals/              # 每日目标
 │   ├── pomodoro/           # 番茄钟
 │   ├── running/            # 跑步打卡
-│   ├── stats/              # 数据统计
 │   ├── activity/           # 活动分析（Electron）
-│   ├── monitoring/         # 数据同步监控
-│   ├── wrinkle/            # 抬头纹检测
 │   ├── notes/              # 笔记
-│   ├── knowledge/          # 知识库
 │   └── reports/            # 日报 / 周报
 ├── components/             # UI 组件
 │   ├── dashboard/          # 仪表板卡片
@@ -152,13 +144,12 @@ scholarflow/
 ├── electron/
 │   ├── main.js             # 主进程（safeStorage IPC、调度器）
 │   ├── preload.js          # 主窗口 contextBridge
-│   ├── pet-preload.js      # 宠物窗口最小权限 preload
 │   ├── auto-refresh.js     # 后台刷新调度器
-│   └── pet.html            # 桌面宠物窗口
+│   └── postbuild.js        # 打包后处理
 ├── store/                  # Zustand 状态（auth, assignments, theme）
 ├── hooks/                  # TanStack Query 数据钩子
 ├── types/                  # TypeScript 类型 & Electron API 声明
-└── tests/                  # Vitest 单元测试（75 个）
+└── tests/                  # Vitest 单元测试
 ```
 
 ---
@@ -171,7 +162,7 @@ scholarflow/
 | 会话凭证 | SQLite `credentials` 表，建议配合系统磁盘加密 |
 | Electron 渲染层 | `nodeIntegration: false` + `contextIsolation: true`，全部页面（含宠物窗口）均通过 preload 最小化暴露 |
 | 证书校验 | 仅严格后缀匹配 `*.njtech.edu.cn` 信任自签名证书，防止子域名绕过 |
-| API 身份校验 | `/api/auth/remember` 等写操作接口均校验当前登录凭证，防止越权操作 |
+| API 身份校验 | 所有 `/api/*` 接口均校验 Origin 或内部 Token，防止越权访问 |
 
 ---
 
