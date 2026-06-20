@@ -79,6 +79,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("update-downloaded", handler);
     return () => ipcRenderer.removeListener("update-downloaded", handler);
   },
+  /** 监听：更新出错 */
+  onUpdateError: (callback) => {
+    const handler = (_event, err) => callback(err);
+    ipcRenderer.on("update-error", handler);
+    return () => ipcRenderer.removeListener("update-error", handler);
+  },
 
   // ── 图书馆 JWT ──
   /** 刷新JWT（先检查是否有效，过期则弹登录窗口） */

@@ -31,6 +31,7 @@ interface ElectronAPI {
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
   onUpdateDownloadProgress: (callback: (progress: DownloadProgress) => void) => () => void;
   onUpdateDownloaded: (callback: (info: { version: string }) => void) => () => void;
+  onUpdateError: (callback: (err: { message: string }) => void) => () => void;
   setTitleBarOverlay: (options: { color?: string; symbolColor?: string; height?: number }) => Promise<boolean>;
   // Local-first-sync credential APIs (exposed by preload, task 6.2)
   storeCredential?: (plaintext: string) => Promise<boolean>;
