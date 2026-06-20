@@ -2,15 +2,23 @@
 
 import { ChevronRight, FileText, Settings, Sparkles, User } from "lucide-react";
 import Link from "next/link";
+import { lazy, Suspense } from "react";
 
-import { MobileMore } from "@/components/ximi/MobileMore";
 import { useIsMobile } from "@/hooks/useIsMobile";
+
+const MobileMore = lazy(() =>
+  import("@/components/ximi/MobileMore").then((m) => ({ default: m.MobileMore }))
+);
 
 export default function MorePage() {
   const isMobile = useIsMobile();
 
   if (isMobile) {
-    return <MobileMore />;
+    return (
+      <Suspense fallback={<div className="max-w-md mx-auto py-10 animate-page"><div className="h-64 rounded-2xl border border-border bg-card skeleton" /></div>}>
+        <MobileMore />
+      </Suspense>
+    );
   }
 
   return (

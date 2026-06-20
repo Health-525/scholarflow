@@ -1,7 +1,7 @@
 "use client";
 
 import { Calendar, CalendarDays, RotateCcw, Search, Sun } from "lucide-react";
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { QueryView } from "@/components/schedule/QueryView";
@@ -13,11 +13,14 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { SegmentedControl, type SegmentedOption } from "@/components/ui/segmented-control";
-import { MobileSchedule } from "@/components/ximi/MobileSchedule";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useScheduleQuery } from "@/hooks/useQueries";
 import { getWeekNumber } from "@/lib/schedule/schedule";
 import { getNowInTimeZone, normalizeDate } from "@/lib/schedule/timezone";
+
+const MobileSchedule = lazy(() =>
+  import("@/components/ximi/MobileSchedule").then((m) => ({ default: m.MobileSchedule }))
+);
 
 type Tab = "today" | "week" | "query";
 
@@ -45,7 +48,11 @@ export default function SchedulePage() {
   }, [schedule]);
 
   if (isMobile) {
-    return <MobileSchedule />;
+    return (
+      <Suspense fallback={<div className="max-w-md mx-auto py-6 animate-page"><div className="h-96 rounded-2xl bg-card border border-border skeleton" /></div>}>
+        <MobileSchedule />
+      </Suspense>
+    );
   }
 
   return (
