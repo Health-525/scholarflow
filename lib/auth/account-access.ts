@@ -1,0 +1,52 @@
+import type { ServerDB } from "@/lib/server-db";
+
+interface RequestedAccount {
+  schoolId?: string | null;
+  userId?: string | null;
+}
+
+interface AuthorizedAccount {
+  schoolId: string;
+  userId: string;
+}
+
+function normalize(value?: string | null): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+export function getAuthorizedAccount(
+  requested: RequestedAccount,
+  db: ServerDB
+): AuthorizedAccount | null {
+  const active = db.findActiveCredentials();
+  const recent = db.findMostRecentCredential();
+  const current = active || recent;
+
+  if (!current) {
+    return null;
+  }
+
+  const schoolId = normalize(requested.schoolId);
+  const userId = normalize(requested.userId);
+
+  if (schoolId && schoolId !== current.schoolId) {
+    return null;
+  }
+  if (userId && userId !== current.userId) {
+    return null;
+  }
+
+  return {
+    schoolId: current.schoolId,
+    userId: current.userId,
+  };
+}
+
+export function getAuthorizedSchoolId(
+  requestedSchoolId: string | null | undefined,
+  db: ServerDB
+): string | null {
+  const account = getAuthorizedAccount({ schoolId: requestedSchoolId }, db);
+  return account?.schoolId ?? null;
+}

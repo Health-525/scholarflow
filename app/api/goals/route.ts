@@ -13,7 +13,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { resolveAccountPrefix } from "@/lib/account-prefix";
+import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getServerDB } from "@/lib/server-db";
 
@@ -62,8 +62,11 @@ interface HistoryRecord {
 
 function getPrefix(schoolId: string | null, userId: string | null) {
   const db = getServerDB();
-  const active = db.findActiveCredentials();
-  return resolveAccountPrefix({ schoolId, userId }, active);
+  const account = getAuthorizedAccount({ schoolId, userId }, db);
+  if (!account) {
+    throw new Error("unauthorized account access");
+  }
+  return `${account.schoolId}:${account.userId}`;
 }
 
 // ── GET ─────────────────────────────────────────────────────
@@ -90,6 +93,9 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ state, history });
   } catch (err) {
+    if ((err as Error)?.message === "unauthorized account access") {
+      return forbiddenResponse({ error: "unauthorized account access" });
+    }
     // eslint-disable-next-line no-console
     console.error("[/api/goals GET]", (err as Error)?.message);
     return NextResponse.json({ error: "internal error" }, { status: 500 });
@@ -123,6 +129,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
+    if ((err as Error)?.message === "unauthorized account access") {
+      return forbiddenResponse({ error: "unauthorized account access" });
+    }
     // eslint-disable-next-line no-console
     console.error("[/api/goals POST]", (err as Error)?.message);
     return NextResponse.json({ error: "internal error" }, { status: 500 });

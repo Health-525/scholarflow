@@ -15,6 +15,7 @@ import { loginHebauWithMfa } from "./mfa";
 import { HEBAU_PERIOD_TIMES } from "./period-times";
 
 const URP_URL = "http://urp.hebau.edu.cn:1009";
+const DEFAULT_WEEK1_MONDAY = "2026-03-02";
 
 // ── HTTP ──────────────────────────────────────────────────────
 
@@ -52,7 +53,7 @@ function getSemester(): { year: string; semester: string; week1Monday: string } 
   const year = isSecond ? String(y - 1) : String(y);
   const sem = isSecond ? "2" : "1";
   const map: Record<string, string> = { "2025-2": "2026-03-02", "2025-1": "2025-09-01", "2026-2": "2027-03-01", "2026-1": "2026-09-01" };
-  return { year, semester: sem, week1Monday: map[`${year}-${sem}`] || "" };
+  return { year, semester: sem, week1Monday: map[`${year}-${sem}`] || DEFAULT_WEEK1_MONDAY };
 }
 
 // ── 课表 ──────────────────────────────────────────────────────
@@ -61,34 +62,45 @@ async function fetchSchedule(cookie: string): Promise<CourseData[]> {
   const sem = getSemester();
   const xnxqdm = `${sem.year}-${Number(sem.year) + 1}-${sem.semester}`;
   const resp = await urpRequest("/jwapp/sys/wdkb/modules/xskcb/cxxszhxqkb.do", cookie, `XNXQDM=${encodeURIComponent(xnxqdm)}&SKZC=16`);
+  if (resp.statusCode < 200 || resp.statusCode >= 300) {
+    throw new Error(`课表接口异常: HTTP ${resp.statusCode}`);
+  }
+
+  let parsed: unknown;
   try {
-    const d = JSON.parse(resp.body);
-    const rows =
-      d?.datas?.cxxszhxqkb?.rows ||
-      d?.data?.rows ||
-      d?.data ||
-      d?.rows ||
-      d ||
-      [];
-    if (Array.isArray(rows)) return rows.map((r: Record<string, unknown>) => ({
-      title: (r.KCMC || r.kcmc || r.KCM || r.kcm || r.XSKCM || r.xskcm || "") as string,
-      weekday: Number(r.XQJ || r.xqj || r.SKXQ || r.skxq || 0),
-      periods: parsePeriods(
-        String(r.SKJC || r.skjc || r.KSJC || r.ksjc || ""),
-        String(
-          r.SKCD ||
-          r.skcd ||
-          (Number(r.JSJC || r.jsjc || 0) && Number(r.KSJC || r.ksjc || 0)
-            ? Number(r.JSJC || r.jsjc || 0) - Number(r.KSJC || r.ksjc || 0) + 1
-            : "2")
-        )
-      ),
-      weeks: (r.SKZC || r.skzc || r.ZCMC || r.zcmc || "") as string,
-      location: (r.JASMC || r.jasmc || r.JSMC || r.jsmc || r.CDMC || r.cdmc || r.JXLDM_DISPLAY || "") as string,
-      teacher: (r.SKJS || r.skjs || r.JSXM || r.jsxm || "") as string,
-    }));
-  } catch {}
-  return [];
+    parsed = JSON.parse(resp.body);
+  } catch {
+    throw new Error("课表接口返回了无法解析的数据");
+  }
+
+  const rows =
+    (parsed as { datas?: { cxxszhxqkb?: { rows?: unknown } } })?.datas?.cxxszhxqkb?.rows ||
+    (parsed as { data?: { rows?: unknown } })?.data?.rows ||
+    (parsed as { data?: unknown }).data ||
+    (parsed as { rows?: unknown }).rows ||
+    parsed;
+
+  if (!Array.isArray(rows)) {
+    throw new Error("课表接口返回结构已变化");
+  }
+
+  return rows.map((r: Record<string, unknown>) => ({
+    title: (r.KCMC || r.kcmc || r.KCM || r.kcm || r.XSKCM || r.xskcm || "") as string,
+    weekday: Number(r.XQJ || r.xqj || r.SKXQ || r.skxq || 0),
+    periods: parsePeriods(
+      String(r.SKJC || r.skjc || r.KSJC || r.ksjc || ""),
+      String(
+        r.SKCD ||
+        r.skcd ||
+        (Number(r.JSJC || r.jsjc || 0) && Number(r.KSJC || r.ksjc || 0)
+          ? Number(r.JSJC || r.jsjc || 0) - Number(r.KSJC || r.ksjc || 0) + 1
+          : "2")
+      )
+    ),
+    weeks: (r.SKZC || r.skzc || r.ZCMC || r.zcmc || "") as string,
+    location: (r.JASMC || r.jasmc || r.JSMC || r.jsmc || r.CDMC || r.cdmc || r.JXLDM_DISPLAY || "") as string,
+    teacher: (r.SKJS || r.skjs || r.JSXM || r.jsxm || "") as string,
+  }));
 }
 
 function parsePeriods(skjc: string, skcd: string): number[] {

@@ -60,15 +60,14 @@ export default function SettingsPage() {
 
   // 复用的学生信息(GPA/学分/课程)加载器,刷新成功后可再次调用以更新卡片。
   const loadStudentInfo = useCallback(() => {
-    const sid = schoolId || "njtech";
-    const uid = userId || username || "default";
-    fetch(`/api/local-data?type=student&schoolId=${sid}&userId=${uid}`)
+    if (!schoolId || !userId) return;
+    fetch(`/api/local-data?type=student&schoolId=${schoolId}&userId=${userId}`)
       .then((r) => r.json())
       .then((d) => {
         if (d?.studentId) setStudentInfo(d);
       })
       .catch(() => {});
-  }, [schoolId, userId, username]);
+  }, [schoolId, userId]);
 
   useEffect(() => {
     if (mounted) loadStudentInfo();
@@ -90,8 +89,8 @@ export default function SettingsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          schoolId: schoolId || "njtech",
-          userId: userId || username || "default",
+          schoolId,
+          userId,
         }),
       });
     } catch {}
@@ -124,8 +123,8 @@ export default function SettingsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          schoolId: schoolId || "njtech",
-          userId: userId || username || "default",
+          schoolId,
+          userId,
         }),
       });
     } catch {}

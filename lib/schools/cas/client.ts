@@ -120,8 +120,10 @@ function encryptPassword(pwd: string, salt: string): string {
 
 export async function casLogin(casBaseUrl: string, targetBaseUrl: string, username: string, password: string): Promise<CasSession> {
   const traceId = crypto.randomUUID();
-  // #region debug-point A:report-helper
   const reportDebug = (hypothesisId: string, msg: string, data: Record<string, unknown>) => {
+    if (process.env.SCHOLARFLOW_CAS_DEBUG !== "1") {
+      return;
+    }
     let debugUrl = "http://127.0.0.1:7777/event";
     let sessionId = "hebau-cas-login";
     try {
@@ -144,7 +146,6 @@ export async function casLogin(casBaseUrl: string, targetBaseUrl: string, userna
       }),
     }).catch(() => {});
   };
-  // #endregion
   const serviceUrl = targetBaseUrl + "/jwapp/sys/homeapp/index.do";
 
   // Step 1: 获取登录页
@@ -153,7 +154,6 @@ export async function casLogin(casBaseUrl: string, targetBaseUrl: string, userna
   const execution = execM?.[1] || "";
   const saltM = lp.body.match(/id="pwdEncryptSalt"\s+value="([^"]*)"/);
   const salt = saltM?.[1] || "";
-  // #region debug-point A:login-page
   reportDebug("A", "cas login page parsed", {
     statusCode: lp.statusCode,
     traceId,
@@ -163,7 +163,6 @@ export async function casLogin(casBaseUrl: string, targetBaseUrl: string, userna
     hasCaptchaKeyword: /captcha|验证码/i.test(lp.body),
     hasAuthErrorKeyword: /error|认证失败|账号|密码/i.test(lp.body),
   });
-  // #endregion
   if (!execution) throw new Error("无法获取 CAS execution");
 
   const cookies = new Map(lp.cookies);
@@ -183,7 +182,6 @@ export async function casLogin(casBaseUrl: string, targetBaseUrl: string, userna
     body,
     followRedirect: false,
   });
-  // #region debug-point B:login-response
   reportDebug("B", "cas login response received", {
     statusCode: loginResp.statusCode,
     traceId,
@@ -195,7 +193,6 @@ export async function casLogin(casBaseUrl: string, targetBaseUrl: string, userna
     bodyHasAuthErrorKeyword: /error|失败|密码|账号|认证/i.test(loginResp.body),
     bodySnippet: loginResp.body.slice(0, 500),
   });
-  // #endregion
 
   for (const [k, v] of loginResp.cookies) cookies.set(k, v);
 
@@ -207,19 +204,15 @@ export async function casLogin(casBaseUrl: string, targetBaseUrl: string, userna
   // Step 3: 处理重定向 — 如果是 reAuthCheck，尝试绕过
   const loc = loginResp.headers["location"] as string | undefined;
   if (loc) {
-    // #region debug-point C:redirect-branch
     reportDebug("C", "cas redirect branch entered", {
       traceId,
       locationHeader: loc.slice(0, 200),
       rewrittenForReauth: false,
     });
-    // #endregion
-    console.log("[CAS] 302:", loc.substring(0, 80));
     const finalResp = await httpRequest(loc, {
       headers: { Cookie: cookiesToHeader(cookies) },
       followRedirect: true,
     });
-    // #region debug-point C:redirect-result
     reportDebug("C", "cas redirect chain completed", {
       statusCode: finalResp.statusCode,
       traceId,
@@ -229,7 +222,6 @@ export async function casLogin(casBaseUrl: string, targetBaseUrl: string, userna
       bodyHasAuthErrorKeyword: /error|失败|密码|账号|认证/i.test(finalResp.body),
       bodySnippet: finalResp.body.slice(0, 500),
     });
-    // #endregion
     for (const [k, v] of finalResp.cookies) cookies.set(k, v);
   }
 
@@ -238,7 +230,6 @@ export async function casLogin(casBaseUrl: string, targetBaseUrl: string, userna
     headers: { Cookie: cookiesToHeader(cookies) },
     followRedirect: true,
   });
-  // #region debug-point D:urp-session
   reportDebug("D", "urp landing response received", {
     statusCode: urpResp.statusCode,
     traceId,
@@ -248,11 +239,9 @@ export async function casLogin(casBaseUrl: string, targetBaseUrl: string, userna
     bodyHasHomeKeyword: /homeapp|我的应用|jwapp/i.test(urpResp.body),
     bodySnippet: urpResp.body.slice(0, 500),
   });
-  // #endregion
   for (const [k, v] of urpResp.cookies) cookies.set(k, v);
 
   const cookieStr = [...cookies.entries()].map(([k, v]) => `${k}=${v}`).join("; ");
   const gs = cookies.get("GS_SESSIONID") || "";
-  console.log("[CAS] GS_SESSIONID:", gs ? "已获取" : "未获取", "cookies:", [...cookies.keys()].join(", "));
   return { sessionCookie: gs, username, allCookies: cookieStr, targetBaseUrl };
 }

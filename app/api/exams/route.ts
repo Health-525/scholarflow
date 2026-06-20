@@ -18,7 +18,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { resolveAccountPrefix } from "@/lib/account-prefix";
+import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { mergeExams } from "@/lib/exams/merge";
 import { getServerDB } from "@/lib/server-db";
@@ -85,11 +85,14 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const db = getServerDB();
-    const active = db.findActiveCredentials();
-    const prefix = resolveAccountPrefix(
+    const account = getAuthorizedAccount(
       { schoolId: searchParams.get("schoolId"), userId: searchParams.get("userId") },
-      active
+      db
     );
+    if (!account) {
+      return forbiddenResponse({ error: "unauthorized account access" });
+    }
+    const prefix = `${account.schoolId}:${account.userId}`;
     return NextResponse.json(readExams(prefix));
   } catch (err) {
     // eslint-disable-next-line no-console
@@ -114,11 +117,14 @@ export async function POST(request: Request) {
     const body = parse.data;
 
     const db = getServerDB();
-    const active = db.findActiveCredentials();
-    const prefix = resolveAccountPrefix(
+    const account = getAuthorizedAccount(
       { schoolId: body.schoolId, userId: body.userId },
-      active
+      db
     );
+    if (!account) {
+      return forbiddenResponse({ error: "unauthorized account access" });
+    }
+    const prefix = `${account.schoolId}:${account.userId}`;
 
     const existing = readExams(prefix);
 
@@ -172,11 +178,14 @@ export async function PATCH(request: Request) {
     const body = parse.data;
 
     const db = getServerDB();
-    const active = db.findActiveCredentials();
-    const prefix = resolveAccountPrefix(
+    const account = getAuthorizedAccount(
       { schoolId: body.schoolId, userId: body.userId },
-      active
+      db
     );
+    if (!account) {
+      return forbiddenResponse({ error: "unauthorized account access" });
+    }
+    const prefix = `${account.schoolId}:${account.userId}`;
 
     const exams = readExams(prefix);
     const idx = exams.findIndex((e) => e.id === body.id);
@@ -214,11 +223,14 @@ export async function DELETE(request: Request) {
     }
 
     const db = getServerDB();
-    const active = db.findActiveCredentials();
-    const prefix = resolveAccountPrefix(
+    const account = getAuthorizedAccount(
       { schoolId: searchParams.get("schoolId"), userId: searchParams.get("userId") },
-      active
+      db
     );
+    if (!account) {
+      return forbiddenResponse({ error: "unauthorized account access" });
+    }
+    const prefix = `${account.schoolId}:${account.userId}`;
 
     const exams = readExams(prefix);
     const target = exams.find((e) => e.id === id);
