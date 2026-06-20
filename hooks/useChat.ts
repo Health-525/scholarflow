@@ -202,7 +202,6 @@ export function useChat() {
     error,
     messagesEndRef,
     inputRef,
-    checkOllama,
     sendMessage,
     clearChat,
     handleKeyDown,

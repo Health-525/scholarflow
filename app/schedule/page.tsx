@@ -10,6 +10,7 @@ import { WeekGrid } from "@/components/schedule/WeekGrid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { SegmentedControl, type SegmentedOption } from "@/components/ui/segmented-control";
@@ -49,9 +50,11 @@ export default function SchedulePage() {
 
   if (isMobile) {
     return (
-      <Suspense fallback={<div className="max-w-md mx-auto py-6 animate-page"><div className="h-96 rounded-2xl bg-card border border-border skeleton" /></div>}>
-        <MobileSchedule />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<div className="max-w-md mx-auto py-6 animate-page"><div className="h-96 rounded-2xl bg-card border border-border skeleton" /></div>}>
+          <MobileSchedule />
+        </Suspense>
+      </ErrorBoundary>
     );
   }
 

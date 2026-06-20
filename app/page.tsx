@@ -12,6 +12,7 @@ import { RunningCard } from "@/components/dashboard/RunningCard";
 import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
 import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
 import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useDashboardSummary } from "@/lib/dashboard/use-dashboard-summary";
 import { RUNNING_GOAL } from "@/lib/running-utils";
@@ -95,9 +96,11 @@ export default function DashboardPage() {
 
   if (isMobile) {
     return (
-      <Suspense fallback={<div className="max-w-md mx-auto py-5 animate-page"><div className="h-80 rounded-[28px] border border-border bg-card skeleton" /></div>}>
-        <MobileHome />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<div className="max-w-md mx-auto py-5 animate-page"><div className="h-80 rounded-[28px] border border-border bg-card skeleton" /></div>}>
+          <MobileHome />
+        </Suspense>
+      </ErrorBoundary>
     );
   }
 

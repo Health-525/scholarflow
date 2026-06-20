@@ -4,6 +4,7 @@ import { ChevronRight, FileText, Settings, Sparkles, User } from "lucide-react";
 import Link from "next/link";
 import { lazy, Suspense } from "react";
 
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
 const MobileMore = lazy(() =>
@@ -15,9 +16,11 @@ export default function MorePage() {
 
   if (isMobile) {
     return (
-      <Suspense fallback={<div className="max-w-md mx-auto py-10 animate-page"><div className="h-64 rounded-2xl border border-border bg-card skeleton" /></div>}>
-        <MobileMore />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<div className="max-w-md mx-auto py-10 animate-page"><div className="h-64 rounded-2xl border border-border bg-card skeleton" /></div>}>
+          <MobileMore />
+        </Suspense>
+      </ErrorBoundary>
     );
   }
 

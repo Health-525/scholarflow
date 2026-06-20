@@ -43,7 +43,8 @@ for entry in "${MODELS[@]}"; do
   git clone --depth 1 "$url" "$tmp/$name"
   git -C "$tmp/$name" lfs pull || true   # 兜底：确保 LFS 权重已拉取
   mkdir -p "$dest"
-  rsync -a --exclude='.git' --exclude='.gitattributes' "$tmp/$name/" "$dest/"
+  # 复制文件（排除 .git 目录）
+  cd "$tmp/$name" && find . -not -path './.git/*' -not -path './.git' -not -name '.gitattributes' -exec cp -r --parents {} "$dest/" \; && cd -
   rm -rf "$tmp"; trap - EXIT
 
   if [ "$(filesize "$weight")" -gt 1000000 ]; then

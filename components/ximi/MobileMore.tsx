@@ -49,7 +49,7 @@ const FEATURE_GROUPS = [
     label: "其他",
     items: [
       { href: "/", label: "首页", Icon: Sparkles },
-      { href: "/running", label: "运动记录", Icon: HeartPulse },
+      { href: "/reports/weekly", label: "周报", Icon: HeartPulse },
       { href: "/settings", label: "设置", Icon: Settings },
     ],
   },
@@ -125,6 +125,9 @@ export function MobileMore() {
           <h3 className="flex items-center gap-2 text-[18px] font-bold text-on-surface">
             <BarChart3 className="h-5 w-5 text-primary" />
             学习数据
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+              演示
+            </span>
           </h3>
           <Link href="/goals" className="text-[13px] font-semibold text-primary active:opacity-70">
             查看详情
