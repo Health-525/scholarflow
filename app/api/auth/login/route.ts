@@ -6,6 +6,7 @@ import { resolveUserId } from "@/lib/account-prefix";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { setRememberSetting } from "@/lib/auto-refresh/state";
 import { encryptPassword } from "@/lib/crypto-password";
+import { HEBEAU_MFA_REQUIRED_PREFIX } from "@/lib/schools/hebau/mfa";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
 
@@ -73,6 +74,16 @@ export async function POST(request: Request) {
     });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
+    if (message.startsWith(HEBEAU_MFA_REQUIRED_PREFIX)) {
+      const [, payload = ""] = message.split(HEBEAU_MFA_REQUIRED_PREFIX);
+      const [challengeId = "", maskedTarget = ""] = payload.split("::");
+      return NextResponse.json({
+        requiresMfa: true,
+        challengeId,
+        maskedTarget,
+        method: "sms",
+      });
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

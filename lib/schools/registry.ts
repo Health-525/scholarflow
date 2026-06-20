@@ -7,6 +7,7 @@
  */
 
 import { njtechAdapter } from "./njtech";
+import { hebauAdapter } from "./hebau";
 import type { SchoolAdapter } from "./types";
 
 const ADAPTERS: Map<string, SchoolAdapter> = new Map();
@@ -34,3 +35,4 @@ export function getAllSchools(): SchoolAdapter[] {
 
 // ── 注册已知学校 ────────────────────────────────────────────
 registerSchool(njtechAdapter);
+registerSchool(hebauAdapter);

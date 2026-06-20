@@ -12,6 +12,8 @@ export interface SchoolAdapter {
   name: string;
   /** 登录页需要的输入字段 */
   loginFields: LoginField[];
+  /** 节次时间表 (e.g. {"1":"08:00-08:45", ...}) */
+  periodTimes: Record<string, string>;
   /** 登录验证 — 返回凭证对象（后续 fetch 方法使用） */
   login(credentials: Record<string, string>): Promise<SchoolCredentials>;
   /** 抓取课表 */

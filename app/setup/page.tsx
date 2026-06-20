@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { isElectron, isSecureStorageAvailable, rememberPasswordSupported } from "@/lib/runtime-env";
-import { getAllSchools } from "@/lib/schools/registry";
-import type { SchoolAdapter } from "@/lib/schools/types";
+import { getAllSchools } from "@/lib/schools/catalog";
+import type { SchoolCatalogItem } from "@/lib/schools/catalog";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 
-type Step = "select-school" | "enter-credentials" | "loading-data";
+type Step = "select-school" | "enter-credentials" | "enter-mfa" | "loading-data";
 
 interface FetchStatus {
   key: string;
@@ -38,8 +38,11 @@ export default function SetupPage() {
   const [revealedFields, setRevealedFields] = useState<Record<string, boolean>>({});
   const [rememberSupported, setRememberSupported] = useState(false);
   const [rememberChecked, setRememberChecked] = useState(false);
+  const [mfaChallengeId, setMfaChallengeId] = useState("");
+  const [mfaMaskedTarget, setMfaMaskedTarget] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
 
-  const selectedSchool = schools.find((s) => s.id === selectedSchoolId) as SchoolAdapter | undefined;
+  const selectedSchool = schools.find((s) => s.id === selectedSchoolId) as SchoolCatalogItem | undefined;
 
   useEffect(() => {
     if (selectedSchoolId) setCredentials({});
@@ -81,6 +84,15 @@ export default function SetupPage() {
 
       const data = await res.json();
 
+      if (data.requiresMfa) {
+        setMfaChallengeId(data.challengeId || "");
+        setMfaMaskedTarget(data.maskedTarget || "");
+        setMfaCode("");
+        setStep("enter-mfa");
+        setIsLoggingIn(false);
+        return;
+      }
+
       if (!res.ok || data.error) {
         setLoginError(data.error || "登录失败，请检查学号和密码");
         setIsLoggingIn(false);
@@ -90,6 +102,58 @@ export default function SetupPage() {
       // Persist the password via OS-level encrypted storage when remembering is
       // supported, opted-in, and a password is present. Best-effort: failures
       // here must not block entering the app.
+      if (rememberSupported && rememberChecked && credentials.password) {
+        try {
+          await window.electronAPI?.storeCredential?.(credentials.password);
+        } catch {
+          // ignore — login itself succeeded; remembered password is optional
+        }
+      }
+
+      setAuth(data.schoolId, data.userId || credentials.username || "");
+      setStep("loading-data");
+      startDataFetch(data.schoolId, credentials);
+    } catch (e) {
+      setLoginError(e instanceof Error ? e.message : "网络连接失败");
+      setIsLoggingIn(false);
+    }
+  }
+
+  async function handleMfaLogin() {
+    setLoginError(null);
+    setIsLoggingIn(true);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          schoolId: selectedSchoolId,
+          credentials: {
+            ...credentials,
+            challengeId: mfaChallengeId,
+            dynamicCode: mfaCode,
+          },
+          remember: rememberChecked,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.requiresMfa) {
+        setMfaChallengeId(data.challengeId || "");
+        setMfaMaskedTarget(data.maskedTarget || mfaMaskedTarget);
+        setMfaCode("");
+        setIsLoggingIn(false);
+        return;
+      }
+
+      if (!res.ok || data.error) {
+        setLoginError(data.error || "验证码校验失败");
+        setIsLoggingIn(false);
+        return;
+      }
+
       if (rememberSupported && rememberChecked && credentials.password) {
         try {
           await window.electronAPI?.storeCredential?.(credentials.password);
@@ -360,6 +424,83 @@ export default function SetupPage() {
               {/* Security note */}
               <p className="text-center text-[11px] text-muted-foreground/40 leading-relaxed">
                 密码仅用于本地获取数据，不会上传至任何服务器
+              </p>
+            </>
+          )}
+
+          {step === "enter-mfa" && (
+            <>
+              <div className="text-center space-y-2">
+                <div className="relative mx-auto w-12 h-12">
+                  <div className="absolute inset-0 rounded-2xl bg-primary/10 blur-xl" aria-hidden="true" />
+                  <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-card/75 backdrop-blur-xl shadow-sm">
+                    <ShieldCheck className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                  </div>
+                </div>
+                <h1 className="text-[22px] font-bold font-display text-foreground tracking-tight">
+                  二次认证
+                </h1>
+                <p className="text-[13px] text-muted-foreground">
+                  已向 {mfaMaskedTarget || "已绑定手机号"} 发送验证码
+                </p>
+              </div>
+
+              <form onSubmit={(e) => { e.preventDefault(); handleMfaLogin(); }} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="mfaCode" className="block text-[11px] font-medium tracking-[0.12em] text-muted-foreground/70 uppercase">
+                    验证码
+                  </label>
+                  <Input
+                    id="mfaCode"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="请输入短信验证码"
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value)}
+                    className="h-10 px-4 rounded-xl text-sm bg-secondary/50 border-border/60 text-foreground placeholder:text-muted-foreground/40 focus-visible:border-primary/40 focus-visible:ring-primary/20"
+                    required
+                  />
+                </div>
+
+                {loginError && (
+                  <div className="rounded-xl px-4 py-3 text-sm bg-destructive/8 border border-destructive/20 text-destructive flex items-center gap-2" role="alert">
+                    <XCircle className="w-4 h-4 shrink-0" />
+                    <span>{loginError}</span>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full h-10 rounded-xl text-sm font-semibold gap-2"
+                >
+                  {isLoggingIn ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      正在验证...
+                    </>
+                  ) : (
+                    "验证并继续"
+                  )}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setStep("enter-credentials");
+                    setMfaCode("");
+                    setLoginError(null);
+                  }}
+                  className="w-full h-auto py-2 rounded-xl text-[13px] text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  返回上一步
+                </Button>
+              </form>
+
+              <p className="text-center text-[11px] text-muted-foreground/40 leading-relaxed">
+                河北农大当前对教务系统启用了多因子认证
               </p>
             </>
           )}

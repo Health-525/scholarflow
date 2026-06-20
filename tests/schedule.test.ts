@@ -57,6 +57,11 @@ describe("parseWeekSpec", () => {
   it("非法字符跳过", () => {
     expect(parseWeekSpec("abc,3,xyz-9")).toEqual([3]);
   });
+
+  it("河北农大位串周次解析", () => {
+    expect(parseWeekSpec("0000000001111111110")).toEqual([10, 11, 12, 13, 14, 15, 16, 17, 18]);
+    expect(parseWeekSpec("010101010101010100000000000000")).toEqual([2, 4, 6, 8, 10, 12, 14, 16]);
+  });
 });
 
 // ════════════════════════════════════════════════════
@@ -226,5 +231,38 @@ describe("getItemsForDate", () => {
       expect(prev.periods[0]).toBeLessThanOrEqual(curr.periods[0]);
     }
   });
-});
 
+  it("河北农大位串周次在对应教学周显示课程", () => {
+    const hebauSchedule: RawScheduleData = {
+      meta: { week1_monday: "2026-03-02", tz: "Asia/Shanghai", schoolId: "hebau" },
+      courses: [
+        {
+          title: "羊生产学",
+          weekday: 1,
+          periods: [1, 2],
+          weeks: "0000000001111111110",
+          location: "西崇德楼(C座)-3301(D)",
+        },
+        {
+          title: "饲料分析与检测",
+          weekday: 2,
+          periods: [1, 2, 3, 4, 5, 6, 7, 8],
+          weeks: "010101010101010100000000000000",
+          location: "西耕读楼(D座动科)-公共实验室（四）-D2341",
+        },
+      ],
+    };
+
+    const mondayWeek14 = getItemsForDate(hebauSchedule, new Date("2026-06-01"));
+    expect(mondayWeek14.weekNum).toBe(14);
+    expect(mondayWeek14.items.map((i) => i.title)).toContain("羊生产学");
+
+    const tuesdayWeek13 = getItemsForDate(hebauSchedule, new Date("2026-05-26"));
+    expect(tuesdayWeek13.weekNum).toBe(13);
+    expect(tuesdayWeek13.items.map((i) => i.title)).not.toContain("饲料分析与检测");
+
+    const tuesdayWeek14 = getItemsForDate(hebauSchedule, new Date("2026-06-02"));
+    expect(tuesdayWeek14.weekNum).toBe(14);
+    expect(tuesdayWeek14.items.map((i) => i.title)).toContain("饲料分析与检测");
+  });
+});

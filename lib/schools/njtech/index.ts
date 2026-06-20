@@ -16,12 +16,13 @@ import type {
 
 import { fetchAllGrades } from "./grades";
 import { fetchJwcNews } from "./jwc-news";
-import { loginJwgl, fetchSchedule, fetchExams } from "./jwgl";
+import { loginJwgl, fetchSchedule, fetchExams, NJTECH_PERIOD_TIMES } from "./jwgl";
 import { fetchLibrarySeats } from "./library";
 
 export const njtechAdapter: SchoolAdapter = {
   id: "njtech",
   name: "南京工业大学",
+  periodTimes: NJTECH_PERIOD_TIMES,
   loginFields: [
     {
       key: "username",

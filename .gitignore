@@ -69,3 +69,7 @@ coverage/
 
 # Temporary screenshots
 screenshots/
+
+# Local debug artifacts
+.dbg/
+debug-*.md
