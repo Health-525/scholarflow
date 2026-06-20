@@ -165,7 +165,7 @@ function TodayPane({
         </div>
       )}
 
-      <CourseDrawer item={selected} date={today} onClose={() => setSelected(null)} />
+      <CourseDrawer item={selected} date={today} timeZone={tz} onClose={() => setSelected(null)} />
     </div>
   );
 }
@@ -421,7 +421,7 @@ function WeekPane({
         </div>
       )}
 
-      <CourseDrawer item={selected} date={selectedDate} onClose={() => setSelected(null)} />
+      <CourseDrawer item={selected} date={selectedDate} timeZone={tz} onClose={() => setSelected(null)} />
     </div>
   );
 }

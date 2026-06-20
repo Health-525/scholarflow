@@ -1,6 +1,19 @@
 "use client";
 
+import { Capacitor } from "@capacitor/core";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+
+import { HttpBackend, type ChatBackend, type ChatMessage as WireMessage } from "@/lib/chat/backend";
+import type { ModelState } from "@/lib/chat/model-controller";
+import { getModelState, reloadModel, subscribeModel } from "@/lib/chat/model-singleton";
+import { NativeBackend } from "@/lib/chat/native-backend";
+import { ScholarLLM } from "@/lib/chat/scholar-llm-plugin";
+
+// 平台分流：手机端(iOS/Android 原生)走端侧 MNN(NativeBackend)，桌面/Web 走 /api/chat(HttpBackend)。
+const backend: ChatBackend = Capacitor.isNativePlatform()
+  ? new NativeBackend(ScholarLLM)
+  : new HttpBackend();
 
 export interface ChatMessage {
   id: string;
@@ -59,6 +72,8 @@ export function useChat() {
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const isNative = Capacitor.isNativePlatform();
+  const [modelState, setModelState] = useState<ModelState>(() => getModelState());
 
   useEffect(() => {
     setMounted(true);
@@ -92,7 +107,11 @@ export function useChat() {
     }
   }, []);
 
-  useEffect(() => { checkOllama(); }, [checkOllama]);
+  // Web/桌面探测 Ollama；原生平台无 /api/chat，改为订阅端侧模型加载状态。
+  useEffect(() => {
+    if (isNative) return subscribeModel(setModelState);
+    checkOllama();
+  }, [checkOllama, isNative]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -118,51 +137,15 @@ export function useChat() {
     saveMessages(newMessages);
 
     try {
-      const chatMessages = [
+      const chatMessages: WireMessage[] = [
         { role: "system", content: SYSTEM_PROMPT },
         ...newMessages.map(m => ({ role: m.role, content: m.content })),
       ];
 
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: selectedModel, messages: chatMessages, stream: true }),
+      const fullContent = await backend.send(chatMessages, {
+        model: selectedModel,
+        onToken: (delta) => setStreamingContent((prev) => prev + delta),
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "请求失败");
-        setLoading(false);
-        return;
-      }
-
-      // Parse streaming response
-      const reader = res.body?.getReader();
-      const decoder = new TextDecoder();
-      let fullContent = "";
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          // Ollama sends JSON lines
-          const lines = chunk.split("\n").filter(l => l.trim());
-          for (const line of lines) {
-            try {
-              const parsed = JSON.parse(line);
-              if (parsed.message?.content) {
-                fullContent += parsed.message.content;
-                setStreamingContent(fullContent);
-              }
-              if (parsed.done) {
-                // Stream complete
-              }
-            } catch { /* skip malformed lines */ }
-          }
-        }
-      }
 
       const assistantMsg: ChatMessage = {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
@@ -200,6 +183,9 @@ export function useChat() {
     setShowModelPicker(false);
   }, []);
 
+  // 统一"就绪"信号：原生看端侧模型是否加载完成，Web/桌面看 Ollama 在线。
+  const ready = isNative ? modelState.phase === "ready" : ollamaOnline;
+
   return {
     messages,
     input,
@@ -221,6 +207,11 @@ export function useChat() {
     clearChat,
     handleKeyDown,
     selectModel,
+    ready,
+    isNative,
+    modelPhase: modelState.phase,
+    modelError: modelState.error,
+    reloadModel,
   };
 }
 

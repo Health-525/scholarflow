@@ -101,7 +101,9 @@ export function MobileMore() {
             </span>
           </div>
           <h2 className="mt-3 text-[22px] font-bold text-on-surface">学霸小咪</h2>
-          <p className="mt-1 text-[14px] text-on-surface-variant">"坚持就是胜利,每天进步一点点!"</p>
+          <p className="mt-1 text-[14px] text-on-surface-variant">
+  &quot;坚持就是胜利，每天进步一点点！&quot;
+</p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
             <span className="rounded-full bg-secondary-container/40 px-3 py-1 text-[12px] font-semibold text-on-secondary-container">
               LV.12 学习达人

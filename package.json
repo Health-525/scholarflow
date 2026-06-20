@@ -142,6 +142,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@capacitor/ios": "^8.4.1",
     "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

@@ -41,6 +41,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover", // iOS 安全区：启用后 env(safe-area-inset-*) 才非 0（灵动岛/刘海适配）
   themeColor: [
     { media: "(max-width: 767px)", color: "#fef8fa" },
     { color: "#faf7f2" },

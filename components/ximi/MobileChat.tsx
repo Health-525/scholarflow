@@ -72,7 +72,11 @@ export function MobileChat() {
     loading,
     streamingContent,
     mounted,
-    ollamaOnline,
+    ready,
+    isNative,
+    modelPhase,
+    modelError,
+    reloadModel,
     selectedModel,
     messagesEndRef,
     inputRef,
@@ -104,30 +108,70 @@ export function MobileChat() {
         className="mx-auto flex max-w-md flex-col gap-4 pt-4"
         style={{ paddingBottom: scrollPadBottom }}
       >
-        {/* Ollama 离线提示 — 萌系、诚实但不刺眼 */}
-        {!ollamaOnline && (
-          <div className="flex items-start gap-3 rounded-[24px] border-[1.5px] border-white/60 bg-surface-container-lowest p-4 shadow-[0_10px_30px_-10px_rgba(var(--ximi-glow),0.3)]">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-surface-container">
-              <Mascot size="xs" eager className="!drop-shadow-none" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-[14px] font-semibold text-on-surface">
-                小咪还没连上大脑（Ollama 离线）
-              </p>
-              <p className="mt-1 text-[12px] leading-relaxed text-on-surface-variant">
-                先启动{" "}
-                <code className="rounded bg-surface-container px-1.5 py-0.5 text-[11px] text-on-surface">
-                  ollama serve
-                </code>
-                ，再拉取模型{" "}
-                <code className="rounded bg-surface-container px-1.5 py-0.5 text-[11px] text-on-surface">
-                  ollama pull qwen2.5
-                </code>
-                ，小咪就能陪你学啦~
-              </p>
+        {/* 后端未就绪提示 — 萌系、诚实；原生=端侧模型加载，Web=Ollama */}
+        {!ready &&
+          (isNative ? (
+            modelPhase === "error" ? (
+              <div className="flex items-start gap-3 rounded-[24px] border-[1.5px] border-white/60 bg-surface-container-lowest p-4 shadow-[0_10px_30px_-10px_rgba(var(--ximi-glow),0.3)]">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-surface-container">
+                  <Mascot size="xs" eager className="!drop-shadow-none" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[14px] font-semibold text-on-surface">小咪没能唤醒本地大脑</p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-on-surface-variant">
+                    {modelError ?? "本地模型加载失败"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={reloadModel}
+                    className="mt-2 rounded-full bg-primary-container px-4 py-1.5 text-[12px] font-semibold text-on-primary-container transition active:scale-95"
+                  >
+                    重试加载
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* 端侧模型加载中 —— 演示视频「模型本地加载过程」拍摄点 */
+              <div className="flex items-center gap-3 rounded-[24px] border-[1.5px] border-white/60 bg-surface-container-lowest p-4 shadow-[0_10px_30px_-10px_rgba(var(--ximi-glow),0.3)]">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-surface-container">
+                  <Mascot size="xs" eager className="!drop-shadow-none" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[14px] font-semibold text-on-surface">小咪正在唤醒本地大脑…🧠</p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-on-surface-variant">
+                    首次在手机本地加载模型，稍等一下下~（全程离线、不联网）
+                  </p>
+                </div>
+                <span className="flex shrink-0 items-center gap-1 self-center">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/40 [animation-delay:0s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/60 [animation-delay:0.2s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/80 [animation-delay:0.4s]" />
+                </span>
+              </div>
+            )
+          ) : (
+            <div className="flex items-start gap-3 rounded-[24px] border-[1.5px] border-white/60 bg-surface-container-lowest p-4 shadow-[0_10px_30px_-10px_rgba(var(--ximi-glow),0.3)]">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-surface-container">
+                <Mascot size="xs" eager className="!drop-shadow-none" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[14px] font-semibold text-on-surface">
+                  小咪还没连上大脑（Ollama 离线）
+                </p>
+                <p className="mt-1 text-[12px] leading-relaxed text-on-surface-variant">
+                  先启动{" "}
+                  <code className="rounded bg-surface-container px-1.5 py-0.5 text-[11px] text-on-surface">
+                    ollama serve
+                  </code>
+                  ，再拉取模型{" "}
+                  <code className="rounded bg-surface-container px-1.5 py-0.5 text-[11px] text-on-surface">
+                    ollama pull qwen2.5
+                  </code>
+                  ，小咪就能陪你学啦~
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          ))}
 
         {isEmpty ? (
           /* 空状态:问候气泡 + 快捷动作网格 */
@@ -225,8 +269,16 @@ export function MobileChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={ollamaOnline ? "和小咪聊聊学习吧..." : "小咪还没连上大脑哦~"}
-              disabled={!ollamaOnline || loading}
+              placeholder={
+                ready
+                  ? "和小咪聊聊学习吧..."
+                  : isNative
+                    ? modelPhase === "error"
+                      ? "本地模型未就绪"
+                      : "小咪正在加载本地模型…"
+                    : "小咪还没连上大脑哦~"
+              }
+              disabled={!ready || loading}
               rows={1}
               className="hide-scrollbar max-h-32 min-h-[40px] flex-1 resize-none border-none bg-transparent py-2.5 text-[15px] leading-relaxed text-on-surface outline-none placeholder:text-on-surface-variant/50 disabled:opacity-60"
               onInput={(e) => {
@@ -238,17 +290,19 @@ export function MobileChat() {
             <button
               type="button"
               onClick={sendMessage}
-              disabled={!input.trim() || !ollamaOnline || loading}
+              disabled={!input.trim() || !ready || loading}
               aria-label="发送"
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-container text-on-primary-container transition hover:bg-primary hover:text-primary-foreground active:scale-90 disabled:opacity-50 disabled:hover:bg-primary-container disabled:hover:text-on-primary-container"
             >
               <Send className="h-5 w-5" />
             </button>
           </div>
-          {ollamaOnline && (
+          {ready && (
             <p className="mt-1.5 flex items-center justify-center gap-1 text-[10px] text-on-surface-variant/60">
               <Info className="h-3 w-3" />
-              小咪在线 · {selectedModel}，回答仅供参考哦
+              {isNative
+                ? "小咪在线 · 端侧模型，回答仅供参考哦"
+                : `小咪在线 · ${selectedModel}，回答仅供参考哦`}
             </p>
           )}
         </div>

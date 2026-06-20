@@ -14,6 +14,7 @@ import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
 import { Mascot } from "@/components/ximi/Mascot";
 import { useAssignmentsQuery } from "@/hooks/useQueries";
 import { classifyUrgency } from "@/lib/assignment-utils";
+import { useDashboardSummary } from "@/lib/dashboard/use-dashboard-summary";
 
 const CHIP = [
   "bg-tertiary-container/50 text-on-tertiary-container",
@@ -113,6 +114,8 @@ function TodayTasks() {
  */
 export function MobileHome() {
   const greeting = useGreetingText();
+  const { data: dashboardData, loading: dashboardLoading } =
+    useDashboardSummary();
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-7 pb-4 pt-4 md:hidden">
@@ -154,7 +157,7 @@ export function MobileHome() {
           <span className="text-[13px] font-bold text-on-surface-variant">今日看板</span>
         </div>
         <ScheduleCard />
-        <SummaryBanner />
+        <SummaryBanner data={dashboardData} loading={dashboardLoading} />
         <RunningCard />
         <ScreenTimeCard />
         <ExamCountdownCard />

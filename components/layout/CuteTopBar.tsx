@@ -9,7 +9,10 @@ import Link from "next/link";
  */
 export function CuteTopBar() {
   return (
-    <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-2.5 bg-surface/80 backdrop-blur-md shadow-[0_20px_40px_-15px_rgba(var(--ximi-glow),0.12)]">
+    <header
+      className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 pb-2.5 bg-surface/80 backdrop-blur-md shadow-[0_20px_40px_-15px_rgba(var(--ximi-glow),0.12)]"
+      style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.625rem)" }}
+    >
       <Link href="/" className="flex items-center gap-3 active:scale-95 transition-transform">
         <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-surface-container shadow-sm">
           {/* Material Symbols「pets」爪印 —— 对齐参考图(Image5)的形状:4 圆豆 + 掌垫 */}

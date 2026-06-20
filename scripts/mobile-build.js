@@ -15,8 +15,10 @@ const BACKUP_DIR = path.join(ROOT, ".mobile-build-backup");
 /**
  * 扫描需要临时移除的文件：
  * 1. 所有 API routes (app/api/ * /route.ts 或 route.js)
- * 2. 动态路由页面 (app/.../[...slug]/page.tsx 或 app/.../[param]/page.tsx)
- * 静态导出不允许 API 路由和动态路由。
+ * 2. app/ 下其它 route handler（如 manifest.webmanifest/route.ts）—— 静态导出同样不支持
+ * 3. 动态路由页面 (app/.../[...slug]/page.tsx 或 app/.../[param]/page.tsx)
+ * 静态导出不允许 API 路由 / route handler / 无 generateStaticParams 的动态页。
+ * 手机端聊天走原生 MNN、数据走本地，故所有 API 路由都不进手机包。
  */
 function scanExcluded() {
   const excluded = [];
@@ -44,6 +46,11 @@ function scanExcluded() {
   walk(appDir, (full, name) => {
     const rel = path.relative(ROOT, full);
     if (rel.startsWith("api" + path.sep)) return;
+    // app/ 下(非 api)的 route handler 也不兼容静态导出，如 manifest.webmanifest/route.ts
+    if (name === "route.ts" || name === "route.js") {
+      excluded.push(rel);
+      return;
+    }
     const dirParts = path.dirname(rel).split(path.sep);
     const isDynamic = dirParts.some((part) => part.startsWith("["));
     if (isDynamic && (name === "page.tsx" || name === "page.ts")) {
