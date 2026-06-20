@@ -90,14 +90,6 @@ export default function DashboardPage() {
       }
     : null;
 
-  if (isMobile === null) {
-    return (
-      <div className="max-w-[1280px] mx-auto py-5 pb-24 md:pb-10 animate-page">
-        <div className="h-80 rounded-[28px] border border-border bg-card skeleton" />
-      </div>
-    );
-  }
-
   if (isMobile) {
     return <MobileHome />;
   }

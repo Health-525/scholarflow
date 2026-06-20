@@ -44,14 +44,6 @@ export default function SchedulePage() {
     return { weekNum, semester, tz };
   }, [schedule]);
 
-  if (isMobile === null) {
-    return (
-      <div className="max-w-5xl mx-auto min-h-screen py-6 animate-page">
-        <div className="h-96 rounded-2xl bg-card border border-border skeleton" />
-      </div>
-    );
-  }
-
   if (isMobile) {
     return <MobileSchedule />;
   }

@@ -9,14 +9,6 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 export default function MorePage() {
   const isMobile = useIsMobile();
 
-  if (isMobile === null) {
-    return (
-      <div className="max-w-5xl mx-auto min-h-[60vh] px-4 py-10 animate-page">
-        <div className="w-full rounded-2xl border border-border bg-card p-8 shadow-sm skeleton h-64" />
-      </div>
-    );
-  }
-
   if (isMobile) {
     return <MobileMore />;
   }
