@@ -1,0 +1,17 @@
+App/build
+App/Pods
+App/output
+App/App/public
+DerivedData
+xcuserdata
+
+# Cordova plugins for Capacitor
+capacitor-cordova-ios-plugins
+
+# Generated Config files
+App/App/capacitor.config.json
+App/App/config.xml
+
+# 端侧大模型(过大,不入普通 git;需要时本地放置或走 git-lfs)
+App/Qwen3-*-MNN/
+*.mnn.weight

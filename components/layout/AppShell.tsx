@@ -12,6 +12,7 @@ import { NotificationActivator } from "@/hooks/useNotifications";
 import { semanticBg, semanticBorder, semanticColor } from "@/lib/theme-colors";
 
 import { BottomNav } from "./BottomNav";
+import { CuteTopBar } from "./CuteTopBar";
 import { SideNav } from "./SideNav";
 
 interface AppShellProps {
@@ -39,6 +40,7 @@ export function AppShell({ children, isOnline }: AppShellProps) {
           {/* 窗口控制按钮区域 — 不拖拽 */}
           <div style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties} className="flex-1" />
         </div>
+        <CuteTopBar />
         {!online && (
           <div
             className="px-4 py-2.5 flex items-center justify-center gap-2 text-[12px] font-medium border-b animate-fade-in sticky top-[36px] z-10"

@@ -1,0 +1,275 @@
+/* ScholarFlow · 小咪 Mobile Skin
+ * 仅在移动端 (max-width:767px) 生效的 Material-3「小咪」粉色主题。
+ *  - 覆盖核心 shadcn token,使全部移动页面继承萌系配色;
+ *  - 补全 mockup 用到、原体系没有的 M3 容器 token(primary-container / surface-container-* 等);
+ *  - 桌面 (>=768px) 完全不受影响,保留原 paper 主题;
+ *  - 移动端恒为亮色(同时覆盖 :root 与 [data-theme="dark"]),萌系暗色变体待后续。
+ */
+
+/* ── 桌面回退:新增的 M3 容器 token 在桌面映射到既有中性色,避免空值 ── */
+:root {
+  --primary-container: var(--secondary);
+  --on-primary-container: var(--foreground);
+  --on-primary: var(--primary-foreground);
+  --secondary-container: var(--secondary);
+  --on-secondary-container: var(--foreground);
+  --on-secondary: var(--secondary-foreground);
+  --tertiary: var(--foreground);
+  --tertiary-container: var(--secondary);
+  --on-tertiary: var(--background);
+  --on-tertiary-container: var(--foreground);
+  --surface-container-lowest: var(--card);
+  --surface-container-low: var(--surface);
+  --surface-container: var(--secondary);
+  --surface-container-high: var(--muted);
+  --surface-container-highest: var(--border-subtle);
+  --surface-bright: var(--card);
+  --surface-dim: var(--border-subtle);
+  --surface-variant: var(--secondary);
+  --on-surface: var(--foreground);
+  --on-surface-variant: var(--text-secondary);
+  --outline: var(--border-strong);
+  --outline-variant: var(--border);
+  --error: var(--destructive);
+  --error-container: #ffdad6;
+  --on-error-container: var(--destructive);
+  --primary-fixed: var(--secondary);
+  --primary-fixed-dim: var(--secondary);
+  --inverse-surface: var(--foreground);
+  --inverse-on-surface: var(--background);
+  --inverse-primary: var(--primary);
+}
+
+/* ── 移动端:Material-3「小咪」粉色皮肤(亮色恒定) ── */
+@media (max-width: 767px) {
+  :root,
+  [data-theme="dark"] {
+    /* 核心 shadcn token 覆盖 */
+    --background: #fef8fa;
+    --foreground: #1d1b1d;
+    --card: #ffffff;
+    --card-foreground: #1d1b1d;
+    --popover: #ffffff;
+    --popover-foreground: #1d1b1d;
+    --primary: #864d61;
+    --primary-foreground: #ffffff;
+    --primary-rgb: 134, 77, 97;
+    --secondary: #f2ecee;
+    --secondary-foreground: #1d1b1d;
+    --muted: #f2ecee;
+    --muted-foreground: #514347;
+    --destructive: #ba1a1a;
+    --destructive-foreground: #ffffff;
+    --border: #e6dadd;
+    --border-strong: #d5c2c6;
+    --input: #d5c2c6;
+    --ring: #864d61;
+
+    --sidebar: #fef8fa;
+    --sidebar-foreground: #1d1b1d;
+    --sidebar-primary: #864d61;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #ffe2ea;
+    --sidebar-accent-foreground: #7b4458;
+    --sidebar-border: #e6dadd;
+    --sidebar-ring: #864d61;
+
+    --surface: #fef8fa;
+    --surface-elevated: #ffffff;
+    --surface-card: #ffffff;
+    --surface-glass: rgba(255, 255, 255, 0.82);
+
+    --text-primary: #1d1b1d;
+    --text-secondary: #514347;
+    --text-tertiary: #837377;
+    --text-muted: #a89da1;
+
+    --border-subtle: #f0e6e9;
+
+    --accent: #864d61;
+    --accent-foreground: #ffffff;
+    --accent-hover: #6a364a;
+    --accent-pressed: #561f36;
+    --accent-soft: rgba(var(--primary-rgb), 0.08);
+    --accent-softer: rgba(var(--primary-rgb), 0.04);
+
+    --status-success: #49654c;
+    --status-warning: #b85c00;
+    --status-error: #ba1a1a;
+    --status-info: #42617d;
+
+    --grain-opacity: 0;
+    --bg-gradient: #fef8fa;
+
+    /* 萌系光晕色(粉默认;蓝皮在 [data-skin="blue"] 覆盖) */
+    --ximi-glow: 255, 183, 206;
+
+    /* 柔和阴影(对齐 mockup 的 signature glow,跟随 --ximi-glow) */
+    --shadow-xs: 0 1px 2px rgba(var(--ximi-glow), 0.12);
+    --shadow-sm: 0 4px 12px rgba(var(--ximi-glow), 0.16);
+    --shadow-md: 0 12px 28px -8px rgba(var(--ximi-glow), 0.24);
+    --shadow-lg: 0 20px 44px -16px rgba(var(--ximi-glow), 0.3);
+
+    /* ── M3 容器 token(萌系实色) ── */
+    --primary-container: #ffb7ce;
+    --on-primary-container: #7b4458;
+    --on-primary: #ffffff;
+    --secondary-container: #bddefe;
+    --on-secondary-container: #43627e;
+    --on-secondary: #ffffff;
+    --tertiary: #49654c;
+    --tertiary-container: #b3d3b4;
+    --on-tertiary: #ffffff;
+    --on-tertiary-container: #405c43;
+    --surface-container-lowest: #ffffff;
+    --surface-container-low: #f8f2f4;
+    --surface-container: #f2ecee;
+    --surface-container-high: #ece7e9;
+    --surface-container-highest: #e7e1e3;
+    --surface-bright: #fef8fa;
+    --surface-dim: #ded9db;
+    --surface-variant: #e7e1e3;
+    --on-surface: #1d1b1d;
+    --on-surface-variant: #514347;
+    --outline: #837377;
+    --outline-variant: #d5c2c6;
+    --error: #ba1a1a;
+    --error-container: #ffdad6;
+    --on-error-container: #93000a;
+    --primary-fixed: #ffd9e3;
+    --primary-fixed-dim: #fab3ca;
+    --inverse-surface: #323031;
+    --inverse-on-surface: #f5eff1;
+    --inverse-primary: #fab3ca;
+  }
+}
+
+/* ── 移动端字体:正文 Geist + 思源黑体(可读);大标题站酷快乐体(萌) ── */
+@media (max-width: 767px) {
+  body {
+    font-family: var(--font-sans), "Noto Sans SC", var(--font-noto-sans-sc),
+      ui-sans-serif, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+  h1, h2 {
+    font-family: "ZCOOL KuaiLe", var(--font-noto-sans-sc), "Noto Sans SC",
+      ui-sans-serif, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+}
+
+/* ── 小咪吉祥物浮动动画 ── */
+@keyframes ximi-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.ximi-float { animation: ximi-float 3s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ximi-float { animation: none; }
+}
+
+/* ── 移动端:既有 shadcn 卡片圆润化 + 柔和粉调阴影,与萌系卡片协调 ── */
+@media (max-width: 767px) {
+  [data-slot="card"] {
+    border-radius: 28px;
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+/* ── 移动端「清新青」配色:data-skin="blue"(即"非粉的那套")时覆盖粉色皮肤 ──
+ * teal 青色系,跟暖橘色小咪互补,比纯蓝更搭;吉祥物/logo/布局全不变,只换配色 + 光晕。
+ * 同一 <html> 上 [data-skin="blue"] 与上方 :root/[data-theme] 同特异度,靠源码顺序在后取胜。
+ */
+@media (max-width: 767px) {
+  [data-skin="blue"] {
+    --background: #f2faf8;
+    --foreground: #1a1c1c;
+    --card: #ffffff;
+    --card-foreground: #1a1c1c;
+    --popover: #ffffff;
+    --popover-foreground: #1a1c1c;
+    --primary: #0d9488;
+    --primary-foreground: #ffffff;
+    --primary-rgb: 13, 148, 136;
+    --secondary: #e9f4f1;
+    --secondary-foreground: #1a1c1c;
+    --muted: #e9f4f1;
+    --muted-foreground: #44514e;
+    --destructive: #ba1a1a;
+    --destructive-foreground: #ffffff;
+    --border: #d6e7e2;
+    --border-strong: #bad3cd;
+    --input: #bad3cd;
+    --ring: #0d9488;
+
+    --sidebar: #f2faf8;
+    --sidebar-foreground: #1a1c1c;
+    --sidebar-primary: #0d9488;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #c4f0e8;
+    --sidebar-accent-foreground: #00504a;
+    --sidebar-border: #d6e7e2;
+    --sidebar-ring: #0d9488;
+
+    --surface: #f2faf8;
+    --surface-elevated: #ffffff;
+    --surface-card: #ffffff;
+    --surface-glass: rgba(255, 255, 255, 0.82);
+
+    --text-primary: #1a1c1c;
+    --text-secondary: #44514e;
+    --text-tertiary: #6f7b78;
+    --text-muted: #97a4a0;
+
+    --border-subtle: #e3f0ec;
+
+    --accent: #0d9488;
+    --accent-foreground: #ffffff;
+    --accent-hover: #0f766e;
+    --accent-pressed: #115e56;
+    --accent-soft: rgba(var(--primary-rgb), 0.08);
+    --accent-softer: rgba(var(--primary-rgb), 0.04);
+
+    --status-success: #2e7d52;
+    --status-warning: #b45309;
+    --status-error: #ba1a1a;
+    --status-info: #0e7490;
+
+    --grain-opacity: 0;
+    --bg-gradient: #f2faf8;
+
+    /* 青色光晕 → 上方所有 --shadow-* 与组件内联阴影自动跟随 */
+    --ximi-glow: 90, 200, 185;
+
+    /* M3 青色容器板(teal / 天青 / 薄荷绿,保证课程色块有区分度) */
+    --primary-container: #a6f0e4;
+    --on-primary-container: #00504a;
+    --on-primary: #ffffff;
+    --secondary-container: #c2e9ef;
+    --on-secondary-container: #094a52;
+    --on-secondary: #ffffff;
+    --tertiary: #4d7c0f;
+    --tertiary-container: #d5edb8;
+    --on-tertiary: #ffffff;
+    --on-tertiary-container: #2f4d0a;
+    --surface-container-lowest: #ffffff;
+    --surface-container-low: #eff7f4;
+    --surface-container: #e8f2ef;
+    --surface-container-high: #e1ece9;
+    --surface-container-highest: #dbe7e3;
+    --surface-bright: #f2faf8;
+    --surface-dim: #d5e3df;
+    --surface-variant: #dbe7e3;
+    --on-surface: #1a1c1c;
+    --on-surface-variant: #44514e;
+    --outline: #6f7b78;
+    --outline-variant: #bad3cd;
+    --error: #ba1a1a;
+    --error-container: #ffdad6;
+    --on-error-container: #93000a;
+    --primary-fixed: #c2f5ec;
+    --primary-fixed-dim: #84d9cc;
+    --inverse-surface: #2d3130;
+    --inverse-on-surface: #eff3f1;
+    --inverse-primary: #84d9cc;
+  }
+}
