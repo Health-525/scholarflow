@@ -2,6 +2,9 @@
 
 > 状态：设计稿（待评审）· 日期：2026-06-19 · 适用赛事：**手机上的创意AI · 初赛**
 
+> **开发前置（本地构建 iOS 前先备齐模型）**：大模型不入 git，运行 `npm run mobile:models`
+> （即 `scripts/fetch-models.sh`）从魔搭 ModelScope 拉取 Qwen3-1.7B/0.6B-MNN 到 `ios/App/`。依赖 git-lfs。
+
 ## 1. 背景与问题
 
 ScholarFlow 的 AI 助手当前后台是 **Ollama 代理**：

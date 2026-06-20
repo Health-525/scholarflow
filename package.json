@@ -38,6 +38,7 @@
     "release:dir": "powershell -ExecutionPolicy Bypass -File scripts/build-release.ps1 -SkipCheck -OnlyDir",
     "release:prebuilt:installer": "powershell -ExecutionPolicy Bypass -File scripts/build-release.ps1 -SkipCheck -PrePackaged -Target installer",
     "release:prebuilt:portable": "powershell -ExecutionPolicy Bypass -File scripts/build-release.ps1 -SkipCheck -PrePackaged -Target portable",
+    "mobile:models": "bash scripts/fetch-models.sh",
     "mobile:build": "node scripts/mobile-build.js",
     "mobile:sync": "npx cap sync android",
     "mobile:open": "npx cap open android",
