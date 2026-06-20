@@ -13,6 +13,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { SegmentedControl, type SegmentedOption } from "@/components/ui/segmented-control";
+import { MobileSchedule } from "@/components/ximi/MobileSchedule";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useScheduleQuery } from "@/hooks/useQueries";
 import { getWeekNumber } from "@/lib/schedule/schedule";
 import { getNowInTimeZone, normalizeDate } from "@/lib/schedule/timezone";
@@ -26,6 +28,7 @@ const TABS: SegmentedOption[] = [
 ];
 
 export default function SchedulePage() {
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<Tab>("week");
   const { data, isLoading, error, refetch } = useScheduleQuery();
   const schedule = data?.schedule ?? null;
@@ -40,6 +43,18 @@ export default function SchedulePage() {
     const semester = schedule.meta.semester || "";
     return { weekNum, semester, tz };
   }, [schedule]);
+
+  if (isMobile === null) {
+    return (
+      <div className="max-w-5xl mx-auto min-h-screen py-6 animate-page">
+        <div className="h-96 rounded-2xl bg-card border border-border skeleton" />
+      </div>
+    );
+  }
+
+  if (isMobile) {
+    return <MobileSchedule />;
+  }
 
   return (
     <div className="max-w-5xl mx-auto min-h-screen bg-background text-foreground flex flex-col animate-page">

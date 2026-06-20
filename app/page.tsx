@@ -12,6 +12,8 @@ import { RunningCard } from "@/components/dashboard/RunningCard";
 import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
 import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
 import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
+import { MobileHome } from "@/components/ximi/MobileHome";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useDashboardSummary } from "@/lib/dashboard/use-dashboard-summary";
 import { RUNNING_GOAL } from "@/lib/running-utils";
 
@@ -75,6 +77,7 @@ function useGreeting() {
 }
 
 export default function DashboardPage() {
+  const isMobile = useIsMobile();
   const { text: greeting, emoji: greetingEmoji, date: dateStr } = useGreeting();
   const { data: dashboardData, loading: dashboardLoading } =
     useDashboardSummary();
@@ -86,6 +89,18 @@ export default function DashboardPage() {
         running: `${dashboardData.overview.running?.total ?? 0}/${RUNNING_GOAL}`,
       }
     : null;
+
+  if (isMobile === null) {
+    return (
+      <div className="max-w-[1280px] mx-auto py-5 pb-24 md:pb-10 animate-page">
+        <div className="h-80 rounded-[28px] border border-border bg-card skeleton" />
+      </div>
+    );
+  }
+
+  if (isMobile) {
+    return <MobileHome />;
+  }
 
   return (
     <div className="max-w-[1280px] mx-auto py-5 pb-24 md:pb-10 space-y-6 animate-page">
