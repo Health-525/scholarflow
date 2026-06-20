@@ -1,6 +1,6 @@
 {
   "name": "scholarflow",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "A local-first campus study workspace for academic data, library workflows, assignments, notes, and study reports.",
   "author": "Health-525 <health-525@users.noreply.github.com>",
