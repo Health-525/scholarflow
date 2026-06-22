@@ -45,6 +45,7 @@
 
 - [什么是 ScholarFlow](#什么是-scholarflow)
 - [为什么选择 ScholarFlow](#为什么选择-scholarflow)
+- [平台支持](#平台支持)
 - [快速开始](#快速开始)
 - [功能总览](#功能总览)
 - [移动端皮肤](#移动端皮肤)
@@ -109,6 +110,21 @@ ScholarFlow 把这些全部收束到一个应用里：
     </td>
   </tr>
 </table>
+
+## 平台支持
+
+| 能力 | 🖥️ Electron 桌面 | 🌐 Web / PWA | 📱 Android |
+|---|---|---|---|
+| 课表 / 成绩 / 考试同步 | ✅ 完整 | ✅ 支持 | ⚡ 实验性 |
+| 作业 / 目标 / 番茄钟 / 笔记 | ✅ 完整 | ✅ 支持 | ⚡ 实验性 |
+| 图书馆预约与 JWT 刷新 | ✅ 完整 | ⚠️ 浏览器限制 | ⚡ 实验性 |
+| 本地安全加密存储 | ✅ 系统级 | ⚠️ 部分 | ⚠️ 部分 |
+| AI 学习助手 | ✅ 完整 | ✅ 支持 | ⚡ 实验性 |
+| 活动窗口统计 | ✅ 完整 | ❌ 不支持 | ❌ 不支持 |
+| 后台自动刷新 | ✅ 完整 | ❌ 不支持 | ❌ 不支持 |
+| 萌系小咪皮肤 | 桌面端 UI | 自适应 | 🐱 萌系 UI |
+
+> 桌面版是主力形态，Web / PWA 是补充形态，Android 为实验性支持。
 
 ## 快速开始
 
@@ -185,12 +201,12 @@ git clone https://github.com/Health-525/scholarflow.git && cd scholarflow && npm
       <p>学习数据沉淀，<strong>趋势回顾与复盘</strong></p>
     </td>
     <td>
-      <h4>⚙️ 设置</h4>
-      <p>主题切换、数据导出、刷新策略、<strong>账户与设备管理</strong></p>
+      <h4>🤖 AI 学习助手</h4>
+      <p>内置大模型对话，支持<strong>整理笔记、生成小测、检查作业</strong></p>
     </td>
     <td>
-      <h4>🐱 小咪皮肤</h4>
-      <p>移动端专属萌系主题，<strong>M3 设计系统 + 动画吉祥物</strong></p>
+      <h4>📱 屏幕时间</h4>
+      <p>桌面端活动窗口统计，<strong>了解你的应用使用分布</strong></p>
     </td>
   </tr>
 </table>
@@ -258,16 +274,17 @@ ScholarFlow 为移动端量身打造了专属的 **「小咪」萌系皮肤**，
 ## 隐私与安全
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  🔒 你的数据，你的设备，你的控制权                       │
-├─────────────────────────────────────────────────────┤
-│  • 账号密码仅加密存储在本地，绝不上传任何服务器            │
-│  • 学习数据（课表、作业、笔记等）默认存储在本地 SQLite      │
-│  • Electron: contextIsolation + nodeIntegration 严格隔离 │
-│  • 内部 API 调用带 token 校验，图书馆证书显式边界控制      │
-│  • 代码完全开源，可自行审查每一行                          │
-│  • 零追踪 · 零广告 · 零数据采集                          │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  🔒 你的数据，你的设备，你的控制权                            │
+├──────────────────────────────────────────────────────────┤
+│  • 账号密码 AES-256-GCM 加密存储，密钥经 scrypt 派生，不上传  │
+│  • 学习数据默认存储在本地 SQLite（WAL 模式）                  │
+│  • Electron: contextIsolation + nodeIntegration 严格隔离    │
+│  • 内部 API 带 token 校验，图书馆证书显式边界控制             │
+│  • 记住密码功能需 Electron safeStorage 才启用                │
+│  • 代码完全开源，可自行审查每一行                              │
+│  • 零追踪 · 零广告 · 零数据采集                              │
+└──────────────────────────────────────────────────────────┘
 ```
 
 详见 [SECURITY.md](SECURITY.md)
@@ -294,10 +311,14 @@ ScholarFlow 为移动端量身打造了专属的 **「小咪」萌系皮肤**，
 ScholarFlow is a **local-first campus study workspace** that deeply integrates academic systems, library services, and personal study tools into a single desktop application.
 
 **Why ScholarFlow:**
-- 🔒 **Data sovereignty** — Credentials encrypted locally. Study data in local SQLite. Zero tracking.
-- 🧩 **Complete workflow** — Schedule, grades, library, assignments, notes, pomodoro, reports. Not ten separate apps.
+- 🔒 **Data sovereignty** — AES-256-GCM encrypted credentials. Study data in local SQLite. Zero tracking.
+- 🧩 **Complete workflow** — Schedule, grades, library, assignments, notes, pomodoro, AI assistant, reports.
 - 🖥️ **Desktop-native** — Electron with secure storage, background refresh, activity tracking, auto-update.
 - 🔌 **Extensible** — `SchoolAdapter` pattern. NJTech and HEBau already integrated.
 - 📱 **Multi-platform** — Desktop (primary), Web/PWA, Android with a unique cute mobile skin.
+
+**Features:** Dashboard · Schedule · Assignments · Exams · GPA · Library (seat reservation) · Notes (Markdown) · Pomodoro · Running/Goals · Daily/Weekly Reports · AI Assistant (OpenRouter/Ollama) · Screen Time · Settings · Mobile Ximi Skin
+
+**Platforms:** Electron desktop (full), Web/PWA (complementary), Android/Capacitor (experimental).
 
 **Quick links:** [Downloads](https://github.com/Health-525/scholarflow/releases) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
