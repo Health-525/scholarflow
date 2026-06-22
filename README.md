@@ -1,326 +1,301 @@
 <div align="center">
-  <img src="public/icons/logo.png" alt="ScholarFlow Logo" width="96" />
+  <br/>
+  <img src="public/icons/logo.png" alt="ScholarFlow Logo" width="100" />
+  <br/>
+  <br/>
   <h1>ScholarFlow</h1>
-  <p><strong>本地优先的校园学习工作台</strong></p>
-  <p><strong>A local-first campus study workspace</strong></p>
-
+  <h3>本地优先的校园学习工作台</h3>
   <p>
-    <a href="https://github.com/Health-525/scholarflow/releases">下载 Download</a> ·
-    <a href="docs/school-adapter-guide.md">学校接入指南 Adapter Guide</a> ·
-    <a href="https://github.com/Health-525/scholarflow/issues/new?template=bug_report.md">问题反馈 Issues</a> ·
-    <a href="https://github.com/Health-525/scholarflow/issues/new?template=feature_request.md">功能建议 Requests</a>
+    教务数据 &nbsp;·&nbsp; 图书馆服务 &nbsp;·&nbsp; 学习工具<br/>
+    <strong>一个应用，覆盖你的全部校园学习流程</strong>
   </p>
 
   <p>
-    <a href="https://github.com/Health-525/scholarflow/actions/workflows/ci.yml"><img src="https://github.com/Health-525/scholarflow/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-    <a href="LICENSE"><img src="https://img.shields.io/github/license/Health-525/scholarflow" alt="License" /></a>
-    <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen" alt="Node" /></a>
-    <a href="https://github.com/Health-525/scholarflow/releases"><img src="https://img.shields.io/github/v/release/Health-525/scholarflow?include_prereleases" alt="Release" /></a>
+    <a href="https://github.com/Health-525/scholarflow/releases">
+      <img src="https://img.shields.io/github/v/release/Health-525/scholarflow?include_prereleases&style=for-the-badge&color=6366f1" alt="Release" />
+    </a>
+    <a href="https://github.com/Health-525/scholarflow/stargazers">
+      <img src="https://img.shields.io/github/stars/Health-525/scholarflow?style=for-the-badge&color=f59e0b" alt="Stars" />
+    </a>
+    <a href="LICENSE">
+      <img src="https://img.shields.io/github/license/Health-525/scholarflow?style=for-the-badge&color=22c55e" alt="License" />
+    </a>
+    <br/>
+    <img src="https://img.shields.io/badge/Node.js-20+-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js" />
+    <img src="https://img.shields.io/badge/Electron-42-47848F?style=flat-square&logo=electron&logoColor=white" alt="Electron" />
+    <img src="https://img.shields.io/badge/Next.js-15-000000?style=flat-square&logo=nextdotjs&logoColor=white" alt="Next.js" />
+    <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+    <img src="https://github.com/Health-525/scholarflow/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  </p>
+
+  <p>
+    <a href="https://github.com/Health-525/scholarflow/releases">📥 下载</a>
+    &nbsp;·&nbsp;
+    <a href="docs/school-adapter-guide.md">📖 学校接入指南</a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/Health-525/scholarflow/issues">🐛 问题反馈</a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/Health-525/scholarflow/issues">💡 功能建议</a>
   </p>
 </div>
 
 ---
 
-<p align="center">
-  <a href="#中文">中文</a> ·
-  <a href="#english">English</a>
-</p>
+## 目录
 
-![ScholarFlow Dashboard](docs/dashboard.png)
+- [什么是 ScholarFlow](#什么是-scholarflow)
+- [为什么选择 ScholarFlow](#为什么选择-scholarflow)
+- [快速开始](#快速开始)
+- [功能总览](#功能总览)
+- [移动端皮肤](#移动端皮肤)
+- [技术栈](#技术栈)
+- [学校支持](#学校支持)
+- [隐私与安全](#隐私与安全)
+- [贡献](#贡献)
+- [English](#english)
 
-## 中文
+## 什么是 ScholarFlow
 
-### ScholarFlow 是什么
+> **ScholarFlow 不是另一个课表 App。** 它是一个将教务系统、图书馆服务和个人学习工具深度融合的本地优先工作台。
 
-ScholarFlow 把大学生日常分散在教务系统、图书馆系统和个人效率工具里的信息，收束到一个本地优先、离线可用、桌面体验完整的校园学习工作台里。
+大学生的日常信息流是割裂的——教务系统查课表和成绩，图书馆系统抢座位，再用独立的 App 记笔记、设番茄钟、写日报。数据散落在各处，账号密码交给云端，学习节奏被打断。
 
-它不是一个单点应用，而是围绕真实学习流程组织起来的学生工作台：
+ScholarFlow 把这些全部收束到一个应用里：
 
-- 课表、考试、成绩来自教务系统
-- 座位、预约、消息来自图书馆系统
-- 作业、笔记、番茄钟、日报和周报统一管理
-- 敏感数据优先保留在本地，而不是依赖第三方云端
-
-### 为什么值得用
-
-- 本地优先：学习数据默认存储在本地 SQLite
-- 桌面增强：Electron 提供安全存储、自动更新、后台刷新和活动统计
-- 工作流完整：不是单独的课表或待办，而是覆盖学习闭环
-- 易于扩展：通过 `SchoolAdapter` 可以继续接入更多学校
-
-### 隐私与安全
-
-- **账号密码仅加密存储在本地**，不会上传到任何服务器
-- 学习数据（课表、作业、笔记等）默认存储在本地 SQLite
-- 开源透明：代码完全公开，可自行审查
-- 无追踪、无广告、无数据采集
-
-### 适合谁
-
-- 想把校园信息流和个人学习流放到一起的大学生
-- 重视隐私、不愿托管教务账号和学习数据的用户
-- 想验证校园效率产品方向的开发者
-- 想扩展更多学校支持的贡献者
-
-### 功能总览
-
-| 模块 | 说明 |
-| --- | --- |
-| 仪表盘 | 汇总课表、作业、跑步、考试倒计时、教务通知、最近日报 |
-| 课表 | 今日视图、本周网格、日期查询、学期周次计算 |
-| 作业 | 快速新增、列表管理、完成状态追踪 |
-| 考试 | 考试安排查看与管理 |
-| 成绩 / GPA | 教务同步、绩点展示、按学期查看 |
-| 图书馆 | 阅览室状态、预约、暂离、取消预约、馆内消息 |
-| 笔记 | Markdown、搜索、自动保存 |
-| 番茄钟 | 专注 / 休息循环计时 |
-| 目标 / 跑步 | 习惯与目标追踪 |
-| 日报 / 周报 | 学习数据沉淀与趋势复盘 |
-| 设置 | 主题、数据导出、刷新策略、账户与设备信息 |
-| 🐱 萌系移动端皮肤 | 移动端专属「小咪」主题，可爱吉祥物 + M3 粉色设计系统 |
-
-### 移动端皮肤
-
-ScholarFlow 为移动端用户提供了专属的萌系「小咪」皮肤：
-
-- **运行时隔离**：桌面端和移动端完全分离，互不影响
-- **代码分割**：移动端组件通过 `React.lazy` 懒加载，桌面端不加载任何移动端代码
-- **M3 设计系统**：粉色 Material-3 主题，支持粉色/青色两种配色
-- **可爱吉祥物**：小咪 Mascot 组件，带动画效果
-- **专属页面**：首页、课表、更多页面都有移动端专属的萌系 UI
-
-### 平台支持
-
-| 能力 | Electron 桌面端 | Web / PWA | Android / Capacitor |
-| --- | --- | --- | --- |
-| 课表 / 成绩 / 考试同步 | 支持 | 支持 | 实验性 |
-| 作业 / 目标 / 番茄钟 / 笔记 | 支持 | 支持 | 实验性 |
-| 图书馆预约与 JWT 刷新 | 支持更完整 | 受浏览器限制 | 实验性 |
-| 本地安全加密存储 | 支持 | 不完整 | 不完整 |
-| 活动窗口统计 | 支持 | 不支持 | 不支持 |
-| 后台自动刷新 | 支持 | 不支持 | 不支持 |
-| 萌系移动端皮肤 | 桌面端 UI | 自适应 | 萌系 UI |
-
-桌面版是主形态，Web / PWA 是补充形态。
-
-### 快速开始
-
-#### 直接使用
-
-前往 [Releases](https://github.com/Health-525/scholarflow/releases) 下载 Windows 安装版或便携版。
-
-#### 本地开发
-
-要求：
-
-- Node.js 20+
-- npm 10+
-
-```bash
-git clone https://github.com/Health-525/scholarflow.git
-cd scholarflow
-npm install
+```
+教务系统                    图书馆                      个人工具
+(课表/考试/成绩)    +    (座位/预约/消息)    +    (作业/笔记/番茄钟/日报)
+                              │
+                              ▼
+                     ScholarFlow 工作台
+                    (本地存储 · 离线可用 · 桌面原生)
 ```
 
-启动 Web 开发环境：
+**核心理念：** 你的学习数据属于你自己。默认存储在本地 SQLite，凭证加密保存在设备上，不经过任何第三方服务器。
+
+## 为什么选择 ScholarFlow
+
+<table>
+  <tr>
+    <td width="50%">
+      <h4>🔒 数据主权在你手中</h4>
+      <p>账号密码仅加密保存在你的设备上，学习数据默认存储在本地 SQLite。<strong>不上传、不追踪、不采集。</strong>代码完全开源，可自行审查。</p>
+    </td>
+    <td width="50%">
+      <h4>🧩 一站式学习闭环</h4>
+      <p>课表 → 作业 → 番茄钟 → 日报，不是十个孤立工具的拼凑，而是<strong>围绕真实学习流程设计</strong>的完整工作台。</p>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <h4>🖥️ 桌面端原生能力</h4>
+      <p>Electron 加持：系统级安全存储、后台自动刷新、活动窗口统计、自动更新。<strong>网页版做不到的事。</strong></p>
+    </td>
+    <td>
+      <h4>🔌 学校即插即用</h4>
+      <p><code>SchoolAdapter</code> 接口设计——接入新学校只需实现一个适配器。<strong>已有 NJTech、HEBau 两个真实案例。</strong></p>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <h4>📱 三端覆盖</h4>
+      <p>桌面端（主力）+ Web/PWA + Android，移动端还有专属<strong>萌系「小咪」皮肤</strong>，M3 设计系统 + 可爱吉祥物。</p>
+    </td>
+    <td>
+      <h4>⚡ 离线可用</h4>
+      <p>本地 SQLite + 服务端数据同步到本地。断网也能查课表、写笔记、看成绩。<strong>网络只是增强，不是依赖。</strong></p>
+    </td>
+  </tr>
+</table>
+
+## 快速开始
+
+### 直接使用
+
+前往 [Releases](https://github.com/Health-525/scholarflow/releases) 下载 Windows 安装版或便携版，开箱即用。
+
+### 本地开发
+
+**环境要求：** Node.js 20+ · npm 10+
 
 ```bash
-npm run dev
+git clone https://github.com/Health-525/scholarflow.git && cd scholarflow && npm install
 ```
 
-启动 Electron 开发环境：
+| 命令 | 说明 |
+|---|---|
+| `npm run dev` | 启动 Web 开发服务器 |
+| `npm run abi:node && npm run electron:dev` | 启动 Electron 开发环境 |
+| `npm run typecheck` | TypeScript 类型检查 |
+| `npm run lint` | ESLint 代码规范检查 |
+| `npm test` | Vitest 单元测试 |
+| `npm run check` | 一键全检（typecheck + lint + test） |
+| `npm run electron:build` | 构建 Windows 安装包 |
 
-```bash
-npm run abi:node
-npm run electron:dev
+## 功能总览
+
+<table>
+  <tr>
+    <td width="33%">
+      <h4>📊 仪表盘</h4>
+      <p>课表、作业、跑步、考试倒计时、教务通知、近期日报——<strong>一屏掌握全部学习状态</strong></p>
+    </td>
+    <td width="33%">
+      <h4>📅 课表</h4>
+      <p>今日视图、本周网格、日期查询、学期周次<strong>自动计算</strong></p>
+    </td>
+    <td width="33%">
+      <h4>📝 作业</h4>
+      <p>快速新增、列表管理、完成状态<strong>一键追踪</strong></p>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <h4>📈 成绩 / GPA</h4>
+      <p>教务同步、绩点展示、<strong>按学期查看</strong>成绩趋势</p>
+    </td>
+    <td>
+      <h4>📋 考试</h4>
+      <p>考试安排管理与<strong>倒计时提醒</strong></p>
+    </td>
+    <td>
+      <h4>📚 图书馆</h4>
+      <p>阅览室实时状态、座位预约、暂离/取消、<strong>馆内消息</strong></p>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <h4>📒 笔记</h4>
+      <p>Markdown 编辑器、全文搜索、<strong>自动保存</strong></p>
+    </td>
+    <td>
+      <h4>🍅 番茄钟</h4>
+      <p>专注 / 休息循环计时，<strong>助你进入心流</strong></p>
+    </td>
+    <td>
+      <h4>🏃 跑步 / 目标</h4>
+      <p>习惯打卡与<strong>目标追踪</strong></p>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <h4>📰 日报 / 周报</h4>
+      <p>学习数据沉淀，<strong>趋势回顾与复盘</strong></p>
+    </td>
+    <td>
+      <h4>⚙️ 设置</h4>
+      <p>主题切换、数据导出、刷新策略、<strong>账户与设备管理</strong></p>
+    </td>
+    <td>
+      <h4>🐱 小咪皮肤</h4>
+      <p>移动端专属萌系主题，<strong>M3 设计系统 + 动画吉祥物</strong></p>
+    </td>
+  </tr>
+</table>
+
+## 移动端皮肤
+
+ScholarFlow 为移动端量身打造了专属的 **「小咪」萌系皮肤**，与桌面端完全隔离：
+
+- **运行时隔离** — 桌面端与移动端 UI 完全独立，互不加载对方代码
+- **零开销** — 移动端组件通过 `React.lazy` 懒加载，桌面端打包体积不受影响
+- **M3 设计系统** — 粉色 Material-3 主题，支持粉 / 青双配色切换
+- **小咪吉祥物** — 专属 Mascot 组件，带流畅动画效果
+- **专属页面** — 首页、课表等核心页面均有移动端定制 UI
+
+## 技术栈
+
+<table>
+  <tr>
+    <th>层级</th>
+    <th>技术选型</th>
+    <th>说明</th>
+  </tr>
+  <tr>
+    <td>🖥️ 框架</td>
+    <td><code>Next.js 15</code> + <code>React 19</code> + <code>TypeScript</code></td>
+    <td>App Router · RSC · 类型安全</td>
+  </tr>
+  <tr>
+    <td>🎨 样式</td>
+    <td><code>Tailwind CSS</code> + <code>shadcn/ui</code> + <code>Base UI</code></td>
+    <td>原子化 CSS · 无头组件 · 暗色模式</td>
+  </tr>
+  <tr>
+    <td>📦 状态</td>
+    <td><code>Zustand</code> + <code>TanStack Query</code></td>
+    <td>轻量状态 · 服务端缓存 · 自动刷新</td>
+  </tr>
+  <tr>
+    <td>🖥️ 桌面</td>
+    <td><code>Electron</code> + <code>better-sqlite3</code></td>
+    <td>原生窗口 · 本地数据库 · 安全存储</td>
+  </tr>
+  <tr>
+    <td>📱 移动</td>
+    <td><code>Capacitor</code> (Android)</td>
+    <td>跨平台 · 原生 API 桥接</td>
+  </tr>
+  <tr>
+    <td>🧪 测试</td>
+    <td><code>Vitest</code> + <code>Playwright</code></td>
+    <td>单元测试 · E2E · UI 自动化</td>
+  </tr>
+</table>
+
+## 学校支持
+
+| 适配器 | 学校 | 教务 | 图书馆 | 状态 |
+|:---|:---|---|---|:---:|
+| `njtech` | 南京工业大学 | ✅ | ✅ | 已支持 |
+| `hebau` | 河北农业大学 | ✅ | — | 已支持 |
+| `mock` | 本地开发 / 调试 | 🧪 | 🧪 | 测试用 |
+
+> 💡 **想接入你的学校？** 只需实现 `SchoolAdapter` 接口。详见 [学校接入指南 →](docs/school-adapter-guide.md)
+
+## 隐私与安全
+
+```
+┌─────────────────────────────────────────────────────┐
+│  🔒 你的数据，你的设备，你的控制权                       │
+├─────────────────────────────────────────────────────┤
+│  • 账号密码仅加密存储在本地，绝不上传任何服务器            │
+│  • 学习数据（课表、作业、笔记等）默认存储在本地 SQLite      │
+│  • Electron: contextIsolation + nodeIntegration 严格隔离 │
+│  • 内部 API 调用带 token 校验，图书馆证书显式边界控制      │
+│  • 代码完全开源，可自行审查每一行                          │
+│  • 零追踪 · 零广告 · 零数据采集                          │
+└─────────────────────────────────────────────────────┘
 ```
 
-验证命令：
+详见 [SECURITY.md](SECURITY.md)
 
-```bash
-npm run typecheck
-npm run lint
-npm test
-npm run check
-```
+## 贡献
 
-构建：
+欢迎提 Issue 和 PR。贡献前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-```bash
-npm run electron:build
-```
+| 文档 | 说明 |
+|---|---|
+| [学校接入指南](docs/school-adapter-guide.md) | 如何为新学校编写 `SchoolAdapter` |
+| [数据模型](docs/DATA_MODEL.md) | 核心数据结构与关系说明 |
+| [安全说明](SECURITY.md) | 安全架构设计与最佳实践 |
+| [构建排错](docs/BUILD-TROUBLESHOOTING.md) | 常见构建问题与解决方案 |
 
-### 技术栈
+## 许可
 
-- `Next.js 15` + `React 19` + `TypeScript`
-- `Tailwind CSS` + `shadcn/ui` + `Base UI`
-- `Zustand` + `TanStack Query`
-- `Electron` + `better-sqlite3`
-- `Capacitor` Android
-- `Vitest` + `Playwright`
+[MIT](LICENSE) © 2026 [Health-525](https://github.com/Health-525)
 
-### 当前学校支持
-
-- `njtech` - 南京工业大学
-- `mock` - 本地开发与适配器调试
-
-如果你想接入新的学校系统，请阅读 [docs/school-adapter-guide.md](docs/school-adapter-guide.md)。
-
-### 安全说明
-
-- 敏感凭证优先使用桌面端系统级加密存储
-- Electron 使用 `contextIsolation: true` 与 `nodeIntegration: false`
-- 内部 API 调用带内部 token 校验
-- 图书馆登录与证书信任逻辑有显式边界控制
-
-更多说明见 [SECURITY.md](SECURITY.md)。
-
-### 贡献
-
-欢迎 Issue 和 PR。
-
-- [CONTRIBUTING.md](CONTRIBUTING.md)
-- [docs/school-adapter-guide.md](docs/school-adapter-guide.md)
-- [docs/DATA_MODEL.md](docs/DATA_MODEL.md)
-- [SECURITY.md](SECURITY.md)
+---
 
 ## English
 
-### What ScholarFlow Is
+ScholarFlow is a **local-first campus study workspace** that deeply integrates academic systems, library services, and personal study tools into a single desktop application.
 
-ScholarFlow is a local-first campus study workspace that brings together academic data, library workflows, and personal study tools into one desktop-oriented product.
+**Why ScholarFlow:**
+- 🔒 **Data sovereignty** — Credentials encrypted locally. Study data in local SQLite. Zero tracking.
+- 🧩 **Complete workflow** — Schedule, grades, library, assignments, notes, pomodoro, reports. Not ten separate apps.
+- 🖥️ **Desktop-native** — Electron with secure storage, background refresh, activity tracking, auto-update.
+- 🔌 **Extensible** — `SchoolAdapter` pattern. NJTech and HEBau already integrated.
+- 📱 **Multi-platform** — Desktop (primary), Web/PWA, Android with a unique cute mobile skin.
 
-It is designed around real student workflows rather than a single feature:
-
-- schedules, exams, and grades from academic systems
-- seats, reservations, and notices from library systems
-- assignments, notes, focus timers, and reports in one place
-- sensitive data kept local whenever possible
-
-### Why It Matters
-
-- Local-first: study data is stored in local SQLite by default
-- Desktop-native: secure storage, auto-update, background refresh, and activity tracking
-- Workflow-oriented: covers the full study loop instead of one isolated task
-- Extensible: more schools can be added through `SchoolAdapter`
-
-### Who It Is For
-
-- students who want campus data and personal productivity in one place
-- privacy-conscious users who do not want to outsource academic data
-- developers exploring student productivity products
-- contributors who want to support more universities
-
-### Feature Summary
-
-| Module | Description |
-| --- | --- |
-| Dashboard | Unified overview of schedules, assignments, running, countdowns, notices, and recent reports |
-| Schedule | Today view, weekly grid, date query, semester week calculation |
-| Assignments | Quick add, list management, completion tracking |
-| Exams | Exam schedule viewing and management |
-| Grades / GPA | Grade sync, GPA display, semester-based views |
-| Library | Reading room status, reservations, leave/cancel actions, in-library messages |
-| Notes | Markdown notes, search, autosave |
-| Pomodoro | Focus / break timer |
-| Goals / Running | Goal and habit tracking |
-| Reports | Daily and weekly reporting |
-| Settings | Themes, export, refresh strategy, account and device info |
-
-### Platform Support
-
-| Capability | Electron Desktop | Web / PWA | Android / Capacitor |
-| --- | --- | --- | --- |
-| Schedule / grades / exams sync | Supported | Supported | Experimental |
-| Assignments / goals / pomodoro / notes | Supported | Supported | Experimental |
-| Library reservation and JWT refresh | Better support | Browser-limited | Experimental |
-| Local secure storage | Supported | Partial | Partial |
-| Active window tracking | Supported | Not supported | Not supported |
-| Background auto-refresh | Supported | Not supported | Not supported |
-
-Desktop is the primary experience. Web / PWA is secondary.
-
-### Quick Start
-
-#### For Users
-
-Download the Windows installer or portable build from [Releases](https://github.com/Health-525/scholarflow/releases).
-
-#### For Developers
-
-Requirements:
-
-- Node.js 20+
-- npm 10+
-
-```bash
-git clone https://github.com/Health-525/scholarflow.git
-cd scholarflow
-npm install
-```
-
-Start the Web dev server:
-
-```bash
-npm run dev
-```
-
-Start the Electron dev environment:
-
-```bash
-npm run abi:node
-npm run electron:dev
-```
-
-Validation:
-
-```bash
-npm run typecheck
-npm run lint
-npm test
-npm run check
-```
-
-Build:
-
-```bash
-npm run electron:build
-```
-
-### Tech Stack
-
-- `Next.js 15` + `React 19` + `TypeScript`
-- `Tailwind CSS` + `shadcn/ui` + `Base UI`
-- `Zustand` + `TanStack Query`
-- `Electron` + `better-sqlite3`
-- `Capacitor` Android
-- `Vitest` + `Playwright`
-
-### Current School Support
-
-- `njtech` - Nanjing Tech University
-- `mock` - local development and adapter testing
-
-If you want to add a new school integration, read [docs/school-adapter-guide.md](docs/school-adapter-guide.md).
-
-### Security
-
-- sensitive credentials use desktop-level secure storage where available
-- Electron uses `contextIsolation: true` and `nodeIntegration: false`
-- internal API calls are protected by an internal token layer
-- library login and certificate trust logic are explicitly scoped
-
-See [SECURITY.md](SECURITY.md) for full details.
-
-### Contributing
-
-Issues and pull requests are welcome.
-
-- [CONTRIBUTING.md](CONTRIBUTING.md)
-- [docs/school-adapter-guide.md](docs/school-adapter-guide.md)
-- [docs/DATA_MODEL.md](docs/DATA_MODEL.md)
-- [SECURITY.md](SECURITY.md)
-
-## License
-
-MIT © 2026 [Health-525](https://github.com/Health-525)
+**Quick links:** [Downloads](https://github.com/Health-525/scholarflow/releases) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)

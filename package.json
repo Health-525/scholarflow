@@ -2,7 +2,22 @@
   "name": "scholarflow",
   "version": "1.0.1",
   "private": true,
-  "description": "A local-first campus study workspace for academic data, library workflows, assignments, notes, and study reports.",
+  "description": "A local-first campus study workspace — academic data, library workflows, and study tools in one desktop app.",
+  "keywords": [
+    "campus",
+    "study",
+    "local-first",
+    "electron",
+    "nextjs",
+    "pomodoro",
+    "schedule",
+    "library",
+    "student",
+    "education",
+    "offline",
+    "privacy",
+    "desktop-app"
+  ],
   "author": "Health-525 <health-525@users.noreply.github.com>",
   "repository": {
     "type": "git",
