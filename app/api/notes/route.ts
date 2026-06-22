@@ -9,16 +9,22 @@ import { getServerDB } from "@/lib/server-db";
 import { deleteNote, readNote, renameNote, writeNote } from "@/lib/notes/store";
 
 const notesQuerySchema = z.object({
-  path: z.string().min(1),
+  path: z.string().min(1).refine((p) => !p.includes("..") && !p.startsWith("/"), {
+    message: "invalid path",
+  }),
   schoolId: z.string().optional(),
   userId: z.string().optional(),
 });
 
 const notesActionBodySchema = z.object({
   action: z.enum(["save", "create", "delete", "rename"]),
-  path: z.string().min(1),
+  path: z.string().min(1).refine((p) => !p.includes("..") && !p.startsWith("/"), {
+    message: "invalid path",
+  }),
   content: z.string().optional(),
-  newPath: z.string().min(1).optional(),
+  newPath: z.string().min(1).refine((p) => !p.includes("..") && !p.startsWith("/"), {
+    message: "invalid path",
+  }).optional(),
   schoolId: z.string().optional(),
   userId: z.string().optional(),
 });
