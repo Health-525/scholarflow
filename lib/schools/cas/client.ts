@@ -66,7 +66,8 @@ function httpRequest(url: string, opts?: {
 
     const req = t.request({
       hostname: u.hostname, port: u.port || (u.protocol === "https:" ? 443 : 80),
-      path: u.pathname + u.search, method, headers: hdrs, rejectUnauthorized: false,
+      path: u.pathname + u.search, method, headers: hdrs,
+      rejectUnauthorized: process.env.SCHOLARFLOW_INSECURE_TLS !== "1",
     }, (res) => {
       if (followRedirect && res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && maxRedirects > 0) {
         const merged = new Map(reqCookies);

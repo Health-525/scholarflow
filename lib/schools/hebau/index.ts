@@ -31,7 +31,7 @@ function urpRequest(path: string, cookie: string, body?: string): Promise<{ stat
         Referer: `${URP_URL}/jwapp/sys/homeapp/home/index.html`,
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       },
-      rejectUnauthorized: false,
+      rejectUnauthorized: process.env.SCHOLARFLOW_INSECURE_TLS !== "1",
     }, (res) => {
       const chunks: Buffer[] = [];
       res.on("data", (c: Buffer) => chunks.push(c));

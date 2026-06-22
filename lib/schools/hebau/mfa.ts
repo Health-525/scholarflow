@@ -139,7 +139,7 @@ function httpRequest(url: string, opts?: {
       path: parsedUrl.pathname + parsedUrl.search,
       method,
       headers: requestHeaders,
-      rejectUnauthorized: false,
+      rejectUnauthorized: process.env.SCHOLARFLOW_INSECURE_TLS !== "1",
     }, (res) => {
       if (followRedirect && res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && maxRedirects > 0) {
         const merged = new Map(reqCookies);
