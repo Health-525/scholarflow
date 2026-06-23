@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/input";
-import type { Adjustment } from "@/lib/schedule/adjustments";
+import type { Adjustment, AdjustmentDraft } from "@/lib/schedule/adjustments";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
 import { courseColor } from "@/lib/schedule/course-color";
 import type { DayItem, RawScheduleData } from "@/lib/schedule/schedule";
@@ -22,9 +22,16 @@ import { CourseDrawer } from "./CourseDrawer";
 interface QueryViewProps {
   schedule: RawScheduleData;
   adjustments: Adjustment[];
+  onAddAdjustment?: (draft: AdjustmentDraft) => Promise<unknown>;
+  onRemoveAdjustment?: (id: string) => Promise<unknown>;
 }
 
-export function QueryView({ schedule, adjustments }: QueryViewProps) {
+export function QueryView({
+  schedule,
+  adjustments,
+  onAddAdjustment,
+  onRemoveAdjustment,
+}: QueryViewProps) {
   const tz = schedule.meta.tz || "Asia/Shanghai";
   const [inputDate, setInputDate] = useState(() => {
     return formatDateInTimeZone(getNowInTimeZone(tz), tz);
@@ -144,7 +151,11 @@ export function QueryView({ schedule, adjustments }: QueryViewProps) {
         item={selectedItem}
         date={result?.date ?? new Date()}
         timeZone={tz}
+        schedule={schedule}
+        adjustments={adjustments}
         onClose={() => setSelectedItem(null)}
+        onAddAdjustment={onAddAdjustment}
+        onRemoveAdjustment={onRemoveAdjustment}
       />
     </div>
   );

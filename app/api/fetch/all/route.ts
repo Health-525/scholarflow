@@ -9,6 +9,12 @@ import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
 import type { Exam } from "@/types/exam";
 
+const DEFAULT_SEMESTER_INFO = {
+  year: "2025",
+  semester: "2",
+  week1Monday: "2026-03-02",
+};
+
 const fetchAllBodySchema = z.object({
   schoolId: z.string().min(1),
   cookie: z.string().optional(),
@@ -113,10 +119,14 @@ export async function POST(request: Request) {
       const courses = await adapter.fetchSchedule(credentials);
 
       // 从学校适配器获取学期配置
-      const semesterInfo = adapter.getCurrentSemester?.() || {
-        year: "2025", semester: "2", week1Monday: "2026-03-02",
-      };
+      const semesterInfo = adapter.getCurrentSemester?.() || DEFAULT_SEMESTER_INFO;
       const yearNum = Number.parseInt(semesterInfo.year, 10);
+      if (!courses.length) {
+        throw new Error("课表为空，已保留本地已有数据");
+      }
+      if (!semesterInfo.week1Monday) {
+        throw new Error("缺少学期起始周配置，已保留本地已有数据");
+      }
 
       db.writeData(`schedule:${prefix}`, {
         courses,

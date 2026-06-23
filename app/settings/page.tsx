@@ -1,12 +1,14 @@
 "use client";
 
-import { User } from "lucide-react";
+import { Palette, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { SettingsSection } from "@/components/ui/settings-section";
 import { showToast } from "@/components/ui/ToastContainer";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import {
   useScheduleQuery,
   useAssignmentsQuery,
@@ -24,12 +26,14 @@ import {
   downloadICS,
 } from "@/lib/export";
 import { isElectron } from "@/lib/runtime-env";
+import { applySkin, getSkin, setSkin, type SkinValue } from "@/lib/skin";
 import { useAuthStore } from "@/store/auth";
 import { useThemeStore } from "@/store/theme";
 
 import {
   AboutCard,
   AccountSecuritySection,
+  AiConfigSection,
   DataExportSection,
   DataRefreshSection,
   StorageInfoCard,
@@ -38,8 +42,14 @@ import {
 } from "./components";
 import type { ConfirmState, StudentInfo } from "./types";
 
+const SKIN_OPTIONS: { value: SkinValue; label: string; dot: string }[] = [
+  { value: "ximi", label: "粉色小咪", dot: "#ffb7ce" },
+  { value: "blue", label: "清新青", dot: "#0d9488" },
+];
+
 export default function SettingsPage() {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const { theme, setTheme } = useThemeStore();
   const { schoolId, userId, username, clearToken } = useAuthStore((s) => s);
   const { data: scheduleData } = useScheduleQuery();
@@ -50,6 +60,7 @@ export default function SettingsPage() {
   const [showClearPassword, setShowClearPassword] = useState(false);
   const [clearingPassword, setClearingPassword] = useState(false);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
+  const [skin, setSkinState] = useState<SkinValue>("ximi");
 
   const refreshData = useRefreshData();
 
@@ -58,17 +69,26 @@ export default function SettingsPage() {
     setShowClearPassword(isElectron());
   }, []);
 
+  useEffect(() => {
+    setSkinState(getSkin());
+  }, []);
+
+  const changeSkin = (s: SkinValue) => {
+    setSkinState(s);
+    setSkin(s);
+    applySkin(s);
+  };
+
   // 复用的学生信息(GPA/学分/课程)加载器,刷新成功后可再次调用以更新卡片。
   const loadStudentInfo = useCallback(() => {
-    const sid = schoolId || "njtech";
-    const uid = userId || username || "default";
-    fetch(`/api/local-data?type=student&schoolId=${sid}&userId=${uid}`)
+    if (!schoolId || !userId) return;
+    fetch(`/api/local-data?type=student&schoolId=${schoolId}&userId=${userId}`)
       .then((r) => r.json())
       .then((d) => {
         if (d?.studentId) setStudentInfo(d);
       })
       .catch(() => {});
-  }, [schoolId, userId, username]);
+  }, [schoolId, userId]);
 
   useEffect(() => {
     if (mounted) loadStudentInfo();
@@ -90,8 +110,8 @@ export default function SettingsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          schoolId: schoolId || "njtech",
-          userId: userId || username || "default",
+          schoolId,
+          userId,
         }),
       });
     } catch {}
@@ -124,8 +144,8 @@ export default function SettingsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          schoolId: schoolId || "njtech",
-          userId: userId || username || "default",
+          schoolId,
+          userId,
         }),
       });
     } catch {}
@@ -221,6 +241,38 @@ export default function SettingsPage() {
       />
 
       <ThemeSection theme={theme} onChange={setTheme} />
+
+      <AiConfigSection />
+
+      {isMobile && (
+        <SettingsSection icon={<Palette className="w-4 h-4" />} title="配色">
+          <div className="mb-2">
+            <span className="text-[11px] text-muted-foreground/70">
+              仅手机端生效
+            </span>
+          </div>
+          <div className="flex gap-1.5 p-1 rounded-xl bg-secondary">
+            {SKIN_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => changeSkin(opt.value)}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-medium transition-all duration-200 ${
+                  skin === opt.value
+                    ? "bg-card text-primary shadow-sm"
+                    : "text-muted-foreground"
+                }`}
+                aria-pressed={skin === opt.value}
+              >
+                <span
+                  className="w-3 h-3 rounded-full border border-black/10"
+                  style={{ backgroundColor: opt.dot }}
+                />
+                <span>{opt.label}</span>
+              </button>
+            ))}
+          </div>
+        </SettingsSection>
+      )}
 
       <DataRefreshSection
         isPending={refreshData.isPending}

@@ -2,31 +2,40 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { resolveAccountPrefix } from "@/lib/account-prefix";
+import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getServerDB } from "@/lib/server-db";
 // eslint-disable-next-line import/order
 import { deleteNote, readNote, renameNote, writeNote } from "@/lib/notes/store";
 
 const notesQuerySchema = z.object({
-  path: z.string().min(1),
+  path: z.string().min(1).refine((p) => !p.includes("..") && !p.startsWith("/"), {
+    message: "invalid path",
+  }),
   schoolId: z.string().optional(),
   userId: z.string().optional(),
 });
 
 const notesActionBodySchema = z.object({
   action: z.enum(["save", "create", "delete", "rename"]),
-  path: z.string().min(1),
+  path: z.string().min(1).refine((p) => !p.includes("..") && !p.startsWith("/"), {
+    message: "invalid path",
+  }),
   content: z.string().optional(),
-  newPath: z.string().min(1).optional(),
+  newPath: z.string().min(1).refine((p) => !p.includes("..") && !p.startsWith("/"), {
+    message: "invalid path",
+  }).optional(),
   schoolId: z.string().optional(),
   userId: z.string().optional(),
 });
 
 function getNotePrefix(schoolId?: string | null, userId?: string | null): string {
   const db = getServerDB();
-  const active = db.findActiveCredentials();
-  return resolveAccountPrefix({ schoolId, userId }, active);
+  const account = getAuthorizedAccount({ schoolId, userId }, db);
+  if (!account) {
+    throw new Error("unauthorized account access");
+  }
+  return `${account.schoolId}:${account.userId}`;
 }
 
 /**
@@ -57,6 +66,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ path, content });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
+    if (message === "unauthorized account access") {
+      return forbiddenResponse({ error: message });
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -125,6 +137,9 @@ export async function POST(request: Request) {
     }
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
+    if (message === "unauthorized account access") {
+      return forbiddenResponse({ error: message });
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

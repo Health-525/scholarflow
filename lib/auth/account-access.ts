@@ -1,40 +1,82 @@
-import { resolveUserId } from "@/lib/account-prefix";
+import type { ServerDB } from "@/lib/server-db";
 
-import { hasValidInternalToken } from "./origin";
+interface RequestedAccount {
+  schoolId?: string | null;
+  userId?: string | null;
+}
 
-interface AccountRecord {
+interface AuthorizedAccount {
   schoolId: string;
   userId: string;
 }
 
-interface AccountAccessDB {
-  findActiveCredentials(): AccountRecord | null;
-  findMostRecentCredential(): AccountRecord | null;
+import { resolveUserId } from "@/lib/account-prefix";
+
+import { hasValidInternalToken } from "./origin";
+
+function normalize(value?: string | null): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
 }
 
-function normalize(value?: string | null): string {
-  return (value ?? "").trim();
+function normalizeUserId(value?: string | null): string | null {
+  const trimmed = normalize(value);
+  return trimmed ? resolveUserId(trimmed) : null;
+}
+
+export function getAuthorizedAccount(
+  requested: RequestedAccount,
+  db: ServerDB
+): AuthorizedAccount | null {
+  const active = db.findActiveCredentials();
+  const recent = db.findMostRecentCredential();
+  const current = active || recent;
+
+  if (!current) {
+    return null;
+  }
+
+  const schoolId = normalize(requested.schoolId);
+  const userId = normalizeUserId(requested.userId);
+
+  if (schoolId && schoolId !== current.schoolId) {
+    return null;
+  }
+  if (userId && userId !== current.userId) {
+    return null;
+  }
+
+  return {
+    schoolId: current.schoolId,
+    userId: current.userId,
+  };
+}
+
+export function getAuthorizedSchoolId(
+  requestedSchoolId: string | null | undefined,
+  db: ServerDB
+): string | null {
+  const account = getAuthorizedAccount({ schoolId: requestedSchoolId }, db);
+  return account?.schoolId ?? null;
 }
 
 export function resolveAuthorizedAccount(
   request: Request,
-  db: AccountAccessDB,
-  requested: { schoolId?: string | null; userId?: string | null }
-): AccountRecord | null {
+  db: ServerDB,
+  requested: RequestedAccount
+): AuthorizedAccount | null {
   const requestedSchoolId = normalize(requested.schoolId);
-  const requestedUserId = normalize(requested.userId) ? resolveUserId(requested.userId) : "";
+  const requestedUserId = normalizeUserId(requested.userId);
 
   if (hasValidInternalToken(request) && requestedSchoolId && requestedUserId) {
     return { schoolId: requestedSchoolId, userId: requestedUserId };
   }
 
-  const allowed = db.findActiveCredentials() || db.findMostRecentCredential();
-  if (!allowed) return null;
-  if (requestedSchoolId && requestedSchoolId !== allowed.schoolId) return null;
-  if (requestedUserId && requestedUserId !== allowed.userId) return null;
-
-  return {
-    schoolId: requestedSchoolId || allowed.schoolId,
-    userId: requestedUserId || allowed.userId,
-  };
+  return getAuthorizedAccount(
+    {
+      schoolId: requestedSchoolId,
+      userId: requestedUserId,
+    },
+    db
+  );
 }

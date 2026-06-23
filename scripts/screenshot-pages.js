@@ -16,7 +16,6 @@ const ROUTES = [
   '/gpa',
   '/pomodoro',
   '/settings',
-  '/library',
   '/activity',
   '/reports/daily',
   '/reports/weekly',

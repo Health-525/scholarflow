@@ -37,7 +37,9 @@ export interface RawScheduleData {
 export interface CourseView {
   kind: "course";
   title: string;
+  weekday: Weekday;
   periods: number[];
+  weeks: string;
   timeText?: string; // e.g. 08:10-09:50
   location?: string;
   teacher?: string;
@@ -177,7 +179,9 @@ export function getItemsForDate(
     items.push({
       kind: "course",
       title: c.title,
+      weekday: c.weekday,
       periods: c.periods || [],
+      weeks: c.weeks,
       timeText,
       location: c.location,
       teacher: c.teacher,

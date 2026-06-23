@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
 import { AssignmentsCard } from "@/components/dashboard/AssignmentsCard";
 import { ExamCountdownCard } from "@/components/dashboard/ExamCountdownCard";
@@ -12,8 +12,14 @@ import { RunningCard } from "@/components/dashboard/RunningCard";
 import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
 import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
 import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useDashboardSummary } from "@/lib/dashboard/use-dashboard-summary";
 import { RUNNING_GOAL } from "@/lib/running-utils";
+
+const MobileHome = lazy(() =>
+  import("@/components/ximi/MobileHome").then((m) => ({ default: m.MobileHome }))
+);
 
 function useGreeting() {
   const [greeting, setGreeting] = useState({
@@ -75,6 +81,7 @@ function useGreeting() {
 }
 
 export default function DashboardPage() {
+  const isMobile = useIsMobile();
   const { text: greeting, emoji: greetingEmoji, date: dateStr } = useGreeting();
   const { data: dashboardData, loading: dashboardLoading } =
     useDashboardSummary();
@@ -86,6 +93,16 @@ export default function DashboardPage() {
         running: `${dashboardData.overview.running?.total ?? 0}/${RUNNING_GOAL}`,
       }
     : null;
+
+  if (isMobile) {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<div className="max-w-md mx-auto py-5 animate-page"><div className="h-80 rounded-[28px] border border-border bg-card skeleton" /></div>}>
+          <MobileHome />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
 
   return (
     <div className="max-w-[1280px] mx-auto py-5 pb-24 md:pb-10 space-y-6 animate-page">

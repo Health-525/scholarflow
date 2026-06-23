@@ -6,49 +6,27 @@ export interface SchoolCatalogItem {
   loginFields: LoginField[];
 }
 
-export const SCHOOL_CATALOG: SchoolCatalogItem[] = [
-  {
-    id: "njtech",
-    name: "南京工业大学",
-    loginFields: [
-      {
-        key: "username",
-        label: "学号",
-        type: "text",
-        placeholder: "如 202321144057",
-        required: true,
-      },
-      {
-        key: "password",
-        label: "教务系统密码",
-        type: "password",
-        placeholder: "正方教务系统密码",
-        required: true,
-      },
-    ],
-  },
-  {
-    id: "hebau",
-    name: "河北农业大学",
-    loginFields: [
-      {
-        key: "username",
-        label: "学号",
-        type: "text",
-        placeholder: "请输入学号",
-        required: true,
-      },
-      {
-        key: "password",
-        label: "CAS 密码",
-        type: "password",
-        placeholder: "统一认证密码",
-        required: true,
-      },
-    ],
-  },
-];
-
+/**
+ * 获取所有已注册的学校列表（纯客户端版本，不依赖服务端模块）
+ * 注意：这是静态列表，新增学校需要手动更新
+ */
 export function getAllSchools(): SchoolCatalogItem[] {
-  return SCHOOL_CATALOG;
+  return [
+    {
+      id: "njtech",
+      name: "南京工业大学",
+      loginFields: [
+        { key: "username", label: "学号", type: "text", required: true },
+        { key: "password", label: "密码", type: "password", required: true },
+      ],
+    },
+    {
+      id: "hebau",
+      name: "河北农业大学",
+      loginFields: [
+        { key: "username", label: "学号", type: "text", required: true },
+        { key: "password", label: "密码", type: "password", required: true },
+      ],
+    },
+  ];
 }

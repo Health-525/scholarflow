@@ -7,6 +7,12 @@ import { schoolUsernameBodySchema } from "@/lib/schemas/fetch";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
 
+const DEFAULT_SEMESTER_INFO = {
+  year: "2025",
+  semester: "2",
+  week1Monday: "2026-03-02",
+};
+
 /**
  * POST /api/fetch/schedule
  * 从教务系统抓取课表 → 写入 SQLite（带账号隔离）
@@ -15,7 +21,6 @@ export async function POST(request: Request) {
   if (!isTrustedOrigin(request, { allowInternalToken: true })) {
     return forbiddenResponse();
   }
-
 
   try {
     const parse = schoolUsernameBodySchema.safeParse(await request.json());
@@ -50,8 +55,14 @@ export async function POST(request: Request) {
 
     const courses = await adapter.fetchSchedule(credentials);
     const prefix = `${schoolId}:${userId}`;
-    const semInfo = adapter.getCurrentSemester?.() || { year: "2025", semester: "2", week1Monday: "2026-03-02" };
+    const semInfo = adapter.getCurrentSemester?.() || DEFAULT_SEMESTER_INFO;
     const y = Number.parseInt(semInfo.year, 10);
+    if (!courses.length) {
+      return NextResponse.json({ error: "课表为空，已保留本地已有数据" }, { status: 502 });
+    }
+    if (!semInfo.week1Monday) {
+      return NextResponse.json({ error: "缺少学期起始周配置，已保留本地已有数据" }, { status: 500 });
+    }
 
     db.writeData(`schedule:${prefix}`, {
       courses,

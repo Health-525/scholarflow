@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { DEFAULT_SCHOOL_ID } from "@/lib/account-prefix";
-import { resolveAccountPrefix, resolveSchoolId, resolveUserId } from "@/lib/account-prefix";
 import { resolveAuthorizedAccount } from "@/lib/auth/account-access";
+import { getAuthorizedAccount, getAuthorizedSchoolId } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getDashboardSummary } from "@/lib/dashboard/summary";
 import { getServerDB } from "@/lib/server-db";
@@ -35,30 +34,19 @@ export async function GET(request: Request) {
   const { type, schoolId: schoolIdParam, userId: userIdParam, date, slug } = parse.data;
 
   const db = getServerDB();
-  const active = db.findActiveCredentials();
-  const needsAccountAuthorization = type === "credentials" || !!userIdParam?.trim();
-  const authorizedAccount = needsAccountAuthorization
+  const needsExplicitAccount = type === "credentials" || !!userIdParam?.trim();
+  const account = needsExplicitAccount
     ? resolveAuthorizedAccount(request, db, { schoolId: schoolIdParam, userId: userIdParam })
-    : null;
-  if (needsAccountAuthorization && !authorizedAccount) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    : getAuthorizedAccount({ schoolId: schoolIdParam, userId: userIdParam }, db);
+  const schoolId = needsExplicitAccount
+    ? account?.schoolId ?? null
+    : getAuthorizedSchoolId(schoolIdParam, db);
+
+  if (!account || !schoolId) {
+    return forbiddenResponse({ error: "unauthorized account access" });
   }
 
-  let prefix = resolveAccountPrefix({ schoolId: schoolIdParam, userId: userIdParam }, active);
-  let schoolId = resolveSchoolId({ schoolId: schoolIdParam }, active);
-
-  if (authorizedAccount) {
-    prefix = `${authorizedAccount.schoolId}:${authorizedAccount.userId}`;
-    schoolId = authorizedAccount.schoolId;
-  }
-
-  // 凭证过期但本地已有数据时，回退到本地最近使用的账号，避免显示空 default。
-  if (!active && !userIdParam) {
-    const localPrefix = db.findLocalAccountPrefix(schoolIdParam || DEFAULT_SCHOOL_ID);
-    if (localPrefix) {
-      prefix = localPrefix;
-    }
-  }
+  const prefix = `${account.schoolId}:${account.userId}`;
 
   // Auto-seed missing data from timetable on first access
   db.seedFromTimetable(prefix);
@@ -86,8 +74,8 @@ export async function GET(request: Request) {
     case "grades":
       return NextResponse.json(db.readData(`grades:${prefix}`) || { gpa: 0, allCourses: [] });
 
-    case "library":
-      return NextResponse.json(db.readData(`library:${prefix}`) || { libs: [], summary: { total: 0, used: 0, avail: 0, rate: 0 } });
+    case "adjustments":
+      return NextResponse.json(db.readData(`adjustments:${prefix}`) || []);
 
     case "dailyReports": {
       const reportPrefix = `dailyReport:${prefix}:`;
@@ -146,7 +134,7 @@ export async function GET(request: Request) {
     }
 
     case "credentials": {
-      const userId = authorizedAccount?.userId ?? active?.userId ?? resolveUserId(userIdParam);
+      const userId = account.userId;
       const creds = db.getCredentials(schoolId, userId);
       return NextResponse.json(creds || {});
     }

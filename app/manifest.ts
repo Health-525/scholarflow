@@ -4,9 +4,10 @@ export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "ScholarFlow — 统一学习管理中枢",
+    name: "ScholarFlow - 本地优先的校园学习工作台",
     short_name: "ScholarFlow",
-    description: "面向大学生的智能学习管理平台 — 课表、作业、跑步、日报、AI助手",
+    description:
+      "整合教务数据、图书馆流程、作业、笔记与学习报告的本地优先校园学习工作台。",
     start_url: "/",
     display: "standalone",
     orientation: "portrait",

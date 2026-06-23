@@ -1,8 +1,7 @@
 "use client";
 
-import { format, addDays } from "date-fns";
-import { zhCN } from "date-fns/locale";
-import { Calendar as CalendarIcon, Check, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import * as React from "react";
 
 import { Calendar } from "@/components/ui/calendar";
@@ -18,30 +17,6 @@ interface DatePickerProps {
   disabled?: boolean;
   className?: string;
 }
-
-function fmt(d: Date): string {
-  return format(d, "yyyy-MM-dd");
-}
-
-const DATE_SHORTCUTS = [
-  { label: "今天", fn: () => fmt(new Date()) },
-  { label: "明天", fn: () => fmt(addDays(new Date(), 1)) },
-  { label: "后天", fn: () => fmt(addDays(new Date(), 2)) },
-  { label: "下周一", fn: () => {
-    const d = new Date();
-    const diff = d.getDay() === 0 ? 1 : 8 - d.getDay();
-    return fmt(addDays(d, diff));
-  }},
-  { label: "下周六", fn: () => {
-    const d = new Date();
-    const diff = d.getDay() === 0 ? 6 : 13 - d.getDay();
-    return fmt(addDays(d, diff));
-  }},
-  { label: "月底", fn: () => {
-    const d = new Date();
-    return fmt(new Date(d.getFullYear(), d.getMonth() + 1, 0));
-  }},
-];
 
 export function DatePicker({
   value,
@@ -228,18 +203,4 @@ export function TimePicker({
   );
 }
 
-function ChevronIcon({ open }: { open: boolean }) {
-  return (
-    <svg
-      className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200", open && "rotate-180")}
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4 6l4 4 4-4" />
-    </svg>
-  );
-}
+

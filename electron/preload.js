@@ -7,6 +7,9 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("electronAPI", {
   isElectron: true,
 
+  // ── Internal API Token (用于同源请求的 403 防护) ──
+  getInternalToken: () => ipcRenderer.invoke("internal-token:get"),
+
   // ── Token 安全存储 ──
   encryptAndStoreToken: (token) =>
     ipcRenderer.invoke("token:encrypt-store", token),
@@ -76,23 +79,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("update-downloaded", handler);
     return () => ipcRenderer.removeListener("update-downloaded", handler);
   },
-
-  // ── 图书馆 JWT ──
-  /** 刷新JWT（先检查是否有效，过期则弹登录窗口） */
-  libraryRefreshJWT: () => ipcRenderer.invoke("library:refresh-jwt"),
-  /** 打开图书馆登录窗口 */
-  libraryLogin: () => ipcRenderer.invoke("library:login"),
-  /** 监听：JWT已过期，需要重新登录 */
-  onLibraryJWTExpired: (callback) => {
-    const handler = () => callback();
-    ipcRenderer.on("library:jwt-expired", handler);
-    return () => ipcRenderer.removeListener("library:jwt-expired", handler);
-  },
-  /** 监听：JWT刷新成功 */
-  onLibraryJWTRefreshed: (callback) => {
-    const handler = (_event, data) => callback(data);
-    ipcRenderer.on("library:jwt-refreshed", handler);
-    return () => ipcRenderer.removeListener("library:jwt-refreshed", handler);
+  /** 监听：更新出错 */
+  onUpdateError: (callback) => {
+    const handler = (_event, err) => callback(err);
+    ipcRenderer.on("update-error", handler);
+    return () => ipcRenderer.removeListener("update-error", handler);
   },
 
   // ── 窗口标题栏 ──

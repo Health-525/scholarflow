@@ -2,6 +2,7 @@
 @import "./theme.css";
 @import "./animations.css";
 @import "./markdown.css";
+@import "./ximi-theme.css"; /* 移动端「小咪」皮肤，需在 theme.css 之后以覆盖 token */
 
 @tailwind base;
 @tailwind components;

@@ -5,8 +5,17 @@ import { useState } from "react";
 
 import { buildAssignment, sortAssignments } from "@/lib/assignment-utils";
 import { readData, writeData } from "@/lib/mobile-data";
-import { loadAdjustments } from "@/lib/schedule/adjustments";
+import {
+  addAdjustment,
+  clearLegacyAdjustments,
+  migrateLegacyAdjustments,
+  normalizeAdjustments,
+  removeAdjustment,
+  type Adjustment,
+  type AdjustmentDraft,
+} from "@/lib/schedule/adjustments";
 import { parseSchedule } from "@/lib/schedule/schedule";
+import type { RawScheduleData } from "@/lib/schedule/schedule";
 import { useAuthStore } from "@/store/auth";
 import type { Assignment, AssignmentDraft, RunRecord, RunType } from "@/types";
 
@@ -23,6 +32,7 @@ import type { Assignment, AssignmentDraft, RunRecord, RunType } from "@/types";
 // 把 schoolId + userId 放进 queryKey，账号切换时 React Query 会自动重新请求，避免缓存串号。
 export const queryKeys = {
   schedule: (schoolId?: string | null, userId?: string | null) => ["schedule", schoolId ?? "active", userId ?? "active"] as const,
+  scheduleAdjustments: (schoolId?: string | null, userId?: string | null) => ["schedule-adjustments", schoolId ?? "active", userId ?? "active"] as const,
   assignments: (schoolId?: string | null, userId?: string | null) => ["assignments", schoolId ?? "active", userId ?? "active"] as const,
   running: (schoolId?: string | null, userId?: string | null) => ["running", schoolId ?? "active", userId ?? "active"] as const,
   jwcNews: ["jwcNews"] as const,
@@ -84,7 +94,25 @@ export function useScheduleQuery() {
       const local = await tryLocalApi("schedule") as Record<string, unknown> | null;
       if (local?.courses) {
         const schedule = parseSchedule(local);
-        const adjustments = loadAdjustments();
+        const adjustmentsRaw = await tryLocalApi("adjustments");
+        let adjustments = normalizeAdjustments(adjustmentsRaw);
+
+        // 若 SQLite 为空，尝试迁移旧版 localStorage 数据（单次，写回后清空旧 key）
+        if (adjustments.length === 0) {
+          const legacy = migrateLegacyAdjustments(schoolId, userId);
+          if (legacy.length > 0) {
+            adjustments = normalizeAdjustments(legacy);
+            if (adjustments.length > 0) {
+              await saveLocally(
+                "data/adjustments.json",
+                JSON.stringify(adjustments, null, 2),
+                "迁移旧版调课记录"
+              );
+              clearLegacyAdjustments(schoolId, userId);
+            }
+          }
+        }
+
         return { schedule, adjustments };
       }
       return { schedule: null, adjustments: [] };
@@ -94,6 +122,91 @@ export function useScheduleQuery() {
     gcTime: 30 * 60 * 1000,
     retry: 1,
   });
+}
+
+// ── Schedule Adjustments Hook ──────────────────────────────
+// 调课记录的单一数据源是 useScheduleQuery；本 Hook 只提供增删操作，避免两个 query 缓存不一致。
+export function useScheduleAdjustments(schedule: RawScheduleData | null) {
+  const queryClient = useQueryClient();
+  const { data: scheduleData, refetch } = useScheduleQuery();
+  const schoolId = useAuthStore((s) => s.schoolId);
+  const userId = useAuthStore((s) => s.userId);
+  const scheduleKey = queryKeys.schedule(schoolId, userId);
+
+  const adjustments = scheduleData?.adjustments ?? [];
+
+  type ScheduleCache = { schedule: RawScheduleData | null; adjustments: Adjustment[] } | undefined;
+
+  const getCachedAdjustments = (): Adjustment[] => {
+    const cached = queryClient.getQueryData<ScheduleCache>(scheduleKey);
+    return cached?.adjustments ?? [];
+  };
+
+  const setCacheAdjustments = (next: Adjustment[]) => {
+    queryClient.setQueryData(scheduleKey, (old: ScheduleCache) =>
+      old ? { ...old, adjustments: next } : undefined
+    );
+  };
+
+  const persistAdjustments = async (next: Adjustment[]) => {
+    await saveLocally(
+      "data/adjustments.json",
+      JSON.stringify(next, null, 2),
+      "更新调课记录"
+    );
+    return next;
+  };
+
+  const addMutation = useMutation({
+    mutationFn: async (draft: AdjustmentDraft) => {
+      if (!schedule) throw new Error("课表未加载");
+      const current = getCachedAdjustments();
+      const next = addAdjustment(schedule, current, draft);
+      await persistAdjustments(next);
+      return next;
+    },
+    onSuccess: (next) => {
+      setCacheAdjustments(next);
+      queryClient.invalidateQueries({ queryKey: scheduleKey });
+    },
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const current = getCachedAdjustments();
+      const next = removeAdjustment(current, id);
+      await persistAdjustments(next);
+      return next;
+    },
+    onSuccess: (next) => {
+      setCacheAdjustments(next);
+      queryClient.invalidateQueries({ queryKey: scheduleKey });
+    },
+  });
+
+  const clearMutation = useMutation({
+    mutationFn: async () => {
+      await persistAdjustments([]);
+      return [] as Adjustment[];
+    },
+    onSuccess: () => {
+      setCacheAdjustments([]);
+      queryClient.invalidateQueries({ queryKey: scheduleKey });
+    },
+  });
+
+  return {
+    adjustments,
+    isLoading: false,
+    error: null,
+    reload: refetch,
+    add: addMutation.mutateAsync,
+    remove: removeMutation.mutateAsync,
+    clear: clearMutation.mutateAsync,
+    isAdding: addMutation.isPending,
+    isRemoving: removeMutation.isPending,
+    isClearing: clearMutation.isPending,
+  };
 }
 
 // ── Assignments Hook ───────────────────────────────────────

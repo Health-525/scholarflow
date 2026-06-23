@@ -5,7 +5,6 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { useDailyReports } from "@/hooks/useReports";
 
 function formatDateLabel(dateStr: string): { main: string; sub: string } {
@@ -33,6 +32,9 @@ function recencyLabel(dateStr: string): string {
 export function RecentDailyCard() {
   const { entries, isLoading, error, reload } = useDailyReports();
   const recent = entries.slice(0, 5);
+  const isAuthError = /unauthorized|forbidden|401|403/i.test(
+    error?.message ?? "",
+  );
 
   return (
     <Card>
@@ -55,7 +57,20 @@ export function RecentDailyCard() {
           </div>
         )}
 
-        {error && !isLoading && <ErrorFallback message={error.message} onRetry={reload} />}
+        {error && !isLoading && (
+          <div className="rounded-xl border border-border bg-secondary/40 px-3 py-3 text-[12px] text-muted-foreground">
+            <div className="flex items-center justify-between gap-3">
+              <span>{isAuthError ? "日报暂时无法同步" : "日报加载失败"}</span>
+              <button
+                type="button"
+                onClick={reload}
+                className="shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-primary/10"
+              >
+                重试
+              </button>
+            </div>
+          </div>
+        )}
 
         {!isLoading && !error && (
           recent.length === 0 ? (

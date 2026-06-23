@@ -1,5 +1,6 @@
 import { RUNNING_GOAL } from "@/lib/running-utils";
-import { getItemsForDate } from "@/lib/schedule/schedule";
+import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
+import type { Adjustment } from "@/lib/schedule/adjustments";
 import { getNowInTimeZone } from "@/lib/schedule/timezone";
 import type { ServerDB } from "@/lib/server-db";
 
@@ -53,6 +54,7 @@ interface GradesData {
  */
 export function buildDashboardSummary(db: ServerDB, prefix: string): DashboardSummary {
   const schedule = (db.readData(`schedule:${prefix}`) as ScheduleData | null) || { courses: [] };
+  const adjustments = (db.readData(`adjustments:${prefix}`) as Adjustment[] | null) || [];
   const assignments = (db.readData(`assignments:${prefix}`) as AssignmentEntry[] | null) || [];
   const runningData = (db.readData(`running:${prefix}`) as RunningData | null) || { records: [] };
   const grades = (db.readData(`grades:${prefix}`) as GradesData | null) || { gpa: "0.00" };
@@ -62,12 +64,16 @@ export function buildDashboardSummary(db: ServerDB, prefix: string): DashboardSu
   const records = Array.isArray(runningData.records) ? runningData.records : [];
   const runningTotal = records.length;
 
-  // 计算今日课程数（按课表时区）
+  // 计算今日课程数（按课表时区，并应用调课记录）
   let todayCourses = 0;
   if (schedule.meta?.week1_monday) {
     const tz = schedule.meta.tz || "Asia/Shanghai";
     const now = getNowInTimeZone(tz);
-    const { items } = getItemsForDate(schedule as { meta: { week1_monday: string }; courses: CourseEntry[] }, now);
+    const { items } = getAdjustedItemsForDate(
+      schedule as { meta: { week1_monday: string }; courses: CourseEntry[]; periodTimes?: Record<string, string> },
+      now,
+      adjustments
+    );
     todayCourses = items.length;
   }
 

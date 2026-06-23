@@ -22,8 +22,6 @@ export interface SchoolAdapter {
   fetchExams(credentials: SchoolCredentials): Promise<ExamData[]>;
   /** 抓取成绩 + GPA */
   fetchGrades(credentials: SchoolCredentials): Promise<GradeResult>;
-  /** 抓取图书馆座位（可选） */
-  fetchLibrary?(credentials: SchoolCredentials): Promise<LibraryData | null>;
   /** 抓取教务通知（可选） */
   fetchJwcNews?(existingItems?: NewsItem[]): Promise<NewsItem[]>;
   /** 获取当前学期信息（可选） */
@@ -85,9 +83,6 @@ export interface GradeCourse {
   type: string;
   semester: string;
 }
-
-import type { LibraryData, LibraryRoom } from "@/types";
-export type { LibraryData, LibraryRoom };
 
 export interface NewsItem {
   title: string;

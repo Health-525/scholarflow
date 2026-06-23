@@ -16,6 +16,7 @@ import { HEBAU_PERIOD_TIMES } from "./period-times";
 import { extractHebauRows, parseHebauUrpJsonResponse } from "./urp-response";
 
 const URP_URL = "http://urp.hebau.edu.cn:1009";
+const DEFAULT_WEEK1_MONDAY = "2026-03-02";
 
 // ── HTTP ──────────────────────────────────────────────────────
 
@@ -52,7 +53,7 @@ function getSemester(): { year: string; semester: string; week1Monday: string } 
   const year = isSecond ? String(y - 1) : String(y);
   const sem = isSecond ? "2" : "1";
   const map: Record<string, string> = { "2025-2": "2026-03-02", "2025-1": "2025-09-01", "2026-2": "2027-03-01", "2026-1": "2026-09-01" };
-  return { year, semester: sem, week1Monday: map[`${year}-${sem}`] || "" };
+  return { year, semester: sem, week1Monday: map[`${year}-${sem}`] || DEFAULT_WEEK1_MONDAY };
 }
 
 // ── 课表 ──────────────────────────────────────────────────────

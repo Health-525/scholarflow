@@ -1,11 +1,15 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Adjustment } from "@/lib/schedule/adjustments";
+import { showToast } from "@/components/ui/ToastContainer";
+import type {
+  Adjustment,
+  AdjustmentDraft,
+} from "@/lib/schedule/adjustments";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
 import { courseColor } from "@/lib/schedule/course-color";
 import { getWeekNumber } from "@/lib/schedule/schedule";
@@ -13,9 +17,11 @@ import type {
   CourseView,
   DayItem,
   RawScheduleData,
+  Weekday,
 } from "@/lib/schedule/schedule";
 import { getNowInTimeZone, normalizeDate } from "@/lib/schedule/timezone";
 
+import { AdjustmentDialog } from "./AdjustmentDialog";
 import { CourseDrawer } from "./CourseDrawer";
 
 const WEEKDAY_LABELS = ["一", "二", "三", "四", "五", "六", "日"];
@@ -27,6 +33,9 @@ const HEADER_H = 40;
 interface WeekGridProps {
   schedule: RawScheduleData;
   adjustments: Adjustment[];
+  onAddAdjustment: (draft: AdjustmentDraft) => Promise<unknown>;
+  onRemoveAdjustment: (id: string) => Promise<unknown>;
+  onClearAdjustments: () => Promise<unknown>;
 }
 
 interface CourseBlock {
@@ -35,13 +44,40 @@ interface CourseBlock {
   span: number;
 }
 
-export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
+interface WeekInfo {
+  days: Date[];
+  label: string;
+  weekNum: number;
+}
+
+interface DragItem {
+  item: CourseView;
+  date: Date;
+}
+
+export function WeekGrid({
+  schedule,
+  adjustments,
+  onAddAdjustment,
+  onRemoveAdjustment,
+}: WeekGridProps) {
+  const [weekOffset, setWeekOffset] = useState(0);
   const [selectedItem, setSelectedItem] = useState<DayItem | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [weekOffset, setWeekOffset] = useState(0);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogItem, setDialogItem] = useState<CourseView | null>(null);
+  const [dialogDate, setDialogDate] = useState<Date>(new Date());
+  const [dialogInitialTarget, setDialogInitialTarget] = useState<
+    { weekday: Weekday; periods: number[]; weekOffset: number } | undefined
+  >(undefined);
+  const [dropTarget, setDropTarget] = useState<
+    { dayIdx: number; period: number } | null
+  >(null);
+  const dragRef = useRef<DragItem | null>(null);
+
   const tz = schedule.meta.tz || "Asia/Shanghai";
 
-  const weekInfo = useMemo(() => {
+  const weekInfo = useMemo<WeekInfo>(() => {
     const now = getNowInTimeZone(tz);
     const normalized = normalizeDate(now);
     const jsDay = normalized.getDay();
@@ -90,6 +126,101 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
 
   const periodTimes = schedule.periodTimes || {};
   const totalGridH = ALL_PERIODS.length * ROW_H;
+
+  const handleCourseClick = useCallback(
+    (item: DayItem, day: Date) => {
+      setSelectedItem(item);
+      setSelectedDate(day);
+    },
+    [],
+  );
+
+  const periodFromOffset = useCallback((offsetY: number) => {
+    return Math.min(Math.max(Math.floor(offsetY / ROW_H) + 1, 1), 10);
+  }, []);
+
+  const handleDragStart = useCallback(
+    (e: React.DragEvent, item: DayItem, day: Date) => {
+      if (item.kind !== "course") return;
+      const course = item as CourseView;
+      dragRef.current = { item: course, date: day };
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData(
+        "text/plain",
+        JSON.stringify({
+          title: course.title,
+          weekday: course.weekday,
+          periods: course.periods,
+        }),
+      );
+    },
+    [],
+  );
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent, dayIdx: number) => {
+      e.preventDefault();
+      if (!dragRef.current) return;
+      const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+      const period = periodFromOffset(e.clientY - rect.top);
+      setDropTarget({ dayIdx, period });
+    },
+    [periodFromOffset],
+  );
+
+  const handleDragLeave = useCallback(() => {
+    setDropTarget(null);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent, dayIdx: number) => {
+      e.preventDefault();
+      const source = dragRef.current;
+      dragRef.current = null;
+      setDropTarget(null);
+      if (!source) return;
+
+      const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+      const startPeriod = periodFromOffset(e.clientY - rect.top);
+      const targetDate = weekInfo.days[dayIdx];
+      const targetWeekday = (dayIdx + 1) as Weekday;
+      const sourceWeek = getWeekNumber(source.date, schedule.meta.week1_monday);
+      const targetWeek = getWeekNumber(targetDate, schedule.meta.week1_monday);
+      const periods = Array.from(
+        { length: source.item.periods.length },
+        (_, i) => startPeriod + i,
+      ).filter((p) => p <= 10);
+
+      setDialogItem(source.item);
+      setDialogDate(source.date);
+      setDialogInitialTarget({
+        weekday: targetWeekday,
+        periods,
+        weekOffset: targetWeek - sourceWeek,
+      });
+      setDialogOpen(true);
+    },
+    [periodFromOffset, schedule.meta.week1_monday, weekInfo.days],
+  );
+
+  const handleDragEnd = useCallback(() => {
+    dragRef.current = null;
+    setDropTarget(null);
+  }, []);
+
+  const handleDialogConfirm = useCallback(
+    async (draft: AdjustmentDraft) => {
+      try {
+        await onAddAdjustment(draft);
+        setDialogOpen(false);
+        setDialogItem(null);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "调课保存失败";
+        showToast("error", message);
+      }
+    },
+    [onAddAdjustment],
+  );
 
   return (
     <div>
@@ -228,15 +359,24 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                   <div
                     key={dayIdx}
                     className={
-                      "relative border-r border-border/20 dark:border-white/[0.04] last:border-r-0 " +
+                      "relative border-r border-border/20 dark:border-white/[0.04] last:border-r-0 select-none " +
                       todayBg
                     }
+                    onDragOver={(e) => handleDragOver(e, dayIdx)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, dayIdx)}
                   >
                     {/* Row backgrounds */}
                     {ALL_PERIODS.map((p) => (
                       <div
                         key={p}
-                        className="absolute left-0 right-0 border-b border-border/10 dark:border-white/[0.03]"
+                        className={
+                          "absolute left-0 right-0 border-b border-border/10 dark:border-white/[0.03] transition-colors " +
+                          (dropTarget?.dayIdx === dayIdx &&
+                          dropTarget?.period === p
+                            ? "bg-primary/20"
+                            : "")
+                        }
                         style={{ top: (p - 1) * ROW_H, height: ROW_H }}
                       />
                     ))}
@@ -257,11 +397,15 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                         <Button
                           key={i}
                           variant="secondary"
-                          onClick={() => {
-                            setSelectedItem(cb.item);
-                            setSelectedDate(day);
-                          }}
-                          className="absolute left-1 right-1 rounded-lg px-1.5 py-1 text-left transition-all active:scale-[0.97] hover:shadow-sm overflow-hidden items-start justify-start whitespace-normal"
+                          draggable
+                          onClick={() => handleCourseClick(cb.item, day)}
+                          onDragStart={(e) =>
+                            handleDragStart(e, cb.item, day)
+                          }
+                          onDragEnd={handleDragEnd}
+                          className={
+                            "absolute left-1 right-1 rounded-lg px-1.5 py-1 text-left transition-all overflow-hidden items-start justify-start whitespace-normal cursor-grab active:cursor-grabbing hover:shadow-sm active:scale-[0.97]"
+                          }
                           style={{
                             top: blockTop,
                             height: blockHeight,
@@ -271,9 +415,15 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                           aria-label={
                             cb.item.title + " " + (cb.item.timeText || "")
                           }
-                          title={cb.item.title + (cb.item.timeText ? ` · ${cb.item.timeText}` : "")}
+                          title={
+                            cb.item.title +
+                            (cb.item.timeText
+                              ? ` · ${cb.item.timeText}`
+                              : "") +
+                            "\n拖拽到目标格子以快速调课"
+                          }
                         >
-                          <div className="flex flex-col leading-tight w-full">
+                          <div className="flex flex-col leading-tight w-full pointer-events-none">
                             <div
                               className={`text-[11px] font-semibold ${cb.span >= 2 ? "line-clamp-2" : "line-clamp-1"}`}
                               style={{ color: colors.accent }}
@@ -316,10 +466,7 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
                     <Button
                       key={"sp-" + dayIdx + "-" + i}
                       variant="secondary"
-                      onClick={() => {
-                        setSelectedItem(item);
-                        setSelectedDate(day);
-                      }}
+                      onClick={() => handleCourseClick(item, day)}
                       className="w-full h-auto rounded-lg px-3 py-2 text-left transition-all active:scale-[0.97] flex items-center gap-2 justify-start whitespace-normal"
                       style={{
                         backgroundColor: colors.bg,
@@ -353,8 +500,29 @@ export function WeekGrid({ schedule, adjustments }: WeekGridProps) {
         item={selectedItem}
         date={selectedDate}
         timeZone={tz}
+        schedule={schedule}
+        adjustments={adjustments}
         onClose={() => setSelectedItem(null)}
+        onAddAdjustment={async (draft) => {
+          await onAddAdjustment(draft);
+        }}
+        onRemoveAdjustment={async (id) => {
+          await onRemoveAdjustment(id);
+        }}
       />
+
+      {dialogItem && (
+        <AdjustmentDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          schedule={schedule}
+          sourceItem={dialogItem}
+          sourceDate={dialogDate}
+          initialTarget={dialogInitialTarget}
+          adjustments={adjustments}
+          onConfirm={handleDialogConfirm}
+        />
+      )}
     </div>
   );
 }
