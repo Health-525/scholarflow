@@ -11,6 +11,12 @@ import type { ServerDB } from "@/lib/server-db";
 
 const CONFIG_KEY = "ai-config";
 
+// 旧模型名迁移映射（2026-07-24 后 deepseek-chat / deepseek-reasoner 已弃用）
+const LEGACY_MODEL_MAP: Record<string, string> = {
+  "deepseek-chat": "deepseek-v4-flash",
+  "deepseek-reasoner": "deepseek-v4-pro",
+};
+
 export interface AIConfig {
   apiKey: string;
   model: string;
@@ -30,19 +36,24 @@ function configKey(prefix: string): string {
   return `${CONFIG_KEY}:${prefix}`;
 }
 
+function migrateModel(model: string | undefined): string {
+  if (!model) return DEFAULT_DEEPSEEK_MODEL;
+  return LEGACY_MODEL_MAP[model] || model;
+}
+
 export function getAIConfig(db: ServerDB, prefix: string): AIConfig {
   const raw = db.readData(configKey(prefix)) as StoredAIConfig | null;
   const apiKey = raw?.encryptedKey ? decryptApiKey(raw.encryptedKey) || "" : "";
   return {
     apiKey,
-    model: raw?.model || DEFAULT_DEEPSEEK_MODEL,
+    model: migrateModel(raw?.model),
   };
 }
 
 export function getAISafeConfig(db: ServerDB, prefix: string): AISafeConfig {
   const raw = db.readData(configKey(prefix)) as StoredAIConfig | null;
   return {
-    model: raw?.model || DEFAULT_DEEPSEEK_MODEL,
+    model: migrateModel(raw?.model),
     configured: !!raw?.encryptedKey,
   };
 }
