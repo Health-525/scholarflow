@@ -144,6 +144,8 @@ git clone https://github.com/Health-525/scholarflow.git && cd scholarflow && npm
 |---|---|
 | `npm run dev` | 启动 Web 开发服务器 |
 | `npm run abi:node && npm run electron:dev` | 启动 Electron 开发环境 |
+| `npm run electron:hot:win` | Windows 热加载模式（Next.js + Electron 同时启动） |
+| `npm run electron:hot:win` 前可设 `PORT=3002` | 指定 Next.js dev 端口（默认 3000） |
 | `npm run typecheck` | TypeScript 类型检查 |
 | `npm run lint` | ESLint 代码规范检查 |
 | `npm test` | Vitest 单元测试 |
@@ -206,7 +208,7 @@ git clone https://github.com/Health-525/scholarflow.git && cd scholarflow && npm
     </td>
     <td>
       <h4>📱 屏幕时间</h4>
-      <p>桌面端活动窗口统计，<strong>了解你的应用使用分布</strong></p>
+      <p>秒级前台窗口检测，覆盖 90+ 应用分类，未知应用保留真实名称，<strong>支持 CSV 导出</strong></p>
     </td>
   </tr>
 </table>
@@ -317,7 +319,7 @@ ScholarFlow is a **local-first campus study workspace** that deeply integrates a
 - 🔌 **Extensible** — `SchoolAdapter` pattern. NJTech and HEBau already integrated.
 - 📱 **Multi-platform** — Desktop (primary), Web/PWA, Android with a unique cute mobile skin.
 
-**Features:** Dashboard · Schedule · Assignments · Exams · GPA · Library (seat reservation) · Notes (Markdown) · Pomodoro · Running/Goals · Daily/Weekly Reports · AI Assistant (OpenRouter/Ollama) · Screen Time · Settings · Mobile Ximi Skin
+**Features:** Dashboard · Schedule · Assignments · Exams · GPA · Library (seat reservation) · Notes (Markdown) · Pomodoro · Running/Goals · Daily/Weekly Reports · AI Assistant (OpenRouter/Ollama) · Screen Time (second-level activity tracking with 90+ app categories & CSV export) · Settings · Mobile Ximi Skin
 
 **Platforms:** Electron desktop (full), Web/PWA (complementary), Android/Capacitor (experimental).
 
