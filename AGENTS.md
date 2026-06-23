@@ -54,3 +54,5 @@
 3. **删除谨慎**：删除文件/依赖前，先用 Grep 确认没有引用。
 4. **Electron 改动**：修改 `electron/` 后，使用 `node --check electron/main.js` 检查语法。
 5. **Windows 环境**：Bash 工具使用 Git Bash，路径使用 POSIX 风格（`/d/A/scholarflow` 或 `D:/A/scholarflow`）。
+6. **及时提交**：每完成一批阶段性任务后应及时 `git commit`，避免大量未提交改动堆积。
+7. **前端验证**：涉及 UI/UX 的改动需自行截图验证效果；遇到问题先查看终端、浏览器控制台与日志，不反问用户。
