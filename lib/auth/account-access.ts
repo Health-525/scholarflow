@@ -1,3 +1,4 @@
+import { resolveUserId } from "@/lib/account-prefix";
 import type { ServerDB } from "@/lib/server-db";
 
 interface RequestedAccount {
@@ -9,8 +10,6 @@ interface AuthorizedAccount {
   schoolId: string;
   userId: string;
 }
-
-import { resolveUserId } from "@/lib/account-prefix";
 
 import { hasValidInternalToken } from "./origin";
 

@@ -14,7 +14,9 @@ const mockSetRememberSetting = vi.fn();
 vi.mock("@/lib/auth/origin", () => ({
   isTrustedOrigin: vi.fn(() => true),
   hasValidInternalToken: vi.fn(() => false),
-  forbiddenResponse: vi.fn(() => new Response(JSON.stringify({ error: "forbidden" }), { status: 403 })),
+  forbiddenResponse: vi.fn((body: Record<string, unknown> = { error: "forbidden" }) =>
+    new Response(JSON.stringify(body), { status: 403 })
+  ),
 }));
 
 vi.mock("@/lib/server-db", () => ({
@@ -78,8 +80,8 @@ describe("account boundary routes", () => {
       })
     );
 
-    expect(response.status).toBe(401);
-    await expect(response.json()).resolves.toEqual({ error: "unauthorized" });
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "unauthorized account access" });
     expect(mockGetCredentials).not.toHaveBeenCalled();
   });
 
@@ -128,6 +130,55 @@ describe("account boundary routes", () => {
     expect(mockDeleteCredentials).not.toHaveBeenCalled();
     expect(mockDeleteData).not.toHaveBeenCalled();
     expect(mockSetRememberSetting).not.toHaveBeenCalled();
+  });
+
+  it("拒绝通过 /api/auth/remember 清除其他账号的记住密码状态", async () => {
+    const { POST } = await import("@/app/api/auth/remember/route");
+
+    const response = await POST(
+      new Request("http://localhost:3000/api/auth/remember", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          origin: "http://localhost:3000",
+        },
+        body: JSON.stringify({
+          schoolId: "hebau",
+          userId: "other-user",
+        }),
+      })
+    );
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({ error: "unauthorized" });
+    expect(mockDeleteData).not.toHaveBeenCalled();
+    expect(mockSetRememberSetting).not.toHaveBeenCalled();
+  });
+
+  it("允许当前账号清除自己的记住密码状态，并删除历史密码缓存键", async () => {
+    const { POST } = await import("@/app/api/auth/remember/route");
+
+    const response = await POST(
+      new Request("http://localhost:3000/api/auth/remember", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          origin: "http://localhost:3000",
+        },
+        body: JSON.stringify({
+          schoolId: "hebau",
+          userId: "2023084010117",
+        }),
+      })
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ ok: true });
+    expect(mockDeleteData).toHaveBeenCalledWith("credential-password:hebau:2023084010117");
+    expect(mockSetRememberSetting).toHaveBeenCalledWith("hebau", "2023084010117", {
+      enabled: false,
+      lastManualLoginAt: expect.any(Number),
+    });
   });
 
   it("允许当前账号读取自己的 credentials", async () => {

@@ -38,6 +38,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
 
+    // 清理历史版本遗留的本地密码缓存，避免旧数据继续滞留 SQLite。
+    db.deleteData(`credential-password:${schoolId}:${userId}`);
     const remember = getRememberSetting(schoolId, userId);
     setRememberSetting(schoolId, userId, { ...remember, enabled: false });
 
