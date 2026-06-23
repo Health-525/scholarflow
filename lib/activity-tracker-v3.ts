@@ -1,8 +1,8 @@
 /**
- * 活动追踪引擎 v4 — 全局单例，跨页面导航保持状态
+ * 屏幕时间前端状态 — Electron 主进程 SQLite 版
  *
- * Electron: active-win v9 每3秒轮询，窗口切换自动记录
- * Web: 仅检测空闲/离开
+ * Electron: 主进程维护状态机并写入 SQLite，渲染进程通过 IPC 查询与订阅。
+ * Web: 仅检测环境，返回空状态。
  */
 
 "use client";
@@ -10,388 +10,422 @@
 import { useEffect, useState } from "react";
 
 // ── Types ──
-interface WindowInfo { title: string; app: string; timestamp: number; }
-export type Category = 'coding' | 'browsing' | 'study' | 'entertainment' | 'communication' | 'system' | 'other';
+export type Category = "coding" | "browsing" | "study" | "entertainment" | "communication" | "system" | "other";
 
 interface AppSegment {
-  app: string; title: string; category: Category;
-  domain?: string; project?: string; start: number; end: number;
-}
-interface ActivityMeta { category: Category; domain?: string; project?: string; }
-export interface DayLog { date: string; segments: AppSegment[]; idleMs: number; awayMs: number; }
-
-export const CATEGORY_COLORS: Record<Category, string> = {
-  coding: "#22c55e", browsing: "#3b82f6", study: "#8b5cf6",
-  entertainment: "#f97316", communication: "#06b6d4", system: "#6b7280", other: "#94a3b8",
-};
-export const CATEGORY_LABELS: Record<Category, string> = {
-  coding: "💻 开发", browsing: "🌐 浏览", study: "📚 学习",
-  entertainment: "🎮 娱乐", communication: "💬 通讯", system: "⚙️ 系统", other: "📌 其他",
-};
-
-// ElectronAPI 类型已移至 types/globals.d.ts 统一声明
-
-declare global {
-  interface Window {
-    electronAPI?: ElectronAPI;
-  }
+  app: string;
+  title: string;
+  category: Category;
+  domain?: string;
+  project?: string;
+  start: number;
+  end: number;
 }
 
-const STORAGE_KEY = "sf_activity_v3"; const MAX_DAYS = 7;
-
-function todayKey(): string { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
-function nowMs() { return Date.now(); }
-
-// ── Storage ──
-function isSecureStorageAvailable(): boolean {
-  return typeof window !== "undefined" &&
-    !!window.electronAPI?.storeActivityData &&
-    !!window.electronAPI?.retrieveActivityData &&
-    !!window.electronAPI?.clearActivityData;
+export interface DayLog {
+  date: string;
+  segments: AppSegment[];
+  idleMs: number;
+  awayMs: number;
 }
 
-async function readRawStorage(): Promise<string | null> {
-  if (typeof window === "undefined") return null;
-  const api = window.electronAPI;
-  if (isSecureStorageAvailable()) {
-    const legacy = window.localStorage.getItem(STORAGE_KEY);
-    if (legacy) {
-      try {
-        await api!.storeActivityData!(legacy);
-        window.localStorage.removeItem(STORAGE_KEY);
-        return legacy;
-      } catch {
-        return legacy;
-      }
-    }
-    return api!.retrieveActivityData!();
-  }
-  return window.localStorage.getItem(STORAGE_KEY);
+export interface ScreenTimeState {
+  isElectron: boolean;
+  currentApp: string;
+  currentTitle: string;
+  currentCategory?: Category;
+  currentSince: number;
+  durationSeconds: number;
+  totalMinutes: number;
+  idleMinutes: number;
+  awayMinutes: number;
+  categoryBreakdown: Array<{ category: Category; minutes: number; color: string }>;
+  appBreakdown: Array<{ app: string; minutes: number; category?: Category }>;
+  segments: ActivityDaySummary["segments"];
+  loading: boolean;
 }
 
-async function writeRawStorage(value: string): Promise<void> {
-  if (typeof window === "undefined") return;
-  if (isSecureStorageAvailable()) {
-    await window.electronAPI!.storeActivityData!(value);
-  } else {
-    window.localStorage.setItem(STORAGE_KEY, value);
-  }
-}
-
-function parseLog(raw: string | null): DayLog {
-  if (!raw) return { date: todayKey(), segments: [], idleMs: 0, awayMs: 0 };
-  try {
-    const store = JSON.parse(raw);
-    const today = todayKey();
-    if (store[today] && store[today].segments) return store[today];
-    if (store.segments) return store;
-  } catch {}
-  return { date: todayKey(), segments: [], idleMs: 0, awayMs: 0 };
-}
-
-async function loadLog(): Promise<DayLog> {
-  const raw = await readRawStorage();
-  return parseLog(raw);
-}
-
-async function saveLog(log: DayLog) {
-  try {
-    const store: Record<string, DayLog> = {};
-    try {
-      const raw = await readRawStorage();
-      if (raw) Object.assign(store, JSON.parse(raw));
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error("[ActivityTracker] loadLog JSON parse failed:", e);
-    }
-    store[log.date] = log;
-    const keys = Object.keys(store).sort();
-    while (keys.length > MAX_DAYS) delete store[keys.shift()!];
-    await writeRawStorage(JSON.stringify(store));
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error("[ActivityTracker] saveLog failed:", e);
-  }
-}
-
-// ── Global singleton ── survives Next.js page navigation
-let _segs: AppSegment[] = [];
-let _curApp = "启动中";
-let _curTitle = "";
-let _curCategory: Category = "system";
-let _idleMs = 0;
-let _awayMs = 0;
-let _systemState: 'active' | 'idle' | 'locked' | 'sleep' = 'active';
-let _stateStartedAt = 0;
-let _subs: Array<() => void> = [];
-let _inited = false;
-let _refCount = 0;
-let _unsubActiveWindow: (() => void) | null = null;
-let _unsubSystemState: (() => void) | null = null;
-let _latest: ActivityStateV3 | null = null;
-
-function notify() { _latest = null; _subs.forEach(f => f()); }
-
-// ── Smart categorization ──
-function categorizeActivity(app: string, title: string): { normalized: string; meta: ActivityMeta } {
-  const a = app.toLowerCase(); const t = title.toLowerCase();
-
-  if (a.includes("chrome")||a.includes("edge")||a.includes("firefox")||a.includes("brave")) {
-    const browser = a.includes("edge")?"Edge":a.includes("firefox")?"Firefox":"Chrome";
-    const domain = extractDomain(title);
-    return { normalized: browser, meta: { category: classifyBrowsing(domain, t), domain } };
-  }
-  if (a.includes("code")||a.includes("visual studio")||a.includes("cursor"))
-    return { normalized: "VS Code", meta: { category: "coding", project: extractProject(t) } };
-  if (a.includes("terminal")||a.includes("cmd")||a.includes("powershell"))
-    return { normalized: "终端", meta: { category: "coding" } };
-  if (a.includes("obsidian")) return { normalized: "Obsidian", meta: { category: "study", project: extractObsidianVault(t) } };
-  if (a.includes("notion")) return { normalized: "Notion", meta: { category: "study" } };
-  if (a.includes("wechat")||a.includes("微信")) return { normalized: "微信", meta: { category: "communication" } };
-  if (a.includes("telegram")) return { normalized: "Telegram", meta: { category: "communication" } };
-  if (a.includes("feishu")||a.includes("lark")||a.includes("飞书")) return { normalized: "飞书", meta: { category: "communication" } };
-  if (a.includes("discord")) return { normalized: "Discord", meta: { category: "communication" } };
-  if (a.includes("bilibili")||a.includes("youtube")||a.includes("netflix")||a.includes("iqiyi"))
-    return { normalized: "视频", meta: { category: "entertainment" } };
-  if (a.includes("steam")||a.includes("原神")||a.includes("genshin"))
-    return { normalized: "游戏", meta: { category: "entertainment" } };
-  if (a.includes("spotify")||a.includes("网易云")) return { normalized: "音乐", meta: { category: "entertainment" } };
-  if (a.includes("matlab")) return { normalized: "MATLAB", meta: { category: "study" } };
-  if (a.includes("explorer")||a.includes("文件")) return { normalized: "文件管理", meta: { category: "system" } };
-  if (a.includes("github desktop")) return { normalized: "GitHub Desktop", meta: { category: "coding" } };
-  if (a.includes("postman")) return { normalized: "Postman", meta: { category: "coding" } };
-  return { normalized: app.charAt(0).toUpperCase()+app.slice(1), meta: { category: "other" } };
-}
-
-function extractDomain(title: string): string | undefined {
-  const m = title.match(/[—–-]\s*([\w-]+\.(com|cn|org|net|io|dev|edu|gov)(\.[a-z]{2})?)\s*[—–-]/);
-  return m?.[1];
-}
-function classifyBrowsing(domain: string|undefined, title: string): Category {
-  if (!domain) {
-    if (/github|gitlab/i.test(title)) return "coding";
-    if (/bilibili|youtube|netflix/i.test(title)) return "entertainment";
-    if (/zhihu|csdn|juejin|stackoverflow|medium/i.test(title)) return "study";
-    return "browsing";
-  }
-  if (/github\.com|gitlab\.com|stackoverflow\.com/i.test(domain)) return "coding";
-  if (/bilibili\.com|youtube\.com|netflix\.com/i.test(domain)) return "entertainment";
-  if (/zhihu\.com|csdn\.net|juejin\.cn|arxiv\.org|wikipedia/i.test(domain)) return "study";
-  return "browsing";
-}
-function extractProject(title: string): string | undefined {
-  const m = title.match(/[—–-]\s*(.+?)\s*[—–-]\s*(Visual Studio Code|Cursor|Code)/i);
-  if (m?.[1] && !m[1].includes(".")) return m[1];
-  return undefined;
-}
-function extractObsidianVault(title: string): string | undefined {
-  const m = title.match(/[—–-]\s*(.+?)\s*[—–-]\s*Obsidian/i);
-  return m?.[1];
-}
-
-let _flushTimer: ReturnType<typeof setInterval> | null = null;
-
-// ── Init / cleanup ──
-function closeCurrentSegment(at: number) {
-  if (_segs.length > 0 && _segs[_segs.length - 1].end === 0) {
-    _segs[_segs.length - 1].end = at;
-  }
-}
-
-function startNewSegment(win: WindowInfo) {
-  const { normalized: app, meta } = categorizeActivity(win.app, win.title);
-  _segs.push({ app, title: win.title, category: meta.category, domain: meta.domain, project: meta.project, start: win.timestamp, end: 0 });
-  _curApp = app; _curTitle = win.title; _curCategory = meta.category;
-}
-
-function pushSeg(win: WindowInfo) {
-  if (_systemState !== 'active') return;
-  const { normalized: app, meta } = categorizeActivity(win.app, win.title);
-  if (app !== _curApp) {
-    closeCurrentSegment(win.timestamp);
-    _segs.push({ app, title: win.title, category: meta.category, domain: meta.domain, project: meta.project, start: win.timestamp, end: 0 });
-    _curApp = app; _curTitle = win.title; _curCategory = meta.category;
-  }
-}
-
-function handleSystemState(info: { state: 'idle' | 'locked' | 'sleep' | 'resumed'; timestamp: number; idleMs?: number; reason?: string }) {
-  const { state, timestamp } = info;
-
-  if (state === 'resumed') {
-    if (_systemState !== 'active') {
-      // 结束 idle/locked/sleep 状态，恢复后需要重新获取当前窗口
-      _systemState = 'active';
-      _stateStartedAt = timestamp;
-      window.electronAPI?.getActiveWindow().then((win: WindowInfo | null) => {
-        if (win) startNewSegment(win);
-        notify();
-      }).catch(() => notify());
-    }
-    return;
-  }
-
-  if (_systemState === state) return;
-
-  // 从活跃进入 idle/locked/sleep
-  // idleMs 是系统检测到的连续空闲时长，用它回推实际空闲开始时间
-  const idleStart = state === 'idle' && info.idleMs ? timestamp - info.idleMs : timestamp;
-  closeCurrentSegment(idleStart);
-
-  const duration = Math.max(0, timestamp - idleStart);
-  if (state === 'idle') {
-    _idleMs += duration;
-  } else {
-    _awayMs += duration;
-  }
-
-  _systemState = state;
-  _stateStartedAt = idleStart;
-  notify();
-}
-
-async function init() {
-  _refCount++;
-  if (_inited) return;
-  const isElectron = !!window.electronAPI?.isElectron;
-  if (!isElectron) return;
-  _inited = true;
-  const log = await loadLog();
-  _segs = [...log.segments];
-  _idleMs = log.idleMs || 0;
-  _awayMs = log.awayMs || 0;
-  if (_segs.length>0 && _segs[_segs.length-1].end===0) _segs[_segs.length-1].end = nowMs();
-
-  const api = window.electronAPI!;
-  _unsubSystemState = api.onSystemStateChanged((info) => {
-    handleSystemState(info);
-  });
-  api.getActiveWindow().then((win: WindowInfo|null) => {
-    if (win) { pushSeg(win); notify(); }
-  }).catch(() => {});
-  _unsubActiveWindow = api.onActiveWindowChanged((win: WindowInfo) => {
-    pushSeg(win); notify();
-  });
-  _flushTimer = setInterval(() => {
-    if (_systemState === 'active' && _segs.length>0 && _segs[_segs.length-1].end===0) {
-      _segs[_segs.length-1].end = nowMs();
-    }
-    saveLog(buildLog()).catch(() => {});
-    if (_systemState === 'active') {
-      _segs.push({ app: _curApp, title: _curTitle, category: _curCategory, start: nowMs(), end: 0 });
-    }
-  }, 30000);
-}
-
-function cleanupSingleton() {
-  _refCount--;
-  if (_refCount > 0) return;
-  if (_flushTimer) { clearInterval(_flushTimer); _flushTimer = null; }
-  if (_unsubActiveWindow) { _unsubActiveWindow(); _unsubActiveWindow = null; }
-  if (_unsubSystemState) { _unsubSystemState(); _unsubSystemState = null; }
-  _inited = false;
-}
-
-function buildLog(): DayLog {
-  return { date: todayKey(), segments: [..._segs], idleMs: _idleMs, awayMs: _awayMs };
-}
-
-function computeState(): ActivityStateV3 {
-  const isElectron = typeof window !== "undefined" && !!window.electronAPI?.isElectron;
-  const segs = _segs;
-  const map: Record<string,number> = {};
-  const catMap: Record<string,number> = {};
-  let total = 0;
-  for (let i = 0; i < segs.length; i++) {
-    const s = segs[i];
-    const isLastOpen = i === segs.length - 1 && s.end === 0;
-    if (isLastOpen && _systemState !== 'active') {
-      // 当前处于 idle/locked/sleep，最后一个未闭合 segment 应被闭合但不计入活跃时间
-      s.end = nowMs();
-      continue;
-    }
-    const end = s.end || nowMs();
-    const d = (end - s.start) / 60000;
-    map[s.app] = (map[s.app] || 0) + d;
-    catMap[s.category] = (catMap[s.category] || 0) + d;
-    total += (end - s.start);
-  }
-  const appBreakdown = Object.entries(map).map(([a,m])=>({app:a,minutes:Math.round(m)})).filter(p=>p.minutes>0).sort((a,b)=>b.minutes-a.minutes);
-  const catBreakdown = Object.entries(catMap).map(([c,m])=>({category:c as Category,minutes:Math.round(m),color:CATEGORY_COLORS[c as Category]||CATEGORY_COLORS.other})).sort((a,b)=>b.minutes-a.minutes);
-
-  return {
-    currentApp: _systemState === 'active' ? _curApp : `系统${_systemState === 'idle' ? '空闲' : _systemState === 'locked' ? '锁屏' : '睡眠'}`,
-    currentTitle: _systemState === 'active' ? _curTitle : '',
-    appBreakdown, categoryBreakdown: catBreakdown,
-    totalActiveMs: total, idleMs: _idleMs, awayMs: _awayMs,
-    todayLog: buildLog(), isElectron,
-  };
-}
-
-// ── React Hook ──
+/** @deprecated 保留旧接口名作为别名 */
 export interface ActivityStateV3 {
-  currentApp: string; currentTitle: string;
-  appBreakdown: Array<{app:string;minutes:number}>;
-  categoryBreakdown: Array<{category:Category;minutes:number;color:string}>;
+  currentApp: string;
+  currentTitle: string;
+  appBreakdown: Array<{ app: string; minutes: number }>;
+  categoryBreakdown: Array<{ category: Category; minutes: number; color: string }>;
   totalActiveMs: number;
   idleMs: number;
   awayMs: number;
-  todayLog: DayLog; isElectron: boolean;
+  todayLog: DayLog;
+  isElectron: boolean;
 }
 
-export function useActivityTrackerV3(): ActivityStateV3 {
-  const [, tick] = useState(0);
-  useEffect(() => {
-    init().catch(() => {});
-    const fn = () => tick(n=>n+1);
-    _subs.push(fn);
-    return () => {
-      _subs = _subs.filter(f=>f!==fn);
-      cleanupSingleton();
-    };
-  }, []);
-  return _latest || computeState();
+// ── Constants ──
+export const CATEGORY_COLORS: Record<Category, string> = {
+  coding: "#22c55e",
+  browsing: "#3b82f6",
+  study: "#8b5cf6",
+  entertainment: "#f97316",
+  communication: "#06b6d4",
+  system: "#6b7280",
+  other: "#94a3b8",
+};
+
+export const CATEGORY_LABELS: Record<Category, string> = {
+  coding: "💻 开发",
+  browsing: "🌐 浏览",
+  study: "📚 学习",
+  entertainment: "🎮 娱乐",
+  communication: "💬 通讯",
+  system: "⚙️ 系统",
+  other: "📌 其他",
+};
+
+export const CATEGORY_SEMANTIC: Record<Category, "success" | "info" | "primary" | "warning"> = {
+  coding: "success",
+  browsing: "info",
+  study: "primary",
+  entertainment: "warning",
+  communication: "info",
+  system: "warning",
+  other: "info",
+};
+
+// ── Helpers ──
+function todayKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export async function downloadActivityCSV() {
-  const store: Record<string, DayLog> = {};
+function nowMs() {
+  return Date.now();
+}
+
+function isElectron(): boolean {
+  return typeof window !== "undefined" && !!window.electronAPI?.isElectron;
+}
+
+function mapSegment(s: ActivityDaySummary["segments"][number]): AppSegment {
+  return {
+    app: s.app || "",
+    title: s.title || "",
+    category: (s.category || "other") as Category,
+    domain: s.domain ?? undefined,
+    project: s.project ?? undefined,
+    start: s.beginAt,
+    end: s.endAt ?? nowMs(),
+  };
+}
+
+async function queryDaySummary(dateStr: string): Promise<ActivityDaySummary | null> {
+  const api = window.electronAPI;
+  if (!api?.queryActivityDay) return null;
   try {
-    const r = await readRawStorage();
-    if (r) Object.assign(store, JSON.parse(r));
+    return await api.queryActivityDay(dateStr);
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.error("[ActivityTracker] loadLog JSON parse failed:", e);
+    console.error("[ScreenTime] queryActivityDay failed:", e);
+    return null;
   }
+}
+
+async function fetchCurrentState(): Promise<ActivityStateInfo | null> {
+  const api = window.electronAPI;
+  if (!api?.getActivityState) return null;
+  try {
+    return await api.getActivityState();
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("[ScreenTime] getActivityState failed:", e);
+    return null;
+  }
+}
+
+function buildEmptyState(): ScreenTimeState {
+  return {
+    isElectron: false,
+    currentApp: "",
+    currentTitle: "",
+    currentSince: 0,
+    durationSeconds: 0,
+    totalMinutes: 0,
+    idleMinutes: 0,
+    awayMinutes: 0,
+    categoryBreakdown: [],
+    appBreakdown: [],
+    segments: [],
+    loading: false,
+  };
+}
+
+function buildState(
+  summary: ActivityDaySummary | null,
+  current: ActivityStateInfo | null
+): ScreenTimeState {
+  const electron = isElectron();
+  const segments = summary?.segments ?? [];
+  const appMap: Record<string, { minutes: number; category?: Category }> = {};
+  const catMap: Record<Category, number> = {
+    coding: 0,
+    browsing: 0,
+    study: 0,
+    entertainment: 0,
+    communication: 0,
+    system: 0,
+    other: 0,
+  };
+
+  let currentApp = "";
+  let currentTitle = "";
+  let currentCategory: Category | undefined;
+  let currentSince = 0;
+  let durationSeconds = 0;
+
+  if (current) {
+    if (current.state === "active") {
+      currentApp = current.app || "未知应用";
+      currentTitle = current.title || "";
+      currentCategory = (current.category as Category) || "other";
+      currentSince = current.since;
+      durationSeconds = current.durationSeconds;
+    } else if (current.state === "idle") {
+      currentApp = "系统空闲";
+      currentSince = current.since;
+      durationSeconds = current.durationSeconds;
+    } else {
+      currentApp = "离开";
+      currentSince = current.since;
+      durationSeconds = current.durationSeconds;
+    }
+  }
+
+  for (const s of segments) {
+    if (s.type !== "app") continue;
+    const end = s.endAt ?? nowMs();
+    const duration = end - s.beginAt;
+    if (duration <= 0) continue;
+    const minutes = Math.round(duration / 60000);
+    if (minutes <= 0) continue;
+
+    const app = s.app || "其他";
+    const category = (s.category || "other") as Category;
+
+    if (appMap[app]) {
+      appMap[app].minutes += minutes;
+      // 保留出现次数最多的分类（简单策略）
+    } else {
+      appMap[app] = { minutes, category };
+    }
+    catMap[category] = (catMap[category] || 0) + minutes;
+  }
+
+  const appBreakdown = Object.entries(appMap)
+    .map(([app, info]) => ({ app, minutes: info.minutes, category: info.category }))
+    .filter((p) => p.minutes > 0)
+    .sort((a, b) => b.minutes - a.minutes);
+
+  const categoryBreakdown = (Object.keys(catMap) as Category[])
+    .map((category) => ({ category, minutes: catMap[category], color: CATEGORY_COLORS[category] }))
+    .filter((c) => c.minutes > 0)
+    .sort((a, b) => b.minutes - a.minutes);
+
+  return {
+    isElectron: electron,
+    currentApp,
+    currentTitle,
+    currentCategory,
+    currentSince,
+    durationSeconds,
+    totalMinutes: summary?.totalMinutes ?? 0,
+    idleMinutes: summary?.idleMinutes ?? 0,
+    awayMinutes: summary?.awayMinutes ?? 0,
+    categoryBreakdown,
+    appBreakdown,
+    segments,
+    loading: false,
+  };
+}
+
+function convertToLegacyV3(state: ScreenTimeState): ActivityStateV3 {
+  const today = todayKey();
+  const totalActiveMs = state.totalMinutes * 60000;
+  const idleMs = state.idleMinutes * 60000;
+  const awayMs = state.awayMinutes * 60000;
+
+  return {
+    currentApp: state.currentApp,
+    currentTitle: state.currentTitle,
+    appBreakdown: state.appBreakdown.map((b) => ({ app: b.app, minutes: b.minutes })),
+    categoryBreakdown: state.categoryBreakdown,
+    totalActiveMs,
+    idleMs,
+    awayMs,
+    todayLog: {
+      date: today,
+      segments: state.segments.map(mapSegment),
+      idleMs,
+      awayMs,
+    },
+    isElectron: state.isElectron,
+  };
+}
+
+// ── Hooks ──
+export function useScreenTime(date?: string): ScreenTimeState {
+  const selectedDate = date || todayKey();
+  const isToday = selectedDate === todayKey();
+  const [state, setState] = useState<ScreenTimeState>(() => ({
+    ...buildEmptyState(),
+    isElectron: isElectron(),
+    loading: isElectron(),
+  }));
+
+  useEffect(() => {
+    let mounted = true;
+    let unsub: (() => void) | null = null;
+    let tickTimer: ReturnType<typeof setInterval> | null = null;
+
+    async function refresh() {
+      if (!isElectron()) {
+        if (mounted) setState((s) => ({ ...s, loading: false, isElectron: false }));
+        return;
+      }
+      const [summary, current] = await Promise.all([
+        queryDaySummary(selectedDate),
+        isToday ? fetchCurrentState() : Promise.resolve(null),
+      ]);
+      if (mounted) {
+        setState(buildState(summary, current));
+      }
+    }
+
+    refresh();
+
+    const api = window.electronAPI;
+    if (isElectron() && api?.onActivityStateChanged && isToday) {
+      unsub = api.onActivityStateChanged(() => {
+        refresh();
+      });
+    }
+
+    tickTimer = setInterval(() => {
+      setState((prev) => {
+        if (!prev.isElectron || !prev.currentSince) return prev;
+        const nextDuration = Math.max(0, Math.round((Date.now() - prev.currentSince) / 1000));
+        return { ...prev, durationSeconds: nextDuration };
+      });
+    }, 1000);
+
+    return () => {
+      mounted = false;
+      if (unsub) unsub();
+      if (tickTimer) clearInterval(tickTimer);
+    };
+  }, [selectedDate, isToday]);
+
+  return state;
+}
+
+export function useScreenTimeRealtime(): {
+  currentApp: string;
+  currentTitle: string;
+  currentCategory?: Category;
+  durationSeconds: number;
+} {
+  const [state, setState] = useState<{ currentApp: string; currentTitle: string; currentCategory?: Category; durationSeconds: number }>({
+    currentApp: "",
+    currentTitle: "",
+    durationSeconds: 0,
+  });
+
+  useEffect(() => {
+    let mounted = true;
+    let unsub: (() => void) | null = null;
+
+    async function refresh() {
+      const info = await fetchCurrentState();
+      if (!mounted || !info) return;
+      if (info.state === "active") {
+        setState({
+          currentApp: info.app || "未知应用",
+          currentTitle: info.title || "",
+          currentCategory: (info.category as Category) || "other",
+          durationSeconds: info.durationSeconds,
+        });
+      } else if (info.state === "idle") {
+        setState({ currentApp: "系统空闲", currentTitle: "", durationSeconds: info.durationSeconds });
+      } else {
+        setState({ currentApp: "离开", currentTitle: "", durationSeconds: info.durationSeconds });
+      }
+    }
+
+    refresh();
+
+    const api = window.electronAPI;
+    if (isElectron() && api?.onActivityStateChanged) {
+      unsub = api.onActivityStateChanged(() => refresh());
+    }
+
+    const timer = setInterval(() => {
+      setState((prev) => {
+        if (!prev.currentApp) return prev;
+        return { ...prev, durationSeconds: prev.durationSeconds + 1 };
+      });
+    }, 1000);
+
+    return () => {
+      mounted = false;
+      if (unsub) unsub();
+      clearInterval(timer);
+    };
+  }, []);
+
+  return state;
+}
+
+/** @deprecated 保留旧接口名作为别名 */
+export function useActivityTrackerV3(): ActivityStateV3 {
+  return convertToLegacyV3(useScreenTime());
+}
+
+// ── Actions ──
+export async function downloadActivityCSV(): Promise<void> {
+  const api = window.electronAPI;
+  if (!api?.queryActivityDay) return;
+
+  const today = new Date();
   let csv = "Date,App,Minutes\n";
-  for (const [date, log] of Object.entries(store).sort()) {
-    if (!log?.segments) continue;
-    const map: Record<string,number> = {};
-    for (const s of log.segments) {
-      const d = ((s.end||nowMs())-s.start)/60000;
-      map[s.app] = (map[s.app]||0)+d;
-    }
-    for (const [app, minutes] of Object.entries(map)) {
-      if (minutes < 1) continue;
-      csv += `${date},${app},${Math.round(minutes)}\n`;
+
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    try {
+      const summary = await api.queryActivityDay(dateStr);
+      for (const b of summary.appBreakdown) {
+        if (b.minutes < 1) continue;
+        csv += `${dateStr},${b.app},${b.minutes}\n`;
+      }
+    } catch {
+      // ignore per-day errors
     }
   }
-  const blob = new Blob(["\uFEFF"+csv], { type: "text/csv;charset=utf-8" });
+
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = `activity-${todayKey()}.csv`; a.click();
+  a.href = url;
+  a.download = `screen-time-${todayKey()}.csv`;
+  a.click();
   URL.revokeObjectURL(url);
 }
 
-export async function clearActivityData() {
+export async function clearActivityData(): Promise<void> {
+  const api = window.electronAPI;
+  if (!api?.clearActivityData) return;
   try {
-    if (isSecureStorageAvailable()) {
-      await window.electronAPI!.clearActivityData!();
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-    _segs = [];
-    _latest = null;
+    await api.clearActivityData();
+    // 本地状态由订阅自动刷新
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.error("[ActivityTracker] clearActivityData failed:", e);
+    console.error("[ScreenTime] clearActivityData failed:", e);
   }
 }

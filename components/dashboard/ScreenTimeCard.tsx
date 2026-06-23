@@ -6,17 +6,16 @@ import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { cardClasses } from "@/components/ui/card";
-import { useActivityTrackerV3 } from "@/lib/activity-tracker-v3";
+import { useScreenTime } from "@/lib/activity-tracker-v3";
 import { cn } from "@/lib/utils";
 
 export function ScreenTimeCard() {
-  const state = useActivityTrackerV3();
+  const state = useScreenTime();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
-  const activeMins = Math.round(state.totalActiveMs / 60000);
 
   return (
     <Link href="/activity" className={cn(cardClasses, "h-full")}>
@@ -25,10 +24,10 @@ export function ScreenTimeCard() {
         <div className="relative">
           <div className="flex items-center justify-center gap-2 mb-1">
             <Monitor className="w-4 h-4 text-primary" />
-            <span className="text-[12px] font-semibold text-muted-foreground">活跃时长</span>
+            <span className="text-[12px] font-semibold text-muted-foreground">屏幕时间</span>
           </div>
           <div className="text-[28px] font-bold tabular-nums transition-transform duration-200 group-hover:scale-105 text-foreground leading-none">
-            {activeMins}<span className="text-[13px] font-medium text-muted-foreground"> min</span>
+            {state.totalMinutes}<span className="text-[13px] font-medium text-muted-foreground"> min</span>
           </div>
 
           {state.categoryBreakdown.length > 0 && (
@@ -43,7 +42,7 @@ export function ScreenTimeCard() {
 
           {mounted && !state.isElectron && state.categoryBreakdown.length === 0 && (
             <div className="mt-2 text-[11px] text-muted-foreground">
-              需要 Electron 桌面版才能追踪应用
+              桌面版可用
             </div>
           )}
         </div>

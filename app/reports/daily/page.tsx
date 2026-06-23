@@ -40,16 +40,12 @@ async function loadPomodoroSessions(): Promise<unknown> {
   return [];
 }
 
-async function loadActivityLog(): Promise<unknown> {
+async function loadActivityLog(dateStr: string): Promise<unknown> {
   if (typeof window === "undefined") return null;
   try {
-    if (window.electronAPI?.retrieveActivityData) {
-      const raw = await window.electronAPI.retrieveActivityData();
-      if (raw) return JSON.parse(raw);
-      return null;
+    if (window.electronAPI?.queryActivityDay) {
+      return await window.electronAPI.queryActivityDay(dateStr);
     }
-    const raw = window.localStorage.getItem("sf_activity_v3");
-    if (raw) return JSON.parse(raw);
   } catch {
     // ignore
   }
@@ -111,7 +107,7 @@ export default function DailyReportsPage() {
     try {
       const [pomodoroSessions, activityLog] = await Promise.all([
         loadPomodoroSessions(),
-        loadActivityLog(),
+        loadActivityLog(selectedDate),
       ]);
       const res = await fetch(`/api/reports/daily/generate?${getAuthParams()}`, {
         method: "POST",

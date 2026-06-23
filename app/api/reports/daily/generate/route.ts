@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { queryDaySummary } from "@/lib/activity/db";
 import { getAIConfig } from "@/lib/ai-config";
 import {
   isAssignmentCompletedOn,
@@ -86,87 +87,16 @@ function getScheduleItemsForDate(
   return { courses, dayItems };
 }
 
-interface ActivitySegment {
-  app: string;
-  category: string;
-  start: number;
-  end: number;
-}
-
-interface ActivityDayLog {
-  date: string;
-  segments: ActivitySegment[];
-}
-
-function parseActivityLog(raw: unknown): Record<string, ActivityDayLog> | null {
-  if (!raw) return null;
-  try {
-    let parsed: unknown;
-    if (typeof raw === "string") parsed = JSON.parse(raw);
-    else parsed = raw;
-    if (parsed && typeof parsed === "object") {
-      // 新格式：{ "YYYY-MM-DD": DayLog }
-      if ((parsed as Record<string, unknown>).segments === undefined) {
-        return parsed as Record<string, ActivityDayLog>;
-      }
-      // 旧格式/单天格式：直接是 DayLog
-      const single = parsed as ActivityDayLog;
-      if (single.date && Array.isArray(single.segments)) {
-        return { [single.date]: single };
-      }
-    }
-  } catch {
-    // ignore
-  }
-  return null;
-}
-
-function computeScreenTime(activityLog: unknown, date: string, now: number): ScreenTimeSummary | null {
-  const store = parseActivityLog(activityLog);
-  if (!store) return null;
-  const log = store[date];
-  if (!log || !Array.isArray(log.segments) || log.segments.length === 0) return null;
-
-  const [y, m, d] = date.split("-").map(Number);
-  const dayStart = new Date(y, m - 1, d, 0, 0, 0, 0).getTime();
-  const dayEnd = new Date(y, m - 1, d + 1, 0, 0, 0, 0).getTime();
-
-  const appMap: Record<string, number> = {};
-  const catMap: Record<string, number> = {};
-  let totalMinutes = 0;
-
-  for (const s of log.segments) {
-    if (typeof s.start !== "number" || typeof s.end !== "number" || typeof s.app !== "string") continue;
-    const start = s.start;
-    const end = s.end === 0 ? now : s.end;
-    const effectiveStart = Math.max(start, dayStart);
-    const effectiveEnd = Math.min(end, dayEnd);
-    if (effectiveEnd <= effectiveStart) continue;
-    const minutes = (effectiveEnd - effectiveStart) / 60000;
-    const app = s.app || "其他";
-    const category = typeof s.category === "string" && s.category ? s.category : "other";
-    appMap[app] = (appMap[app] || 0) + minutes;
-    catMap[category] = (catMap[category] || 0) + minutes;
-    totalMinutes += minutes;
-  }
-
-  if (totalMinutes < 1) return null;
-
-  const topApps = Object.entries(appMap)
-    .map(([app, minutes]) => ({ app, minutes: Math.round(minutes) }))
-    .filter((a) => a.minutes > 0)
-    .sort((a, b) => b.minutes - a.minutes)
-    .slice(0, 5);
-
-  const categoryBreakdown = Object.entries(catMap)
-    .map(([category, minutes]) => ({ category, minutes: Math.round(minutes) }))
-    .filter((c) => c.minutes > 0)
-    .sort((a, b) => b.minutes - a.minutes);
+function computeScreenTimeFromDb(date: string, nowMs: number): ScreenTimeSummary | null {
+  const summary = queryDaySummary(date, nowMs);
+  if (summary.totalMinutes < 1) return null;
 
   return {
-    totalActiveMinutes: Math.round(totalMinutes),
-    categoryBreakdown,
-    topApps,
+    totalActiveMinutes: summary.totalMinutes,
+    categoryBreakdown: summary.categoryBreakdown,
+    topApps: summary.appBreakdown
+      .map((b) => ({ app: b.app, minutes: b.minutes }))
+      .slice(0, 5),
   };
 }
 
@@ -315,8 +245,8 @@ export async function POST(request: Request) {
     // 教务处公告：全校共享，按 schoolId 区分；取最近 5 条
     const jwcNews = ((db.readData(`jwc-news:${schoolId}`) || []) as JwcNewsItem[]).slice(0, 5);
 
-    // 屏幕时间与番茄钟：由客户端上传（Electron/Web localStorage）
-    const screenTime = computeScreenTime(body.activityLog, date, now);
+    // 屏幕时间：服务端直接从 SQLite 读取；番茄钟仍由客户端上传
+    const screenTime = computeScreenTimeFromDb(date, now);
     const pomodoro = computePomodoro(body.pomodoroSessions, date);
 
     const existingDaily = readExistingDaily(db.readData(`dailyReport:${prefix}:${date}`));

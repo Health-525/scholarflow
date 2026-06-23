@@ -4,19 +4,20 @@ import {
   Activity,
   BookOpen,
   Code,
-  Coffee,
+  Download,
   Gamepad2,
   Globe,
   HelpCircle,
   MessageCircle,
   Monitor,
-  Moon,
   Settings,
   Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
+import { DateNavigator } from "@/components/activity/DateNavigator";
+import { TimelineBar } from "@/components/activity/TimelineBar";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,22 +31,13 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import {
   CATEGORY_LABELS,
+  CATEGORY_SEMANTIC,
   clearActivityData,
   downloadActivityCSV,
-  useActivityTrackerV3,
+  useScreenTime,
 } from "@/lib/activity-tracker-v3";
 import type { Category } from "@/lib/activity-tracker-v3";
 import { semanticBg, semanticColor } from "@/lib/theme-colors";
-
-const CATEGORY_SEMANTIC: Record<Category, Parameters<typeof semanticColor>[0]> = {
-  coding: "success",
-  browsing: "info",
-  study: "primary",
-  entertainment: "warning",
-  communication: "info",
-  system: "warning",
-  other: "info",
-};
 
 const CATEGORY_ICON: Record<Category, typeof Code> = {
   coding: Code,
@@ -57,25 +49,62 @@ const CATEGORY_ICON: Record<Category, typeof Code> = {
   other: HelpCircle,
 };
 
+function todayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function formatDuration(totalMinutes: number): string {
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  if (h > 0) return `${h}小时 ${m}分钟`;
+  return `${m}分钟`;
+}
+
+function formatSeconds(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 export default function ActivityPage() {
   const router = useRouter();
-  const state = useActivityTrackerV3();
+  const [date, setDate] = useState(todayStr());
+  const state = useScreenTime(date);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
-  const activeMins = Math.round(state.totalActiveMs / 60000);
+  const isToday = date === todayStr();
+  const totalMinutes = state.totalMinutes;
+  // totalMinutes 仅包含 app segments 的时长，idle/away 已单独统计
+  const activeMinutes = Math.max(0, totalMinutes);
+  const hasData = totalMinutes > 0 || state.idleMinutes > 0 || state.awayMinutes > 0;
+
+  const statusColor = useMemo(() => {
+    if (state.currentApp === "系统空闲") return semanticColor("warning");
+    if (state.currentApp === "离开") return semanticColor("info");
+    return semanticColor("success");
+  }, [state.currentApp]);
+
+  const statusBg = useMemo(() => {
+    if (state.currentApp === "系统空闲") return semanticBg("warning");
+    if (state.currentApp === "离开") return semanticBg("info");
+    return semanticBg("success");
+  }, [state.currentApp]);
 
   if (!state.isElectron) {
     return (
       <div className="max-w-5xl mx-auto pb-24 md:pb-0 animate-page">
         <PageHeader
           icon={<Monitor className="w-5 h-5 text-primary" />}
-          title="活动分析"
-          description="实时追踪桌面应用使用时间"
+          title="屏幕时间"
+          description="追踪每日桌面应用使用情况"
         />
         <EmptyState
           icon={Monitor}
           title="需要 Electron 桌面版"
-          description="Web 浏览器无法检测桌面应用，请在 ScholarFlow 桌面版中查看活动分析。"
+          description="Web 浏览器无法检测桌面应用，请在 ScholarFlow 桌面版中查看屏幕时间。"
         />
         <Button
           variant="outline"
@@ -92,68 +121,112 @@ export default function ActivityPage() {
     <div className="max-w-5xl mx-auto pb-24 md:pb-0 animate-page">
       <PageHeader
         icon={<Monitor className="w-5 h-5 text-primary" />}
-        title="活动分析"
-        description="实时追踪桌面应用使用时间"
+        title="屏幕时间"
+        description="追踪每日桌面应用使用情况"
       />
 
-      {/* ── Big stats ── */}
+      <DateNavigator date={date} onChange={setDate} />
+
+      {/* ── 核心指标 ── */}
       <Card className="mb-4">
-        <CardContent className="grid grid-cols-3 divide-x divide-border py-4">
-          <div className="flex flex-col items-center justify-center">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center mb-1.5">
-              <Activity className="w-4 h-4 text-primary" />
-            </div>
-            <div className="text-[22px] font-bold tabular-nums leading-none text-[var(--status-success)]">
-              {activeMins}
-            </div>
-            <div className="text-[10px] mt-1.5 text-muted-foreground">
-              活跃 min
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center justify-center">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center mb-1.5"
-              style={{ backgroundColor: semanticBg("warning") }}
-            >
-              <Coffee className="w-4 h-4" style={{ color: semanticColor("warning") }} />
+        <CardContent className="p-5 md:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">
+                {isToday ? "今日屏幕时间" : "当日屏幕时间"}
+              </div>
+              <div className="text-3xl md:text-4xl font-bold tabular-nums text-foreground">
+                {formatDuration(totalMinutes)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-2">
+                空闲 {state.idleMinutes} 分钟 · 离开 {state.awayMinutes} 分钟
+              </div>
             </div>
             <div
-              className="text-[22px] font-bold tabular-nums leading-none"
-              style={{ color: semanticColor("warning") }}
+              className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+              style={{ backgroundColor: semanticBg("primary") }}
             >
-              {Math.round(state.idleMs / 60000)}
-            </div>
-            <div className="text-[10px] mt-1.5 text-muted-foreground">
-              空闲 min
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center justify-center">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center mb-1.5"
-              style={{ backgroundColor: semanticBg("info") }}
-            >
-              <Moon className="w-4 h-4" style={{ color: semanticColor("info") }} />
-            </div>
-            <div
-              className="text-[22px] font-bold tabular-nums leading-none"
-              style={{ color: semanticColor("info") }}
-            >
-              {Math.round(state.awayMs / 60000)}
-            </div>
-            <div className="text-[10px] mt-1.5 text-muted-foreground">
-              离开 min
+              <Activity className="w-6 h-6" style={{ color: semanticColor("primary") }} />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* ── Category breakdown ── */}
+      {/* ── 实时状态 + 24h 时间轴 ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <Card className="md:col-span-1">
+          <CardHeader>
+            <CardTitle>实时状态</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3 mb-3">
+              <span className="relative flex h-3 w-3">
+                <span
+                  className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                  style={{ backgroundColor: statusColor }}
+                />
+                <span
+                  className="relative inline-flex rounded-full h-3 w-3"
+                  style={{ backgroundColor: statusColor }}
+                />
+              </span>
+              <span className="text-sm font-medium text-foreground truncate">
+                {state.currentApp || "未追踪"}
+              </span>
+            </div>
+            {state.currentTitle && (
+              <div
+                className="text-xs text-muted-foreground truncate mb-3"
+                title={state.currentTitle}
+              >
+                {state.currentTitle}
+              </div>
+            )}
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
+              style={{ backgroundColor: statusBg, color: statusColor }}
+            >
+              已持续 {formatSeconds(state.durationSeconds)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>24 小时时间轴</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {hasData ? (
+              <TimelineBar segments={state.segments} dateStr={date} />
+            ) : (
+              <div className="h-16 flex items-center justify-center text-xs text-muted-foreground rounded-lg bg-muted/40">
+                今天还没有记录，开始使用电脑后会自动追踪
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── 无数据空状态 ── */}
+      {isToday && !hasData && !state.loading && (
+        <Card className="mb-4 bg-muted/30 border-dashed">
+          <CardContent className="py-6 text-center">
+            <Monitor className="w-8 h-8 mx-auto mb-2 text-muted-foreground/60" />
+            <div className="text-sm font-medium text-foreground">
+              今天还没有记录
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              开始使用电脑后会自动追踪屏幕时间
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── 分类 breakdown ── */}
       {state.categoryBreakdown.length > 0 && (
         <Card className="mb-4">
           <CardHeader>
-            <CardTitle>活动分类</CardTitle>
+            <CardTitle>分类占比</CardTitle>
           </CardHeader>
           <CardContent>
             {/* Stacked bar */}
@@ -163,20 +236,20 @@ export default function ActivityPage() {
                   key={c.category}
                   className="h-full transition-all"
                   style={{
-                    width: `${(c.minutes / Math.max(activeMins, 1)) * 100}%`,
+                    width: `${(c.minutes / Math.max(activeMinutes, 1)) * 100}%`,
                     background: semanticColor(CATEGORY_SEMANTIC[c.category]),
                     minWidth: c.minutes > 0 ? 3 : 0,
                   }}
-                  title={`${CATEGORY_LABELS[c.category as Category]}: ${c.minutes}min`}
+                  title={`${CATEGORY_LABELS[c.category]}: ${c.minutes}分钟`}
                 />
               ))}
             </div>
             {/* Legend list */}
             <div className="space-y-2">
               {state.categoryBreakdown.map((c) => {
-                const Icon = CATEGORY_ICON[c.category as Category];
+                const Icon = CATEGORY_ICON[c.category];
                 const pct = Math.round(
-                  (c.minutes / Math.max(activeMins, 1)) * 100
+                  (c.minutes / Math.max(activeMinutes, 1)) * 100
                 );
                 return (
                   <div
@@ -197,7 +270,7 @@ export default function ActivityPage() {
                       />
                       <Icon className="w-3.5 h-3.5 text-muted-foreground" />
                       <span className="text-foreground">
-                        {CATEGORY_LABELS[c.category as Category]}
+                        {CATEGORY_LABELS[c.category]}
                       </span>
                     </Badge>
                     <div className="flex-1" />
@@ -215,24 +288,20 @@ export default function ActivityPage() {
         </Card>
       )}
 
-      {/* ── ALL apps breakdown ── */}
+      {/* ── 应用排行 ── */}
       {state.appBreakdown.length > 0 && (
         <Card className="mb-4">
           <CardHeader>
-            <CardTitle>全部应用 ({state.appBreakdown.length})</CardTitle>
+            <CardTitle>应用排行 ({state.appBreakdown.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {state.appBreakdown.map((b) => {
                 const pct = Math.round(
-                  (b.minutes / Math.max(activeMins, 1)) * 100
+                  (b.minutes / Math.max(activeMinutes, 1)) * 100
                 );
-                const seg = state.todayLog.segments.find(
-                  (s) => s.app === b.app
-                );
-                const catColor = seg
-                  ? semanticColor(CATEGORY_SEMANTIC[seg.category])
-                  : semanticColor(CATEGORY_SEMANTIC.other);
+                const category = b.category || "other";
+                const catColor = semanticColor(CATEGORY_SEMANTIC[category]);
                 return (
                   <div key={b.app} className="space-y-1.5">
                     <div className="flex items-center gap-3 text-xs">
@@ -242,6 +311,16 @@ export default function ActivityPage() {
                       >
                         {b.app}
                       </span>
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] h-4 px-1.5 font-normal"
+                        style={{
+                          borderColor: catColor,
+                          color: catColor,
+                        }}
+                      >
+                        {CATEGORY_LABELS[category]}
+                      </Badge>
                       <div className="flex-1" />
                       <span className="tabular-nums text-muted-foreground">
                         {b.minutes}分
@@ -264,56 +343,31 @@ export default function ActivityPage() {
         </Card>
       )}
 
-      {/* ── Current tracking status ── */}
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle>实时状态</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-3 min-h-8">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--status-success)] opacity-75" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-[var(--status-success)]" />
-            </span>
-            <span className="text-sm font-medium text-foreground">
-              {state.currentApp}
-            </span>
-            {state.currentTitle && (
-              <span
-                className="text-xs truncate text-muted-foreground"
-                title={state.currentTitle}
-              >
-                — {state.currentTitle.slice(0, 50)}
-              </span>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* ── Export / Clear ── */}
+      {/* ── 操作区 ── */}
       <div className="flex gap-3 mb-8">
         <Button
           variant="outline"
-          className="flex-1 h-9"
+          className="flex-1 h-9 gap-2"
           onClick={() => downloadActivityCSV().catch(() => {})}
         >
+          <Download className="w-4 h-4" />
           导出 CSV
         </Button>
         <Button
           variant="destructive"
-          className="h-9"
+          className="h-9 gap-2"
           onClick={() => setClearDialogOpen(true)}
         >
-          <Trash2 className="w-4 h-4 mr-1" />
-          清除
+          <Trash2 className="w-4 h-4" />
+          清除数据
         </Button>
       </div>
 
       <ConfirmDialog
         open={clearDialogOpen}
         onOpenChange={setClearDialogOpen}
-        title="确定清除所有活动记录？"
-        description="此操作不可撤销，所有活动记录将被永久删除。"
+        title="清除屏幕时间数据？"
+        description="此操作不可撤销，所有屏幕时间记录将被永久删除。"
         onConfirm={async () => {
           await clearActivityData();
           window.location.reload();
