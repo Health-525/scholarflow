@@ -2,7 +2,7 @@
   "name": "scholarflow",
   "version": "1.0.1",
   "private": true,
-  "description": "A local-first campus study workspace — academic data, library workflows, and study tools in one desktop app.",
+  "description": "A local-first campus study workspace — academic data, study tools, and AI assistant in one desktop app.",
   "keywords": [
     "campus",
     "study",
@@ -11,7 +11,6 @@
     "nextjs",
     "pomodoro",
     "schedule",
-    "library",
     "student",
     "education",
     "offline",
