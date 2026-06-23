@@ -144,6 +144,8 @@ export function QueryView({ schedule, adjustments }: QueryViewProps) {
         item={selectedItem}
         date={result?.date ?? new Date()}
         timeZone={tz}
+        schedule={schedule}
+        adjustments={adjustments}
         onClose={() => setSelectedItem(null)}
       />
     </div>

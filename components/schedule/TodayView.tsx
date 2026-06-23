@@ -165,6 +165,8 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
         item={selectedItem}
         date={today}
         timeZone={tz}
+        schedule={schedule}
+        adjustments={adjustments}
         onClose={() => setSelectedItem(null)}
       />
     </div>

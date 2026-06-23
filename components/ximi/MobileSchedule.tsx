@@ -10,14 +10,16 @@ import {
   Sun,
   Timer,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CountdownTimer } from "@/components/schedule/CountdownTimer";
 import { CourseDrawer } from "@/components/schedule/CourseDrawer";
 import { QueryView } from "@/components/schedule/QueryView";
 import { Mascot } from "@/components/ximi/Mascot";
-import { useScheduleQuery } from "@/hooks/useQueries";
-import type { Adjustment } from "@/lib/schedule/adjustments";
+import type {
+  Adjustment,
+  AdjustmentDraft,
+} from "@/lib/schedule/adjustments";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
 import { getNextCourse } from "@/lib/schedule/next-course";
 import { getWeekNumber } from "@/lib/schedule/schedule";
@@ -59,13 +61,25 @@ interface CourseBlock {
   span: number;
 }
 
+interface MobileScheduleProps {
+  schedule: RawScheduleData | null;
+  adjustments: Adjustment[];
+  onAddAdjustment: (draft: AdjustmentDraft) => Promise<Adjustment[]>;
+  onRemoveAdjustment: (id: string) => Promise<Adjustment[]>;
+  onClearAdjustments: () => Promise<Adjustment[]>;
+}
+
 /* ───────────────────────── 今日 ───────────────────────── */
 function TodayPane({
   schedule,
   adjustments,
+  onAddAdjustment,
+  onRemoveAdjustment,
 }: {
   schedule: RawScheduleData;
   adjustments: Adjustment[];
+  onAddAdjustment: (draft: AdjustmentDraft) => Promise<Adjustment[]>;
+  onRemoveAdjustment: (id: string) => Promise<Adjustment[]>;
 }) {
   const [selected, setSelected] = useState<DayItem | null>(null);
   const tz = schedule.meta.tz || "Asia/Shanghai";
@@ -165,25 +179,50 @@ function TodayPane({
         </div>
       )}
 
-      <CourseDrawer item={selected} date={today} timeZone={tz} onClose={() => setSelected(null)} />
+      <CourseDrawer
+        item={selected}
+        date={today}
+        timeZone={tz}
+        schedule={schedule}
+        adjustments={adjustments}
+        onClose={() => setSelected(null)}
+        onAddAdjustment={async (draft) => {
+          await onAddAdjustment(draft);
+        }}
+        onRemoveAdjustment={async (id) => {
+          await onRemoveAdjustment(id);
+        }}
+      />
     </div>
   );
 }
 
-/* ───────────────────────── 本周 ───────────────────────── */
+/* ───────────────────────── 本周内容 ───────────────────────── */
+interface WeekInfo {
+  days: Date[];
+  label: string;
+  weekNum: number;
+}
+
 function WeekPane({
   schedule,
   adjustments,
+  onAddAdjustment,
+  onRemoveAdjustment,
 }: {
   schedule: RawScheduleData;
   adjustments: Adjustment[];
+  onAddAdjustment: (draft: AdjustmentDraft) => Promise<Adjustment[]>;
+  onRemoveAdjustment: (id: string) => Promise<Adjustment[]>;
 }) {
+  const [weekOffset, setWeekOffset] = useState(0);
   const [selected, setSelected] = useState<DayItem | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [weekOffset, setWeekOffset] = useState(0);
   const tz = schedule.meta.tz || "Asia/Shanghai";
 
-  const weekInfo = useMemo(() => {
+  const today = useMemo(() => normalizeDate(getNowInTimeZone(tz)), [tz]);
+
+  const weekInfo = useMemo<WeekInfo>(() => {
     const now = getNowInTimeZone(tz);
     const normalized = normalizeDate(now);
     const jsDay = normalized.getDay();
@@ -201,8 +240,6 @@ function WeekPane({
       weekNum: getWeekNumber(days[0], schedule.meta.week1_monday),
     };
   }, [tz, weekOffset, schedule.meta.week1_monday]);
-
-  const today = useMemo(() => normalizeDate(getNowInTimeZone(tz)), [tz]);
 
   const dayData = useMemo(
     () =>
@@ -226,6 +263,11 @@ function WeekPane({
   const periodTimes = schedule.periodTimes || {};
   const totalGridH = ALL_PERIODS.length * ROW_H;
   const hasSpecials = dayData.some((d) => d.specials.length > 0);
+
+  const handleCourseClick = useCallback((item: DayItem, day: Date) => {
+    setSelected(item);
+    setSelectedDate(day);
+  }, []);
 
   return (
     <div className="flex flex-col gap-3">
@@ -353,10 +395,17 @@ function WeekPane({
                     <div
                       key={dayIdx}
                       className={
-                        "relative border-r border-outline-variant/15 last:border-r-0 " +
+                        "relative border-r border-outline-variant/15 last:border-r-0 select-none " +
                         (isToday ? "bg-primary-container/12" : "")
                       }
                     >
+                      {ALL_PERIODS.map((p) => (
+                        <div
+                          key={p}
+                          className="absolute left-0 right-0 border-b border-outline-variant/10"
+                          style={{ top: (p - 1) * ROW_H, height: ROW_H }}
+                        />
+                      ))}
                       {courses.map((cb, i) => {
                         const blockTop = (cb.firstPeriod - 1) * ROW_H + 2;
                         const blockHeight = cb.span * ROW_H - 4;
@@ -364,11 +413,8 @@ function WeekPane({
                           <button
                             key={i}
                             type="button"
-                            onClick={() => {
-                              setSelected(cb.item);
-                              setSelectedDate(day);
-                            }}
-                            className={`absolute left-1 right-1 overflow-hidden rounded-2xl border px-2 py-1.5 text-left transition active:scale-[0.97] ${cuteOf(cb.item.title)}`}
+                            onClick={() => handleCourseClick(cb.item, day)}
+                            className={`absolute left-1 right-1 overflow-hidden rounded-2xl border px-2 py-1.5 text-left transition active:scale-[0.97] hover:shadow-md ${cuteOf(cb.item.title)}`}
                             style={{ top: blockTop, height: blockHeight }}
                             aria-label={cb.item.title + " " + (cb.item.timeText || "")}
                           >
@@ -404,10 +450,7 @@ function WeekPane({
               <button
                 key={"sp-" + dayIdx + "-" + i}
                 type="button"
-                onClick={() => {
-                  setSelected(item);
-                  setSelectedDate(day);
-                }}
+                onClick={() => handleCourseClick(item, day)}
                 className={`flex items-center gap-2 rounded-2xl border px-3 py-2.5 text-left transition active:scale-[0.98] ${cuteOf(item.title)}`}
               >
                 <span className="w-6 text-[11px] font-semibold opacity-70">
@@ -421,7 +464,20 @@ function WeekPane({
         </div>
       )}
 
-      <CourseDrawer item={selected} date={selectedDate} timeZone={tz} onClose={() => setSelected(null)} />
+      <CourseDrawer
+        item={selected}
+        date={selectedDate}
+        timeZone={tz}
+        schedule={schedule}
+        adjustments={adjustments}
+        onClose={() => setSelected(null)}
+        onAddAdjustment={async (draft) => {
+          await onAddAdjustment(draft);
+        }}
+        onRemoveAdjustment={async (id) => {
+          await onRemoveAdjustment(id);
+        }}
+      />
     </div>
   );
 }
@@ -429,15 +485,17 @@ function WeekPane({
 /* ───────────────────────── 容器 ───────────────────────── */
 /**
  * 移动端萌系课表 — 高保真还原「小咪」周视图 mockup。
- * 复用既有数据逻辑(useScheduleQuery / getAdjustedItemsForDate / getNextCourse),
- * 仅移动端显示;桌面端原版 TodayView/WeekGrid/QueryView 保持不变。
+ * 复用既有数据逻辑，仅移动端显示；桌面端原版 TodayView/WeekGrid/QueryView 保持不变。
  */
-export function MobileSchedule() {
+export function MobileSchedule({
+  schedule,
+  adjustments,
+  onAddAdjustment,
+  onRemoveAdjustment,
+  onClearAdjustments: _onClearAdjustments,
+}: MobileScheduleProps) {
   const [tab, setTab] = useState<Tab>("today");
   const [mounted, setMounted] = useState(false);
-  const { data, isLoading, error, refetch } = useScheduleQuery();
-  const schedule = data?.schedule ?? null;
-  const adjustments = data?.adjustments ?? [];
 
   useEffect(() => {
     setMounted(true);
@@ -476,7 +534,7 @@ export function MobileSchedule() {
       </div>
 
       {/* 内容 */}
-      {(!mounted || isLoading) && (
+      {!mounted && (
         <div className="flex flex-col gap-3">
           <div className="skeleton h-28 rounded-[28px]" />
           <div className="skeleton h-16 rounded-3xl" />
@@ -484,16 +542,7 @@ export function MobileSchedule() {
         </div>
       )}
 
-      {mounted && error && !isLoading && (
-        <button
-          onClick={() => refetch()}
-          className="rounded-[28px] bg-surface-container-lowest px-4 py-8 text-[14px] text-on-surface-variant"
-        >
-          课表加载失败，点击重试
-        </button>
-      )}
-
-      {mounted && !isLoading && !error && !schedule && (
+      {mounted && !schedule && (
         <div className="flex flex-col items-center gap-2 rounded-[28px] bg-surface-container-lowest py-10">
           <Mascot size="md" />
           <p className="text-[14px] font-medium text-on-surface">还没有课表数据</p>
@@ -501,10 +550,24 @@ export function MobileSchedule() {
         </div>
       )}
 
-      {mounted && !isLoading && !error && schedule && (
+      {mounted && schedule && (
         <>
-          {tab === "today" && <TodayPane schedule={schedule} adjustments={adjustments} />}
-          {tab === "week" && <WeekPane schedule={schedule} adjustments={adjustments} />}
+          {tab === "today" && (
+            <TodayPane
+              schedule={schedule}
+              adjustments={adjustments}
+              onAddAdjustment={onAddAdjustment}
+              onRemoveAdjustment={onRemoveAdjustment}
+            />
+          )}
+          {tab === "week" && (
+            <WeekPane
+              schedule={schedule}
+              adjustments={adjustments}
+              onAddAdjustment={onAddAdjustment}
+              onRemoveAdjustment={onRemoveAdjustment}
+            />
+          )}
           {tab === "query" && (
             <div className="rounded-[28px] bg-surface-container-lowest p-4 shadow-[0_12px_32px_-8px_rgba(var(--ximi-glow),0.28)]">
               <QueryView schedule={schedule} adjustments={adjustments} />

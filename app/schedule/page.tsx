@@ -15,7 +15,7 @@ import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { SegmentedControl, type SegmentedOption } from "@/components/ui/segmented-control";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useScheduleQuery } from "@/hooks/useQueries";
+import { useScheduleAdjustments, useScheduleQuery } from "@/hooks/useQueries";
 import { getWeekNumber } from "@/lib/schedule/schedule";
 import { getNowInTimeZone, normalizeDate } from "@/lib/schedule/timezone";
 
@@ -37,6 +37,11 @@ export default function SchedulePage() {
   const { data, isLoading, error, refetch } = useScheduleQuery();
   const schedule = data?.schedule ?? null;
   const adjustments = data?.adjustments ?? [];
+  const {
+    add: addAdjustment,
+    remove: removeAdjustment,
+    clear: clearAdjustments,
+  } = useScheduleAdjustments(schedule);
 
   // Calculate current week number
   const weekInfo = useMemo(() => {
@@ -52,7 +57,13 @@ export default function SchedulePage() {
     return (
       <ErrorBoundary>
         <Suspense fallback={<div className="max-w-md mx-auto py-6 animate-page"><div className="h-96 rounded-2xl bg-card border border-border skeleton" /></div>}>
-          <MobileSchedule />
+          <MobileSchedule
+            schedule={schedule}
+            adjustments={adjustments}
+            onAddAdjustment={addAdjustment}
+            onRemoveAdjustment={removeAdjustment}
+            onClearAdjustments={clearAdjustments}
+          />
         </Suspense>
       </ErrorBoundary>
     );
@@ -123,7 +134,13 @@ export default function SchedulePage() {
               <TodayView schedule={schedule} adjustments={adjustments} />
             )}
             {activeTab === "week" && (
-              <WeekGrid schedule={schedule} adjustments={adjustments} />
+              <WeekGrid
+                schedule={schedule}
+                adjustments={adjustments}
+                onAddAdjustment={addAdjustment}
+                onRemoveAdjustment={removeAdjustment}
+                onClearAdjustments={clearAdjustments}
+              />
             )}
             {activeTab === "query" && (
               <QueryView schedule={schedule} adjustments={adjustments} />

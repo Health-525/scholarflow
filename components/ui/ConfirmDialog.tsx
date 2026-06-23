@@ -56,7 +56,11 @@ export function ConfirmDialog({
             {title}
           </AlertDialog.Title>
           {description && (
-            <AlertDialog.Description className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+            <AlertDialog.Description
+              render={
+                <div className="mt-2 text-[13px] leading-relaxed text-muted-foreground" />
+              }
+            >
               {description}
             </AlertDialog.Description>
           )}

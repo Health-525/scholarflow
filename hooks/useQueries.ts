@@ -5,8 +5,16 @@ import { useState } from "react";
 
 import { buildAssignment, sortAssignments } from "@/lib/assignment-utils";
 import { readData, writeData } from "@/lib/mobile-data";
-import { loadAdjustments } from "@/lib/schedule/adjustments";
+import {
+  addAdjustment,
+  clearAdjustments,
+  loadAdjustments,
+  removeAdjustment,
+  type Adjustment,
+  type AdjustmentDraft,
+} from "@/lib/schedule/adjustments";
 import { parseSchedule } from "@/lib/schedule/schedule";
+import type { RawScheduleData } from "@/lib/schedule/schedule";
 import { useAuthStore } from "@/store/auth";
 import type { Assignment, AssignmentDraft, RunRecord, RunType } from "@/types";
 
@@ -23,6 +31,7 @@ import type { Assignment, AssignmentDraft, RunRecord, RunType } from "@/types";
 // 把 schoolId + userId 放进 queryKey，账号切换时 React Query 会自动重新请求，避免缓存串号。
 export const queryKeys = {
   schedule: (schoolId?: string | null, userId?: string | null) => ["schedule", schoolId ?? "active", userId ?? "active"] as const,
+  scheduleAdjustments: (schoolId?: string | null, userId?: string | null) => ["schedule-adjustments", schoolId ?? "active", userId ?? "active"] as const,
   assignments: (schoolId?: string | null, userId?: string | null) => ["assignments", schoolId ?? "active", userId ?? "active"] as const,
   running: (schoolId?: string | null, userId?: string | null) => ["running", schoolId ?? "active", userId ?? "active"] as const,
   jwcNews: ["jwcNews"] as const,
@@ -84,7 +93,7 @@ export function useScheduleQuery() {
       const local = await tryLocalApi("schedule") as Record<string, unknown> | null;
       if (local?.courses) {
         const schedule = parseSchedule(local);
-        const adjustments = loadAdjustments();
+        const adjustments = loadAdjustments(schoolId, userId);
         return { schedule, adjustments };
       }
       return { schedule: null, adjustments: [] };
@@ -94,6 +103,69 @@ export function useScheduleQuery() {
     gcTime: 30 * 60 * 1000,
     retry: 1,
   });
+}
+
+// ── Schedule Adjustments Hook ──────────────────────────────
+export function useScheduleAdjustments(schedule: RawScheduleData | null) {
+  const queryClient = useQueryClient();
+  const schoolId = useAuthStore((s) => s.schoolId);
+  const userId = useAuthStore((s) => s.userId);
+  const hasHydrated = useAuthStore((s) => s._hasHydrated);
+  const key = queryKeys.scheduleAdjustments(schoolId, userId);
+
+  const query = useQuery({
+    queryKey: key,
+    queryFn: async () => loadAdjustments(schoolId, userId),
+    enabled: hasHydrated,
+    staleTime: 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+
+  const setCache = (next: Adjustment[]) => {
+    queryClient.setQueryData(key, next);
+    // 同步更新 useScheduleQuery 中的 adjustments，避免同一页面两个数据源不一致
+    queryClient.setQueryData(queryKeys.schedule(schoolId, userId), (old: { schedule: RawScheduleData | null; adjustments: Adjustment[] } | undefined) =>
+      old ? { ...old, adjustments: next } : undefined
+    );
+  };
+
+  const addMutation = useMutation({
+    mutationFn: async (draft: AdjustmentDraft) => {
+      if (!schedule) throw new Error("课表未加载");
+      const current = (queryClient.getQueryData<Adjustment[]>(key) ?? loadAdjustments(schoolId, userId));
+      return addAdjustment(schedule, current, draft, schoolId, userId);
+    },
+    onSuccess: setCache,
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const current = (queryClient.getQueryData<Adjustment[]>(key) ?? loadAdjustments(schoolId, userId));
+      return removeAdjustment(current, id, schoolId, userId);
+    },
+    onSuccess: setCache,
+  });
+
+  const clearMutation = useMutation({
+    mutationFn: async () => {
+      clearAdjustments(schoolId, userId);
+      return [] as Adjustment[];
+    },
+    onSuccess: setCache,
+  });
+
+  return {
+    adjustments: query.data ?? [],
+    isLoading: query.isLoading,
+    error: query.error as Error | null,
+    reload: () => query.refetch(),
+    add: addMutation.mutateAsync,
+    remove: removeMutation.mutateAsync,
+    clear: clearMutation.mutateAsync,
+    isAdding: addMutation.isPending,
+    isRemoving: removeMutation.isPending,
+    isClearing: clearMutation.isPending,
+  };
 }
 
 // ── Assignments Hook ───────────────────────────────────────
