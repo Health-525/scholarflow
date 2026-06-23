@@ -68,6 +68,20 @@ test.describe('页面导航', () => {
 });
 
 async function injectAuthState(page: Page) {
+  // Mock server session so ClientShell does not redirect to /setup.
+  await page.route('/api/auth/session', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        authenticated: true,
+        schoolId: 'njtech',
+        userId: 'e2e-test-user',
+        username: 'e2e-test-user',
+      }),
+    });
+  });
+
   await page.goto('/');
   await page.evaluate(() => {
     localStorage.setItem(
@@ -98,22 +112,23 @@ test.describe('日报页面', () => {
 
 test.describe('响应式布局', () => {
   test('移动端视口应显示底部导航', async ({ page }) => {
+    await injectAuthState(page);
     await page.setViewportSize({ width: 375, height: 812 }); // iPhone X
     await page.goto('/');
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
     // 移动端底部导航应该存在
-    const hasBottomNav = await page.locator('.bottom-nav, [class*="bottom"], [class*="Bottom"]').first().isVisible({ timeout: 5000 }).catch(() => false);
-    // 如果未认证重定向，也是合理的
-    expect(hasBottomNav || page.url().includes('setup')).toBeTruthy();
+    const hasBottomNav = await page.locator('nav[aria-label="底部导航"]').first().isVisible({ timeout: 5000 }).catch(() => false);
+    expect(hasBottomNav).toBeTruthy();
   });
 
   test('桌面端视口应显示侧边栏', async ({ page }) => {
+    await injectAuthState(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
     const hasSidebar = await page.locator('aside, [class*="SideNav"], [class*="sidebar"]').first().isVisible({ timeout: 5000 }).catch(() => false);
-    expect(hasSidebar || page.url().includes('setup')).toBeTruthy();
+    expect(hasSidebar).toBeTruthy();
   });
 });
