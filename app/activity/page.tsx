@@ -61,6 +61,13 @@ function formatDuration(totalMinutes: number): string {
   return `${m}分钟`;
 }
 
+function formatAppDuration(seconds: number): string {
+  if (seconds < 60) return `${seconds}秒`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}分${s}秒`;
+}
+
 function formatSeconds(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
@@ -84,6 +91,10 @@ export default function ActivityPage() {
   const displayedApps = appsExpanded
     ? state.appBreakdown
     : state.appBreakdown.slice(0, 10);
+  const totalAppSeconds = useMemo(
+    () => state.appBreakdown.reduce((sum, b) => sum + b.seconds, 0),
+    [state.appBreakdown]
+  );
 
   const statusColor = useMemo(() => {
     if (state.currentApp === "系统空闲") return semanticColor("warning");
@@ -296,13 +307,18 @@ export default function ActivityPage() {
       {state.appBreakdown.length > 0 && (
         <Card className="mb-4">
           <CardHeader>
-            <CardTitle>应用排行 ({state.appBreakdown.length})</CardTitle>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>应用排行 ({state.appBreakdown.length})</CardTitle>
+              <span className="text-xs text-muted-foreground">
+                共检测到 {state.appBreakdown.length} 个前台应用
+              </span>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
               {displayedApps.map((b) => {
                 const pct = Math.round(
-                  (b.minutes / Math.max(activeMinutes, 1)) * 100
+                  (b.seconds / Math.max(totalAppSeconds, 1)) * 100
                 );
                 const category = b.category || "other";
                 const isUncategorized = category === "other";
@@ -330,7 +346,7 @@ export default function ActivityPage() {
                       </Badge>
                       <div className="flex-1" />
                       <span className="tabular-nums text-muted-foreground">
-                        {b.minutes}分
+                        {formatAppDuration(b.seconds)}
                       </span>
                       <span className="w-10 text-right tabular-nums text-muted-foreground/70">
                         {pct}%
@@ -356,6 +372,21 @@ export default function ActivityPage() {
                 {appsExpanded ? "收起" : `展开全部 (${state.appBreakdown.length})`}
               </Button>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── 无前台应用提示 ── */}
+      {isToday && state.appBreakdown.length === 0 && !state.loading && (
+        <Card className="mb-4 bg-muted/30 border-dashed">
+          <CardContent className="py-6 text-center">
+            <Monitor className="w-8 h-8 mx-auto mb-2 text-muted-foreground/60" />
+            <div className="text-sm font-medium text-foreground">
+              今天还没有检测到前台应用使用记录
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              屏幕时间会记录你每次切换到前台的应用窗口
+            </div>
           </CardContent>
         </Card>
       )}

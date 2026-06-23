@@ -40,7 +40,7 @@ function createActivityTracker(options) {
     sendToRenderer,
     log = (_level, _msg) => {},
     idleThresholdMs = 5 * 60 * 1000,
-    activePollMs = 2000,
+    activePollMs = 1000,
     idlePollMs = 10000,
     retentionDays = 90,
     internalToken,

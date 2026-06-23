@@ -40,7 +40,7 @@ export interface ScreenTimeState {
   idleMinutes: number;
   awayMinutes: number;
   categoryBreakdown: Array<{ category: Category; minutes: number; color: string }>;
-  appBreakdown: Array<{ app: string; minutes: number; category?: Category }>;
+  appBreakdown: Array<{ app: string; seconds: number; category?: Category }>;
   segments: ActivityDaySummary["segments"];
   loading: boolean;
 }
@@ -162,7 +162,7 @@ function buildState(
 ): ScreenTimeState {
   const electron = isElectron();
   const segments = summary?.segments ?? [];
-  const appMap: Record<string, { minutes: number; category?: Category }> = {};
+  const appMap: Record<string, { seconds: number; category?: Category }> = {};
   const catMap: Record<Category, number> = {
     coding: 0,
     browsing: 0,
@@ -202,25 +202,26 @@ function buildState(
     const end = s.endAt ?? nowMs();
     const duration = end - s.beginAt;
     if (duration <= 0) continue;
+    const seconds = Math.round(duration / 1000);
     const minutes = Math.round(duration / 60000);
-    if (minutes <= 0) continue;
+    if (seconds <= 0) continue;
 
     const app = s.app || "未知应用";
     const category = (s.category || "other") as Category;
 
     if (appMap[app]) {
-      appMap[app].minutes += minutes;
+      appMap[app].seconds += seconds;
       // 保留出现次数最多的分类（简单策略）
     } else {
-      appMap[app] = { minutes, category };
+      appMap[app] = { seconds, category };
     }
     catMap[category] = (catMap[category] || 0) + minutes;
   }
 
   const appBreakdown = Object.entries(appMap)
-    .map(([app, info]) => ({ app, minutes: info.minutes, category: info.category }))
-    .filter((p) => p.minutes > 0)
-    .sort((a, b) => b.minutes - a.minutes);
+    .map(([app, info]) => ({ app, seconds: info.seconds, category: info.category }))
+    .filter((p) => p.seconds > 0)
+    .sort((a, b) => b.seconds - a.seconds);
 
   const categoryBreakdown = (Object.keys(catMap) as Category[])
     .map((category) => ({ category, minutes: catMap[category], color: CATEGORY_COLORS[category] }))
@@ -253,7 +254,7 @@ function convertToLegacyV3(state: ScreenTimeState): ActivityStateV3 {
   return {
     currentApp: state.currentApp,
     currentTitle: state.currentTitle,
-    appBreakdown: state.appBreakdown.map((b) => ({ app: b.app, minutes: b.minutes })),
+    appBreakdown: state.appBreakdown.map((b) => ({ app: b.app, minutes: Math.round(b.seconds / 60) })),
     categoryBreakdown: state.categoryBreakdown,
     totalActiveMs,
     idleMs,
@@ -392,7 +393,7 @@ export async function downloadActivityCSV(): Promise<void> {
   if (!api?.queryActivityDay) return;
 
   const today = new Date();
-  let csv = "Date,App,Minutes\n";
+  let csv = "Date,App,Seconds\n";
 
   for (let i = 6; i >= 0; i--) {
     const d = new Date(today);
@@ -400,9 +401,18 @@ export async function downloadActivityCSV(): Promise<void> {
     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     try {
       const summary = await api.queryActivityDay(dateStr);
-      for (const b of summary.appBreakdown) {
-        if (b.minutes < 1) continue;
-        csv += `${dateStr},${b.app},${b.minutes}\n`;
+      const secondsByApp: Record<string, number> = {};
+      for (const s of summary.segments) {
+        if (s.type !== "app") continue;
+        const end = s.endAt ?? Date.now();
+        const duration = end - s.beginAt;
+        if (duration <= 0) continue;
+        const app = s.app || "未知应用";
+        secondsByApp[app] = (secondsByApp[app] || 0) + Math.round(duration / 1000);
+      }
+      for (const [app, seconds] of Object.entries(secondsByApp)) {
+        if (seconds <= 0) continue;
+        csv += `${dateStr},${app},${seconds}\n`;
       }
     } catch {
       // ignore per-day errors
