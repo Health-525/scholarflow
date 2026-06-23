@@ -1,29 +1,9 @@
 "use client";
 
-import { ChevronRight, FileText, Settings, Sparkles, User } from "lucide-react";
+import { ChevronRight, FileText, Settings, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { lazy, Suspense } from "react";
-
-import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
-import { useIsMobile } from "@/hooks/useIsMobile";
-
-const MobileMore = lazy(() =>
-  import("@/components/ximi/MobileMore").then((m) => ({ default: m.MobileMore }))
-);
 
 export default function MorePage() {
-  const isMobile = useIsMobile();
-
-  if (isMobile) {
-    return (
-      <ErrorBoundary>
-        <Suspense fallback={<div className="max-w-md mx-auto py-10 animate-page"><div className="h-64 rounded-2xl border border-border bg-card skeleton" /></div>}>
-          <MobileMore />
-        </Suspense>
-      </ErrorBoundary>
-    );
-  }
-
   return (
     <div className="max-w-5xl mx-auto min-h-[60vh] px-4 py-10 animate-page">
       <div className="grid gap-4 md:grid-cols-3">
@@ -56,9 +36,7 @@ export default function MorePage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10">
                 <Icon className="h-5 w-5 text-primary" />
               </div>
-              <h1 className="text-lg font-bold font-display text-foreground">
-                {title}
-              </h1>
+              <h1 className="text-lg font-bold font-display text-foreground">{title}</h1>
             </div>
             <p className="mt-3 text-sm text-muted-foreground">{description}</p>
             <div className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-primary">
@@ -67,16 +45,6 @@ export default function MorePage() {
             </div>
           </Link>
         ))}
-      </div>
-
-      <div className="mt-6 rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2 text-foreground">
-          <User className="h-4 w-4 text-primary" />
-          个人中心
-        </div>
-        <p className="mt-2">
-          移动端使用萌系&quot;小咪&quot;版本，桌面端保留稳定的功能入口，不额外运行移动端页面逻辑。
-        </p>
       </div>
     </div>
   );

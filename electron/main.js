@@ -1,6 +1,7 @@
 const { app, BrowserWindow, shell, dialog, ipcMain, safeStorage } = require('electron');
 
 const { fork } = require('child_process');
+const net = require('net');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
