@@ -13,6 +13,7 @@ import { fetchAllGrades } from "./grades";
 import { fetchJwcNews } from "./jwc-news";
 import { loginHebauWithMfa } from "./mfa";
 import { HEBAU_PERIOD_TIMES } from "./period-times";
+import { extractHebauRows, parseHebauUrpJsonResponse } from "./urp-response";
 
 const URP_URL = "http://urp.hebau.edu.cn:1009";
 const DEFAULT_WEEK1_MONDAY = "2026-03-02";
@@ -31,7 +32,6 @@ function urpRequest(path: string, cookie: string, body?: string): Promise<{ stat
         Referer: `${URP_URL}/jwapp/sys/homeapp/home/index.html`,
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       },
-      rejectUnauthorized: process.env.SCHOLARFLOW_INSECURE_TLS !== "1",
     }, (res) => {
       const chunks: Buffer[] = [];
       res.on("data", (c: Buffer) => chunks.push(c));
@@ -62,26 +62,10 @@ async function fetchSchedule(cookie: string): Promise<CourseData[]> {
   const sem = getSemester();
   const xnxqdm = `${sem.year}-${Number(sem.year) + 1}-${sem.semester}`;
   const resp = await urpRequest("/jwapp/sys/wdkb/modules/xskcb/cxxszhxqkb.do", cookie, `XNXQDM=${encodeURIComponent(xnxqdm)}&SKZC=16`);
-  if (resp.statusCode < 200 || resp.statusCode >= 300) {
-    throw new Error(`课表接口异常: HTTP ${resp.statusCode}`);
-  }
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(resp.body);
-  } catch {
-    throw new Error("课表接口返回了无法解析的数据");
-  }
-
-  const rows =
-    (parsed as { datas?: { cxxszhxqkb?: { rows?: unknown } } })?.datas?.cxxszhxqkb?.rows ||
-    (parsed as { data?: { rows?: unknown } })?.data?.rows ||
-    (parsed as { data?: unknown }).data ||
-    (parsed as { rows?: unknown }).rows ||
-    parsed;
-
-  if (!Array.isArray(rows)) {
-    throw new Error("课表接口返回结构已变化");
+  const d = parseHebauUrpJsonResponse(resp, "获取河北农大课表");
+  const rows = extractHebauRows(d, "cxxszhxqkb");
+  if (!rows) {
+    throw new Error("获取河北农大课表失败，教务系统响应结构异常");
   }
 
   return rows.map((r: Record<string, unknown>) => ({
@@ -116,10 +100,7 @@ async function fetchExams(cookie: string): Promise<ExamData[]> {
   const sem = getSemester();
   const xnxqdm = `${sem.year}-${Number(sem.year) + 1}-${sem.semester}`;
   const resp = await urpRequest("/jwapp/sys/wdkwapp/api/wdks/queryMyExamArrangeMent.do", cookie, `XNXQDM=${encodeURIComponent(xnxqdm)}`);
-  try {
-    return parseHebauExamResponse(JSON.parse(resp.body));
-  } catch {}
-  return [];
+  return parseHebauExamResponse(parseHebauUrpJsonResponse(resp, "获取河北农大考试安排"));
 }
 
 // ── 适配器 ────────────────────────────────────────────────────
@@ -138,7 +119,7 @@ export const hebauAdapter: SchoolAdapter = {
     const session = await loginHebauWithMfa(credentials);
     return {
       schoolId: "hebau",
-      data: { username, cookie: session.cookie, sessionCookie: session.sessionCookie },
+      data: { username: session.username, cookie: session.cookie, sessionCookie: session.sessionCookie },
       expiresAt: Date.now() + 30 * 60 * 1000,
     };
   },
