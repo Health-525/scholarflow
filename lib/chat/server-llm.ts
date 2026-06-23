@@ -30,13 +30,13 @@ export interface ChatCompletionStreamOptions extends ChatCompletionOptions {
 
 const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
 
-// 官方可用模型（后续可在设置中扩展）
+// 官方可用模型（2026-07-24 起 deepseek-chat / deepseek-reasoner 已弃用）
 export const DEEPSEEK_MODELS = [
-  { id: "deepseek-chat", label: "DeepSeek V3（通用）" },
-  { id: "deepseek-reasoner", label: "DeepSeek R1（推理）" },
+  { id: "deepseek-v4-flash", label: "DeepSeek V4 Flash（通用）" },
+  { id: "deepseek-v4-pro", label: "DeepSeek V4 Pro（推理）" },
 ];
 
-export const DEFAULT_DEEPSEEK_MODEL = "deepseek-chat";
+export const DEFAULT_DEEPSEEK_MODEL = "deepseek-v4-flash";
 
 export class LLMConfigError extends Error {
   constructor(message: string) {
@@ -46,13 +46,19 @@ export class LLMConfigError extends Error {
 }
 
 function buildRequestBody(opts: ChatCompletionOptions, stream: boolean) {
-  return JSON.stringify({
-    model: opts.model?.trim() || DEFAULT_DEEPSEEK_MODEL,
+  const model = opts.model?.trim() || DEFAULT_DEEPSEEK_MODEL;
+  const body: Record<string, unknown> = {
+    model,
     messages: opts.messages,
     stream,
     temperature: opts.temperature ?? 0.7,
     max_tokens: opts.max_tokens ?? 4096,
-  });
+  };
+  // deepseek-v4-flash 默认开启 thinking；为保持原先 deepseek-chat 的非思考行为，显式禁用
+  if (model === "deepseek-v4-flash") {
+    body.thinking = { type: "disabled" };
+  }
+  return JSON.stringify(body);
 }
 
 function checkApiKey(apiKey: string) {
