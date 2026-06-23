@@ -13,15 +13,40 @@ interface DownloadProgress {
   bytesPerSecond: number;
 }
 
+interface ActivityDaySummary {
+  totalMinutes: number;
+  idleMinutes: number;
+  awayMinutes: number;
+  categoryBreakdown: Array<{ category: string; minutes: number }>;
+  appBreakdown: Array<{ app: string; minutes: number; category?: string | null }>;
+  segments: Array<{
+    id?: number;
+    type: 'app' | 'idle' | 'away';
+    app?: string | null;
+    title?: string | null;
+    domain?: string | null;
+    category?: string | null;
+    project?: string | null;
+    beginAt: number;
+    endAt?: number | null;
+  }>;
+}
+
+interface ActivityStateInfo {
+  state: 'active' | 'idle' | 'away';
+  app?: string;
+  title?: string;
+  category?: string;
+  since: number;
+  durationSeconds: number;
+}
+
 interface ElectronAPI {
   isElectron: boolean;
   getInternalToken: () => Promise<string | null>;
   encryptAndStoreToken: (token: string) => Promise<boolean>;
   retrieveToken: () => Promise<string | null>;
   clearToken: () => Promise<boolean>;
-  getActiveWindow: () => Promise<{ title: string; app: string; timestamp: number } | null>;
-  onActiveWindowChanged: (callback: (info: { title: string; app: string; timestamp: number }) => void) => () => void;
-  onSystemStateChanged: (callback: (info: { state: 'idle' | 'locked' | 'sleep' | 'resumed'; timestamp: number; idleMs?: number; reason?: string }) => void) => () => void;
   updateCheck: () => Promise<{ currentVersion: string; latestVersion: string | null; error?: string }>;
   updateDownload: () => Promise<boolean | { error: string }>;
   updateInstall: () => Promise<void>;
@@ -39,10 +64,12 @@ interface ElectronAPI {
   storeAuthState?: (plaintext: string) => Promise<boolean>;
   retrieveAuthState?: () => Promise<string | null>;
   clearAuthState?: () => Promise<boolean>;
-  // Activity data secure storage (replaces plaintext localStorage sf_activity_v3)
-  storeActivityData?: (plaintext: string) => Promise<boolean>;
-  retrieveActivityData?: () => Promise<string | null>;
-  clearActivityData?: () => Promise<boolean>;
+  // Screen-time tracking APIs (Electron main process, replaces encrypted file storage)
+  queryActivityDay: (date: string) => Promise<ActivityDaySummary>;
+  queryActivityRange: (start: string, end: string) => Promise<Array<{ date: string; totalMinutes: number; idleMinutes: number; awayMinutes: number }>>;
+  clearActivityData: () => Promise<void>;
+  getActivityState: () => Promise<ActivityStateInfo>;
+  onActivityStateChanged: (callback: (info: ActivityStateInfo) => void) => () => void;
 }
 
 interface Window {

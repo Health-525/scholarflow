@@ -34,30 +34,21 @@ contextBridge.exposeInMainWorld("electronAPI", {
   /** 清除已存储的 auth state */
   clearAuthState: () => ipcRenderer.invoke("auth-state:clear"),
 
-  // ── Activity data 安全存储 — 替代 localStorage 明文 sf_activity_v3 ──
-  /** 加密存储 activity data(safeStorage) */
-  storeActivityData: (plaintext) => ipcRenderer.invoke("activity-data:store", plaintext),
-  /** 读取并解密 activity data,失败/不存在返回 null */
-  retrieveActivityData: () => ipcRenderer.invoke("activity-data:retrieve"),
-  /** 清除已存储的 activity data */
-  clearActivityData: () => ipcRenderer.invoke("activity-data:clear"),
+  // ── 屏幕时间追踪 ──
+  /** 查询某一天的活动统计 */
+  queryActivityDay: (date) => ipcRenderer.invoke("activity:query-day", date),
+  /** 查询日期范围的活动统计 */
+  queryActivityRange: (start, end) => ipcRenderer.invoke("activity:query-range", start, end),
+  /** 清除所有屏幕时间数据 */
+  clearActivityData: () => ipcRenderer.invoke("activity:clear-data"),
+  /** 获取当前追踪状态 */
+  getActivityState: () => ipcRenderer.invoke("activity:get-state"),
 
-  // ── 活动窗口追踪 ──
-  /** 获取当前活动窗口信息 */
-  getActiveWindow: () => ipcRenderer.invoke("activity:get-current-window"),
-
-  /** 监听活动窗口变化 (回调参数: { title, app, timestamp }) */
-  onActiveWindowChanged: (callback) => {
+  /** 监听活动状态变化 (回调参数: { state, app, title, category, since, durationSeconds }) */
+  onActivityStateChanged: (callback) => {
     const handler = (_event, info) => callback(info);
-    ipcRenderer.on("active-window-changed", handler);
-    return () => ipcRenderer.removeListener("active-window-changed", handler);
-  },
-
-  /** 监听系统状态变化 (回调参数: { state: 'idle' | 'locked' | 'sleep' | 'resumed', timestamp, ... }) */
-  onSystemStateChanged: (callback) => {
-    const handler = (_event, info) => callback(info);
-    ipcRenderer.on("system-state-changed", handler);
-    return () => ipcRenderer.removeListener("system-state-changed", handler);
+    ipcRenderer.on("activity-state-changed", handler);
+    return () => ipcRenderer.removeListener("activity-state-changed", handler);
   },
 
   // ── 自动更新 ──

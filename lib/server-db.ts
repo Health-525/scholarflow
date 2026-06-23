@@ -17,7 +17,7 @@ import { escapeLike, openSqlite } from "./server-db/utils";
 
 // ── Schema ──────────────────────────────────────────────────
 
-const CURRENT_VERSION = 1;
+const CURRENT_VERSION = 2;
 
 // ── Singleton ───────────────────────────────────────────────
 
@@ -71,6 +71,11 @@ export class ServerDB {
     return path.join(resolveDataDir(), "scholarflow.db");
   }
 
+  /** 供 activity/db.ts 等内部模块直接访问 better-sqlite3 原生实例 */
+  getRawDB(): Database.Database {
+    return this.db;
+  }
+
   // ── Initialization ─────────────────────────────────────────
 
   private applyPragmas(): void {
@@ -97,7 +102,21 @@ export class ServerDB {
       );
       CREATE TABLE IF NOT EXISTS schema_version (
         version INTEGER NOT NULL
-      );`
+      );
+      CREATE TABLE IF NOT EXISTS activity_segments (
+        id INTEGER PRIMARY KEY,
+        type TEXT NOT NULL CHECK(type IN ('app','idle','away')),
+        app TEXT,
+        title TEXT,
+        domain TEXT,
+        category TEXT,
+        project TEXT,
+        begin_at INTEGER NOT NULL,
+        end_at INTEGER,
+        created_at INTEGER DEFAULT (strftime('%s','now')*1000)
+      );
+      CREATE INDEX IF NOT EXISTS idx_activity_begin_end ON activity_segments(begin_at, end_at);
+      CREATE INDEX IF NOT EXISTS idx_activity_category ON activity_segments(category);`
     );
   }
 
@@ -107,6 +126,28 @@ export class ServerDB {
       .get() as { version: number } | undefined;
     if (!row) {
       this.db.prepare("INSERT INTO schema_version (version) VALUES (?)").run(CURRENT_VERSION);
+      return;
+    }
+    if (row.version < CURRENT_VERSION) {
+      if (row.version === 1) {
+        this.db.exec(
+          `CREATE TABLE IF NOT EXISTS activity_segments (
+            id INTEGER PRIMARY KEY,
+            type TEXT NOT NULL CHECK(type IN ('app','idle','away')),
+            app TEXT,
+            title TEXT,
+            domain TEXT,
+            category TEXT,
+            project TEXT,
+            begin_at INTEGER NOT NULL,
+            end_at INTEGER,
+            created_at INTEGER DEFAULT (strftime('%s','now')*1000)
+          );
+          CREATE INDEX IF NOT EXISTS idx_activity_begin_end ON activity_segments(begin_at, end_at);
+          CREATE INDEX IF NOT EXISTS idx_activity_category ON activity_segments(category);`
+        );
+      }
+      this.db.prepare("UPDATE schema_version SET version = ?").run(CURRENT_VERSION);
     }
   }
 

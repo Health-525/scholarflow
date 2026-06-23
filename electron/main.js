@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { createAutoRefreshScheduler } = require('./auto-refresh');
+const { createActivityTracker } = require('./activity-tracker');
 
 const INTERNAL_TOKEN_HEADER = 'x-scholarflow-internal-token';
 
@@ -35,6 +36,7 @@ const IS_DEV = !!process.env.ELECTRON_DEV;
 let mainWindow = null;
 let serverProcess = null;
 let autoRefreshScheduler = null;
+let activityTracker = null;
 
 // ── 获取 app 根目录 ──────────────────────────────────────────
 function getAppRoot() {
@@ -320,44 +322,6 @@ function setupAuthStateIPC() {
   });
 }
 
-// ── Activity data 安全存储路径(与 auth state 隔离)────────────
-function getActivityDataStorePath() {
-  const userDataPath = app.getPath('userData');
-  return path.join(userDataPath, 'secure-activity-data.enc');
-}
-
-// ── IPC: Activity data 加密存储与检索 ───────────────────────
-function setupActivityDataIPC() {
-  ipcMain.handle('activity-data:store', async (_event, plaintext) => {
-    if (!safeStorage.isEncryptionAvailable()) {
-      throw new Error('系统加密不可用');
-    }
-    const encrypted = safeStorage.encryptString(plaintext);
-    const buf = Buffer.from(encrypted).toString('base64');
-    fs.writeFileSync(getActivityDataStorePath(), buf, 'utf-8');
-    return true;
-  });
-
-  ipcMain.handle('activity-data:retrieve', async () => {
-    const encPath = getActivityDataStorePath();
-    if (!fs.existsSync(encPath)) return null;
-    if (!safeStorage.isEncryptionAvailable()) return null;
-    try {
-      const buf = fs.readFileSync(encPath, 'utf-8');
-      const encrypted = Buffer.from(buf, 'base64');
-      return safeStorage.decryptString(encrypted);
-    } catch {
-      return null;
-    }
-  });
-
-  ipcMain.handle('activity-data:clear', async () => {
-    const encPath = getActivityDataStorePath();
-    if (fs.existsSync(encPath)) fs.unlinkSync(encPath);
-    return true;
-  });
-}
-
 // ── 取记住的(已解密)密码,供 AutoRefreshScheduler 静默重登使用 ──────
 // 复用 getCredentialStorePath() 读取 secure-credential.enc,逻辑等价于
 // credential:retrieve handler:文件不存在 / 加密不可用 / 解密失败均返回 null。
@@ -374,133 +338,41 @@ function retrieveCredentialPassword() {
   }
 }
 
-const { activeWindow } = require('active-win');
 const { autoUpdater } = require('electron-updater');
 
-// ── 活动窗口追踪 ──────────────────────────────────────────
-const IDLE_THRESHOLD_MS = 5 * 60 * 1000; // 5 分钟无键鼠视为 idle
-const ACTIVE_POLL_INTERVAL_MS = 2000;    // 活跃时 2 秒轮询
-const IDLE_POLL_INTERVAL_MS = 10000;     // 空闲时 10 秒轮询
-
-let activeWindowTimer = null;
-let lastActiveWindow = null;
-let lastIdleState = 'active'; // 'active' | 'idle' | 'locked' | 'sleep'
-let currentPollInterval = ACTIVE_POLL_INTERVAL_MS;
-
+// ── 屏幕时间追踪 ──────────────────────────────────────────
 function sendToRenderer(channel, payload) {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send(channel, payload);
   }
 }
 
-function broadcastSystemState(state, detail = {}) {
-  lastIdleState = state;
-  sendToRenderer('system-state-changed', { state, ...detail, timestamp: Date.now() });
+function setupActivityTrackerIPC() {
+  ipcMain.handle('activity:query-day', async (_event, date) => activityTracker.queryDay(date));
+  ipcMain.handle('activity:query-range', async (_event, start, end) => activityTracker.queryRange(start, end));
+  ipcMain.handle('activity:clear-data', async () => activityTracker.clearData());
+  ipcMain.handle('activity:get-state', async () => activityTracker.getCurrentState());
 }
 
-async function pollActiveWindow() {
+function migrateLegacyActivityData() {
+  if (!activityTracker) return;
+  const legacyPath = path.join(app.getPath('userData'), 'secure-activity-data.enc');
+  if (!fs.existsSync(legacyPath)) return;
   try {
-    // 1. 优先检查系统空闲状态（powerMonitor 不依赖 active-win 权限）
-    const idleMs = powerMonitor.getSystemIdleTime() * 1000;
-    const isSystemIdle = idleMs >= IDLE_THRESHOLD_MS;
-
-    if (isSystemIdle && lastIdleState === 'active') {
-      broadcastSystemState('idle', { idleMs });
-      switchToIdlePolling();
-      return;
-    }
-
-    if (!isSystemIdle && lastIdleState === 'idle') {
-      broadcastSystemState('resumed', { idleMs });
-      switchToActivePolling();
-    }
-
-    if (isSystemIdle) {
-      // 系统仍空闲，不调用 active-win，省电并避免权限弹窗
-      return;
-    }
-
-    // 2. 仅在活跃时获取活动窗口
-    const win = await activeWindow();
-    if (!win) return;
-
-    const info = {
-      title: win.title,
-      app: win.owner?.name || 'Unknown',
-      timestamp: Date.now(),
-    };
-
-    if (!lastActiveWindow || lastActiveWindow.app !== info.app || lastActiveWindow.title !== info.title) {
-      lastActiveWindow = info;
-      sendToRenderer('active-window-changed', info);
+    if (!safeStorage.isEncryptionAvailable()) return;
+    const buf = fs.readFileSync(legacyPath, 'utf-8');
+    const encrypted = Buffer.from(buf, 'base64');
+    const raw = safeStorage.decryptString(encrypted);
+    const migrated = activityTracker.migrateLegacyData(raw);
+    if (migrated > 0) {
+      const backupPath = `${legacyPath}.bak`;
+      fs.renameSync(legacyPath, backupPath);
+      logToFile('info', `[ActivityTracker] legacy data migrated to SQLite, backup at ${backupPath}`);
     }
   } catch (err) {
-    console.error('[SF] activeWindow error:', err.message);
+    logToFile('error', `[ActivityTracker] legacy migration failed: ${err.message}`);
   }
 }
-
-function switchToActivePolling() {
-  if (currentPollInterval === ACTIVE_POLL_INTERVAL_MS) return;
-  stopActiveWindowTracking();
-  currentPollInterval = ACTIVE_POLL_INTERVAL_MS;
-  activeWindowTimer = setInterval(pollActiveWindow, currentPollInterval);
-}
-
-function switchToIdlePolling() {
-  if (currentPollInterval === IDLE_POLL_INTERVAL_MS) return;
-  stopActiveWindowTracking();
-  currentPollInterval = IDLE_POLL_INTERVAL_MS;
-  activeWindowTimer = setInterval(pollActiveWindow, currentPollInterval);
-}
-
-function startActiveWindowTracking() {
-  if (activeWindowTimer) return;
-  currentPollInterval = ACTIVE_POLL_INTERVAL_MS;
-  activeWindowTimer = setInterval(pollActiveWindow, currentPollInterval);
-}
-
-function stopActiveWindowTracking() {
-  if (activeWindowTimer) {
-    clearInterval(activeWindowTimer);
-    activeWindowTimer = null;
-  }
-}
-
-function setupPowerMonitorListeners() {
-  powerMonitor.on('lock-screen', () => {
-    broadcastSystemState('locked', { reason: 'screen-locked' });
-    switchToIdlePolling();
-  });
-
-  powerMonitor.on('unlock-screen', () => {
-    broadcastSystemState('resumed', { reason: 'screen-unlocked' });
-    switchToActivePolling();
-  });
-
-  powerMonitor.on('suspend', () => {
-    broadcastSystemState('sleep', { reason: 'system-suspend' });
-    switchToIdlePolling();
-  });
-
-  powerMonitor.on('resume', () => {
-    broadcastSystemState('resumed', { reason: 'system-resume' });
-    switchToActivePolling();
-  });
-}
-
-ipcMain.handle('activity:get-current-window', async () => {
-  try {
-    const win = await activeWindow();
-    if (!win) return null;
-    return {
-      title: win.title,
-      app: win.owner?.name || 'Unknown',
-      timestamp: Date.now(),
-    };
-  } catch {
-    return null;
-  }
-});
 
 function createWindow() {
   const appRoot = getAppRoot();
@@ -536,7 +408,10 @@ function createWindow() {
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     mainWindow.focus();
-    startActiveWindowTracking();
+    if (activityTracker) {
+      activityTracker.start();
+      migrateLegacyActivityData();
+    }
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -571,7 +446,7 @@ function createWindow() {
     setTimeout(() => { if (mainWindow) mainWindow.loadURL(APP_URL); }, 2500);
   });
 
-  mainWindow.on('closed', () => { mainWindow = null; stopActiveWindowTracking(); });
+  mainWindow.on('closed', () => { mainWindow = null; if (activityTracker) { activityTracker.stop(); } });
 }
 
 // ── 自动更新 ────────────────────────────────────────────────
@@ -656,7 +531,25 @@ app.whenReady().then(async () => {
   setupSecureTokenIPC();
   setupSecureCredentialIPC();
   setupAuthStateIPC();
-  setupActivityDataIPC();
+
+  // Dev 模式下未启动 standalone server，需自己确保内部 token 存在，
+  // 供 activity-tracker HTTP fallback 与 auto-refresh 调度器使用。
+  if (!globalThis.__scholarflowInternalToken) {
+    const dataDir = resolveStableDataDir(process.env, app);
+    fs.mkdirSync(dataDir, { recursive: true });
+    const token = getOrCreateInternalToken(dataDir);
+    globalThis.__scholarflowInternalToken = token;
+    process.env.SCHOLARFLOW_INTERNAL_TOKEN = token;
+  }
+
+  activityTracker = createActivityTracker({
+    sendToRenderer,
+    log: (level, msg) => logToFile(level, msg),
+    internalToken: globalThis.__scholarflowInternalToken,
+    port: PORT,
+  });
+
+  setupActivityTrackerIPC();
   setupAutoUpdater();
   try {
     console.log('[SF] Starting...');
@@ -670,8 +563,6 @@ app.whenReady().then(async () => {
     }
     console.log('[SF] Ready, opening window');
     createWindow();
-    startActiveWindowTracking();
-    setupPowerMonitorListeners();
 
     // 本地优先:不再「启动即爬取」。改由 AutoRefreshScheduler 按抖动周期
     // 静默调度刷新(关窗后仍可触发),退出时清理定时器 (task 11.2, R5.1/R5.5)。
@@ -703,7 +594,7 @@ app.on('activate', () => {
 });
 
 app.on('before-quit', () => {
-  stopActiveWindowTracking();
+  if (activityTracker) { activityTracker.stop(); }
   if (autoRefreshScheduler) { autoRefreshScheduler.stop(); }
   if (serverProcess) { serverProcess.kill('SIGTERM'); serverProcess = null; }
 });
