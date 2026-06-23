@@ -148,8 +148,6 @@ export function buildDailyReportMarkdown(input: DailyReportInput): string {
   const lines: string[] = [];
   lines.push(`# ${buildReportTitle(input)}`);
   lines.push("");
-  lines.push(`> ${formatDateLabel(date)}`);
-  lines.push("");
   lines.push("## 📋 今日概览");
   lines.push(`- 日期：${date} 周${getWeekdayLabel(date)}`);
   lines.push(`- 今日课程：${sortedCourses.length} 节`);
