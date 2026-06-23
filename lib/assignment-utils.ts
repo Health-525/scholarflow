@@ -1,5 +1,46 @@
 import type { Assignment, AssignmentUrgency, AssignmentDraft } from "@/types";
 
+import { formatLocalISO } from "./date-utils";
+
+function toDateStr(iso: string): string {
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    return formatLocalISO(d);
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * 判断作业是否截止于指定日期
+ */
+export function isAssignmentDueOn(a: Assignment, date: string): boolean {
+  return toDateStr(a.deadline) === date;
+}
+
+/**
+ * 判断作业是否创建于指定日期
+ */
+export function isAssignmentCreatedOn(a: Assignment, date: string): boolean {
+  return toDateStr(a.createdAt) === date;
+}
+
+/**
+ * 判断作业是否完成于指定日期
+ */
+export function isAssignmentCompletedOn(a: Assignment, date: string): boolean {
+  return !!a.completedAt && toDateStr(a.completedAt) === date;
+}
+
+/**
+ * 判断作业是否逾期（截止于给定日期之前且未完成）
+ */
+export function isAssignmentOverdue(a: Assignment, date: string): boolean {
+  const deadlineDate = toDateStr(a.deadline);
+  return !a.done && deadlineDate !== "" && deadlineDate < date;
+}
+
 /**
  * 根据截止时间和当前时间，分类作业紧急度
  */

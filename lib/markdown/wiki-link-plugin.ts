@@ -52,10 +52,10 @@ const wikiLinkPlugin: Plugin<[], Root> = () => {
             alt: displayText,
           } as unknown as PhrasingContent);
         } else if (DATE_REGEX.test(fileName)) {
-          // Date-based link → /reports/daily/YYYY-MM-DD
+          // Date-based link → /reports/daily?date=YYYY-MM-DD
           newNodes.push({
             type: "link",
-            url: `/reports/daily/${fileName}`,
+            url: `/reports/daily?date=${encodeURIComponent(fileName)}`,
             title: null,
             children: [{ type: "text", value: displayText }],
           } as unknown as PhrasingContent);

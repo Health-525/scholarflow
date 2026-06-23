@@ -9,6 +9,9 @@ export interface DirectoryEntry {
   name: string;
   path: string;
   type: "file" | "dir";
+  theme?: string;
+  ai?: boolean;
+  generatedAt?: number;
 }
 
 // ---- 作业类型 ----

@@ -145,6 +145,14 @@ export class ServerDB {
   readData(key: string): unknown | null {
     const row = this.stmts.get.get(key) as { content: string } | undefined;
     if (!row) return null;
+    // 日报/周报旧数据为纯 Markdown 字符串，静默回退避免误报警告
+    if (key.startsWith("dailyReport:") || key.startsWith("weeklyReport:")) {
+      try {
+        return JSON.parse(row.content);
+      } catch {
+        return row.content;
+      }
+    }
     try {
       return JSON.parse(row.content);
     } catch {

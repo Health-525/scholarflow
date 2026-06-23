@@ -67,6 +67,15 @@ test.describe('页面导航', () => {
   }
 });
 
+test.describe('日报页面', () => {
+  test('URL date 参数应定位到指定日期', async ({ page }) => {
+    await page.goto('/reports/daily?date=2026-06-21');
+    await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    // 页面标题应显示 2026 年 6 月 21 日
+    await expect(page.locator('main h1')).toContainText('2026年6月21日');
+  });
+});
+
 test.describe('响应式布局', () => {
   test('移动端视口应显示底部导航', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 }); // iPhone X

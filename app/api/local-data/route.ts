@@ -92,7 +92,19 @@ export async function GET(request: Request) {
         .filter((key) => key.startsWith(reportPrefix))
         .map((key) => {
           const slug = key.slice(reportPrefix.length);
-          return { name: `${slug}.md`, path: `周报/${slug}.md`, type: "file" as const };
+          const data = db.readData(key);
+          const meta =
+            data && typeof data === "object"
+              ? (data as { theme?: string; ai?: boolean; generatedAt?: number })
+              : {};
+          return {
+            name: `${slug}.md`,
+            path: `周报/${slug}.md`,
+            type: "file" as const,
+            theme: meta.theme,
+            ai: meta.ai,
+            generatedAt: meta.generatedAt,
+          };
         })
         .sort((a, b) => b.name.localeCompare(a.name));
       return NextResponse.json(entries);
@@ -103,7 +115,11 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "missing date" }, { status: 400 });
       }
       const data = db.readData(`dailyReport:${prefix}:${date}`);
-      return NextResponse.json(typeof data === "string" ? data : "");
+      if (typeof data === "string") return NextResponse.json(data);
+      if (data && typeof data === "object" && typeof (data as { content?: string }).content === "string") {
+        return NextResponse.json((data as { content: string }).content);
+      }
+      return NextResponse.json("");
     }
 
     case "weeklyReport": {
@@ -111,7 +127,19 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "missing slug" }, { status: 400 });
       }
       const data = db.readData(`weeklyReport:${prefix}:${slug}`);
-      return NextResponse.json(typeof data === "string" ? data : "");
+      if (typeof data === "string") {
+        return NextResponse.json({ content: data });
+      }
+      if (data && typeof data === "object" && typeof (data as { content?: string }).content === "string") {
+        const meta = data as { content: string; theme?: string; ai?: boolean; generatedAt?: number };
+        return NextResponse.json({
+          content: meta.content,
+          theme: meta.theme,
+          ai: meta.ai,
+          generatedAt: meta.generatedAt,
+        });
+      }
+      return NextResponse.json({ content: "" });
     }
 
     case "student": {

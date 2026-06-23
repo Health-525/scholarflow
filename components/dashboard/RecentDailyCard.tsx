@@ -82,7 +82,7 @@ export function RecentDailyCard() {
                 const { main, sub } = formatDateLabel(date);
                 const recency = recencyLabel(date);
                 return (
-                  <Link key={entry.path} href={`/reports/daily/${date}`} className="flex items-center justify-between gap-3 py-2.5 group transition-colors">
+                  <Link key={entry.path} href={`/reports/daily?date=${encodeURIComponent(date)}`} className="flex items-center justify-between gap-3 py-2.5 group transition-colors">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className="w-1 h-1 rounded-full shrink-0 transition-transform duration-200 group-hover:scale-150 bg-border" />
                       <span className="text-[12.5px] text-foreground group-hover:text-primary transition-colors">{main}</span>

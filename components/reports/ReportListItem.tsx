@@ -43,8 +43,9 @@ function formatWeeklyLabel(filename: string): string {
 
 export function ReportListItem({ entry, type }: ReportListItemProps) {
   const slug = entry.name.replace(".md", "");
-  const href = type === "daily" ? `/reports/daily/${slug}` : `/reports/weekly/${slug}`;
+  const href = type === "daily" ? `/reports/daily?date=${encodeURIComponent(slug)}` : `/reports/weekly/${slug}`;
   const label = type === "daily" ? formatDailyLabel(entry.name) : formatWeeklyLabel(entry.name);
+  const isAi = entry.ai;
 
   return (
     <Link
@@ -52,16 +53,28 @@ export function ReportListItem({ entry, type }: ReportListItemProps) {
       className="block"
       aria-label={`查看${type === "daily" ? "日报" : "周报"}：${label}`}
     >
-      <Card className="flex-row items-center justify-between px-4 py-3">
-        <div>
-          <div className="text-sm font-medium text-foreground">
+      <Card className="flex-row items-center justify-between px-4 py-3 group hover:border-primary/30 transition-colors">
+        <div className="min-w-0">
+          <div className="text-sm font-medium text-foreground truncate">
             {label}
           </div>
-          <Badge variant="secondary" className="mt-1.5">
-            {type === "daily" ? "日报" : "周报"}
-          </Badge>
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <Badge variant="secondary">
+              {type === "daily" ? "日报" : "周报"}
+            </Badge>
+            {type === "weekly" && entry.theme && (
+              <Badge variant="outline" className="text-primary border-primary/30 font-normal">
+                {entry.theme}
+              </Badge>
+            )}
+            {isAi && (
+              <Badge variant="outline" className="text-amber-600 border-amber-200 dark:border-amber-800 font-normal">
+                AI
+              </Badge>
+            )}
+          </div>
         </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 ml-2 group-hover:text-primary transition-colors" aria-hidden="true" />
       </Card>
     </Link>
   );

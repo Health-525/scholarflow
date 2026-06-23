@@ -138,3 +138,92 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
 }
+
+/* ── Daily report minimal reading view ── */
+.markdown-daily {
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--text-primary);
+}
+
+.markdown-daily h1,
+.markdown-daily h2,
+.markdown-daily h3,
+.markdown-daily h4,
+.markdown-daily h5,
+.markdown-daily h6 {
+  margin-top: 2em;
+  margin-bottom: 0.6em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.markdown-daily h1 {
+  font-size: 1.45em;
+  padding-bottom: 0.45em;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-top: 1.2em;
+}
+
+.markdown-daily h2 {
+  font-size: 1.2em;
+  margin-top: 1.8em;
+}
+
+.markdown-daily h3 {
+  font-size: 1.05em;
+  margin-top: 1.6em;
+}
+
+.markdown-daily p {
+  margin-bottom: 1em;
+}
+
+.markdown-daily ul,
+.markdown-daily ol {
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+}
+
+.markdown-daily li {
+  margin-bottom: 0.3em;
+}
+
+.markdown-daily blockquote {
+  margin: 1.2em 0;
+  padding: 0.5em 0 0.5em 1em;
+  border-left: 2px solid var(--border-strong);
+  color: var(--text-secondary);
+  font-style: normal;
+}
+
+.markdown-daily hr {
+  margin: 2em 0;
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.markdown-daily code {
+  background: var(--accent-softer);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.88em;
+}
+
+.markdown-daily pre {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1em;
+}
+
+.markdown-daily table {
+  font-size: 0.92em;
+}
+
+.markdown-daily th,
+.markdown-daily td {
+  border-color: var(--border-subtle);
+  padding: 0.45em 0.7em;
+}

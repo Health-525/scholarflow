@@ -63,14 +63,14 @@ export async function POST(request: Request) {
     const dailyMatch = file.match(/^日报\/(.+)\.md$/);
     if (dailyMatch) {
       const date = dailyMatch[1];
-      db.writeData(`dailyReport:${prefix}:${date}`, content);
+      db.writeData(`dailyReport:${prefix}:${date}`, { content, updatedAt: Date.now() });
       return NextResponse.json({ ok: true });
     }
 
     const weeklyMatch = file.match(/^周报\/(.+)\.md$/);
     if (weeklyMatch) {
       const slug = weeklyMatch[1];
-      db.writeData(`weeklyReport:${prefix}:${slug}`, content);
+      db.writeData(`weeklyReport:${prefix}:${slug}`, { content, updatedAt: Date.now() });
       return NextResponse.json({ ok: true });
     }
 

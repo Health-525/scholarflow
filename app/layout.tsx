@@ -61,9 +61,16 @@ export default async function RootLayout({
     <html
       lang="zh-CN"
       suppressHydrationWarning
+      data-scroll-behavior="smooth"
       className={cn(geistSans.variable)}
     >
       <head>
+        {/* CSP：Electron 环境允许本地资源与 DeepSeek API；开发模式 HMR 需要 unsafe-eval */}
+        <meta
+          httpEquiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:* https://api.deepseek.com; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+        />
+
         {/* 萌系大标题字体(站酷快乐体)— Google Fonts;加载不出则回退黑体,不影响功能
             App Router 下使用 <link> 加载第三方字体是已知模式,此处为特殊中文字体,
             next/font/google 未覆盖该字体,故保留 link 方式。 */}
