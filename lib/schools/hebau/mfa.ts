@@ -10,6 +10,7 @@ const SERVICE_URL = `${URP_URL}/jwapp/sys/homeapp/index.do`;
 const MFA_TTL_MS = 10 * 60 * 1000;
 const MFA_KEY_PREFIX = "hebau-mfa";
 const AES_CHARS = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678";
+const pendingMfaCleanupTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 export const HEBEAU_MFA_REQUIRED_PREFIX = "MFA_REQUIRED::";
 
@@ -66,6 +67,65 @@ function encryptPassword(password: string, salt: string): string {
 
 function challengeKey(challengeId: string): string {
   return `${MFA_KEY_PREFIX}:${challengeId}`;
+}
+
+function clearPendingHebauMfaTimer(challengeId: string): void {
+  const timer = pendingMfaCleanupTimers.get(challengeId);
+  if (!timer) return;
+  clearTimeout(timer);
+  pendingMfaCleanupTimers.delete(challengeId);
+}
+
+function schedulePendingHebauMfaTimer(challengeId: string, createdAt: number): void {
+  clearPendingHebauMfaTimer(challengeId);
+  const delayMs = Math.max(0, createdAt + MFA_TTL_MS - Date.now());
+  const timer = setTimeout(() => {
+    pendingMfaCleanupTimers.delete(challengeId);
+    getServerDB().deleteData(challengeKey(challengeId));
+  }, delayMs);
+  timer.unref?.();
+  pendingMfaCleanupTimers.set(challengeId, timer);
+}
+
+function isPendingHebauMfa(value: unknown): value is PendingHebauMfa {
+  if (!value || typeof value !== "object") return false;
+  const pending = value as Partial<PendingHebauMfa>;
+  return (
+    typeof pending.username === "string" &&
+    Array.isArray(pending.cookies) &&
+    typeof pending.serviceUrl === "string" &&
+    typeof pending.reAuthType === "string" &&
+    typeof pending.isMultifactor === "string" &&
+    typeof pending.maskedTarget === "string" &&
+    typeof pending.createdAt === "number"
+  );
+}
+
+function cleanupPendingHebauMfa(username?: string): void {
+  const db = getServerDB();
+  if (typeof db.listKeys !== "function") return;
+  const now = Date.now();
+  for (const key of db.listKeys()) {
+    if (!key.startsWith(`${MFA_KEY_PREFIX}:`)) continue;
+    const challengeId = key.slice(`${MFA_KEY_PREFIX}:`.length);
+    const value = db.readData(key);
+    if (!isPendingHebauMfa(value)) {
+      clearPendingHebauMfaTimer(challengeId);
+      db.deleteData(key);
+      continue;
+    }
+    if (now - value.createdAt > MFA_TTL_MS || (username && value.username === username)) {
+      clearPendingHebauMfaTimer(challengeId);
+      db.deleteData(key);
+      continue;
+    }
+    schedulePendingHebauMfaTimer(challengeId, value.createdAt);
+  }
+}
+
+export function deleteHebauMfaChallenge(challengeId: string): void {
+  clearPendingHebauMfaTimer(challengeId);
+  getServerDB().deleteData(challengeKey(challengeId));
 }
 
 function extractJsonString(html: string, key: string): string {
@@ -139,7 +199,6 @@ function httpRequest(url: string, opts?: {
       path: parsedUrl.pathname + parsedUrl.search,
       method,
       headers: requestHeaders,
-      rejectUnauthorized: false,
     }, (res) => {
       if (followRedirect && res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && maxRedirects > 0) {
         const merged = new Map(reqCookies);
@@ -199,8 +258,10 @@ export async function loginHebauWithMfa(credentials: Record<string, string>): Pr
   if (!username || !password) throw new Error("请输入学号和密码");
 
   if (challengeId && dynamicCode) {
-    return completeHebauMfaChallenge(challengeId, dynamicCode);
+    return completeHebauMfaChallenge(challengeId, dynamicCode, username);
   }
+
+  cleanupPendingHebauMfa(username.trim());
 
   const loginPage = await httpRequest(`${CAS_URL}/authserver/login?service=${encodeURIComponent(SERVICE_URL)}`);
   const execution = loginPage.body.match(/name="execution"\s+value="([^"]*)"/)?.[1] || "";
@@ -284,6 +345,7 @@ export async function loginHebauWithMfa(credentials: Record<string, string>): Pr
       maskedTarget,
       createdAt: Date.now(),
     } satisfies PendingHebauMfa);
+    schedulePendingHebauMfaTimer(newChallengeId, Date.now());
     throw buildMfaRequiredError(newChallengeId, maskedTarget);
   }
 
@@ -291,13 +353,22 @@ export async function loginHebauWithMfa(credentials: Record<string, string>): Pr
   return { ...finalSession, username };
 }
 
-export async function completeHebauMfaChallenge(challengeId: string, dynamicCode: string): Promise<HebauLoginSession> {
+export async function completeHebauMfaChallenge(
+  challengeId: string,
+  dynamicCode: string,
+  username: string
+): Promise<HebauLoginSession> {
+  cleanupPendingHebauMfa();
   const db = getServerDB();
   const pending = db.readData(challengeKey(challengeId)) as PendingHebauMfa | null;
   if (!pending) throw new Error("河北农大验证码会话已失效，请重新登录");
   if (Date.now() - pending.createdAt > MFA_TTL_MS) {
     db.deleteData(challengeKey(challengeId));
     throw new Error("河北农大验证码已过期，请重新发送");
+  }
+  if (pending.username !== username.trim()) {
+    db.deleteData(challengeKey(challengeId));
+    throw new Error("河北农大验证码会话与当前账号不匹配，请重新登录");
   }
 
   const cookies = new Map(pending.cookies);
@@ -329,3 +400,5 @@ export async function completeHebauMfaChallenge(challengeId: string, dynamicCode
   db.deleteData(challengeKey(challengeId));
   return { ...finalSession, username: pending.username };
 }
+
+cleanupPendingHebauMfa();

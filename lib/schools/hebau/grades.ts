@@ -2,9 +2,12 @@
  * 河北农业大学 — 成绩 + GPA (5.0 满绩)
  */
 
-import type { GradeCourse, GradeResult } from "../types";
-import * as https from "https";
 import * as http from "http";
+import * as https from "https";
+
+import type { GradeCourse, GradeResult } from "../types";
+
+import { extractHebauRows, parseHebauUrpJsonResponse } from "./urp-response";
 
 const URP_URL = "http://urp.hebau.edu.cn:1009";
 
@@ -35,7 +38,6 @@ function urpReq(path: string, cookie: string, body: string): Promise<{ statusCod
         Referer: `${URP_URL}/jwapp/sys/cjcx/*default/index.do`,
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       },
-      rejectUnauthorized: false,
     }, (res) => {
       const chunks: Buffer[] = [];
       res.on("data", (c: Buffer) => chunks.push(c));
@@ -48,31 +50,26 @@ function urpReq(path: string, cookie: string, body: string): Promise<{ statusCod
   });
 }
 
-export async function fetchAllGrades(cookie: string, username: string): Promise<GradeResult> {
+export async function fetchAllGrades(cookie: string, _username: string): Promise<GradeResult> {
   const allCourses: GradeCourse[] = [];
   const y = new Date().getFullYear();
   for (let yr = y - 4; yr <= y; yr++) {
     for (const sem of ["1", "2"]) {
-      try {
-        const qs = JSON.stringify([{ name: "XNXQDM", value: `${yr}-${yr + 1}-${sem}`, linkOpt: "and", builder: "m_value_equal" }, { name: "SFYX", caption: "是否有效", linkOpt: "AND", builder: "m_value_equal", value: "1", value_display: "是" }, { name: "SHOWMAXCJ", caption: "显示最高成绩", linkOpt: "AND", builder: "m_value_equal", value: "0", value_display: "否" }]);
-        const body = `querySetting=${encodeURIComponent(qs)}&*order=-XNXQDM,-KCH,-KXH&pageSize=100&pageNumber=1`;
-        const resp = await urpReq("/jwapp/sys/cjcx/modules/cjcx/xscjcx.do", cookie, body);
-        const d = JSON.parse(resp.body);
-        const rows =
-          d?.datas?.xscjcx?.rows ||
-          d?.data?.rows ||
-          d?.data ||
-          d?.rows ||
-          d ||
-          [];
-        if (Array.isArray(rows)) for (const r of rows) allCourses.push({
-          course: (r.KCMC || r.kcmc || r.XSKCM || r.xskcm || r.KCM || r.kcm || "") as string,
-          score: String(r.ZCJ || r.zcj || r.CJ || r.cj || "0"),
-          credit: String(r.XF || r.xf || "0"),
-          type: String(r.KCXZDM || r.kcxzdm || r.KCXZDM_DISPLAY || r.kcxzdm_display || r.KCXZ || r.kcxz || "选修"),
-          semester: `${yr}-${yr + 1}-${sem}`,
-        });
-      } catch {}
+      const qs = JSON.stringify([{ name: "XNXQDM", value: `${yr}-${yr + 1}-${sem}`, linkOpt: "and", builder: "m_value_equal" }, { name: "SFYX", caption: "是否有效", linkOpt: "AND", builder: "m_value_equal", value: "1", value_display: "是" }, { name: "SHOWMAXCJ", caption: "显示最高成绩", linkOpt: "AND", builder: "m_value_equal", value: "0", value_display: "否" }]);
+      const body = `querySetting=${encodeURIComponent(qs)}&*order=-XNXQDM,-KCH,-KXH&pageSize=100&pageNumber=1`;
+      const resp = await urpReq("/jwapp/sys/cjcx/modules/cjcx/xscjcx.do", cookie, body);
+      const d = parseHebauUrpJsonResponse(resp, "获取河北农大成绩");
+      const rows = extractHebauRows(d, "xscjcx");
+      if (!rows) {
+        throw new Error("获取河北农大成绩失败，教务系统响应结构异常");
+      }
+      for (const r of rows) allCourses.push({
+        course: (r.KCMC || r.kcmc || r.XSKCM || r.xskcm || r.KCM || r.kcm || "") as string,
+        score: String(r.ZCJ || r.zcj || r.CJ || r.cj || "0"),
+        credit: String(r.XF || r.xf || "0"),
+        type: String(r.KCXZDM || r.kcxzdm || r.KCXZDM_DISPLAY || r.kcxzdm_display || r.KCXZ || r.kcxz || "选修"),
+        semester: `${yr}-${yr + 1}-${sem}`,
+      });
     }
   }
   const best = new Map<string, GradeCourse>();

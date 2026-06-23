@@ -1,7 +1,8 @@
 
 import { NextResponse } from "next/server";
 
-import { resolveUserId, resolveAccountPrefix, buildDataKey } from "@/lib/account-prefix";
+import { resolveUserId, buildDataKey } from "@/lib/account-prefix";
+import { resolveAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { schoolLibraryJwtBodySchema } from "@/lib/schemas/fetch";
 import { getAdapter } from "@/lib/schools/registry";
@@ -33,11 +34,13 @@ export async function POST(request: Request) {
     }
 
     const db = getServerDB();
-    const userId = resolveUserId(username);
-    // username 缺失时用 active 凭证兜底,保证与 local-data 读取端落同一 key
-    const prefix = username
-      ? `${schoolId}:${userId}`
-      : resolveAccountPrefix({ schoolId, userId: undefined }, db.findActiveCredentials());
+    const targetAccount = resolveAuthorizedAccount(request, db, { schoolId, userId: username });
+    if (!targetAccount) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
+
+    const userId = resolveUserId(targetAccount.userId);
+    const prefix = `${targetAccount.schoolId}:${userId}`;
     db.writeData(buildDataKey("library", prefix), library);
 
     return NextResponse.json({ ok: true, rooms: library.libs.length });

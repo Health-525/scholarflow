@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { resolveUserId } from "@/lib/account-prefix";
-import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
-import { decryptPassword } from "@/lib/crypto-password";
+import { forbiddenResponse, INTERNAL_TOKEN_HEADER, isTrustedOrigin } from "@/lib/auth/origin";
 import { buildDashboardSummary } from "@/lib/dashboard/summary";
 import { mergeExams } from "@/lib/exams/merge";
 import { getAdapter } from "@/lib/schools/registry";
@@ -25,7 +24,7 @@ const fetchAllBodySchema = z.object({
  * 凭证生命周期(local-first-sync):
  * - 有有效 JWC_Cookie → 直接抓取(行为不变)。
  * - JWC_Cookie 过期/不存在(getCredentials 返回 null,内部已校验 expiresAt):
- *   - 若调用方(调度器/记住密码)传入 password → 用学校 adapter 静默重登,
+ *   - 若内部调用方(调度器)显式传入 password → 用学校 adapter 静默重登,
  *     拿到新凭证后保存并继续抓取(R8.3)。
  *   - 否则返回结构化 needsManualLogin 错误,提示手动重新登录(R8.4)。
  * - 任意抓取项失败时仅标记为「失败」,绝不删除/覆盖 Local_Store 既有数据(R2.5/6.5/8.5)。
@@ -35,6 +34,10 @@ export async function POST(request: Request) {
     if (!isTrustedOrigin(request, { allowInternalToken: true })) {
       return forbiddenResponse();
     }
+
+    const internalToken = request.headers.get(INTERNAL_TOKEN_HEADER);
+    const expectedInternalToken = process.env.SCHOLARFLOW_INTERNAL_TOKEN;
+    const hasValidInternalToken = !!expectedInternalToken && internalToken === expectedInternalToken;
 
     const parse = fetchAllBodySchema.safeParse(await request.json());
     if (!parse.success) {
@@ -57,9 +60,9 @@ export async function POST(request: Request) {
     const db = getServerDB();
     const userId = resolveUserId(username);
 
-    // 身份校验：显式提供密码（调度器/记住密码）视为已授权；
-    // 否则必须请求的是当前已登录/最近使用过的账号。
-    if (!password) {
+    // 浏览器来源请求必须匹配当前活跃/最近账号；只有持有内部 token 的内部调用
+    // 才允许使用 password 走静默重登。
+    if (!hasValidInternalToken) {
       const active = db.findActiveCredentials();
       const recent = db.findMostRecentCredential();
       const allowed = active || recent;
@@ -70,21 +73,12 @@ export async function POST(request: Request) {
 
     let savedCreds = db.getCredentials(schoolId, userId);
 
-    // JWC_Cookie 过期或不存在 → 尝试静默重登(有 password)或提示手动登录。
+    // JWC_Cookie 过期或不存在 → 仅允许内部 token 调用结合显式 password 做静默重登。
     if (!savedCreds) {
-      // 尝试从请求体、或本地 DB 中获取已保存的密码（前端刷新时可能未传 password，
-      // 此时从 DB 中读取记住的密码用于静默重登）。
-      const resolvedPassword =
-        password ||
-        decryptPassword(
-          (db.readData(`credential-password:${schoolId}:${userId}`) as { password?: string } | null)?.password || ""
-        ) ||
-        undefined;
-
-      if (resolvedPassword) {
+      if (hasValidInternalToken && password) {
         try {
-          // 用记住的密码静默重新登录教务系统,拿到新 cookie 后保存(R8.3)。
-          const session = await adapter.login({ username, password: resolvedPassword });
+          // 内部调度器携带 OS 级安全存储中的密码，静默重登后刷新会话。
+          const session = await adapter.login({ username, password });
           db.saveCredentials(schoolId, userId, session.data, session.expiresAt);
           savedCreds = session.data;
         } catch {
@@ -95,7 +89,7 @@ export async function POST(request: Request) {
           );
         }
       } else {
-        // 无可用密码 → 提示用户手动重新登录(R8.4),保留本地缓存不变。
+        // 浏览器形态或无可用密码 → 提示用户手动重新登录(R8.4),保留本地缓存不变。
         return NextResponse.json(
           { ok: false, needsManualLogin: true, error: "凭证已过期，请重新登录" },
           { status: 401 }

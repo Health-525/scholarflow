@@ -13,6 +13,7 @@ import { fetchAllGrades } from "./grades";
 import { fetchJwcNews } from "./jwc-news";
 import { loginHebauWithMfa } from "./mfa";
 import { HEBAU_PERIOD_TIMES } from "./period-times";
+import { extractHebauRows, parseHebauUrpJsonResponse } from "./urp-response";
 
 const URP_URL = "http://urp.hebau.edu.cn:1009";
 
@@ -30,7 +31,6 @@ function urpRequest(path: string, cookie: string, body?: string): Promise<{ stat
         Referer: `${URP_URL}/jwapp/sys/homeapp/home/index.html`,
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       },
-      rejectUnauthorized: false,
     }, (res) => {
       const chunks: Buffer[] = [];
       res.on("data", (c: Buffer) => chunks.push(c));
@@ -61,34 +61,29 @@ async function fetchSchedule(cookie: string): Promise<CourseData[]> {
   const sem = getSemester();
   const xnxqdm = `${sem.year}-${Number(sem.year) + 1}-${sem.semester}`;
   const resp = await urpRequest("/jwapp/sys/wdkb/modules/xskcb/cxxszhxqkb.do", cookie, `XNXQDM=${encodeURIComponent(xnxqdm)}&SKZC=16`);
-  try {
-    const d = JSON.parse(resp.body);
-    const rows =
-      d?.datas?.cxxszhxqkb?.rows ||
-      d?.data?.rows ||
-      d?.data ||
-      d?.rows ||
-      d ||
-      [];
-    if (Array.isArray(rows)) return rows.map((r: Record<string, unknown>) => ({
-      title: (r.KCMC || r.kcmc || r.KCM || r.kcm || r.XSKCM || r.xskcm || "") as string,
-      weekday: Number(r.XQJ || r.xqj || r.SKXQ || r.skxq || 0),
-      periods: parsePeriods(
-        String(r.SKJC || r.skjc || r.KSJC || r.ksjc || ""),
-        String(
-          r.SKCD ||
-          r.skcd ||
-          (Number(r.JSJC || r.jsjc || 0) && Number(r.KSJC || r.ksjc || 0)
-            ? Number(r.JSJC || r.jsjc || 0) - Number(r.KSJC || r.ksjc || 0) + 1
-            : "2")
-        )
-      ),
-      weeks: (r.SKZC || r.skzc || r.ZCMC || r.zcmc || "") as string,
-      location: (r.JASMC || r.jasmc || r.JSMC || r.jsmc || r.CDMC || r.cdmc || r.JXLDM_DISPLAY || "") as string,
-      teacher: (r.SKJS || r.skjs || r.JSXM || r.jsxm || "") as string,
-    }));
-  } catch {}
-  return [];
+  const d = parseHebauUrpJsonResponse(resp, "获取河北农大课表");
+  const rows = extractHebauRows(d, "cxxszhxqkb");
+  if (!rows) {
+    throw new Error("获取河北农大课表失败，教务系统响应结构异常");
+  }
+
+  return rows.map((r: Record<string, unknown>) => ({
+    title: (r.KCMC || r.kcmc || r.KCM || r.kcm || r.XSKCM || r.xskcm || "") as string,
+    weekday: Number(r.XQJ || r.xqj || r.SKXQ || r.skxq || 0),
+    periods: parsePeriods(
+      String(r.SKJC || r.skjc || r.KSJC || r.ksjc || ""),
+      String(
+        r.SKCD ||
+        r.skcd ||
+        (Number(r.JSJC || r.jsjc || 0) && Number(r.KSJC || r.ksjc || 0)
+          ? Number(r.JSJC || r.jsjc || 0) - Number(r.KSJC || r.ksjc || 0) + 1
+          : "2")
+      )
+    ),
+    weeks: (r.SKZC || r.skzc || r.ZCMC || r.zcmc || "") as string,
+    location: (r.JASMC || r.jasmc || r.JSMC || r.jsmc || r.CDMC || r.cdmc || r.JXLDM_DISPLAY || "") as string,
+    teacher: (r.SKJS || r.skjs || r.JSXM || r.jsxm || "") as string,
+  }));
 }
 
 function parsePeriods(skjc: string, skcd: string): number[] {
@@ -104,10 +99,7 @@ async function fetchExams(cookie: string): Promise<ExamData[]> {
   const sem = getSemester();
   const xnxqdm = `${sem.year}-${Number(sem.year) + 1}-${sem.semester}`;
   const resp = await urpRequest("/jwapp/sys/wdkwapp/api/wdks/queryMyExamArrangeMent.do", cookie, `XNXQDM=${encodeURIComponent(xnxqdm)}`);
-  try {
-    return parseHebauExamResponse(JSON.parse(resp.body));
-  } catch {}
-  return [];
+  return parseHebauExamResponse(parseHebauUrpJsonResponse(resp, "获取河北农大考试安排"));
 }
 
 // ── 适配器 ────────────────────────────────────────────────────
@@ -126,7 +118,7 @@ export const hebauAdapter: SchoolAdapter = {
     const session = await loginHebauWithMfa(credentials);
     return {
       schoolId: "hebau",
-      data: { username, cookie: session.cookie, sessionCookie: session.sessionCookie },
+      data: { username: session.username, cookie: session.cookie, sessionCookie: session.sessionCookie },
       expiresAt: Date.now() + 30 * 60 * 1000,
     };
   },
