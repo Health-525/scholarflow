@@ -16,18 +16,6 @@
 - 已移除前端无入口的僵尸功能（/progress、/knowledge、DashboardSummary 中的 health/knowledge 字段）
 - 验证状态：`npm run typecheck`、`npm run lint`、`npm test` 均通过
 
-## v1.0.2 桌面端调课功能重设计
-
-- 移除全局涂抹式调课工具栏，改为「单课程上下文操作」
-- 新增 `AdjustmentDialog` 调课弹窗，支持选择目标周次、星期、节次、生效模式（长期/单次）
-- 支持三种核心场景：本周课调到下周、本周课之间互调、取消单次课程
-- 数据模型增加 `sourceSpecificWeek`，支持跨周同节次移动（例如本周课顺延到下周同一节）
-- 桌面端 `WeekGrid` 支持拖拽课程块到目标格子快速调课
-- 移动端 `MobileSchedule` 同步改为抽屉操作入口
-- `CourseDrawer` 增加「调课 / 取消本节 / 撤销调课」按钮及当前调课状态提示
-- 新增 `tests/schedule-adjustments.test.ts` 单元测试（141 个测试全部通过）
-- 版本号已更新至 `1.0.2`，产物包括安装版与便携版
-
 ## Skill 使用约定
 
 项目根目录 `skills/` 下已下载 465+ 个 SKILL.md，覆盖 UI/UX、前端、测试、安全、性能、数据库、API 设计等领域。
