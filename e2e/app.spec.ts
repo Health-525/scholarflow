@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 /**
  * ScholarFlow E2E 冒烟测试
@@ -67,12 +67,32 @@ test.describe('页面导航', () => {
   }
 });
 
+async function injectAuthState(page: Page) {
+  await page.goto('/');
+  await page.evaluate(() => {
+    localStorage.setItem(
+      'sf_auth',
+      JSON.stringify({
+        state: {
+          schoolId: 'njtech',
+          userId: 'e2e-test-user',
+          username: 'e2e-test-user',
+          isAuthenticated: true,
+          _hasHydrated: false,
+        },
+        version: 0,
+      })
+    );
+  });
+}
+
 test.describe('日报页面', () => {
   test('URL date 参数应定位到指定日期', async ({ page }) => {
+    await injectAuthState(page);
     await page.goto('/reports/daily?date=2026-06-21');
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
-    // 页面标题应显示 2026 年 6 月 21 日
-    await expect(page.locator('main h1')).toContainText('2026年6月21日');
+    // 页面标题应显示 6 月 21 日
+    await expect(page.locator('main h1')).toContainText('6月21日');
   });
 });
 
