@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, dialog, ipcMain, safeStorage } = require('electron');
+const { app, BrowserWindow, shell, dialog, ipcMain, safeStorage, powerMonitor } = require('electron');
 
 const { fork } = require('child_process');
 const net = require('net');
@@ -378,45 +378,114 @@ const { activeWindow } = require('active-win');
 const { autoUpdater } = require('electron-updater');
 
 // ── 活动窗口追踪 ──────────────────────────────────────────
+const IDLE_THRESHOLD_MS = 5 * 60 * 1000; // 5 分钟无键鼠视为 idle
+const ACTIVE_POLL_INTERVAL_MS = 2000;    // 活跃时 2 秒轮询
+const IDLE_POLL_INTERVAL_MS = 10000;     // 空闲时 10 秒轮询
+
 let activeWindowTimer = null;
 let lastActiveWindow = null;
+let lastIdleState = 'active'; // 'active' | 'idle' | 'locked' | 'sleep'
+let currentPollInterval = ACTIVE_POLL_INTERVAL_MS;
+
+function sendToRenderer(channel, payload) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(channel, payload);
+  }
+}
+
+function broadcastSystemState(state, detail = {}) {
+  lastIdleState = state;
+  sendToRenderer('system-state-changed', { state, ...detail, timestamp: Date.now() });
+}
+
+async function pollActiveWindow() {
+  try {
+    // 1. 优先检查系统空闲状态（powerMonitor 不依赖 active-win 权限）
+    const idleMs = powerMonitor.getSystemIdleTime() * 1000;
+    const isSystemIdle = idleMs >= IDLE_THRESHOLD_MS;
+
+    if (isSystemIdle && lastIdleState === 'active') {
+      broadcastSystemState('idle', { idleMs });
+      switchToIdlePolling();
+      return;
+    }
+
+    if (!isSystemIdle && lastIdleState === 'idle') {
+      broadcastSystemState('resumed', { idleMs });
+      switchToActivePolling();
+    }
+
+    if (isSystemIdle) {
+      // 系统仍空闲，不调用 active-win，省电并避免权限弹窗
+      return;
+    }
+
+    // 2. 仅在活跃时获取活动窗口
+    const win = await activeWindow();
+    if (!win) return;
+
+    const info = {
+      title: win.title,
+      app: win.owner?.name || 'Unknown',
+      timestamp: Date.now(),
+    };
+
+    if (!lastActiveWindow || lastActiveWindow.app !== info.app || lastActiveWindow.title !== info.title) {
+      lastActiveWindow = info;
+      sendToRenderer('active-window-changed', info);
+    }
+  } catch (err) {
+    console.error('[SF] activeWindow error:', err.message);
+  }
+}
+
+function switchToActivePolling() {
+  if (currentPollInterval === ACTIVE_POLL_INTERVAL_MS) return;
+  stopActiveWindowTracking();
+  currentPollInterval = ACTIVE_POLL_INTERVAL_MS;
+  activeWindowTimer = setInterval(pollActiveWindow, currentPollInterval);
+}
+
+function switchToIdlePolling() {
+  if (currentPollInterval === IDLE_POLL_INTERVAL_MS) return;
+  stopActiveWindowTracking();
+  currentPollInterval = IDLE_POLL_INTERVAL_MS;
+  activeWindowTimer = setInterval(pollActiveWindow, currentPollInterval);
+}
 
 function startActiveWindowTracking() {
   if (activeWindowTimer) return;
-  const POLL_INTERVAL = 3000;
-
-  activeWindowTimer = setInterval(async () => {
-    try {
-      // 窗口最小化或不可见时跳过轮询，节省 CPU 和电量
-      if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isMinimized() || !mainWindow.isVisible()) return;
-
-      const win = await activeWindow();
-      if (!win) return;
-
-      const info = {
-        title: win.title,
-        app: win.owner?.name || 'Unknown',
-        timestamp: Date.now(),
-      };
-
-      if (!lastActiveWindow || lastActiveWindow.app !== info.app || lastActiveWindow.title !== info.title) {
-        lastActiveWindow = info;
-        if (mainWindow && !mainWindow.isDestroyed()) {
-          mainWindow.webContents.send('active-window-changed', info);
-        }
-      }
-    } catch (err) {
-      console.error('[SF] activeWindow error:', err.message);
-    }
-  }, POLL_INTERVAL);
+  currentPollInterval = ACTIVE_POLL_INTERVAL_MS;
+  activeWindowTimer = setInterval(pollActiveWindow, currentPollInterval);
 }
 
 function stopActiveWindowTracking() {
   if (activeWindowTimer) {
     clearInterval(activeWindowTimer);
     activeWindowTimer = null;
-    lastActiveWindow = null;
   }
+}
+
+function setupPowerMonitorListeners() {
+  powerMonitor.on('lock-screen', () => {
+    broadcastSystemState('locked', { reason: 'screen-locked' });
+    switchToIdlePolling();
+  });
+
+  powerMonitor.on('unlock-screen', () => {
+    broadcastSystemState('resumed', { reason: 'screen-unlocked' });
+    switchToActivePolling();
+  });
+
+  powerMonitor.on('suspend', () => {
+    broadcastSystemState('sleep', { reason: 'system-suspend' });
+    switchToIdlePolling();
+  });
+
+  powerMonitor.on('resume', () => {
+    broadcastSystemState('resumed', { reason: 'system-resume' });
+    switchToActivePolling();
+  });
 }
 
 ipcMain.handle('activity:get-current-window', async () => {
@@ -602,6 +671,7 @@ app.whenReady().then(async () => {
     console.log('[SF] Ready, opening window');
     createWindow();
     startActiveWindowTracking();
+    setupPowerMonitorListeners();
 
     // 本地优先:不再「启动即爬取」。改由 AutoRefreshScheduler 按抖动周期
     // 静默调度刷新(关窗后仍可触发),退出时清理定时器 (task 11.2, R5.1/R5.5)。

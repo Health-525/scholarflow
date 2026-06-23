@@ -21,6 +21,7 @@ interface ElectronAPI {
   clearToken: () => Promise<boolean>;
   getActiveWindow: () => Promise<{ title: string; app: string; timestamp: number } | null>;
   onActiveWindowChanged: (callback: (info: { title: string; app: string; timestamp: number }) => void) => () => void;
+  onSystemStateChanged: (callback: (info: { state: 'idle' | 'locked' | 'sleep' | 'resumed'; timestamp: number; idleMs?: number; reason?: string }) => void) => () => void;
   updateCheck: () => Promise<{ currentVersion: string; latestVersion: string | null; error?: string }>;
   updateDownload: () => Promise<boolean | { error: string }>;
   updateInstall: () => Promise<void>;

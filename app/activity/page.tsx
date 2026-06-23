@@ -4,11 +4,13 @@ import {
   Activity,
   BookOpen,
   Code,
+  Coffee,
   Gamepad2,
   Globe,
   HelpCircle,
   MessageCircle,
   Monitor,
+  Moon,
   Settings,
   Trash2,
 } from "lucide-react";
@@ -33,7 +35,7 @@ import {
   useActivityTrackerV3,
 } from "@/lib/activity-tracker-v3";
 import type { Category } from "@/lib/activity-tracker-v3";
-import { semanticColor } from "@/lib/theme-colors";
+import { semanticBg, semanticColor } from "@/lib/theme-colors";
 
 const CATEGORY_SEMANTIC: Record<Category, Parameters<typeof semanticColor>[0]> = {
   coding: "success",
@@ -96,15 +98,53 @@ export default function ActivityPage() {
 
       {/* ── Big stats ── */}
       <Card className="mb-4">
-        <CardContent className="flex flex-col items-center justify-center py-4">
-          <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center mb-2">
-            <Activity className="w-5 h-5 text-primary" />
+        <CardContent className="grid grid-cols-3 divide-x divide-border py-4">
+          <div className="flex flex-col items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center mb-1.5">
+              <Activity className="w-4 h-4 text-primary" />
+            </div>
+            <div className="text-[22px] font-bold tabular-nums leading-none text-[var(--status-success)]">
+              {activeMins}
+            </div>
+            <div className="text-[10px] mt-1.5 text-muted-foreground">
+              活跃 min
+            </div>
           </div>
-          <div className="text-[28px] font-bold tabular-nums leading-none text-[var(--status-success)]">
-            {activeMins}
+
+          <div className="flex flex-col items-center justify-center">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center mb-1.5"
+              style={{ backgroundColor: semanticBg("warning") }}
+            >
+              <Coffee className="w-4 h-4" style={{ color: semanticColor("warning") }} />
+            </div>
+            <div
+              className="text-[22px] font-bold tabular-nums leading-none"
+              style={{ color: semanticColor("warning") }}
+            >
+              {Math.round(state.idleMs / 60000)}
+            </div>
+            <div className="text-[10px] mt-1.5 text-muted-foreground">
+              空闲 min
+            </div>
           </div>
-          <div className="text-[11px] mt-1.5 text-muted-foreground">
-            活跃 min（今日）
+
+          <div className="flex flex-col items-center justify-center">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center mb-1.5"
+              style={{ backgroundColor: semanticBg("info") }}
+            >
+              <Moon className="w-4 h-4" style={{ color: semanticColor("info") }} />
+            </div>
+            <div
+              className="text-[22px] font-bold tabular-nums leading-none"
+              style={{ color: semanticColor("info") }}
+            >
+              {Math.round(state.awayMs / 60000)}
+            </div>
+            <div className="text-[10px] mt-1.5 text-muted-foreground">
+              离开 min
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -119,12 +119,15 @@ let _segs: AppSegment[] = [];
 let _curApp = "启动中";
 let _curTitle = "";
 let _curCategory: Category = "system";
-// idle / away 检测暂未接入；当前恒为 0，仅保留字段占位以保持 ActivityStateV3 / DayLog API 不变
-const _idle = 0; const _away = 0;
+let _idleMs = 0;
+let _awayMs = 0;
+let _systemState: 'active' | 'idle' | 'locked' | 'sleep' = 'active';
+let _stateStartedAt = 0;
 let _subs: Array<() => void> = [];
 let _inited = false;
 let _refCount = 0;
 let _unsubActiveWindow: (() => void) | null = null;
+let _unsubSystemState: (() => void) | null = null;
 let _latest: ActivityStateV3 | null = null;
 
 function notify() { _latest = null; _subs.forEach(f => f()); }
@@ -189,6 +192,63 @@ function extractObsidianVault(title: string): string | undefined {
 let _flushTimer: ReturnType<typeof setInterval> | null = null;
 
 // ── Init / cleanup ──
+function closeCurrentSegment(at: number) {
+  if (_segs.length > 0 && _segs[_segs.length - 1].end === 0) {
+    _segs[_segs.length - 1].end = at;
+  }
+}
+
+function startNewSegment(win: WindowInfo) {
+  const { normalized: app, meta } = categorizeActivity(win.app, win.title);
+  _segs.push({ app, title: win.title, category: meta.category, domain: meta.domain, project: meta.project, start: win.timestamp, end: 0 });
+  _curApp = app; _curTitle = win.title; _curCategory = meta.category;
+}
+
+function pushSeg(win: WindowInfo) {
+  if (_systemState !== 'active') return;
+  const { normalized: app, meta } = categorizeActivity(win.app, win.title);
+  if (app !== _curApp) {
+    closeCurrentSegment(win.timestamp);
+    _segs.push({ app, title: win.title, category: meta.category, domain: meta.domain, project: meta.project, start: win.timestamp, end: 0 });
+    _curApp = app; _curTitle = win.title; _curCategory = meta.category;
+  }
+}
+
+function handleSystemState(info: { state: 'idle' | 'locked' | 'sleep' | 'resumed'; timestamp: number; idleMs?: number; reason?: string }) {
+  const { state, timestamp } = info;
+
+  if (state === 'resumed') {
+    if (_systemState !== 'active') {
+      // 结束 idle/locked/sleep 状态，恢复后需要重新获取当前窗口
+      _systemState = 'active';
+      _stateStartedAt = timestamp;
+      window.electronAPI?.getActiveWindow().then((win: WindowInfo | null) => {
+        if (win) startNewSegment(win);
+        notify();
+      }).catch(() => notify());
+    }
+    return;
+  }
+
+  if (_systemState === state) return;
+
+  // 从活跃进入 idle/locked/sleep
+  // idleMs 是系统检测到的连续空闲时长，用它回推实际空闲开始时间
+  const idleStart = state === 'idle' && info.idleMs ? timestamp - info.idleMs : timestamp;
+  closeCurrentSegment(idleStart);
+
+  const duration = Math.max(0, timestamp - idleStart);
+  if (state === 'idle') {
+    _idleMs += duration;
+  } else {
+    _awayMs += duration;
+  }
+
+  _systemState = state;
+  _stateStartedAt = idleStart;
+  notify();
+}
+
 async function init() {
   _refCount++;
   if (_inited) return;
@@ -197,9 +257,14 @@ async function init() {
   _inited = true;
   const log = await loadLog();
   _segs = [...log.segments];
+  _idleMs = log.idleMs || 0;
+  _awayMs = log.awayMs || 0;
   if (_segs.length>0 && _segs[_segs.length-1].end===0) _segs[_segs.length-1].end = nowMs();
 
   const api = window.electronAPI!;
+  _unsubSystemState = api.onSystemStateChanged((info) => {
+    handleSystemState(info);
+  });
   api.getActiveWindow().then((win: WindowInfo|null) => {
     if (win) { pushSeg(win); notify(); }
   }).catch(() => {});
@@ -207,9 +272,13 @@ async function init() {
     pushSeg(win); notify();
   });
   _flushTimer = setInterval(() => {
-    if (_segs.length>0 && _segs[_segs.length-1].end===0) _segs[_segs.length-1].end = nowMs();
+    if (_systemState === 'active' && _segs.length>0 && _segs[_segs.length-1].end===0) {
+      _segs[_segs.length-1].end = nowMs();
+    }
     saveLog(buildLog()).catch(() => {});
-    _segs.push({ app: _curApp, title: _curTitle, category: _curCategory, start: nowMs(), end: 0 });
+    if (_systemState === 'active') {
+      _segs.push({ app: _curApp, title: _curTitle, category: _curCategory, start: nowMs(), end: 0 });
+    }
   }, 30000);
 }
 
@@ -218,20 +287,12 @@ function cleanupSingleton() {
   if (_refCount > 0) return;
   if (_flushTimer) { clearInterval(_flushTimer); _flushTimer = null; }
   if (_unsubActiveWindow) { _unsubActiveWindow(); _unsubActiveWindow = null; }
+  if (_unsubSystemState) { _unsubSystemState(); _unsubSystemState = null; }
   _inited = false;
 }
 
-function pushSeg(win: WindowInfo) {
-  const { normalized: app, meta } = categorizeActivity(win.app, win.title);
-  if (app !== _curApp) {
-    if (_segs.length>0 && _segs[_segs.length-1].end===0) _segs[_segs.length-1].end = win.timestamp;
-    _segs.push({ app, title: win.title, category: meta.category, domain: meta.domain, project: meta.project, start: win.timestamp, end: 0 });
-    _curApp = app; _curTitle = win.title; _curCategory = meta.category;
-  }
-}
-
 function buildLog(): DayLog {
-  return { date: todayKey(), segments: [..._segs], idleMs: _idle, awayMs: _away };
+  return { date: todayKey(), segments: [..._segs], idleMs: _idleMs, awayMs: _awayMs };
 }
 
 function computeState(): ActivityStateV3 {
@@ -240,19 +301,28 @@ function computeState(): ActivityStateV3 {
   const map: Record<string,number> = {};
   const catMap: Record<string,number> = {};
   let total = 0;
-  for (const s of segs) {
-    const d = ((s.end||nowMs())-s.start)/60000;
-    map[s.app] = (map[s.app]||0)+d;
-    catMap[s.category] = (catMap[s.category]||0)+d;
-    total += ((s.end||nowMs())-s.start);
+  for (let i = 0; i < segs.length; i++) {
+    const s = segs[i];
+    const isLastOpen = i === segs.length - 1 && s.end === 0;
+    if (isLastOpen && _systemState !== 'active') {
+      // 当前处于 idle/locked/sleep，最后一个未闭合 segment 应被闭合但不计入活跃时间
+      s.end = nowMs();
+      continue;
+    }
+    const end = s.end || nowMs();
+    const d = (end - s.start) / 60000;
+    map[s.app] = (map[s.app] || 0) + d;
+    catMap[s.category] = (catMap[s.category] || 0) + d;
+    total += (end - s.start);
   }
   const appBreakdown = Object.entries(map).map(([a,m])=>({app:a,minutes:Math.round(m)})).filter(p=>p.minutes>0).sort((a,b)=>b.minutes-a.minutes);
   const catBreakdown = Object.entries(catMap).map(([c,m])=>({category:c as Category,minutes:Math.round(m),color:CATEGORY_COLORS[c as Category]||CATEGORY_COLORS.other})).sort((a,b)=>b.minutes-a.minutes);
 
   return {
-    currentApp: _curApp, currentTitle: _curTitle,
+    currentApp: _systemState === 'active' ? _curApp : `系统${_systemState === 'idle' ? '空闲' : _systemState === 'locked' ? '锁屏' : '睡眠'}`,
+    currentTitle: _systemState === 'active' ? _curTitle : '',
     appBreakdown, categoryBreakdown: catBreakdown,
-    totalActiveMs: total, idleMs: _idle, awayMs: _away,
+    totalActiveMs: total, idleMs: _idleMs, awayMs: _awayMs,
     todayLog: buildLog(), isElectron,
   };
 }
@@ -263,9 +333,7 @@ export interface ActivityStateV3 {
   appBreakdown: Array<{app:string;minutes:number}>;
   categoryBreakdown: Array<{category:Category;minutes:number;color:string}>;
   totalActiveMs: number;
-  /** 暂未实现：idle/away 检测尚未接入，当前始终为 0 */
   idleMs: number;
-  /** 暂未实现：idle/away 检测尚未接入，当前始终为 0 */
   awayMs: number;
   todayLog: DayLog; isElectron: boolean;
 }

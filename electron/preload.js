@@ -53,6 +53,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return () => ipcRenderer.removeListener("active-window-changed", handler);
   },
 
+  /** 监听系统状态变化 (回调参数: { state: 'idle' | 'locked' | 'sleep' | 'resumed', timestamp, ... }) */
+  onSystemStateChanged: (callback) => {
+    const handler = (_event, info) => callback(info);
+    ipcRenderer.on("system-state-changed", handler);
+    return () => ipcRenderer.removeListener("system-state-changed", handler);
+  },
+
   // ── 自动更新 ──
   /** 手动检查更新 */
   updateCheck: () => ipcRenderer.invoke("update:check"),
