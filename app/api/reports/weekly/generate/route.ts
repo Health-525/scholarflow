@@ -1,12 +1,28 @@
 import { NextResponse } from "next/server";
 
 import { getAIConfig } from "@/lib/ai-config";
+import {
+  isAssignmentCompletedOn,
+  isAssignmentOverdue,
+} from "@/lib/assignment-utils";
 import { getAuthorizedAccount, getAuthorizedSchoolId } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
-import { buildWeeklyReportMarkdown, getCurrentWeekRange } from "@/lib/reports/weekly";
-import { generateWeeklyReportWithAI } from "@/lib/reports/weekly-ai";
+import type { ReportCourseItem } from "@/lib/reports/types";
+import { buildWeeklyReportMarkdown, generateWeeklyTheme, getCurrentWeekRange } from "@/lib/reports/weekly";
+import { extractWeeklyTheme, generateWeeklyReportWithAI } from "@/lib/reports/weekly-ai";
+import { getAdjustedItemsForDate, type Adjustment } from "@/lib/schedule/adjustments";
 import type { RawScheduleData } from "@/lib/schedule/schedule";
+import {
+  formatDateInTimeZone,
+  getNowInTimeZone,
+} from "@/lib/schedule/timezone";
 import { getServerDB } from "@/lib/server-db";
+import type { Assignment } from "@/types";
+
+function parseLocalDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
 
 /**
  * POST /api/reports/weekly/generate?schoolId=...&userId=...
@@ -35,14 +51,19 @@ export async function POST(request: Request) {
     }
 
     const prefix = `${account.schoolId}:${account.userId}`;
-    const { start, end, slug } = getCurrentWeekRange();
+
+    // 读取课表以确定时区
+    const schedule = db.readData(`schedule:${prefix}`) as RawScheduleData | null;
+    const tz = schedule?.meta?.tz || "Asia/Shanghai";
+
+    const { start, end, slug } = getCurrentWeekRange(getNowInTimeZone(tz));
 
     // 汇总本周日报
     const dailyReports: { date: string; content: string }[] = [];
-    const cur = new Date(`${start}T00:00:00`);
-    const weekEnd = new Date(`${end}T00:00:00`);
+    const cur = parseLocalDate(start);
+    const weekEnd = parseLocalDate(end);
     while (cur <= weekEnd) {
-      const date = cur.toISOString().slice(0, 10);
+      const date = formatDateInTimeZone(cur, tz);
       const content = db.readData(`dailyReport:${prefix}:${date}`);
       if (typeof content === "string" && content.trim()) {
         dailyReports.push({ date, content });
@@ -50,12 +71,41 @@ export async function POST(request: Request) {
       cur.setDate(cur.getDate() + 1);
     }
 
-    // 读取作业
+    // 读取作业：周报只关注本周内截止、本周内完成、以及截至本周日仍未完成的逾期作业
     const assignmentsRaw = db.readData(`assignments:${prefix}`);
-    const assignments = Array.isArray(assignmentsRaw) ? assignmentsRaw : [];
+    const allAssignments = Array.isArray(assignmentsRaw) ? (assignmentsRaw as Assignment[]) : [];
+    const weekDates: string[] = [];
+    const weekCur = parseLocalDate(start);
+    const weekEndDate = parseLocalDate(end);
+    while (weekCur <= weekEndDate) {
+      weekDates.push(formatDateInTimeZone(weekCur, tz));
+      weekCur.setDate(weekCur.getDate() + 1);
+    }
+    const assignments = allAssignments.filter((a) => {
+      const dueDate = a.deadline.slice(0, 10);
+      const inWeek = dueDate >= start && dueDate <= end;
+      const completedInWeek = weekDates.some((d) => isAssignmentCompletedOn(a, d));
+      return inWeek || completedInWeek || isAssignmentOverdue(a, end);
+    });
 
-    // 读取课表(可选)
-    const schedule = db.readData(`schedule:${prefix}`) as RawScheduleData | null;
+    // 计算本周每日实际生效的课程（已应用调课、周次过滤）
+    const adjustments = (db.readData(`adjustments:${prefix}`) || []) as Adjustment[];
+    const dayCourses: Record<string, ReportCourseItem[]> = {};
+    if (schedule) {
+      for (const date of weekDates) {
+        const { items } = getAdjustedItemsForDate(schedule, parseLocalDate(date), adjustments);
+        dayCourses[date] = items
+          .filter((item) => item.kind === "course")
+          .map((item) => ({
+            title: item.title,
+            weekday: item.weekday,
+            periods: item.periods,
+            location: item.location,
+            teacher: item.teacher,
+            timeText: item.timeText,
+          }));
+      }
+    }
 
     const body = (await request.json().catch(() => ({}))) as { ai?: boolean };
 
@@ -73,7 +123,7 @@ export async function POST(request: Request) {
         weekEnd: end,
         dailyReports,
         assignments,
-        schedule,
+        dayCourses,
       });
     } else {
       markdown = buildWeeklyReportMarkdown({
@@ -81,13 +131,17 @@ export async function POST(request: Request) {
         weekEnd: end,
         dailyReports,
         assignments,
-        schedule,
+        dayCourses,
       });
     }
 
-    db.writeData(`weeklyReport:${prefix}:${slug}`, markdown);
+    const theme = body.ai
+      ? (extractWeeklyTheme(markdown) ?? generateWeeklyTheme({ weekStart: start, weekEnd: end, dailyReports, assignments, dayCourses }))
+      : generateWeeklyTheme({ weekStart: start, weekEnd: end, dailyReports, assignments, dayCourses });
 
-    return NextResponse.json({ ok: true, slug, start, end, ai: !!body.ai });
+    db.writeData(`weeklyReport:${prefix}:${slug}`, { content: markdown, theme, generatedAt: Date.now(), ai: !!body.ai });
+
+    return NextResponse.json({ ok: true, slug, start, end, theme, ai: !!body.ai });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error("[/api/reports/weekly/generate] error:", (err as Error)?.message ?? err);

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Sparkles, Wand2 } from "lucide-react";
+import { CalendarDays, CheckCircle2, Sparkles, Wand2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -75,23 +75,36 @@ export default function WeeklyReportsPage() {
         description="每周学习趋势分析"
         actions={
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => handleGenerate(true)}
-              disabled={generating || hasCurrentWeekReport}
-              className="gap-1.5"
-            >
-              <Wand2 className="w-4 h-4" />
-              {generating ? "生成中..." : hasCurrentWeekReport ? "本周周报已生成" : "AI 生成"}
-            </Button>
-            <Button
-              onClick={() => handleGenerate(false)}
-              disabled={generating || hasCurrentWeekReport}
-              className="gap-1.5"
-            >
-              <Sparkles className="w-4 h-4" />
-              {generating ? "生成中..." : hasCurrentWeekReport ? "本周周报已生成" : "生成周报"}
-            </Button>
+            {hasCurrentWeekReport ? (
+              <Button
+                variant="outline"
+                disabled
+                className="gap-1.5 text-muted-foreground"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                本周已生成
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => handleGenerate(true)}
+                  disabled={generating}
+                  className="gap-1.5"
+                >
+                  <Wand2 className="w-4 h-4" />
+                  {generating ? "生成中..." : "AI 生成"}
+                </Button>
+                <Button
+                  onClick={() => handleGenerate(false)}
+                  disabled={generating}
+                  className="gap-1.5"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {generating ? "生成中..." : "生成周报"}
+                </Button>
+              </>
+            )}
           </div>
         }
       />

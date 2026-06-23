@@ -22,11 +22,16 @@ function formatDeadline(deadline?: string): string {
   }
 }
 
+function getWeekdayShort(dateStr: string): string {
+  const d = new Date(`${dateStr}T00:00:00`);
+  return ["日", "一", "二", "三", "四", "五", "六"][d.getDay()] ?? "";
+}
+
 /**
  * 根据周报输入数据构建 DeepSeek prompt。
  */
 export function buildWeeklyReportPrompt(input: WeeklyReportInput): string {
-  const { weekStart, weekEnd, dailyReports, assignments, schedule } = input;
+  const { weekStart, weekEnd, dailyReports, assignments, dayCourses } = input;
 
   const completed = assignments.filter((a) => a.done);
   const pending = assignments.filter((a) => !a.done);
@@ -66,25 +71,54 @@ export function buildWeeklyReportPrompt(input: WeeklyReportInput): string {
   }
   lines.push("");
 
-  if (schedule?.courses) {
-    lines.push("【本周课程】");
-    lines.push(`- 本周共有 ${schedule.courses.length} 门课程`);
-    schedule.courses.slice(0, 10).forEach((c) => {
-      lines.push(`  - 周${["日", "一", "二", "三", "四", "五", "六"][c.weekday]} 第 ${c.periods.join("、")} 节 · ${c.title}`);
-    });
-    lines.push("");
+  lines.push("【本周课表】");
+  const weekDates: string[] = [];
+  const cur = new Date(`${weekStart}T00:00:00`);
+  const weekEndDate = new Date(`${weekEnd}T00:00:00`);
+  while (cur <= weekEndDate) {
+    weekDates.push(cur.toISOString().slice(0, 10));
+    cur.setDate(cur.getDate() + 1);
   }
+  let hasAnyCourse = false;
+  for (const date of weekDates) {
+    const courses = dayCourses[date] ?? [];
+    if (courses.length === 0) continue;
+    hasAnyCourse = true;
+    lines.push(`- ${formatDateLabel(date)}：`);
+    courses
+      .sort((a, b) => (a.periods[0] ?? 0) - (b.periods[0] ?? 0))
+      .forEach((c) => {
+        const timeText = c.timeText ? `（${c.timeText}）` : "";
+        lines.push(`  - 周${getWeekdayShort(date)} 第 ${c.periods.join("、")} 节${timeText} · ${c.title}${c.location ? ` @ ${c.location}` : ""}`);
+      });
+  }
+  if (!hasAnyCourse) {
+    lines.push("本周没有课程。");
+  }
+  lines.push("");
 
   lines.push("【输出要求】");
   lines.push("1. 使用 Markdown 格式，主标题为 `# 周报`；");
-  lines.push("2. 包含以下几个小节：本周概览、学习亮点、反思与不足、下周计划；");
-  lines.push("3. 结合数据给出具体、可执行的改进建议，不要泛泛而谈；");
-  lines.push("4. 语言亲切自然，适合学生阅读；");
-  lines.push("5. 在末尾标注 `*由 ScholarFlow AI 自动生成*`。");
+  lines.push("2. 在主标题后增加一个小节 `## 本周主题：XXX`，用 8-14 个字概括本周核心状态（例如：高效周、调整周、冲刺周、沉淀周），要基于数据，不要空泛；");
+  lines.push("3. 包含以下几个小节：本周概览、学习亮点、反思与不足、下周计划；");
+  lines.push("4. 结合数据给出具体、可执行的改进建议，不要泛泛而谈；");
+  lines.push("5. 语言亲切自然，适合学生阅读；");
+  lines.push("6. 在末尾标注 `*由 ScholarFlow AI 自动生成*`。");
   lines.push("");
   lines.push("请直接输出周报内容，不要有多余的寒暄。");
 
   return lines.join("\n");
+}
+
+const THEME_REGEX = /##\s*本周主题[：:]\s*(.+)/;
+
+/**
+ * 从 AI 生成的周报 Markdown 中提取主题。
+ */
+export function extractWeeklyTheme(markdown: string): string | null {
+  const match = THEME_REGEX.exec(markdown);
+  if (!match) return null;
+  return match[1]?.trim() || null;
 }
 
 /**

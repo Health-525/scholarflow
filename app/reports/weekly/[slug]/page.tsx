@@ -1,8 +1,10 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
+import { Badge } from "@/components/ui/badge";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useReportContent } from "@/hooks/useReports";
@@ -11,7 +13,7 @@ export default function WeeklyReportPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
-  const { content, isLoading, error } = useReportContent("weekly", slug);
+  const { content, theme, ai, isLoading, error } = useReportContent("weekly", slug);
 
   let weekLabel = slug;
   try {
@@ -36,9 +38,24 @@ export default function WeeklyReportPage() {
         ← 返回
       </button>
 
-      <h1 className="text-xl font-bold mb-4 text-foreground">
-        {weekLabel}
-      </h1>
+      <div className="mb-4">
+        <h1 className="text-xl font-bold text-foreground">
+          {weekLabel}
+        </h1>
+        {theme && (
+          <div className="flex items-center gap-2 mt-2">
+            <Badge variant="outline" className="text-primary border-primary/30 font-normal">
+              {theme}
+            </Badge>
+            {ai && (
+              <Badge variant="outline" className="text-amber-600 border-amber-200 dark:border-amber-800 font-normal gap-1">
+                <Sparkles className="w-3 h-3" />
+                AI 生成
+              </Badge>
+            )}
+          </div>
+        )}
+      </div>
 
       {isLoading && (
         <div className="py-12">
