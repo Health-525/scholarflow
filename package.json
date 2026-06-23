@@ -1,6 +1,6 @@
 {
   "name": "scholarflow",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "A local-first campus study workspace — academic data, study tools, and AI assistant in one desktop app.",
   "keywords": [
