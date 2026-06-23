@@ -69,6 +69,9 @@ export async function GET(request: Request) {
     case "grades":
       return NextResponse.json(db.readData(`grades:${prefix}`) || { gpa: 0, allCourses: [] });
 
+    case "adjustments":
+      return NextResponse.json(db.readData(`adjustments:${prefix}`) || []);
+
     case "dailyReports": {
       const reportPrefix = `dailyReport:${prefix}:`;
       const entries = db

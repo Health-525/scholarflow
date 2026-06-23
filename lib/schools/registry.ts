@@ -6,8 +6,8 @@
  *               registerSchool(myAdapter);
  */
 
-import { njtechAdapter } from "./njtech";
 import { hebauAdapter } from "./hebau";
+import { njtechAdapter } from "./njtech";
 import type { SchoolAdapter } from "./types";
 
 const ADAPTERS: Map<string, SchoolAdapter> = new Map();

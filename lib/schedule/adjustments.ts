@@ -57,15 +57,88 @@ export interface ConflictInfo {
 
 export type AdjustmentMutationResult = Adjustment[];
 
+const VALID_WEEKDAYS: Weekday[] = [1, 2, 3, 4, 5, 6, 7];
+
+function isValidWeekday(value: unknown): value is Weekday {
+  return typeof value === "number" && VALID_WEEKDAYS.includes(value as Weekday);
+}
+
+function isNumberArray(value: unknown): value is number[] {
+  return Array.isArray(value) && value.length > 0 && value.every((v) => typeof v === "number" && Number.isFinite(v));
+}
+
+function isValidMode(value: unknown): value is AdjustmentMode {
+  return value === "once" || value === "longterm";
+}
+
+function isValidType(value: unknown): value is AdjustmentType {
+  return value === "move" || value === "cancel";
+}
+
+/**
+ * 校验并清洗单条调课记录。用于从持久化存储读取后过滤损坏/不合法数据。
+ */
+export function normalizeAdjustment(value: unknown): Adjustment | null {
+  if (!value || typeof value !== "object") return null;
+  const raw = value as Record<string, unknown>;
+
+  const id = typeof raw.id === "string" && raw.id ? raw.id : String(Date.now());
+  const type = isValidType(raw.type) ? raw.type : "move";
+  const sourceWeekday = isValidWeekday(raw.sourceWeekday) ? raw.sourceWeekday : null;
+  const sourcePeriods = isNumberArray(raw.sourcePeriods) ? [...raw.sourcePeriods].sort((a, b) => a - b) : null;
+  const mode = isValidMode(raw.mode) ? raw.mode : "longterm";
+  const startWeek = typeof raw.startWeek === "number" && Number.isFinite(raw.startWeek) ? raw.startWeek : 1;
+
+  if (!sourceWeekday || !sourcePeriods) return null;
+
+  const adjustment: Adjustment = {
+    id,
+    type,
+    sourceWeekday,
+    sourcePeriods,
+    mode,
+    startWeek,
+    createdAt: typeof raw.createdAt === "number" ? raw.createdAt : Date.now(),
+  };
+
+  if (type === "move") {
+    const targetWeekday = isValidWeekday(raw.targetWeekday) ? raw.targetWeekday : undefined;
+    const targetPeriods = isNumberArray(raw.targetPeriods)
+      ? [...raw.targetPeriods].sort((a, b) => a - b)
+      : undefined;
+    if (!targetWeekday || !targetPeriods) return null;
+    adjustment.targetWeekday = targetWeekday;
+    adjustment.targetPeriods = targetPeriods;
+  }
+
+  if (mode === "once") {
+    const specificWeek = typeof raw.specificWeek === "number" ? raw.specificWeek : startWeek;
+    adjustment.specificWeek = specificWeek;
+    if (type === "move" && typeof raw.sourceSpecificWeek === "number") {
+      adjustment.sourceSpecificWeek = raw.sourceSpecificWeek;
+    }
+  }
+
+  return adjustment;
+}
+
+/**
+ * 清洗 adjustments 数组，过滤掉不合法记录并统一字段。
+ */
+export function normalizeAdjustments(value: unknown): Adjustment[] {
+  if (!Array.isArray(value)) return [];
+  return value.map(normalizeAdjustment).filter((a): a is Adjustment => a !== null);
+}
+
 const LEGACY_STORAGE_KEY = "sf_adjustments_v1";
 
-function getStorageKey(schoolId?: string | null, userId?: string | null): string {
+function getLegacyStorageKey(schoolId?: string | null, userId?: string | null): string {
   const sid = schoolId || "default";
   const uid = userId || "default";
   return `${LEGACY_STORAGE_KEY}:${sid}:${uid}`;
 }
 
-function readRaw(key: string): Adjustment[] {
+function readLegacyRaw(key: string): Adjustment[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(key);
@@ -82,62 +155,49 @@ function readRaw(key: string): Adjustment[] {
   }
 }
 
-function writeRaw(key: string, adjustments: Adjustment[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(key, JSON.stringify(adjustments));
-  } catch {}
-}
-
 /**
- * 从 localStorage 读取调课记录。
- * 优先读取账号隔离 key；若不存在则尝试迁移旧 key `sf_adjustments_v1`，
- * 并在登录后将匿名 default key 数据迁移到当前账号。
+ * 一次性迁移：从 localStorage 读取旧版调课记录。
+ *
+ * 调课记录已迁移到 SQLite（通过 /api/local-data / /api/local-save），
+ * 此函数仅用于首次启动时把旧 localStorage 数据读到内存，随后由调用方写入 SQLite 并清除旧 key。
  */
-export function loadAdjustments(
+export function migrateLegacyAdjustments(
   schoolId?: string | null,
   userId?: string | null
 ): Adjustment[] {
-  const key = getStorageKey(schoolId, userId);
-  const scoped = readRaw(key);
+  if (typeof window === "undefined") return [];
+
+  const key = getLegacyStorageKey(schoolId, userId);
+  const scoped = readLegacyRaw(key);
   if (scoped.length > 0) return scoped;
 
-  if (typeof window !== "undefined") {
-    // 迁移旧 key（无账号隔离时的老数据）
-    const legacy = readRaw(LEGACY_STORAGE_KEY);
-    if (legacy.length > 0) {
-      writeRaw(key, legacy);
-      try {
-        localStorage.removeItem(LEGACY_STORAGE_KEY);
-      } catch {}
-      return legacy;
-    }
+  // 迁移无账号隔离的旧 key
+  const legacy = readLegacyRaw(LEGACY_STORAGE_KEY);
+  if (legacy.length > 0) return legacy;
 
-    // 登录后，将匿名 default key 的数据迁移到当前账号
-    if (schoolId && userId) {
-      const defaultKey = getStorageKey("default", "default");
-      const anonymous = readRaw(defaultKey);
-      if (anonymous.length > 0) {
-        writeRaw(key, anonymous);
-        try {
-          localStorage.removeItem(defaultKey);
-        } catch {}
-        return anonymous;
-      }
-    }
+  // 登录后，将匿名 default key 的数据迁移到当前账号
+  if (schoolId && userId) {
+    const defaultKey = getLegacyStorageKey("default", "default");
+    return readLegacyRaw(defaultKey);
   }
+
   return [];
 }
 
 /**
- * 保存调课记录到 localStorage（账号隔离）
+ * 清除 localStorage 中的旧版调课记录。
+ * 在成功写入 SQLite 后调用，避免重复迁移。
  */
-export function saveAdjustments(
-  adjustments: Adjustment[],
+export function clearLegacyAdjustments(
   schoolId?: string | null,
   userId?: string | null
 ): void {
-  writeRaw(getStorageKey(schoolId, userId), adjustments);
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(getLegacyStorageKey(schoolId, userId));
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+    localStorage.removeItem(getLegacyStorageKey("default", "default"));
+  } catch {}
 }
 
 /**
@@ -148,8 +208,9 @@ export function findCourseBySource(
   weekday: Weekday,
   periods: number[]
 ): RawCourse | undefined {
+  const sortedPeriods = [...periods].sort((a, b) => a - b);
   return (schedule.courses || []).find(
-    (c) => c.weekday === weekday && arraysEqual(c.periods, periods)
+    (c) => c.weekday === weekday && arraysEqual([...c.periods].sort((a, b) => a - b), sortedPeriods)
   );
 }
 
@@ -189,13 +250,13 @@ export function findConflicts(
 /**
  * 校验并新增一条调课记录。
  * 失败时抛出 Error，成功时返回新的调课记录数组。
+ *
+ * 注意：本函数不再负责持久化。调用方应自行将返回的数组保存到 SQLite。
  */
 export function addAdjustment(
   schedule: RawScheduleData,
   adjustments: Adjustment[],
-  draft: AdjustmentDraft,
-  schoolId?: string | null,
-  userId?: string | null
+  draft: AdjustmentDraft
 ): Adjustment[] {
   const sourcePeriods = [...draft.sourcePeriods].sort((a, b) => a - b);
 
@@ -271,9 +332,7 @@ export function addAdjustment(
     };
   }
 
-  const updated = [...adjustments, newAdjustment];
-  saveAdjustments(updated, schoolId, userId);
-  return updated;
+  return [...adjustments, newAdjustment];
 }
 
 /**
@@ -292,27 +351,32 @@ function isSourceOverlap(adj: Adjustment, draft: AdjustmentDraft): boolean {
 }
 
 /**
- * 删除指定调课记录
+ * 检查 draft 是否与现有 adjustments 在源位置上存在生效周次重叠。
+ * 用于 UI 在调用 addAdjustment 前给出友好提示，逻辑与 addAdjustment 保持一致。
  */
-export function removeAdjustment(
+export function hasSourceConflict(
   adjustments: Adjustment[],
-  id: string,
-  schoolId?: string | null,
-  userId?: string | null
-): Adjustment[] {
-  const updated = adjustments.filter((adj) => adj.id !== id);
-  saveAdjustments(updated, schoolId, userId);
-  return updated;
+  draft: AdjustmentDraft
+): boolean {
+  const sourcePeriods = [...draft.sourcePeriods].sort((a, b) => a - b);
+  return adjustments.some(
+    (adj) =>
+      adj.sourceWeekday === draft.sourceWeekday &&
+      arraysEqual(adj.sourcePeriods, sourcePeriods) &&
+      isSourceOverlap(adj, draft)
+  );
 }
 
 /**
- * 清空当前账号下所有调课记录
+ * 删除指定调课记录。
+ *
+ * 注意：本函数不再负责持久化。调用方应自行将返回的数组保存到 SQLite。
  */
-export function clearAdjustments(
-  schoolId?: string | null,
-  userId?: string | null
-): void {
-  saveAdjustments([], schoolId, userId);
+export function removeAdjustment(
+  adjustments: Adjustment[],
+  id: string
+): Adjustment[] {
+  return adjustments.filter((adj) => adj.id !== id);
 }
 
 /**
@@ -353,7 +417,7 @@ export function findActiveAdjustment(
     (adj) =>
       isSourceAdjustmentActive(adj, weekNum) &&
       adj.sourceWeekday === course.weekday &&
-      arraysEqual(adj.sourcePeriods, course.periods)
+      periodsEqual(adj.sourcePeriods, course.periods)
   );
 }
 
@@ -399,7 +463,7 @@ export function getAdjustedItemsForDate(
 
     const sourceAdj = sourceActiveAdjs.find(
       (adj) =>
-        adj.sourceWeekday === c.weekday && arraysEqual(adj.sourcePeriods, c.periods)
+        adj.sourceWeekday === c.weekday && periodsEqual(adj.sourcePeriods, c.periods)
     );
 
     if (sourceAdj && courseActiveThisWeek) {
@@ -429,7 +493,7 @@ export function getAdjustedItemsForDate(
     const sourceHandledThisWeek = sourceActiveAdjs.some(
       (a) =>
         a.sourceWeekday === adj.sourceWeekday &&
-        arraysEqual(a.sourcePeriods, adj.sourcePeriods)
+        periodsEqual(a.sourcePeriods, adj.sourcePeriods)
     );
     if (sourceHandledThisWeek) continue;
     if (adj.targetWeekday !== wday) continue;
@@ -509,4 +573,11 @@ function combinePeriodTime(
 function arraysEqual(a: number[], b: number[]): boolean {
   if (a.length !== b.length) return false;
   return a.every((v, i) => v === b[i]);
+}
+
+function periodsEqual(a: number[], b: number[]): boolean {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort((x, y) => x - y);
+  const sortedB = [...b].sort((x, y) => x - y);
+  return sortedA.every((v, i) => v === sortedB[i]);
 }

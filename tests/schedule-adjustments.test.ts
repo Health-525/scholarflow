@@ -1,17 +1,19 @@
 /**
  * lib/schedule/adjustments.ts 单元测试
  *
- * 测试调课记录的存储隔离、增删校验，以及应用调课后课程列表的正确性。
+ * 测试调课记录的纯逻辑：增删校验、旧数据迁移、以及应用调课后课程列表的正确性。
+ * 持久化本身已迁移到 SQLite，通过 /api/local-data / /api/local-save 读写。
  */
 import { describe, it, expect, beforeEach } from "vitest";
 
 import {
   addAdjustment,
-  clearAdjustments,
+  clearLegacyAdjustments,
   findCourseBySource,
-  loadAdjustments,
+  migrateLegacyAdjustments,
+  normalizeAdjustment,
+  normalizeAdjustments,
   removeAdjustment,
-  saveAdjustments,
   getAdjustedItemsForDate,
   type Adjustment,
 } from "@/lib/schedule/adjustments";
@@ -49,12 +51,12 @@ const baseSchedule: RawScheduleData = {
   ],
 };
 
-describe("adjustments 存储", () => {
+describe("migrateLegacyAdjustments", () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  it("同一账号能存取调课记录", () => {
+  it("读取账号隔离的旧 localStorage 数据", () => {
     const adj: Adjustment = {
       id: "a1",
       type: "move",
@@ -66,28 +68,11 @@ describe("adjustments 存储", () => {
       startWeek: 1,
       createdAt: Date.now(),
     };
-    saveAdjustments([adj], "njtech", "u1");
-    expect(loadAdjustments("njtech", "u1")).toEqual([adj]);
+    localStorage.setItem(scopedKey("njtech", "u1"), JSON.stringify([adj]));
+    expect(migrateLegacyAdjustments("njtech", "u1")).toEqual([adj]);
   });
 
-  it("不同账号数据隔离", () => {
-    const adj1: Adjustment = {
-      id: "a1",
-      type: "move",
-      sourceWeekday: 2,
-      sourcePeriods: [3, 4],
-      targetWeekday: 5,
-      targetPeriods: [1, 2],
-      mode: "longterm",
-      startWeek: 1,
-      createdAt: Date.now(),
-    };
-    saveAdjustments([adj1], "njtech", "u1");
-    expect(loadAdjustments("njtech", "u2")).toEqual([]);
-    expect(loadAdjustments("hebau", "u1")).toEqual([]);
-  });
-
-  it("旧 key 数据会自动迁移", () => {
+  it("旧 key 数据可被迁移", () => {
     const adj: Adjustment = {
       id: "legacy",
       type: "move",
@@ -100,15 +85,10 @@ describe("adjustments 存储", () => {
       createdAt: Date.now(),
     };
     localStorage.setItem(LEGACY_KEY, JSON.stringify([adj]));
-    const result = loadAdjustments("njtech", "u1");
-    expect(result).toEqual([adj]);
-    expect(localStorage.getItem(LEGACY_KEY)).toBeNull();
-    expect(localStorage.getItem(scopedKey("njtech", "u1"))).toEqual(
-      JSON.stringify([adj]),
-    );
+    expect(migrateLegacyAdjustments("njtech", "u1")).toEqual([adj]);
   });
 
-  it("登录后将匿名 default key 数据迁移到当前账号", () => {
+  it("登录后将匿名 default key 数据暴露给当前账号迁移", () => {
     const adj: Adjustment = {
       id: "anon",
       type: "move",
@@ -121,34 +101,84 @@ describe("adjustments 存储", () => {
       createdAt: Date.now(),
     };
     localStorage.setItem(scopedKey("default", "default"), JSON.stringify([adj]));
-    const result = loadAdjustments("njtech", "u1");
-    expect(result).toEqual([adj]);
-    expect(localStorage.getItem(scopedKey("default", "default"))).toBeNull();
-    expect(localStorage.getItem(scopedKey("njtech", "u1"))).toEqual(
-      JSON.stringify([adj]),
-    );
+    expect(migrateLegacyAdjustments("njtech", "u1")).toEqual([adj]);
   });
 
-  it("clearAdjustments 清空当前账号数据", () => {
-    saveAdjustments(
-      [
-        {
-          id: "a1",
-          type: "move",
-          sourceWeekday: 2,
-          sourcePeriods: [3, 4],
-          targetWeekday: 5,
-          targetPeriods: [1, 2],
-          mode: "longterm",
-          startWeek: 1,
-          createdAt: Date.now(),
-        },
-      ],
-      "njtech",
-      "u1",
-    );
-    clearAdjustments("njtech", "u1");
-    expect(loadAdjustments("njtech", "u1")).toEqual([]);
+  it("clearLegacyAdjustments 清除所有旧 key", () => {
+    localStorage.setItem(scopedKey("njtech", "u1"), "[]");
+    localStorage.setItem(LEGACY_KEY, "[]");
+    localStorage.setItem(scopedKey("default", "default"), "[]");
+    clearLegacyAdjustments("njtech", "u1");
+    expect(localStorage.getItem(scopedKey("njtech", "u1"))).toBeNull();
+    expect(localStorage.getItem(LEGACY_KEY)).toBeNull();
+    expect(localStorage.getItem(scopedKey("default", "default"))).toBeNull();
+  });
+});
+
+describe("normalizeAdjustment", () => {
+  it("清洗并补全合法的 move 记录", () => {
+    const raw = {
+      id: "a1",
+      type: "move",
+      sourceWeekday: 2,
+      sourcePeriods: [4, 3],
+      targetWeekday: 5,
+      targetPeriods: [2, 1],
+      mode: "longterm",
+      startWeek: 1,
+      createdAt: 123,
+    };
+    const adj = normalizeAdjustment(raw);
+    expect(adj).not.toBeNull();
+    expect(adj?.sourcePeriods).toEqual([3, 4]);
+    expect(adj?.targetPeriods).toEqual([1, 2]);
+  });
+
+  it("兼容旧数据：未设置 type 时默认为 move", () => {
+    const raw = {
+      id: "legacy",
+      sourceWeekday: 2,
+      sourcePeriods: [3, 4],
+      targetWeekday: 5,
+      targetPeriods: [1, 2],
+      mode: "longterm",
+      startWeek: 1,
+    };
+    const adj = normalizeAdjustment(raw);
+    expect(adj?.type).toBe("move");
+  });
+
+  it("过滤缺少必要字段的损坏记录", () => {
+    expect(normalizeAdjustment(null)).toBeNull();
+    expect(normalizeAdjustment({})).toBeNull();
+    expect(normalizeAdjustment({ sourceWeekday: 2 })).toBeNull();
+    expect(normalizeAdjustment({ sourceWeekday: 2, sourcePeriods: [] })).toBeNull();
+  });
+
+  it("cancel 记录不需要 targetWeekday/targetPeriods", () => {
+    const raw = {
+      id: "c1",
+      type: "cancel",
+      sourceWeekday: 2,
+      sourcePeriods: [3, 4],
+      mode: "once",
+      startWeek: 2,
+      specificWeek: 2,
+    };
+    const adj = normalizeAdjustment(raw);
+    expect(adj).not.toBeNull();
+    expect(adj?.targetWeekday).toBeUndefined();
+    expect(adj?.targetPeriods).toBeUndefined();
+  });
+
+  it("normalizeAdjustments 过滤数组中的非法项", () => {
+    const result = normalizeAdjustments([
+      { id: "good", type: "cancel", sourceWeekday: 2, sourcePeriods: [3, 4], mode: "once", startWeek: 2, specificWeek: 2 },
+      null,
+      { sourceWeekday: 1 },
+    ]);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("good");
   });
 });
 
@@ -182,12 +212,9 @@ describe("addAdjustment 校验", () => {
         mode: "longterm",
         startWeek: 1,
       },
-      "njtech",
-      "u1",
     );
     expect(updated).toHaveLength(1);
     expect(updated[0].targetWeekday).toBe(5);
-    expect(loadAdjustments("njtech", "u1")).toHaveLength(1);
   });
 
   it("成功添加取消单次记录", () => {
@@ -202,8 +229,6 @@ describe("addAdjustment 校验", () => {
         startWeek: 2,
         specificWeek: 2,
       },
-      "njtech",
-      "u1",
     );
     expect(updated).toHaveLength(1);
     expect(updated[0].type).toBe("cancel");
@@ -281,14 +306,9 @@ describe("addAdjustment 校验", () => {
       }),
     ).toThrow(/已有调课记录/);
   });
-
 });
 
 describe("removeAdjustment", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("删除指定调课记录", () => {
     const adj: Adjustment = {
       id: "a1",
@@ -301,9 +321,8 @@ describe("removeAdjustment", () => {
       startWeek: 1,
       createdAt: Date.now(),
     };
-    const updated = removeAdjustment([adj], "a1", "njtech", "u1");
+    const updated = removeAdjustment([adj], "a1");
     expect(updated).toHaveLength(0);
-    expect(loadAdjustments("njtech", "u1")).toEqual([]);
   });
 });
 
@@ -442,5 +461,32 @@ describe("getAdjustedItemsForDate 调课应用", () => {
       adjustment,
     ]);
     expect(resultWeek4.items.map((i) => i.title)).toContain("数值分析");
+  });
+
+  it("调课记录节次顺序与课程数据不一致时仍能匹配", () => {
+    // 模拟学校返回的课表 periods 是乱序 [4,3]，而调课记录是排序后的 [3,4]
+    const [numeric, pe] = baseSchedule.courses ?? [];
+    const unsortedSchedule: RawScheduleData = {
+      ...baseSchedule,
+      courses: [
+        { ...numeric, periods: [4, 3] },
+        pe,
+      ],
+    };
+    const adjustment: Adjustment = {
+      id: "a1",
+      type: "cancel",
+      sourceWeekday: 2,
+      sourcePeriods: [3, 4],
+      mode: "once",
+      startWeek: 2,
+      specificWeek: 2,
+      createdAt: Date.now(),
+    };
+    const tuesdayWeek2 = new Date("2026-03-10");
+    const result = getAdjustedItemsForDate(unsortedSchedule, tuesdayWeek2, [
+      adjustment,
+    ]);
+    expect(result.items.map((i) => i.title)).not.toContain("数值分析");
   });
 });

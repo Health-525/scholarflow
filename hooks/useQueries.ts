@@ -7,8 +7,9 @@ import { buildAssignment, sortAssignments } from "@/lib/assignment-utils";
 import { readData, writeData } from "@/lib/mobile-data";
 import {
   addAdjustment,
-  clearAdjustments,
-  loadAdjustments,
+  clearLegacyAdjustments,
+  migrateLegacyAdjustments,
+  normalizeAdjustments,
   removeAdjustment,
   type Adjustment,
   type AdjustmentDraft,
@@ -93,7 +94,25 @@ export function useScheduleQuery() {
       const local = await tryLocalApi("schedule") as Record<string, unknown> | null;
       if (local?.courses) {
         const schedule = parseSchedule(local);
-        const adjustments = loadAdjustments(schoolId, userId);
+        const adjustmentsRaw = await tryLocalApi("adjustments");
+        let adjustments = normalizeAdjustments(adjustmentsRaw);
+
+        // 若 SQLite 为空，尝试迁移旧版 localStorage 数据（单次，写回后清空旧 key）
+        if (adjustments.length === 0) {
+          const legacy = migrateLegacyAdjustments(schoolId, userId);
+          if (legacy.length > 0) {
+            adjustments = normalizeAdjustments(legacy);
+            if (adjustments.length > 0) {
+              await saveLocally(
+                "data/adjustments.json",
+                JSON.stringify(adjustments, null, 2),
+                "迁移旧版调课记录"
+              );
+              clearLegacyAdjustments(schoolId, userId);
+            }
+          }
+        }
+
         return { schedule, adjustments };
       }
       return { schedule: null, adjustments: [] };
@@ -106,59 +125,81 @@ export function useScheduleQuery() {
 }
 
 // ── Schedule Adjustments Hook ──────────────────────────────
+// 调课记录的单一数据源是 useScheduleQuery；本 Hook 只提供增删操作，避免两个 query 缓存不一致。
 export function useScheduleAdjustments(schedule: RawScheduleData | null) {
   const queryClient = useQueryClient();
+  const { data: scheduleData, refetch } = useScheduleQuery();
   const schoolId = useAuthStore((s) => s.schoolId);
   const userId = useAuthStore((s) => s.userId);
-  const hasHydrated = useAuthStore((s) => s._hasHydrated);
-  const key = queryKeys.scheduleAdjustments(schoolId, userId);
+  const scheduleKey = queryKeys.schedule(schoolId, userId);
 
-  const query = useQuery({
-    queryKey: key,
-    queryFn: async () => loadAdjustments(schoolId, userId),
-    enabled: hasHydrated,
-    staleTime: 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-  });
+  const adjustments = scheduleData?.adjustments ?? [];
 
-  const setCache = (next: Adjustment[]) => {
-    queryClient.setQueryData(key, next);
-    // 同步更新 useScheduleQuery 中的 adjustments，避免同一页面两个数据源不一致
-    queryClient.setQueryData(queryKeys.schedule(schoolId, userId), (old: { schedule: RawScheduleData | null; adjustments: Adjustment[] } | undefined) =>
+  type ScheduleCache = { schedule: RawScheduleData | null; adjustments: Adjustment[] } | undefined;
+
+  const getCachedAdjustments = (): Adjustment[] => {
+    const cached = queryClient.getQueryData<ScheduleCache>(scheduleKey);
+    return cached?.adjustments ?? [];
+  };
+
+  const setCacheAdjustments = (next: Adjustment[]) => {
+    queryClient.setQueryData(scheduleKey, (old: ScheduleCache) =>
       old ? { ...old, adjustments: next } : undefined
     );
+  };
+
+  const persistAdjustments = async (next: Adjustment[]) => {
+    await saveLocally(
+      "data/adjustments.json",
+      JSON.stringify(next, null, 2),
+      "更新调课记录"
+    );
+    return next;
   };
 
   const addMutation = useMutation({
     mutationFn: async (draft: AdjustmentDraft) => {
       if (!schedule) throw new Error("课表未加载");
-      const current = (queryClient.getQueryData<Adjustment[]>(key) ?? loadAdjustments(schoolId, userId));
-      return addAdjustment(schedule, current, draft, schoolId, userId);
+      const current = getCachedAdjustments();
+      const next = addAdjustment(schedule, current, draft);
+      await persistAdjustments(next);
+      return next;
     },
-    onSuccess: setCache,
+    onSuccess: (next) => {
+      setCacheAdjustments(next);
+      queryClient.invalidateQueries({ queryKey: scheduleKey });
+    },
   });
 
   const removeMutation = useMutation({
     mutationFn: async (id: string) => {
-      const current = (queryClient.getQueryData<Adjustment[]>(key) ?? loadAdjustments(schoolId, userId));
-      return removeAdjustment(current, id, schoolId, userId);
+      const current = getCachedAdjustments();
+      const next = removeAdjustment(current, id);
+      await persistAdjustments(next);
+      return next;
     },
-    onSuccess: setCache,
+    onSuccess: (next) => {
+      setCacheAdjustments(next);
+      queryClient.invalidateQueries({ queryKey: scheduleKey });
+    },
   });
 
   const clearMutation = useMutation({
     mutationFn: async () => {
-      clearAdjustments(schoolId, userId);
+      await persistAdjustments([]);
       return [] as Adjustment[];
     },
-    onSuccess: setCache,
+    onSuccess: () => {
+      setCacheAdjustments([]);
+      queryClient.invalidateQueries({ queryKey: scheduleKey });
+    },
   });
 
   return {
-    adjustments: query.data ?? [],
-    isLoading: query.isLoading,
-    error: query.error as Error | null,
-    reload: () => query.refetch(),
+    adjustments,
+    isLoading: false,
+    error: null,
+    reload: refetch,
     add: addMutation.mutateAsync,
     remove: removeMutation.mutateAsync,
     clear: clearMutation.mutateAsync,

@@ -2,9 +2,10 @@
  * 河北农业大学 — 成绩 + GPA (5.0 满绩)
  */
 
-import type { GradeCourse, GradeResult } from "../types";
-import * as https from "https";
 import * as http from "http";
+import * as https from "https";
+
+import type { GradeCourse, GradeResult } from "../types";
 
 const URP_URL = "http://urp.hebau.edu.cn:1009";
 
@@ -48,7 +49,7 @@ function urpReq(path: string, cookie: string, body: string): Promise<{ statusCod
   });
 }
 
-export async function fetchAllGrades(cookie: string, username: string): Promise<GradeResult> {
+export async function fetchAllGrades(cookie: string, _username: string): Promise<GradeResult> {
   const allCourses: GradeCourse[] = [];
   const y = new Date().getFullYear();
   for (let yr = y - 4; yr <= y; yr++) {

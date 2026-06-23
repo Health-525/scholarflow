@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import type { Adjustment } from "@/lib/schedule/adjustments";
+import type { Adjustment, AdjustmentDraft } from "@/lib/schedule/adjustments";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
 import { courseColor } from "@/lib/schedule/course-color";
 import { getNextCourse } from "@/lib/schedule/next-course";
@@ -19,9 +19,16 @@ import { CourseDrawer } from "./CourseDrawer";
 interface TodayViewProps {
   schedule: RawScheduleData;
   adjustments: Adjustment[];
+  onAddAdjustment?: (draft: AdjustmentDraft) => Promise<unknown>;
+  onRemoveAdjustment?: (id: string) => Promise<unknown>;
 }
 
-export function TodayView({ schedule, adjustments }: TodayViewProps) {
+export function TodayView({
+  schedule,
+  adjustments,
+  onAddAdjustment,
+  onRemoveAdjustment,
+}: TodayViewProps) {
   const [selectedItem, setSelectedItem] = useState<DayItem | null>(null);
   const tz = schedule.meta.tz || "Asia/Shanghai";
 
@@ -168,6 +175,8 @@ export function TodayView({ schedule, adjustments }: TodayViewProps) {
         schedule={schedule}
         adjustments={adjustments}
         onClose={() => setSelectedItem(null)}
+        onAddAdjustment={onAddAdjustment}
+        onRemoveAdjustment={onRemoveAdjustment}
       />
     </div>
   );

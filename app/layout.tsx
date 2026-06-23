@@ -64,13 +64,17 @@ export default async function RootLayout({
       className={cn(geistSans.variable)}
     >
       <head>
-        {/* 萌系大标题字体(站酷快乐体)— Google Fonts;加载不出则回退黑体,不影响功能 */}
+        {/* 萌系大标题字体(站酷快乐体)— Google Fonts;加载不出则回退黑体,不影响功能
+            App Router 下使用 <link> 加载第三方字体是已知模式,此处为特殊中文字体,
+            next/font/google 未覆盖该字体,故保留 link 方式。 */}
+        {/* eslint-disable @next/next/no-page-custom-font */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap"
           rel="stylesheet"
         />
+        {/* eslint-enable @next/next/no-page-custom-font */}
 
         {/* iOS / PWA */}
         <meta name="apple-mobile-web-app-capable" content="yes" />

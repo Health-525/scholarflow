@@ -1,5 +1,6 @@
 export { AboutCard } from "./AboutCard";
 export { AccountSecuritySection } from "./AccountSecuritySection";
+export { AiConfigSection } from "./AiConfigSection";
 export { DataExportSection } from "./DataExportSection";
 export { DataRefreshSection } from "./DataRefreshSection";
 export { InfoRow } from "./InfoRow";

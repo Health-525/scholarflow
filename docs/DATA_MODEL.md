@@ -38,12 +38,22 @@ CREATE TABLE data_store (
 CREATE TABLE credentials (
   school_id       TEXT    NOT NULL,
   user_id         TEXT    NOT NULL,
-  credential_data TEXT    NOT NULL,  -- JSON，含 cookie/token（当前明文）
+  credential_data TEXT    NOT NULL,  -- JSON，含 cookie/token（已加密存储在本地）
   expires_at      INTEGER,           -- 凭证过期时间戳（毫秒），NULL 表示不过期
   created_at      INTEGER NOT NULL,
   PRIMARY KEY (school_id, user_id)
 );
 ```
+
+**记住密码与本地加密**
+
+当用户在登录页启用「记住密码」时，密码会额外保存到 `data_store` 中：
+
+| Key 格式 | 数据内容 | 说明 |
+|---|---|---|
+| `credential-password:<schoolId>:<userId>` | `{ password: "<encrypted>" }` | AES-256-GCM 加密后的密码，供 cookie 过期后静默重登使用 |
+
+加密密钥从本机特征值（hostname + username）经 scrypt 派生，并引入随机 salt，因此数据库文件被复制到其他机器后难以解密。未启用记住密码或用户登出时，该 key 会被删除。
 
 ### `schema_version` — 迁移版本
 

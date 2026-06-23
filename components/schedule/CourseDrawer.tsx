@@ -15,6 +15,7 @@ import { AdjustmentDialog } from "@/components/schedule/AdjustmentDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { showToast } from "@/components/ui/ToastContainer";
 import type {
   Adjustment,
   AdjustmentDraft,
@@ -38,8 +39,8 @@ interface CourseDrawerProps {
   schedule: RawScheduleData | null;
   adjustments: Adjustment[];
   onClose: () => void;
-  onAddAdjustment?: (draft: AdjustmentDraft) => Promise<void>;
-  onRemoveAdjustment?: (id: string) => Promise<void>;
+  onAddAdjustment?: (draft: AdjustmentDraft) => Promise<unknown>;
+  onRemoveAdjustment?: (id: string) => Promise<unknown>;
 }
 
 const FOCUSABLE_SELECTOR = [
@@ -163,23 +164,33 @@ export function CourseDrawer({
   const handleCancelThisClass = async () => {
     if (!schedule || !course || !onAddAdjustment) return;
     const weekNum = getWeekNumber(date, schedule.meta.week1_monday);
-    await onAddAdjustment({
-      type: "cancel",
-      sourceWeekday: course.weekday,
-      sourcePeriods: course.periods,
-      mode: "once",
-      startWeek: weekNum,
-      specificWeek: weekNum,
-    });
-    setCancelDialogOpen(false);
-    onClose();
+    try {
+      await onAddAdjustment({
+        type: "cancel",
+        sourceWeekday: course.weekday,
+        sourcePeriods: course.periods,
+        mode: "once",
+        startWeek: weekNum,
+        specificWeek: weekNum,
+      });
+      setCancelDialogOpen(false);
+      onClose();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "取消课程失败";
+      showToast("error", message);
+    }
   };
 
   const handleRemoveAdjustment = async () => {
     if (!activeAdj || !onRemoveAdjustment) return;
-    await onRemoveAdjustment(activeAdj.id);
-    setRemoveDialogOpen(false);
-    onClose();
+    try {
+      await onRemoveAdjustment(activeAdj.id);
+      setRemoveDialogOpen(false);
+      onClose();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "撤销调课失败";
+      showToast("error", message);
+    }
   };
 
   if (!item || !colors) return null;

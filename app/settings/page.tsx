@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SettingsSection } from "@/components/ui/settings-section";
 import { showToast } from "@/components/ui/ToastContainer";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import {
   useScheduleQuery,
   useAssignmentsQuery,
@@ -24,7 +25,6 @@ import {
   buildWeekICS,
   downloadICS,
 } from "@/lib/export";
-import { useIsMobile } from "@/hooks/useIsMobile";
 import { isElectron } from "@/lib/runtime-env";
 import { applySkin, getSkin, setSkin, type SkinValue } from "@/lib/skin";
 import { useAuthStore } from "@/store/auth";
@@ -33,6 +33,7 @@ import { useThemeStore } from "@/store/theme";
 import {
   AboutCard,
   AccountSecuritySection,
+  AiConfigSection,
   DataExportSection,
   DataRefreshSection,
   StorageInfoCard,
@@ -240,6 +241,8 @@ export default function SettingsPage() {
       />
 
       <ThemeSection theme={theme} onChange={setTheme} />
+
+      <AiConfigSection />
 
       {isMobile && (
         <SettingsSection icon={<Palette className="w-4 h-4" />} title="配色">

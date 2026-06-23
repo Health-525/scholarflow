@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Adjustment, AdjustmentDraft, AdjustmentMode } from "@/lib/schedule/adjustments";
-import { findConflicts } from "@/lib/schedule/adjustments";
+import { findConflicts, hasSourceConflict } from "@/lib/schedule/adjustments";
 import { getWeekNumber } from "@/lib/schedule/schedule";
 import type { CourseView, RawScheduleData, Weekday } from "@/lib/schedule/schedule";
 
@@ -86,22 +86,23 @@ export function AdjustmentDialog({
   }, [schedule, targetWeekday, targetPeriods, sourceItem]);
 
   const hasDuplicate = useMemo(() => {
-    return adjustments.some(
-      (adj) =>
-        adj.type === "move" &&
-        adj.sourceWeekday === sourceItem.weekday &&
-        arraysEqual(adj.sourcePeriods, sourceItem.periods) &&
-        adj.mode === mode &&
-        (mode === "once"
-          ? (adj.specificWeek ?? adj.startWeek) === targetWeek &&
-            (adj.sourceSpecificWeek ?? adj.specificWeek ?? adj.startWeek) === sourceWeek
-          : adj.startWeek === targetWeek)
-    );
-  }, [adjustments, sourceItem, mode, targetWeek, sourceWeek]);
+    const draft: AdjustmentDraft = {
+      type: "move",
+      sourceWeekday: sourceItem.weekday,
+      sourcePeriods: sourceItem.periods,
+      targetWeekday,
+      targetPeriods,
+      mode,
+      startWeek: targetWeek,
+      specificWeek: mode === "once" ? targetWeek : undefined,
+      sourceSpecificWeek: mode === "once" ? sourceWeek : undefined,
+    };
+    return hasSourceConflict(adjustments, draft);
+  }, [adjustments, sourceItem, targetWeekday, targetPeriods, mode, targetWeek, sourceWeek]);
 
   const maxStartPeriod = 10 - sourceLen + 1;
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (targetPeriods.length !== sourceLen) {
       setError("目标节次超出范围");
       return;
@@ -115,7 +116,7 @@ export function AdjustmentDialog({
       return;
     }
     if (hasDuplicate) {
-      setError("该课程在目标周次已有相同调课记录");
+      setError("该课程在相同生效范围内已有调课记录，请先撤销现有调课");
       return;
     }
 
@@ -132,8 +133,12 @@ export function AdjustmentDialog({
     };
 
     setError(null);
-    onConfirm(draft);
-    onOpenChange(false);
+    try {
+      await onConfirm(draft);
+      onOpenChange(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "保存失败，请重试");
+    }
   };
 
   return (

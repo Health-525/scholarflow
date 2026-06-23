@@ -5,6 +5,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { showToast } from "@/components/ui/ToastContainer";
 import type {
   Adjustment,
   AdjustmentDraft,
@@ -32,9 +33,9 @@ const HEADER_H = 40;
 interface WeekGridProps {
   schedule: RawScheduleData;
   adjustments: Adjustment[];
-  onAddAdjustment: (draft: AdjustmentDraft) => Promise<Adjustment[]>;
-  onRemoveAdjustment: (id: string) => Promise<Adjustment[]>;
-  onClearAdjustments: () => Promise<Adjustment[]>;
+  onAddAdjustment: (draft: AdjustmentDraft) => Promise<unknown>;
+  onRemoveAdjustment: (id: string) => Promise<unknown>;
+  onClearAdjustments: () => Promise<unknown>;
 }
 
 interface CourseBlock {
@@ -209,9 +210,14 @@ export function WeekGrid({
 
   const handleDialogConfirm = useCallback(
     async (draft: AdjustmentDraft) => {
-      await onAddAdjustment(draft);
-      setDialogOpen(false);
-      setDialogItem(null);
+      try {
+        await onAddAdjustment(draft);
+        setDialogOpen(false);
+        setDialogItem(null);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "调课保存失败";
+        showToast("error", message);
+      }
     },
     [onAddAdjustment],
   );

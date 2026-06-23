@@ -131,7 +131,12 @@ export default function SchedulePage() {
         {schedule && !isLoading && !error && (
           <div className="animate-fade-up">
             {activeTab === "today" && (
-              <TodayView schedule={schedule} adjustments={adjustments} />
+              <TodayView
+                schedule={schedule}
+                adjustments={adjustments}
+                onAddAdjustment={addAdjustment}
+                onRemoveAdjustment={removeAdjustment}
+              />
             )}
             {activeTab === "week" && (
               <WeekGrid
@@ -143,7 +148,12 @@ export default function SchedulePage() {
               />
             )}
             {activeTab === "query" && (
-              <QueryView schedule={schedule} adjustments={adjustments} />
+              <QueryView
+                schedule={schedule}
+                adjustments={adjustments}
+                onAddAdjustment={addAdjustment}
+                onRemoveAdjustment={removeAdjustment}
+              />
             )}
           </div>
         )}

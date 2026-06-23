@@ -48,6 +48,7 @@ export function Mascot({
   }
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src="/mascot/ximi.png"
       alt={alt}

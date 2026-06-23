@@ -74,7 +74,7 @@ export const SIDE_NAV_GROUPS: NavGroupConfig[] = [
 export const SIDE_NAV_SETTINGS: NavItemConfig = {
   id: "settings",
   href: "/settings",
-  label: "用户中心",
+  label: "设置",
   icon: Settings,
   keywords: ["设置", "配置"],
   searchTitle: "设置",

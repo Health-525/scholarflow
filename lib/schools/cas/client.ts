@@ -7,8 +7,8 @@
 
 import * as crypto from "crypto";
 import * as fs from "fs";
-import * as https from "https";
 import * as http from "http";
+import * as https from "https";
 
 export interface CasSession {
   sessionCookie: string;
