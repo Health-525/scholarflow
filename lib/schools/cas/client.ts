@@ -6,7 +6,6 @@
  */
 
 import * as crypto from "crypto";
-import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
 
@@ -67,7 +66,6 @@ function httpRequest(url: string, opts?: {
     const req = t.request({
       hostname: u.hostname, port: u.port || (u.protocol === "https:" ? 443 : 80),
       path: u.pathname + u.search, method, headers: hdrs,
-      rejectUnauthorized: process.env.SCHOLARFLOW_INSECURE_TLS !== "1",
     }, (res) => {
       if (followRedirect && res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && maxRedirects > 0) {
         const merged = new Map(reqCookies);
@@ -120,33 +118,6 @@ function encryptPassword(pwd: string, salt: string): string {
 // ── CAS 登录 ─────────────────────────────────────────────────
 
 export async function casLogin(casBaseUrl: string, targetBaseUrl: string, username: string, password: string): Promise<CasSession> {
-  const traceId = crypto.randomUUID();
-  const reportDebug = (hypothesisId: string, msg: string, data: Record<string, unknown>) => {
-    if (process.env.SCHOLARFLOW_CAS_DEBUG !== "1") {
-      return;
-    }
-    let debugUrl = "http://127.0.0.1:7777/event";
-    let sessionId = "hebau-cas-login";
-    try {
-      const envText = fs.readFileSync(".dbg/hebau-cas-login.env", "utf8");
-      debugUrl = envText.match(/DEBUG_SERVER_URL=(.+)/)?.[1]?.trim() || debugUrl;
-      sessionId = envText.match(/DEBUG_SESSION_ID=(.+)/)?.[1]?.trim() || sessionId;
-    } catch {}
-    fetch(debugUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId,
-        runId: "pre-fix",
-        hypothesisId,
-        traceId,
-        location: "lib/schools/cas/client.ts",
-        msg: `[DEBUG] ${msg}`,
-        data,
-        ts: Date.now(),
-      }),
-    }).catch(() => {});
-  };
   const serviceUrl = targetBaseUrl + "/jwapp/sys/homeapp/index.do";
 
   // Step 1: 获取登录页
@@ -155,15 +126,6 @@ export async function casLogin(casBaseUrl: string, targetBaseUrl: string, userna
   const execution = execM?.[1] || "";
   const saltM = lp.body.match(/id="pwdEncryptSalt"\s+value="([^"]*)"/);
   const salt = saltM?.[1] || "";
-  reportDebug("A", "cas login page parsed", {
-    statusCode: lp.statusCode,
-    traceId,
-    hasExecution: Boolean(execution),
-    saltLength: salt.length,
-    cookieNames: [...lp.cookies.keys()],
-    hasCaptchaKeyword: /captcha|验证码/i.test(lp.body),
-    hasAuthErrorKeyword: /error|认证失败|账号|密码/i.test(lp.body),
-  });
   if (!execution) throw new Error("无法获取 CAS execution");
 
   const cookies = new Map(lp.cookies);
@@ -183,17 +145,6 @@ export async function casLogin(casBaseUrl: string, targetBaseUrl: string, userna
     body,
     followRedirect: false,
   });
-  reportDebug("B", "cas login response received", {
-    statusCode: loginResp.statusCode,
-    traceId,
-    locationHeader: typeof loginResp.headers.location === "string" ? loginResp.headers.location.slice(0, 200) : "",
-    cookieNames: [...loginResp.cookies.keys()],
-    bodyHasPwdEncryptSalt: loginResp.body.includes("pwdEncryptSalt"),
-    bodyHasReauthCheck: /reAuthCheck/i.test(loginResp.body),
-    bodyHasCaptchaKeyword: /captcha|验证码/i.test(loginResp.body),
-    bodyHasAuthErrorKeyword: /error|失败|密码|账号|认证/i.test(loginResp.body),
-    bodySnippet: loginResp.body.slice(0, 500),
-  });
 
   for (const [k, v] of loginResp.cookies) cookies.set(k, v);
 
@@ -205,23 +156,9 @@ export async function casLogin(casBaseUrl: string, targetBaseUrl: string, userna
   // Step 3: 处理重定向 — 如果是 reAuthCheck，尝试绕过
   const loc = loginResp.headers["location"] as string | undefined;
   if (loc) {
-    reportDebug("C", "cas redirect branch entered", {
-      traceId,
-      locationHeader: loc.slice(0, 200),
-      rewrittenForReauth: false,
-    });
     const finalResp = await httpRequest(loc, {
       headers: { Cookie: cookiesToHeader(cookies) },
       followRedirect: true,
-    });
-    reportDebug("C", "cas redirect chain completed", {
-      statusCode: finalResp.statusCode,
-      traceId,
-      cookieNames: [...finalResp.cookies.keys()],
-      hasGsSessionId: finalResp.cookies.has("GS_SESSIONID"),
-      bodyHasPwdEncryptSalt: finalResp.body.includes("pwdEncryptSalt"),
-      bodyHasAuthErrorKeyword: /error|失败|密码|账号|认证/i.test(finalResp.body),
-      bodySnippet: finalResp.body.slice(0, 500),
     });
     for (const [k, v] of finalResp.cookies) cookies.set(k, v);
   }
@@ -230,15 +167,6 @@ export async function casLogin(casBaseUrl: string, targetBaseUrl: string, userna
   const urpResp = await httpRequest(serviceUrl, {
     headers: { Cookie: cookiesToHeader(cookies) },
     followRedirect: true,
-  });
-  reportDebug("D", "urp landing response received", {
-    statusCode: urpResp.statusCode,
-    traceId,
-    cookieNames: [...urpResp.cookies.keys()],
-    hasGsSessionId: urpResp.cookies.has("GS_SESSIONID"),
-    bodyHasPwdEncryptSalt: urpResp.body.includes("pwdEncryptSalt"),
-    bodyHasHomeKeyword: /homeapp|我的应用|jwapp/i.test(urpResp.body),
-    bodySnippet: urpResp.body.slice(0, 500),
   });
   for (const [k, v] of urpResp.cookies) cookies.set(k, v);
 

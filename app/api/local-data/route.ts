@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { resolveUserId } from "@/lib/account-prefix";
+import { resolveAuthorizedAccount } from "@/lib/auth/account-access";
 import { getAuthorizedAccount, getAuthorizedSchoolId } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getDashboardSummary } from "@/lib/dashboard/summary";
@@ -34,8 +34,13 @@ export async function GET(request: Request) {
   const { type, schoolId: schoolIdParam, userId: userIdParam, date, slug } = parse.data;
 
   const db = getServerDB();
-  const account = getAuthorizedAccount({ schoolId: schoolIdParam, userId: userIdParam }, db);
-  const schoolId = getAuthorizedSchoolId(schoolIdParam, db);
+  const needsExplicitAccount = type === "credentials" || !!userIdParam?.trim();
+  const account = needsExplicitAccount
+    ? resolveAuthorizedAccount(request, db, { schoolId: schoolIdParam, userId: userIdParam })
+    : getAuthorizedAccount({ schoolId: schoolIdParam, userId: userIdParam }, db);
+  const schoolId = needsExplicitAccount
+    ? account?.schoolId ?? null
+    : getAuthorizedSchoolId(schoolIdParam, db);
 
   if (!account || !schoolId) {
     return forbiddenResponse({ error: "unauthorized account access" });
@@ -129,10 +134,7 @@ export async function GET(request: Request) {
     }
 
     case "credentials": {
-      // userId 单独解析:显式提供则用之，否则回退有效凭证的 userId，再否则默认
-      const userId = userIdParam && userIdParam.trim()
-        ? resolveUserId(userIdParam)
-        : account.userId;
+      const userId = account.userId;
       const creds = db.getCredentials(schoolId, userId);
       return NextResponse.json(creds || {});
     }

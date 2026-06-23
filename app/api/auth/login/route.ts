@@ -3,10 +3,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { resolveUserId } from "@/lib/account-prefix";
+import { clearLoginRateLimit, getLoginRateLimit, recordLoginFailure } from "@/lib/auth/login-rate-limit";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { setRememberSetting } from "@/lib/auto-refresh/state";
-import { encryptPassword } from "@/lib/crypto-password";
-import { HEBEAU_MFA_REQUIRED_PREFIX } from "@/lib/schools/hebau/mfa";
+import { deleteHebauMfaChallenge, HEBEAU_MFA_REQUIRED_PREFIX } from "@/lib/schools/hebau/mfa";
 import { getAdapter } from "@/lib/schools/registry";
 import { getServerDB } from "@/lib/server-db";
 
@@ -16,18 +16,37 @@ const loginBodySchema = z.object({
   remember: z.boolean().optional(),
 });
 
+function getLoginStage(credentials: Record<string, string>): "password" | "mfa" {
+  return credentials.challengeId && credentials.dynamicCode ? "mfa" : "password";
+}
+
+function getRateLimitMessage(stage: "password" | "mfa"): string {
+  return stage === "mfa" ? "验证码尝试过多，请稍后再试" : "登录尝试过多，请稍后再试";
+}
+
+function shouldCountFailure(stage: "password" | "mfa", message: string): boolean {
+  if (/超时|网络|请求|发送验证码失败|暂不支持/.test(message)) return false;
+  if (stage === "mfa") {
+    if (/已过期|会话已失效/.test(message)) return false;
+    return /验证码|动态码|校验失败|账号不匹配/.test(message);
+  }
+  return /密码|账号|认证/.test(message);
+}
+
 /**
  * POST /api/auth/login
  * 学校登录验证 → 保存教务凭证 → 记录「记住密码」偏好与本次手动登录时间 → 返回 session 信息
  *
- * 记住密码时，密码同时通过两条路径保存：
- * 1. Electron safeStorage（OS 级加密）→ 供主进程调度器使用
- * 2. 服务端 SQLite credential-password key → 供 Web 前端手动刷新时 /api/fetch/all 静默重登
+ * 记住密码仅通过 Electron safeStorage（OS 级加密）保存，
+ * 服务端 SQLite 不再落盘密码，避免本地数据库泄露后恢复明文密码。
  */
 export async function POST(request: Request) {
   if (!isTrustedOrigin(request, { allowInternalToken: true })) {
     return forbiddenResponse();
   }
+
+  let schoolId = "";
+  let credentials: Record<string, string> = {};
 
 
   try {
@@ -35,7 +54,20 @@ export async function POST(request: Request) {
     if (!parse.success) {
       return NextResponse.json({ error: "invalid input", issues: parse.error.issues }, { status: 400 });
     }
-    const { schoolId, credentials, remember } = parse.data;
+    ({ schoolId, credentials } = parse.data);
+    const { remember } = parse.data;
+    const userId = resolveUserId(credentials.username);
+    const stage = getLoginStage(credentials);
+    const rateLimit = getLoginRateLimit(stage, schoolId, userId);
+    if (rateLimit.limited) {
+      if (stage === "mfa" && credentials.challengeId) {
+        deleteHebauMfaChallenge(credentials.challengeId);
+      }
+      return NextResponse.json(
+        { error: getRateLimitMessage(stage), retryAfter: rateLimit.retryAfterSec },
+        { status: 429 }
+      );
+    }
 
     const adapter = getAdapter(schoolId);
     if (!adapter) {
@@ -44,37 +76,37 @@ export async function POST(request: Request) {
 
     // 登录验证
     const session = await adapter.login(credentials);
+    clearLoginRateLimit(stage, schoolId, userId);
+    clearLoginRateLimit("password", schoolId, userId);
+    clearLoginRateLimit("mfa", schoolId, userId);
 
     // 保存教务凭证到 SQLite(不含明文密码)
     const db = getServerDB();
-    const userId = resolveUserId(credentials.username);
-    db.saveCredentials(schoolId, userId, session.data, session.expiresAt);
+    const confirmedUserId = resolveUserId(session.data.username || credentials.username);
+    db.saveCredentials(schoolId, confirmedUserId, session.data, session.expiresAt);
 
     // 记录「记住密码」偏好与本次手动登录时间。
     // remember===true 时启用记住密码;否则关闭。lastManualLoginAt 始终更新为本次登录时间。
-    setRememberSetting(schoolId, userId, {
+    setRememberSetting(schoolId, confirmedUserId, {
       enabled: !!remember,
       lastManualLoginAt: Date.now(),
     });
 
-    // 记住密码时，将密码存入服务端 DB，供 /api/fetch/all 在 cookie 过期后静默重登。
-    // 密码仅存在本地 SQLite 文件中，不会上传到任何远程服务器。
-    const password = credentials.password;
-    if (remember && password) {
-      db.writeData(`credential-password:${schoolId}:${userId}`, { password: encryptPassword(password) });
-    } else {
-      db.deleteData(`credential-password:${schoolId}:${userId}`);
-    }
+    // 服务端不再保存记住的密码；若历史版本留下过本地密码缓存，这里顺手清理。
+    db.deleteData(`credential-password:${schoolId}:${confirmedUserId}`);
 
     return NextResponse.json({
       ok: true,
       schoolId: session.schoolId,
-      userId,
+      userId: confirmedUserId,
       expiresAt: session.expiresAt,
     });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
+    const userId = resolveUserId(credentials.username);
+    const stage = getLoginStage(credentials);
     if (message.startsWith(HEBEAU_MFA_REQUIRED_PREFIX)) {
+      clearLoginRateLimit("password", schoolId, userId);
       const [, payload = ""] = message.split(HEBEAU_MFA_REQUIRED_PREFIX);
       const [challengeId = "", maskedTarget = ""] = payload.split("::");
       return NextResponse.json({
@@ -83,6 +115,15 @@ export async function POST(request: Request) {
         maskedTarget,
         method: "sms",
       });
+    }
+    if (schoolId && userId && shouldCountFailure(stage, message)) {
+      recordLoginFailure(stage, schoolId, userId);
+      if (stage === "mfa" && credentials.challengeId) {
+        const updatedRateLimit = getLoginRateLimit(stage, schoolId, userId);
+        if (updatedRateLimit.limited) {
+          deleteHebauMfaChallenge(credentials.challengeId);
+        }
+      }
     }
     return NextResponse.json({ error: message }, { status: 500 });
   }
