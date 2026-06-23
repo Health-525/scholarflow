@@ -80,6 +80,10 @@ export default function ActivityPage() {
   // totalMinutes 仅包含 app segments 的时长，idle/away 已单独统计
   const activeMinutes = Math.max(0, totalMinutes);
   const hasData = totalMinutes > 0 || state.idleMinutes > 0 || state.awayMinutes > 0;
+  const [appsExpanded, setAppsExpanded] = useState(false);
+  const displayedApps = appsExpanded
+    ? state.appBreakdown
+    : state.appBreakdown.slice(0, 10);
 
   const statusColor = useMemo(() => {
     if (state.currentApp === "系统空闲") return semanticColor("warning");
@@ -295,13 +299,16 @@ export default function ActivityPage() {
             <CardTitle>应用排行 ({state.appBreakdown.length})</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {state.appBreakdown.map((b) => {
+            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+              {displayedApps.map((b) => {
                 const pct = Math.round(
                   (b.minutes / Math.max(activeMinutes, 1)) * 100
                 );
                 const category = b.category || "other";
-                const catColor = semanticColor(CATEGORY_SEMANTIC[category]);
+                const isUncategorized = category === "other";
+                const catColor = isUncategorized
+                  ? semanticColor("info")
+                  : semanticColor(CATEGORY_SEMANTIC[category]);
                 return (
                   <div key={b.app} className="space-y-1.5">
                     <div className="flex items-center gap-3 text-xs">
@@ -319,7 +326,7 @@ export default function ActivityPage() {
                           color: catColor,
                         }}
                       >
-                        {CATEGORY_LABELS[category]}
+                        {isUncategorized ? "未分类" : CATEGORY_LABELS[category]}
                       </Badge>
                       <div className="flex-1" />
                       <span className="tabular-nums text-muted-foreground">
@@ -339,6 +346,16 @@ export default function ActivityPage() {
                 );
               })}
             </div>
+            {state.appBreakdown.length > 10 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full mt-3 h-8 text-xs"
+                onClick={() => setAppsExpanded((v) => !v)}
+              >
+                {appsExpanded ? "收起" : `展开全部 (${state.appBreakdown.length})`}
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}

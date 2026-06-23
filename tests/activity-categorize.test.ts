@@ -43,9 +43,45 @@ describe("activity-categorize", () => {
     expect(result.category).toBe("system");
   });
 
-  it("未知应用 → other", () => {
-    const result = categorizeActivity("SomeRandomApp", "Unknown Window");
-    expect(result.app).toBe("SomeRandomApp");
+  it("未知应用保留原始名，category 为 other", () => {
+    const result = categorizeActivity("MyUnknownTool", "Some Window");
+    expect(result.app).toBe("MyUnknownTool");
     expect(result.category).toBe("other");
+  });
+
+  it("VS Code Insiders → coding，app 名为 VS Code", () => {
+    const result = categorizeActivity("Visual Studio Code - Insiders", "project - Visual Studio Code - Insiders");
+    expect(result.app).toBe("VS Code");
+    expect(result.category).toBe("coding");
+  });
+
+  it("Cursor → coding，app 名为 Cursor", () => {
+    const result = categorizeActivity("Cursor", "main.ts - Cursor");
+    expect(result.app).toBe("Cursor");
+    expect(result.category).toBe("coding");
+  });
+
+  it("钉钉 → communication，app 名为钉钉", () => {
+    const result = categorizeActivity("钉钉", "工作通知 - 钉钉");
+    expect(result.app).toBe("钉钉");
+    expect(result.category).toBe("communication");
+  });
+
+  it("QQ → communication，app 名为 QQ", () => {
+    const result = categorizeActivity("QQ", "QQ");
+    expect(result.app).toBe("QQ");
+    expect(result.category).toBe("communication");
+  });
+
+  it("Photoshop → study，app 名为 Photoshop", () => {
+    const result = categorizeActivity("Adobe Photoshop", "Untitled - Photoshop");
+    expect(result.app).toBe("Photoshop");
+    expect(result.category).toBe("study");
+  });
+
+  it("文件资源管理器 → system，app 名为文件管理", () => {
+    const result = categorizeActivity("文件资源管理器", "下载");
+    expect(result.app).toBe("文件管理");
+    expect(result.category).toBe("system");
   });
 });

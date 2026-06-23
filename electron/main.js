@@ -29,7 +29,7 @@ process.on('unhandledRejection', (reason) => {
 });
 
 
-const PORT = process.env.ELECTRON_DEV ? 3000 : 3456;
+const PORT = process.env.PORT ? Number(process.env.PORT) : (process.env.ELECTRON_DEV ? 3000 : 3456);
 const APP_URL = `http://localhost:${PORT}`;
 const IS_DEV = !!process.env.ELECTRON_DEV;
 

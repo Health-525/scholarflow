@@ -205,7 +205,7 @@ function buildState(
     const minutes = Math.round(duration / 60000);
     if (minutes <= 0) continue;
 
-    const app = s.app || "其他";
+    const app = s.app || "未知应用";
     const category = (s.category || "other") as Category;
 
     if (appMap[app]) {

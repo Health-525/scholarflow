@@ -30,7 +30,7 @@
 
 ## Skill 使用约定
 
-项目根目录 `skills/` 下已下载 465+ 个 SKILL.md，覆盖 UI/UX、前端、测试、安全、性能、数据库、API 设计等领域。
+项目根目录 `skills/` 下已下载 465+ 个 SKILL.md，覆盖 UI/UX、前端、测试、安全、性能、数据库、API 设计等领域。`mattpocock/skills` 已迁移至 Kimi 项目级 skill 目录。
 
 **Agent 在执行相关任务时，应主动读取并遵循对应 skill 的规范。** 常用 skill 映射如下：
 
@@ -43,9 +43,10 @@
 | 安全审计 | `skills/awesome-claude-code-toolkit/skills/security-hardening/`、`skills/agent-skills/skills/security-and-hardening/` |
 | 性能优化 | `skills/awesome-claude-code-toolkit/skills/performance-optimization/`、`skills/agent-skills/skills/performance-optimization/` |
 | API 设计 / 数据库 | `skills/awesome-claude-code-toolkit/skills/api-design-patterns/`、`skills/awesome-claude-code-toolkit/skills/database-optimization/` |
-| 工程流程 / Git / CI-CD | `skills/awesome-claude-code-toolkit/skills/git-advanced/`、`skills/mattpocock-skills/skills/` |
+| 工程流程 / Git / CI-CD | `skills/awesome-claude-code-toolkit/skills/git-advanced/` |
+| 工程流程（Kimi 自动注册） | `.kimi-code/skills/mattpocock-skills/skills/` |
 
-> 注意：当前 kimi-code 不会自动扫描 `skills/` 目录注册 skill。Agent 应在需要时通过 `Read` 主动读取对应 SKILL.md，并将其原则融入执行过程。
+> 注意：`scholarflow/skills/` 目录不会被 kimi-code 自动扫描注册；Kimi 项目级 skill 请使用 `.kimi-code/skills/` 路径。Agent 仍可通过 `Read` 主动读取任一目录下的 SKILL.md。
 
 ## 通用执行原则
 
