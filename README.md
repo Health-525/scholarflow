@@ -64,8 +64,8 @@
 ScholarFlow 把这些全部收束到一个应用里：
 
 ```
-教务系统                    图书馆                      个人工具
-(课表/考试/成绩)    +    (座位/预约/消息)    +    (作业/笔记/番茄钟/日报)
+教务系统                    个人工具
+(课表/考试/成绩)    +    (作业/笔记/番茄钟/日报/屏幕时间)
                               │
                               ▼
                      ScholarFlow 工作台
@@ -117,12 +117,11 @@ ScholarFlow 把这些全部收束到一个应用里：
 |---|---|---|---|
 | 课表 / 成绩 / 考试同步 | ✅ 完整 | ✅ 支持 | ⚡ 实验性 |
 | 作业 / 目标 / 番茄钟 / 笔记 | ✅ 完整 | ✅ 支持 | ⚡ 实验性 |
-| 图书馆预约与 JWT 刷新 | ✅ 完整 | ⚠️ 浏览器限制 | ⚡ 实验性 |
 | 本地安全加密存储 | ✅ 系统级 | ⚠️ 部分 | ⚠️ 部分 |
-| AI 学习助手 | ✅ 完整 | ✅ 支持 | ⚡ 实验性 |
+| AI 学习助手（周报生成） | ✅ 完整 | ✅ 支持 | ⚡ 实验性 |
 | 活动窗口统计 | ✅ 完整 | ❌ 不支持 | ❌ 不支持 |
 | 后台自动刷新 | ✅ 完整 | ❌ 不支持 | ❌ 不支持 |
-| 萌系小咪皮肤 | 桌面端 UI | 自适应 | 🐱 萌系 UI |
+| 萌系小咪皮肤 | 默认主题色 | Web 自适应 | 🐱 萌系 UI |
 
 > 桌面版是主力形态，Web / PWA 是补充形态，Android 为实验性支持。
 
@@ -145,12 +144,12 @@ git clone https://github.com/Health-525/scholarflow.git && cd scholarflow && npm
 | `npm run dev` | 启动 Web 开发服务器 |
 | `npm run abi:node && npm run electron:dev` | 启动 Electron 开发环境 |
 | `npm run electron:hot:win` | Windows 热加载模式（Next.js + Electron 同时启动） |
-| `npm run electron:hot:win` 前可设 `PORT=3002` | 指定 Next.js dev 端口（默认 3000） |
+| `npm run electron:hot:win` 前可设 `PORT=3002` | 开发模式下指定 Next.js dev 端口（默认 3000） |
 | `npm run typecheck` | TypeScript 类型检查 |
 | `npm run lint` | ESLint 代码规范检查 |
 | `npm test` | Vitest 单元测试 |
 | `npm run check` | 一键全检（typecheck + lint + test） |
-| `npm run electron:build` | 构建 Windows 安装包 |
+| `npm run electron:build` | 构建 Windows 安装包与便携包 |
 
 ## 功能总览
 
@@ -179,8 +178,8 @@ git clone https://github.com/Health-525/scholarflow.git && cd scholarflow && npm
       <p>考试安排管理与<strong>倒计时提醒</strong></p>
     </td>
     <td>
-      <h4>📚 图书馆</h4>
-      <p>阅览室实时状态、座位预约、暂离/取消、<strong>馆内消息</strong></p>
+      <h4>🤖 AI 学习助手</h4>
+      <p>基于 DeepSeek 的周报生成与学习数据<strong>智能总结</strong></p>
     </td>
   </tr>
   <tr>
@@ -203,25 +202,25 @@ git clone https://github.com/Health-525/scholarflow.git && cd scholarflow && npm
       <p>学习数据沉淀，<strong>趋势回顾与复盘</strong></p>
     </td>
     <td>
-      <h4>🤖 AI 学习助手</h4>
-      <p>内置大模型对话，支持<strong>整理笔记、生成小测、检查作业</strong></p>
+      <h4>⚙️ 设置 / 学校适配</h4>
+      <p>多学校适配器配置、账号安全、<strong>主题与数据管理</strong></p>
     </td>
     <td>
       <h4>📱 屏幕时间</h4>
-      <p>秒级前台窗口检测，覆盖 90+ 应用分类，未知应用保留真实名称，<strong>支持 CSV 导出</strong></p>
+      <p>秒级前台窗口检测，90+ 应用识别规则，未知应用保留真实名称，<strong>支持 CSV 导出</strong></p>
     </td>
   </tr>
 </table>
 
 ## 移动端皮肤
 
-ScholarFlow 为移动端量身打造了专属的 **「小咪」萌系皮肤**，与桌面端完全隔离：
+ScholarFlow 为移动端量身打造了专属的 **「小咪」萌系皮肤**：
 
-- **运行时隔离** — 桌面端与移动端 UI 完全独立，互不加载对方代码
-- **零开销** — 移动端组件通过 `React.lazy` 懒加载，桌面端打包体积不受影响
+- **核心页面适配** — 首页、课表已通过 `React.lazy` 懒加载移动专属 UI
+- **零开销** — 移动组件懒加载，桌面端打包体积不受影响
 - **M3 设计系统** — 粉色 Material-3 主题，支持粉 / 青双配色切换
 - **小咪吉祥物** — 专属 Mascot 组件，带流畅动画效果
-- **专属页面** — 首页、课表等核心页面均有移动端定制 UI
+- **桌面主题** — 桌面端默认采用小咪主题色，完整萌系 UI 在移动端呈现
 
 ## 技术栈
 
@@ -265,11 +264,10 @@ ScholarFlow 为移动端量身打造了专属的 **「小咪」萌系皮肤**，
 
 ## 学校支持
 
-| 适配器 | 学校 | 教务 | 图书馆 | 状态 |
-|:---|:---|---|---|:---:|
-| `njtech` | 南京工业大学 | ✅ | ✅ | 已支持 |
-| `hebau` | 河北农业大学 | ✅ | — | 已支持 |
-| `mock` | 本地开发 / 调试 | 🧪 | 🧪 | 测试用 |
+| 适配器 | 学校 | 教务 | 状态 |
+|:---|:---|:---:|:---:|
+| `njtech` | 南京工业大学 | ✅ | 已支持 |
+| `hebau` | 河北农业大学 | ✅ | 已支持 |
 
 > 💡 **想接入你的学校？** 只需实现 `SchoolAdapter` 接口。详见 [学校接入指南 →](docs/school-adapter-guide.md)
 
@@ -314,12 +312,12 @@ ScholarFlow is a **local-first campus study workspace** that deeply integrates a
 
 **Why ScholarFlow:**
 - 🔒 **Data sovereignty** — AES-256-GCM encrypted credentials. Study data in local SQLite. Zero tracking.
-- 🧩 **Complete workflow** — Schedule, grades, library, assignments, notes, pomodoro, AI assistant, reports.
+- 🧩 **Complete workflow** — Schedule, grades, assignments, notes, pomodoro, AI assistant, reports.
 - 🖥️ **Desktop-native** — Electron with secure storage, background refresh, activity tracking, auto-update.
 - 🔌 **Extensible** — `SchoolAdapter` pattern. NJTech and HEBau already integrated.
 - 📱 **Multi-platform** — Desktop (primary), Web/PWA, Android with a unique cute mobile skin.
 
-**Features:** Dashboard · Schedule · Assignments · Exams · GPA · Library (seat reservation) · Notes (Markdown) · Pomodoro · Running/Goals · Daily/Weekly Reports · AI Assistant (OpenRouter/Ollama) · Screen Time (second-level activity tracking with 90+ app categories & CSV export) · Settings · Mobile Ximi Skin
+**Features:** Dashboard · Schedule · Assignments · Exams · GPA · Notes (Markdown) · Pomodoro · Running/Goals · Daily/Weekly Reports · AI Assistant (DeepSeek-powered weekly report) · Screen Time (second-level activity tracking with 90+ app recognition rules & CSV export) · Settings · Mobile Ximi Skin
 
 **Platforms:** Electron desktop (full), Web/PWA (complementary), Android/Capacitor (experimental).
 
