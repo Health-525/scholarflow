@@ -141,7 +141,7 @@ function getElectronVersion() {
 }
 
 /**
- * 确保 node_modules/better-sqlite3 的原生 .node 是针对 Electron 运行时 ABI 编译的。
+ * 确保指定目录下 better-sqlite3 的原生 .node 是针对 Electron 运行时 ABI 编译的。
  *
  * 关键：standalone server 由 Electron 二进制（ELECTRON_RUN_AS_NODE）运行，使用 Electron 的
  * ABI（如 Electron 42 = NODE_MODULE_VERSION 146），而非系统 Node 的 ABI（137）。
@@ -149,17 +149,31 @@ function getElectronVersion() {
  * 加载报 "compiled against a different Node.js version"。此处用 prebuild-install 拉取
  * 与 Electron 版本匹配的预编译二进制（无需本地 C++ 编译器）。
  */
-function ensureElectronAbiBinary(src) {
-  console.log('[postbuild] 为 better-sqlite3 对齐 Electron ABI ...');
+function ensureElectronAbiBinary(targetDir) {
+  console.log(`[postbuild] 为 better-sqlite3 对齐 Electron ABI: ${path.relative(root, targetDir)} ...`);
   const { execFileSync } = require('child_process');
   try {
     execFileSync(
       process.execPath,
-      [path.join(root, 'scripts', 'switch-abi.js'), 'electron'],
+      [path.join(root, 'scripts', 'switch-abi.js'), 'electron', '--dir', targetDir],
       { cwd: root, stdio: 'inherit' }
     );
   } catch (e) {
     console.log('[postbuild] WARNING: ABI 对齐失败,打包产物可能 ABI 不匹配:', e.message);
+  }
+}
+
+function ensureNodeAbiBinary(targetDir) {
+  console.log(`[postbuild] 为 better-sqlite3 对齐系统 Node ABI（源目录）: ${path.relative(root, targetDir)} ...`);
+  const { execFileSync } = require('child_process');
+  try {
+    execFileSync(
+      process.execPath,
+      [path.join(root, 'scripts', 'switch-abi.js'), 'node', '--dir', targetDir],
+      { cwd: root, stdio: 'inherit' }
+    );
+  } catch (e) {
+    console.log('[postbuild] WARNING: 源目录 ABI 对齐失败:', e.message);
   }
 }
 
@@ -170,8 +184,10 @@ function ensureBetterSqlite3() {
     return;
   }
 
-  // 复制进 standalone 之前，先把源目录的 .node 对齐到 Electron ABI
-  ensureElectronAbiBinary(src);
+  // 关键：next build 需要系统 Node ABI；打包产物需要 Electron ABI。
+  // 先确保源目录是 Node ABI，复制后再把 standalone 副本单独切到 Electron ABI，
+  // 避免构建阶段因 ABI 不匹配而失败。
+  ensureNodeAbiBinary(src);
 
   const targets = [path.join(standaloneDir, 'node_modules', 'better-sqlite3')];
   const sfDir = path.join(standaloneDir, 'scholarflow');
@@ -181,6 +197,7 @@ function ensureBetterSqlite3() {
 
   for (const dest of targets) {
     copyPackage(src, dest);
+    ensureElectronAbiBinary(dest);
     console.log(`[postbuild] 已复制 better-sqlite3（含原生 .node）→ ${path.relative(root, dest)}`);
   }
 }

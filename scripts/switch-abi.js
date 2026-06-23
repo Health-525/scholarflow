@@ -15,7 +15,11 @@ const path = require("path");
 const { execFileSync } = require("child_process");
 
 const target = (process.argv[2] || "node").toLowerCase();
-const bsqDir = path.join(__dirname, "..", "node_modules", "better-sqlite3");
+const customDirFlag = process.argv.indexOf("--dir");
+const bsqDir =
+  customDirFlag !== -1 && process.argv[customDirFlag + 1]
+    ? path.resolve(process.argv[customDirFlag + 1])
+    : path.join(__dirname, "..", "node_modules", "better-sqlite3");
 const npx = process.platform === "win32" ? "npx.cmd" : "npx";
 
 function getElectronVersion() {
@@ -34,10 +38,10 @@ if (target === "electron") {
     process.exit(0); // 不阻断打包链
   }
   args = ["--yes", "prebuild-install", "-r", "electron", "-t", v];
-  console.log(`[switch-abi] better-sqlite3 → Electron ${v} ABI`);
+  console.log(`[switch-abi] better-sqlite3 → Electron ${v} ABI (${bsqDir})`);
 } else {
   args = ["--yes", "prebuild-install", "-r", "node"];
-  console.log("[switch-abi] better-sqlite3 → 系统 Node ABI");
+  console.log(`[switch-abi] better-sqlite3 → 系统 Node ABI (${bsqDir})`);
 }
 
 try {

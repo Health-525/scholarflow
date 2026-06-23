@@ -528,12 +528,9 @@ function setupAutoUpdater() {
 
 // ── 主流程 ──────────────────────────────────────────────────
 app.whenReady().then(async () => {
-  setupSecureTokenIPC();
-  setupSecureCredentialIPC();
-  setupAuthStateIPC();
-
-  // Dev 模式下未启动 standalone server，需自己确保内部 token 存在，
-  // 供 activity-tracker HTTP fallback 与 auto-refresh 调度器使用。
+  // 无论 dev/prod，都提前确保内部 token 存在：
+  // - prod: launchServer 会把它传给 standalone server；
+  // - dev: 供 activity-tracker HTTP fallback 与 auto-refresh 调度器使用。
   if (!globalThis.__scholarflowInternalToken) {
     const dataDir = resolveStableDataDir(process.env, app);
     fs.mkdirSync(dataDir, { recursive: true });
@@ -541,6 +538,10 @@ app.whenReady().then(async () => {
     globalThis.__scholarflowInternalToken = token;
     process.env.SCHOLARFLOW_INTERNAL_TOKEN = token;
   }
+
+  setupSecureTokenIPC();
+  setupSecureCredentialIPC();
+  setupAuthStateIPC();
 
   activityTracker = createActivityTracker({
     sendToRenderer,
