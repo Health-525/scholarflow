@@ -19,10 +19,6 @@ interface ElectronAPI {
   encryptAndStoreToken: (token: string) => Promise<boolean>;
   retrieveToken: () => Promise<string | null>;
   clearToken: () => Promise<boolean>;
-  libraryRefreshJWT: () => Promise<{ ok: boolean; expiry?: string; error?: string; message?: string }>;
-  libraryLogin: () => Promise<{ ok: boolean; message?: string }>;
-  onLibraryJWTExpired: (callback: () => void) => () => void;
-  onLibraryJWTRefreshed: (callback: (data: { ok: boolean; expiry?: string }) => void) => () => void;
   getActiveWindow: () => Promise<{ title: string; app: string; timestamp: number } | null>;
   onActiveWindowChanged: (callback: (info: { title: string; app: string; timestamp: number }) => void) => () => void;
   updateCheck: () => Promise<{ currentVersion: string; latestVersion: string | null; error?: string }>;

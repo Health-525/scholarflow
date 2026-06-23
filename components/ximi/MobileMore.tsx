@@ -2,7 +2,7 @@
 
 import {
   Activity, BarChart3, BookOpen, Brain, Bell, Calculator, Clock, Code,
-  ChevronRight, FileText, HeartPulse, Info, Library, LogOut,
+  ChevronRight, FileText, HeartPulse, Info, LogOut,
   Monitor, Newspaper, Palette, Pencil, Settings, Shirt, Sparkles, Store,
   Target, Timer, TrendingUp, User,
 } from "lucide-react";
@@ -40,7 +40,6 @@ const FEATURE_GROUPS = [
     label: "知识",
     items: [
       { href: "/notes", label: "笔记", Icon: FileText },
-      { href: "/library", label: "图书馆", Icon: Library },
       { href: "/chat", label: "AI 助手", Icon: Brain },
       { href: "/schedule", label: "课表", Icon: BookOpen },
     ],

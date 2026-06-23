@@ -25,33 +25,6 @@ export function statusColor(pct: number): string {
   return dark ? "#3fb950" : "#22c55e";
 }
 
-// ── Library reserve status colors ──
-export interface ReserveStatusStyle {
-  label: string;
-  color: string;
-  bg: string;
-}
-
-export function getReserveStatusMap(): Record<number, ReserveStatusStyle> {
-  const dark = isDarkMode();
-  if (dark) {
-    return {
-      1: { label: "已预约", color: "#7c8edb", bg: "rgba(124,142,219,0.14)" },
-      2: { label: "使用中", color: "#3fb950", bg: "rgba(63,185,80,0.14)" },
-      3: { label: "已签退", color: "#8b949e", bg: "rgba(139,148,158,0.10)" },
-      4: { label: "已取消", color: "#f85149", bg: "rgba(248,81,73,0.14)" },
-      5: { label: "已超时", color: "#d29922", bg: "rgba(210,153,34,0.14)" },
-    };
-  }
-  return {
-    1: { label: "已预约", color: "#3b82f6", bg: "rgba(59,130,246,0.10)" },
-    2: { label: "使用中", color: "#22c55e", bg: "rgba(34,197,94,0.10)" },
-    3: { label: "已签退", color: "#94a3b8", bg: "rgba(148,163,184,0.10)" },
-    4: { label: "已取消", color: "#ef4444", bg: "rgba(239,68,68,0.10)" },
-    5: { label: "已超时", color: "#f59e0b", bg: "rgba(245,158,11,0.10)" },
-  };
-}
-
 // ── GPA score range colors ──
 export interface ScoreRange {
   label: string;
