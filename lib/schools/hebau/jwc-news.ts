@@ -134,5 +134,5 @@ export async function fetchJwcNews(existingItems: NewsItem[] = []): Promise<News
   ];
 
   merged.sort((a, b) => b.date.localeCompare(a.date));
-  return merged;
+  return merged.slice(0, 5);
 }

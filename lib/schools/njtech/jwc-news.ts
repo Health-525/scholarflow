@@ -138,7 +138,7 @@ export async function fetchJwcNews(
   }
 
   if (allItems.length > 0) {
-    // Merge with existing, deduplicate by URL
+    // Merge with existing, deduplicate by URL, keep latest 5
     const merged = [
       ...allItems,
       ...existingItems.filter(
@@ -146,7 +146,7 @@ export async function fetchJwcNews(
       ),
     ];
     merged.sort((a, b) => b.date.localeCompare(a.date));
-    return merged;
+    return merged.slice(0, 5);
   }
 
   // No new items — return existing
