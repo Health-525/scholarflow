@@ -174,7 +174,7 @@ export default function DailyReportsPage() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed md:static inset-y-0 left-0 z-50 w-60 bg-background/80 backdrop-blur-xl border-r border-border/30 transform transition-transform duration-200 ease-out md:translate-x-0",
+          "fixed md:static inset-y-0 left-0 z-50 w-72 bg-background/80 backdrop-blur-xl border-r border-border/30 transform transition-transform duration-200 ease-out md:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

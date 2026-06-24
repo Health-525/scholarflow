@@ -20,26 +20,26 @@ function CustomCaption() {
   const currentMonth = months[0]?.date;
 
   return (
-    <div className="flex items-center justify-between px-1">
+    <div className="flex items-center justify-between px-1 mb-2">
       <button
         type="button"
         className={cn(
           buttonVariants({ variant: "ghost" }),
-          "h-7 w-7 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          "h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-lg"
         )}
         disabled={!previousMonth}
         onClick={() => previousMonth && goToMonth(previousMonth)}
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
-      <span className="text-sm font-semibold text-foreground">
+      <span className="text-sm font-semibold text-foreground tabular-nums">
         {currentMonth ? `${currentMonth.getFullYear()}年${currentMonth.getMonth() + 1}月` : ""}
       </span>
       <button
         type="button"
         className={cn(
           buttonVariants({ variant: "ghost" }),
-          "h-7 w-7 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          "h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-lg"
         )}
         disabled={!nextMonth}
         onClick={() => nextMonth && goToMonth(nextMonth)}
