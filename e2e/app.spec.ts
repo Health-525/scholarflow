@@ -106,7 +106,7 @@ test.describe('日报页面', () => {
     await page.goto('/reports/daily?date=2026-06-21');
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     // 页面标题应显示 6 月 21 日
-    await expect(page.locator('main h1')).toContainText('6月21日');
+    await expect(page.getByRole('heading', { name: '6月21日' })).toBeVisible();
   });
 });
 
