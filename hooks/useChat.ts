@@ -83,9 +83,9 @@ export function useChat() {
   }, []);
 
   // Check Ollama status
-  const checkOllama = useCallback(async () => {
+  const checkOllama = useCallback(async (signal: AbortSignal) => {
     try {
-      const res = await fetch("/api/chat");
+      const res = await fetch("/api/chat", { signal });
       if (res.ok) {
         const data = await res.json();
         setOllamaOnline(data.online);
@@ -101,7 +101,8 @@ export function useChat() {
         const data = await res.json();
         setError(data.error || "Ollama 服务离线");
       }
-    } catch {
+    } catch (err) {
+      if (signal.aborted) return;
       setOllamaOnline(false);
       setError("无法连接到 Ollama 服务");
     }
@@ -110,7 +111,9 @@ export function useChat() {
   // Web/桌面探测 Ollama；原生平台无 /api/chat，改为订阅端侧模型加载状态。
   useEffect(() => {
     if (isNative) return subscribeModel(setModelState);
-    checkOllama();
+    const abort = new AbortController();
+    checkOllama(abort.signal);
+    return () => abort.abort();
   }, [checkOllama, isNative]);
 
   // Auto-scroll to bottom

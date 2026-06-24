@@ -2,14 +2,14 @@
 
 import { Monitor } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { cardClasses } from "@/components/ui/card";
 import { useScreenTime } from "@/lib/activity-tracker-v3";
 import { cn } from "@/lib/utils";
 
-export function ScreenTimeCard() {
+export const ScreenTimeCard = memo(function ScreenTimeCard() {
   const state = useScreenTime();
   const [mounted, setMounted] = useState(false);
 
@@ -49,4 +49,4 @@ export function ScreenTimeCard() {
       </div>
     </Link>
   );
-}
+});

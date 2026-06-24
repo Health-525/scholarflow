@@ -141,7 +141,7 @@ export default function DailyReportsPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex overflow-hidden animate-page">
+    <div className="h-[calc(100vh-4rem)] flex overflow-hidden">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <button

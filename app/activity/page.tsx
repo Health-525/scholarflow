@@ -110,7 +110,7 @@ export default function ActivityPage() {
 
   if (!state.isElectron) {
     return (
-      <div className="max-w-5xl mx-auto pb-24 md:pb-0 animate-page">
+      <div className="max-w-5xl mx-auto pb-24 md:pb-0">
         <PageHeader
           icon={<Monitor className="w-5 h-5 text-primary" />}
           title="屏幕时间"
@@ -133,7 +133,7 @@ export default function ActivityPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto pb-24 md:pb-0 animate-page">
+    <div className="max-w-5xl mx-auto pb-24 md:pb-0">
       <PageHeader
         icon={<Monitor className="w-5 h-5 text-primary" />}
         title="屏幕时间"
@@ -256,6 +256,7 @@ export default function ActivityPage() {
                     minWidth: c.minutes > 0 ? 3 : 0,
                   }}
                   title={`${CATEGORY_LABELS[c.category]}: ${c.minutes}分钟`}
+                  aria-label={`${CATEGORY_LABELS[c.category]} ${c.minutes}分钟，占比 ${Math.round((c.minutes / Math.max(activeMinutes, 1)) * 100)}%`}
                 />
               ))}
             </div>
@@ -289,10 +290,10 @@ export default function ActivityPage() {
                       </span>
                     </Badge>
                     <div className="flex-1" />
-                    <span className="font-medium tabular-nums text-muted-foreground">
+                    <span className="font-medium tabular-nums text-foreground">
                       {c.minutes}分
                     </span>
-                    <span className="w-12 text-right tabular-nums text-muted-foreground/70">
+                    <span className="w-12 text-right tabular-nums text-muted-foreground">
                       {pct}%
                     </span>
                   </div>
@@ -336,7 +337,7 @@ export default function ActivityPage() {
                       </span>
                       <Badge
                         variant="outline"
-                        className="text-[10px] h-4 px-1.5 font-normal"
+                        className="text-[11px] h-4 px-1.5 font-normal"
                         style={{
                           borderColor: catColor,
                           color: catColor,
@@ -348,7 +349,7 @@ export default function ActivityPage() {
                       <span className="tabular-nums text-muted-foreground">
                         {formatAppDuration(b.seconds)}
                       </span>
-                      <span className="w-10 text-right tabular-nums text-muted-foreground/70">
+                      <span className="w-10 text-right tabular-nums text-muted-foreground">
                         {pct}%
                       </span>
                     </div>
@@ -356,6 +357,7 @@ export default function ActivityPage() {
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{ width: `${pct}%`, background: catColor }}
+                        aria-label={`${b.app} ${formatAppDuration(b.seconds)}，占比 ${pct}%`}
                       />
                     </div>
                   </div>

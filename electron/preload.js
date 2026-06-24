@@ -7,20 +7,19 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("electronAPI", {
   isElectron: true,
 
-  // ── Internal API Token (用于同源请求的 403 防护) ──
-  getInternalToken: () => ipcRenderer.invoke("internal-token:get"),
-
   // ── Token 安全存储 ──
+  // 注意：内部 API token 不再暴露给 renderer，改由主进程 webRequest 拦截器
+  // 自动附加到本地 /api/* 请求，避免 renderer XSS 读取 token。
   encryptAndStoreToken: (token) =>
     ipcRenderer.invoke("token:encrypt-store", token),
   retrieveToken: () => ipcRenderer.invoke("token:retrieve"),
   clearToken: () => ipcRenderer.invoke("token:clear"),
 
   // ── 凭证(教务密码)安全存储 — local-first-sync 记住密码 ──
+  // 仅保留写入入口（登录/记住密码时使用）；读取入口保留在主进程内部，
+  // 由 auto-refresh 调度器直接使用，避免 renderer XSS 读取明文密码。
   /** 加密存储教务密码(safeStorage) */
   storeCredential: (plaintext) => ipcRenderer.invoke("credential:store", plaintext),
-  /** 读取并解密教务密码,失败/不存在返回 null */
-  retrieveCredential: () => ipcRenderer.invoke("credential:retrieve"),
   /** 清除已记住的教务密码 */
   clearCredential: () => ipcRenderer.invoke("credential:clear"),
   /** 查询 OS 级加密是否可用 */

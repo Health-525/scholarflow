@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { resolveUserId } from "@/lib/account-prefix";
-import { resolveAuthorizedAccount } from "@/lib/auth/account-access";
+import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { schoolUsernameBodySchema } from "@/lib/schemas/fetch";
 import { getAdapter } from "@/lib/schools/registry";
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     }
 
     const db = getServerDB();
-    const targetAccount = resolveAuthorizedAccount(request, db, { schoolId, userId: username });
+    const targetAccount = getAuthorizedAccount({ schoolId, userId: username }, db);
     if (!targetAccount) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }

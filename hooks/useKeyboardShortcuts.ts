@@ -8,7 +8,7 @@ import { useSearchStore } from "@/store/search";
 /**
  * 全局键盘快捷键
  * - Ctrl/Cmd + 1-7: 导航到各页面
- * - Ctrl/Cmd + 8: 统计
+ * - Ctrl/Cmd + 8: AI 助手
  * - Ctrl/Cmd + K: 全局搜索
  */
 
@@ -41,7 +41,7 @@ export function useKeyboardShortcuts() {
       { key: "5", ctrl: true, action: () => router.push("/notes"), description: "笔记" },
       { key: "6", ctrl: true, action: () => router.push("/reports/daily"), description: "日报" },
       { key: "7", ctrl: true, action: () => router.push("/activity"), description: "屏幕时间" },
-      { key: "8", ctrl: true, action: () => router.push("/stats"), description: "统计" },
+      { key: "8", ctrl: true, action: () => router.push("/chat"), description: "AI 助手" },
     ];
 
     function handleKeyDown(e: KeyboardEvent) {

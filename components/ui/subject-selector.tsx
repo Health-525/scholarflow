@@ -11,6 +11,7 @@ interface SubjectSelectorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  "aria-labelledby"?: string;
 }
 
 export function SubjectSelector({
@@ -19,6 +20,7 @@ export function SubjectSelector({
   onChange,
   placeholder = "新建科目",
   className,
+  "aria-labelledby": ariaLabelledBy,
 }: SubjectSelectorProps) {
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState("");
@@ -47,7 +49,8 @@ export function SubjectSelector({
   return (
     <div
       role="group"
-      aria-label="科目"
+      aria-label={ariaLabelledBy ? undefined : "科目"}
+      aria-labelledby={ariaLabelledBy}
       className={cn("flex flex-wrap items-center gap-2", className)}
     >
       {subjects.map((s) => {

@@ -70,11 +70,11 @@ describe("isTrustedOrigin", () => {
     expect(isTrustedOrigin(request)).toBe(true);
   });
 
-  it("开发环境未配置 token 时放行", () => {
+  it("开发环境未配置 token 时拒绝", () => {
     vi.stubEnv("NODE_ENV", "development");
     delete process.env.SCHOLARFLOW_INTERNAL_TOKEN;
     const request = new Request("http://localhost:3000/api/test");
-    expect(isTrustedOrigin(request, { allowInternalToken: true })).toBe(true);
+    expect(isTrustedOrigin(request, { allowInternalToken: true })).toBe(false);
   });
 
   it("生产环境未配置 token 时拒绝", () => {

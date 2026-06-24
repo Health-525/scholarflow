@@ -43,7 +43,7 @@ interface ActivityStateInfo {
 
 interface ElectronAPI {
   isElectron: boolean;
-  getInternalToken: () => Promise<string | null>;
+  // 注意：内部 API token 不再暴露给 renderer，改由主进程 webRequest 拦截器自动附加。
   encryptAndStoreToken: (token: string) => Promise<boolean>;
   retrieveToken: () => Promise<string | null>;
   clearToken: () => Promise<boolean>;
@@ -55,9 +55,8 @@ interface ElectronAPI {
   onUpdateDownloaded: (callback: (info: { version: string }) => void) => () => void;
   onUpdateError: (callback: (err: { message: string }) => void) => () => void;
   setTitleBarOverlay: (options: { color?: string; symbolColor?: string; height?: number }) => Promise<boolean>;
-  // Local-first-sync credential APIs (exposed by preload, task 6.2)
+  // Local-first-sync credential APIs：仅暴露写入/清除给 renderer；读取保留在主进程内部。
   storeCredential?: (plaintext: string) => Promise<boolean>;
-  retrieveCredential?: () => Promise<string | null>;
   clearCredential?: () => Promise<boolean>;
   secureStorageAvailable?: () => Promise<boolean>;
   // Auth state secure storage (replaces plaintext localStorage sf_auth)

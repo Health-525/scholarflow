@@ -1,6 +1,7 @@
 "use client";
 
 import { RefreshCw } from "lucide-react";
+import { memo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { showToast } from "@/components/ui/ToastContainer";
@@ -18,7 +19,7 @@ import { useAuthStore } from "@/store/auth";
  *
  * Requirements: 2.1, 2.3, 2.4, 2.5, 2.6, 5.6
  */
-export function RefreshButton({ className }: { className?: string }) {
+export const RefreshButton = memo(function RefreshButton({ className }: { className?: string }) {
   const { schoolId, username } = useAuthStore((s) => s);
   const refreshData = useRefreshData();
   const isPending = refreshData.isPending;
@@ -56,13 +57,13 @@ export function RefreshButton({ className }: { className?: string }) {
       aria-busy={isPending}
       title={isPending ? "刷新中…" : "从教务系统刷新数据"}
       className={cn(
-        "rounded-[18px] backdrop-blur-xl bg-card/80 dark:bg-card/60",
+        "rounded-2xl backdrop-blur-xl bg-card/80 dark:bg-card/60",
         className
       )}
     >
       <RefreshCw className={cn("w-5 h-5 text-primary", isPending && "animate-spin")} />
     </Button>
   );
-}
+});
 
 export default RefreshButton;

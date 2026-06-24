@@ -1,13 +1,3 @@
-const withPWA = require("next-pwa")({
-  dest: "public",
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === "development",
-  fallbacks: {
-    document: "/offline",
-  },
-});
-
 const isMobile = process.env.BUILD_TARGET === "mobile";
 
 /** @type {import('next').NextConfig} */
@@ -19,4 +9,4 @@ const nextConfig = {
   serverExternalPackages: ["jsdom"],
 };
 
-module.exports = withPWA(nextConfig);
+module.exports = nextConfig;

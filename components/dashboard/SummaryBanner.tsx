@@ -1,7 +1,7 @@
 "use client";
 
 import { BookOpen, ClipboardList, Activity, Calculator } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { cardClasses } from "@/components/ui/card";
@@ -60,7 +60,7 @@ function AnimatedNumber({
   );
 }
 
-function StatMiniCard({
+const StatMiniCard = memo(function StatMiniCard({
   icon: Icon,
   label,
   value,
@@ -78,13 +78,10 @@ function StatMiniCard({
   badgeClass?: string;
 }) {
   return (
-    <div className={cn(cardClasses, "p-3 hover:-translate-y-1")}>
-      <div
-        className={`absolute -right-3 -top-3 w-20 h-20 rounded-full pointer-events-none opacity-[0.04] dark:opacity-[0.08] group-hover:opacity-[0.08] dark:group-hover:opacity-[0.14] transition-opacity duration-300 ${iconBgClass}`}
-      />
+    <div className={cn(cardClasses, "p-3")}>
       <div className="relative">
         <div
-          className={`w-[44px] h-[44px] rounded-xl flex items-center justify-center mb-3 transition-transform duration-200 group-hover:scale-110 ${iconBgClass}`}
+          className={`w-[44px] h-[44px] rounded-xl flex items-center justify-center mb-3 ${iconBgClass}`}
         >
           <Icon size={18} className={colorClass} />
         </div>
@@ -104,14 +101,14 @@ function StatMiniCard({
       </div>
     </div>
   );
-}
+});
 
 interface SummaryBannerProps {
   data: DashboardSummary | null;
   loading?: boolean;
 }
 
-export function SummaryBanner({ data, loading = true }: SummaryBannerProps) {
+export const SummaryBanner = memo(function SummaryBanner({ data, loading = true }: SummaryBannerProps) {
   if (loading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -257,4 +254,4 @@ export function SummaryBanner({ data, loading = true }: SummaryBannerProps) {
       ))}
     </div>
   );
-}
+});

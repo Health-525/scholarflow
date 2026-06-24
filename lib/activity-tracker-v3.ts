@@ -414,8 +414,9 @@ export async function downloadActivityCSV(): Promise<void> {
         if (seconds <= 0) continue;
         csv += `${dateStr},${app},${seconds}\n`;
       }
-    } catch {
-      // ignore per-day errors
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn("[activityTracker] export day failed:", err);
     }
   }
 

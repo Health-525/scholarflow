@@ -7,7 +7,7 @@ import { PomodoroTimer } from "@/components/pomodoro/PomodoroTimer";
 
 export default function PomodoroPage() {
   return (
-    <div className="max-w-5xl mx-auto py-6 animate-page">
+    <div className="max-w-5xl mx-auto py-6">
       <PageHeader
         icon={<Timer className="w-5 h-5 text-primary" />}
         title="番茄钟"

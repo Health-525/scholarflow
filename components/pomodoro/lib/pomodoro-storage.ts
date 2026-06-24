@@ -15,14 +15,19 @@ const LS_SESSIONS_KEY = "sf_pomodoro_sessions";
 const LS_SETTINGS_KEY = "sf_pomodoro_settings";
 const LS_TIMER_STATE_KEY = "sf_pomodoro_timer_state";
 
+function logStorageError(action: string, err: unknown) {
+  // eslint-disable-next-line no-console
+  console.error(`[pomodoro-storage] ${action} failed:`, err);
+}
+
 // ── Settings ─────────────────────────────────────────────────
 
 export function loadSettings(): PomodoroSettings {
   try {
     const raw = localStorage.getItem(LS_SETTINGS_KEY);
     if (raw) return { ...DEFAULTS, ...JSON.parse(raw) };
-  } catch {
-    /* ignore */
+  } catch (err) {
+    logStorageError("loadSettings", err);
   }
   return DEFAULTS;
 }
@@ -30,8 +35,8 @@ export function loadSettings(): PomodoroSettings {
 export function saveSettings(s: PomodoroSettings): void {
   try {
     localStorage.setItem(LS_SETTINGS_KEY, JSON.stringify(s));
-  } catch {
-    /* ignore */
+  } catch (err) {
+    logStorageError("saveSettings", err);
   }
 }
 
@@ -41,8 +46,8 @@ export function loadSessions(): PomodoroSession[] {
   try {
     const raw = localStorage.getItem(LS_SESSIONS_KEY);
     if (raw) return JSON.parse(raw);
-  } catch {
-    /* ignore */
+  } catch (err) {
+    logStorageError("loadSessions", err);
   }
   return [];
 }
@@ -52,8 +57,8 @@ export function saveSessions(sessions: PomodoroSession[]): void {
   const recent = sessions.filter((s) => s.startedAt > cutoff);
   try {
     localStorage.setItem(LS_SESSIONS_KEY, JSON.stringify(recent));
-  } catch {
-    /* ignore */
+  } catch (err) {
+    logStorageError("saveSessions", err);
   }
 }
 
@@ -63,8 +68,8 @@ export function persistTimerState(state: PomodoroState): void {
   if (state.phase === "idle") {
     try {
       localStorage.removeItem(LS_TIMER_STATE_KEY);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      logStorageError("persistTimerState/remove", err);
     }
     return;
   }
@@ -79,8 +84,8 @@ export function persistTimerState(state: PomodoroState): void {
   };
   try {
     localStorage.setItem(LS_TIMER_STATE_KEY, JSON.stringify(ts));
-  } catch {
-    /* ignore */
+  } catch (err) {
+    logStorageError("persistTimerState/save", err);
   }
 }
 
@@ -124,8 +129,8 @@ export function restoreTimerState(_settings: PomodoroSettings): {
         targetEndAt: null,
       };
     }
-  } catch {
-    /* ignore */
+  } catch (err) {
+    logStorageError("restoreTimerState", err);
   }
   return null;
 }

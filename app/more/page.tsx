@@ -22,6 +22,7 @@ import {
 import Link from "next/link";
 
 import { PageHeader } from "@/components/layout/PageHeader";
+import { APP_VERSION } from "@/lib/version";
 
 interface FeatureItem {
   href: string;
@@ -78,7 +79,7 @@ const EXTERNAL_LINKS: FeatureItem[] = [
 
 export default function MorePage() {
   return (
-    <div className="max-w-5xl mx-auto min-h-[60vh] px-4 py-6 animate-page">
+    <div className="max-w-5xl mx-auto min-h-[60vh] px-4 py-6">
       <PageHeader
         icon={<Sparkles className="w-5 h-5 text-primary" />}
         title="全部功能"
@@ -96,9 +97,9 @@ export default function MorePage() {
                 <Link
                   key={href}
                   href={href}
-                  className="group flex items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                  className="group flex items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/10"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
@@ -124,9 +125,10 @@ export default function MorePage() {
                 href={href}
                 target={href.startsWith("http") ? "_blank" : undefined}
                 rel={href.startsWith("http") ? "noreferrer" : undefined}
-                className="group flex items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                aria-label={`${title}${href.startsWith("http") ? "（在新窗口打开）" : ""}`}
+                className="group flex items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/10"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary/50 text-secondary-foreground transition group-hover:bg-secondary">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary/50 text-secondary-foreground">
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
@@ -141,7 +143,7 @@ export default function MorePage() {
         </section>
 
         <footer className="pt-4 text-center text-xs text-muted-foreground">
-          ScholarFlow v1.0.2 · 本地优先的校园学习工作台
+          {`ScholarFlow v${APP_VERSION} · 本地优先的校园学习工作台`}
         </footer>
       </div>
     </div>

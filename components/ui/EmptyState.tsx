@@ -15,7 +15,7 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (
-    <Card className="py-10 text-center items-center gap-3">
+    <Card role="status" aria-live="polite" className="py-10 text-center items-center gap-3">
       {Icon && (
         <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center">
           <Icon className="w-6 h-6 text-muted-foreground" />

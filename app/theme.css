@@ -37,8 +37,8 @@
 
   --text-primary: #1a1510;
   --text-secondary: rgba(26, 21, 16, 0.62);
-  --text-tertiary: rgba(26, 21, 16, 0.38);
-  --text-muted: rgba(26, 21, 16, 0.28);
+  --text-tertiary: rgba(26, 21, 16, 0.45);
+  --text-muted: rgba(26, 21, 16, 0.45);
 
   --border-subtle: #ece8e1;
   --border-strong: rgba(26, 21, 16, 0.2);
@@ -81,7 +81,6 @@
   --gpa-poor: #ef4444;
   --gpa-poor-rgb: 239, 68, 68;
 
-  --grain-opacity: 0.025;
   --bg-gradient:
     radial-gradient(
       ellipse 120% 80% at 15% -10%,
@@ -180,8 +179,8 @@
 
   --text-primary: #e8e8f0;
   --text-secondary: rgba(200, 200, 220, 0.62);
-  --text-tertiary: rgba(180, 180, 200, 0.42);
-  --text-muted: rgba(150, 150, 170, 0.32);
+  --text-tertiary: rgba(180, 180, 200, 0.55);
+  --text-muted: rgba(150, 150, 170, 0.55);
 
   --border-subtle: rgba(255, 255, 255, 0.05);
   --border-strong: rgba(255, 255, 255, 0.12);
@@ -224,7 +223,6 @@
   --gpa-poor: #f87171;
   --gpa-poor-rgb: 248, 113, 113;
 
-  --grain-opacity: 0.012;
   --bg-gradient:
     radial-gradient(
       ellipse 80% 60% at 5% 3%,

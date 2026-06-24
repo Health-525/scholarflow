@@ -16,6 +16,7 @@ interface DatePickerProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  id?: string;
 }
 
 export function DatePicker({
@@ -24,6 +25,7 @@ export function DatePicker({
   placeholder = "选择日期",
   disabled,
   className,
+  id,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
   const date = value ? new Date(value + "T00:00:00") : undefined;
@@ -53,6 +55,7 @@ export function DatePicker({
         )}
       >
         <input
+          id={id}
           readOnly
           value={displayText}
           placeholder={placeholder}
@@ -79,6 +82,7 @@ interface TimePickerProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  id?: string;
 }
 
 const TIME_GROUPS = [
@@ -116,6 +120,7 @@ export function TimePicker({
   placeholder = "选择时间",
   disabled,
   className,
+  id,
 }: TimePickerProps) {
   const [open, setOpen] = React.useState(false);
   const [manualValue, setManualValue] = React.useState(value || "");
@@ -145,6 +150,7 @@ export function TimePicker({
         )}
       >
         <input
+          id={id}
           readOnly
           value={value || placeholder}
           placeholder={placeholder}

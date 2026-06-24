@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, dialog, ipcMain, safeStorage, powerMonitor } = require('electron');
+const { app, BrowserWindow, shell, dialog, ipcMain, safeStorage, powerMonitor, session } = require('electron');
 
 const { fork } = require('child_process');
 const net = require('net');
@@ -90,6 +90,10 @@ function resolveStableDataDir(env, app) {
   if (env.PORTABLE_EXECUTABLE_DIR) {
     return path.join(env.PORTABLE_EXECUTABLE_DIR, 'ScholarFlowData');
   }
+  // 热重载开发态:server 与主进程都使用项目根目录 data/,确保 token 与数据库共享
+  if (env.ELECTRON_DEV) {
+    return path.join(process.cwd(), 'data');
+  }
   // 安装版:userData/data,位于 %APPDATA%,不被卸载/更新覆盖 (R2.4)
   return path.join(app.getPath('userData'), 'data');
 }
@@ -115,6 +119,34 @@ function getOrCreateInternalToken(dataDir) {
     fs.writeFileSync(tokenPath, token);
   }
   return token;
+}
+
+// ── 为 renderer 发起的本地 API 请求自动附加内部 token ────────
+// renderer 不再通过 preload 暴露 getInternalToken，避免 XSS 读取 token。
+// 主进程在请求离开 renderer 前自动附加 header，既保证 isTrustedOrigin 通过，
+// 又把 token 控制在主进程/网络层。
+function setupInternalTokenRequestInterceptor() {
+  const token = globalThis.__scholarflowInternalToken || process.env.SCHOLARFLOW_INTERNAL_TOKEN;
+  if (!token) {
+    logToFile('error', 'internal token not available, cannot setup request interceptor');
+    return;
+  }
+
+  const filter = {
+    urls: [
+      `http://localhost:${PORT}/api/*`,
+      `http://127.0.0.1:${PORT}/api/*`,
+    ],
+  };
+
+  session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
+    const headers = details.requestHeaders || {};
+    const existing = Object.keys(headers).find(k => k.toLowerCase() === INTERNAL_TOKEN_HEADER.toLowerCase());
+    if (!existing) {
+      headers[INTERNAL_TOKEN_HEADER] = token;
+    }
+    callback({ requestHeaders: headers });
+  });
 }
 
 // ── 启动 standalone server ──────────────────────────────────
@@ -235,9 +267,6 @@ function setupSecureTokenIPC() {
     return true;
   });
 
-  ipcMain.handle('internal-token:get', async () => {
-    return globalThis.__scholarflowInternalToken || null;
-  });
 }
 
 // ── 凭证存储路径(与图书馆 token 隔离)────────────────────────
@@ -246,11 +275,26 @@ function getCredentialStorePath() {
   return path.join(userDataPath, 'secure-credential.enc');
 }
 
-// ── IPC: 凭证(密码)加密存储与检索 ─────────────────────────
-// 独立于 token:* IPC,使用单独的 secure-credential.enc 文件,
-// 避免与图书馆 token 的 secure-token.enc 互相覆盖 (design §5, R3.3/3.4/3.6/4.2/9.5)
+// ── IPC: 凭证(密码)加密存储 ─────────────────────────────────
+// 仅暴露写入/清除入口给 renderer；读取入口保留在主进程内部
+// (retrieveCredentialPassword)，供 auto-refresh 调度器使用，避免 renderer XSS
+// 读取明文密码。
+// 使用单独的 secure-credential.enc 文件，避免与图书馆 token 的 secure-token.enc
+// 互相覆盖 (design §5, R3.3/3.4/3.6/4.2/9.5)
 function setupSecureCredentialIPC() {
-  ipcMain.handle('credential:store', async (_event, plaintext) => {
+  ipcMain.handle('credential:store', async (event, plaintext) => {
+    // 仅允许 /setup 页面调用存储密码，防止任意 renderer 页面通过 XSS 保存/覆盖密码。
+    const senderUrl = event.senderFrame?.url || event.sender?.getURL?.() || '';
+    try {
+      const { pathname } = new URL(senderUrl);
+      if (!pathname.startsWith('/setup')) {
+        logToFile('warn', `[credential:store] rejected from ${senderUrl}`);
+        throw new Error('禁止的调用来源');
+      }
+    } catch {
+      throw new Error('无法验证调用来源');
+    }
+
     if (!safeStorage.isEncryptionAvailable()) {
       throw new Error('系统加密不可用');
     }
@@ -258,19 +302,6 @@ function setupSecureCredentialIPC() {
     const buf = Buffer.from(encrypted).toString('base64');
     fs.writeFileSync(getCredentialStorePath(), buf, 'utf-8');
     return true;
-  });
-
-  ipcMain.handle('credential:retrieve', async () => {
-    const encPath = getCredentialStorePath();
-    if (!fs.existsSync(encPath)) return null;
-    if (!safeStorage.isEncryptionAvailable()) return null;
-    try {
-      const buf = fs.readFileSync(encPath, 'utf-8');
-      const encrypted = Buffer.from(buf, 'base64');
-      return safeStorage.decryptString(encrypted);
-    } catch {
-      return null;
-    }
   });
 
   ipcMain.handle('credential:clear', async () => {
@@ -535,6 +566,13 @@ app.whenReady().then(async () => {
     const dataDir = resolveStableDataDir(process.env, app);
     fs.mkdirSync(dataDir, { recursive: true });
     const token = getOrCreateInternalToken(dataDir);
+    if (!token) {
+      const msg = '无法生成内部调用 token，启动中止。请检查数据目录写入权限。';
+      logToFile('fatal', msg);
+      dialog.showErrorBox('ScholarFlow 启动失败', msg);
+      app.quit();
+      return;
+    }
     globalThis.__scholarflowInternalToken = token;
     process.env.SCHOLARFLOW_INTERNAL_TOKEN = token;
   }
@@ -563,6 +601,7 @@ app.whenReady().then(async () => {
       await waitForPort(PORT, 30000);
     }
     console.log('[SF] Ready, opening window');
+    setupInternalTokenRequestInterceptor();
     createWindow();
 
     // 本地优先:不再「启动即爬取」。改由 AutoRefreshScheduler 按抖动周期

@@ -43,7 +43,7 @@ export default function AssignmentsPage() {
   }, [assignments]);
 
   return (
-    <div className="max-w-3xl mx-auto min-h-screen bg-background text-foreground animate-page pb-24 md:pb-8">
+    <div className="max-w-3xl mx-auto min-h-screen bg-background text-foreground pb-24 md:pb-8">
       <PageHeader
         icon={<ClipboardList className="size-5 text-primary" />}
         title="作业"

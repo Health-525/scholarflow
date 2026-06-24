@@ -17,7 +17,7 @@ const SHORTCUTS: ShortcutItem[] = [
   { key: "Ctrl+5", description: "笔记", action: "/notes" },
   { key: "Ctrl+6", description: "日报", action: "/reports/daily" },
   { key: "Ctrl+7", description: "屏幕时间", action: "/activity" },
-  { key: "Ctrl+8", description: "统计", action: "/stats" },
+  { key: "Ctrl+8", description: "AI 助手", action: "/chat" },
   { key: "Ctrl+K", description: "全局搜索", action: "search" },
   { key: "?", description: "显示快捷键", action: "toggle" },
   { key: "Esc", description: "关闭弹窗", action: "close" },

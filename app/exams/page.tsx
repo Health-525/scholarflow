@@ -2,7 +2,6 @@
 
 import { Clock, RefreshCw, X } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
@@ -205,9 +204,11 @@ export default function ExamsPage() {
 
       pendingDeleteRef.current = { exam: target, timer };
 
-      toast(`已删除「${target.subject}」`, {
-        duration: 5000,
-        action: {
+      showToast(
+        "success",
+        `已删除「${target.subject}」`,
+        5000,
+        {
           label: "撤销",
           onClick: () => {
             if (pendingDeleteRef.current?.exam.id === target.id) {
@@ -220,8 +221,8 @@ export default function ExamsPage() {
               );
             }
           },
-        },
-      });
+        }
+      );
       return;
     }
 
@@ -284,7 +285,7 @@ export default function ExamsPage() {
   // ── 渲染 ─────────────────────────────────────────────────
 
   return (
-    <div className="max-w-2xl mx-auto min-h-screen bg-background text-foreground animate-page pb-24 md:pb-8">
+    <div className="max-w-2xl mx-auto min-h-screen bg-background text-foreground pb-24 md:pb-8">
       <PageHeader
         icon={<Clock className="size-5 text-primary" />}
         title="考试"

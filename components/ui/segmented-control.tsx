@@ -16,6 +16,9 @@ interface SegmentedControlProps {
   value: string;
   onChange: (id: string) => void;
   className?: string;
+  "aria-label"?: string;
+  "aria-labelledby"?: string;
+  panelIdPrefix?: string;
 }
 
 export function SegmentedControl({
@@ -23,10 +26,15 @@ export function SegmentedControl({
   value,
   onChange,
   className,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
+  panelIdPrefix = "segmented",
 }: SegmentedControlProps) {
   return (
     <div
       role="tablist"
+      aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledBy}
       className={cn("flex gap-1 p-1 rounded-xl bg-secondary", className)}
     >
       {options.map((opt) => {
@@ -37,6 +45,7 @@ export function SegmentedControl({
             type="button"
             role="tab"
             aria-selected={selected}
+            aria-controls={`${panelIdPrefix}-${opt.id}-panel`}
             variant="ghost"
             onClick={() => onChange(opt.id)}
             className={cn(

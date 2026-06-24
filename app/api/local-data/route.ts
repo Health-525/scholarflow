@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { resolveAuthorizedAccount } from "@/lib/auth/account-access";
-import { getAuthorizedAccount, getAuthorizedSchoolId } from "@/lib/auth/account-access";
+import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getDashboardSummary } from "@/lib/dashboard/summary";
 import { getServerDB } from "@/lib/server-db";
@@ -34,15 +33,9 @@ export async function GET(request: Request) {
   const { type, schoolId: schoolIdParam, userId: userIdParam, date, slug } = parse.data;
 
   const db = getServerDB();
-  const needsExplicitAccount = type === "credentials" || !!userIdParam?.trim();
-  const account = needsExplicitAccount
-    ? resolveAuthorizedAccount(request, db, { schoolId: schoolIdParam, userId: userIdParam })
-    : getAuthorizedAccount({ schoolId: schoolIdParam, userId: userIdParam }, db);
-  const schoolId = needsExplicitAccount
-    ? account?.schoolId ?? null
-    : getAuthorizedSchoolId(schoolIdParam, db);
+  const account = getAuthorizedAccount({ schoolId: schoolIdParam, userId: userIdParam }, db);
 
-  if (!account || !schoolId) {
+  if (!account) {
     return forbiddenResponse({ error: "unauthorized account access" });
   }
 
@@ -66,7 +59,7 @@ export async function GET(request: Request) {
 
     case "jwc-news":
       // 教务通知是全校共享的，按 schoolId 区分
-      return NextResponse.json(db.readData(`jwc-news:${schoolId}`) || []);
+      return NextResponse.json(db.readData(`jwc-news:${account.schoolId}`) || []);
 
     case "exams":
       return NextResponse.json(db.readData(`exams:${prefix}`) || []);
@@ -162,8 +155,7 @@ export async function GET(request: Request) {
     }
 
     case "credentials": {
-      const userId = account.userId;
-      const creds = db.getCredentials(schoolId, userId);
+      const creds = db.getCredentials(account.schoolId, account.userId);
       return NextResponse.json(creds || {});
     }
 

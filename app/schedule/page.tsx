@@ -56,7 +56,7 @@ export default function SchedulePage() {
   if (isMobile) {
     return (
       <ErrorBoundary>
-        <Suspense fallback={<div className="max-w-md mx-auto py-6 animate-page"><div className="h-96 rounded-2xl bg-card border border-border skeleton" /></div>}>
+        <Suspense fallback={<div className="max-w-md mx-auto py-6"><div className="h-96 rounded-2xl bg-card border border-border skeleton" /></div>}>
           <MobileSchedule
             schedule={schedule}
             adjustments={adjustments}
@@ -70,7 +70,7 @@ export default function SchedulePage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto min-h-screen bg-background text-foreground flex flex-col animate-page">
+    <div className="max-w-5xl mx-auto min-h-screen bg-background text-foreground flex flex-col">
       <PageHeader
         icon={<Calendar className="w-5 h-5 text-primary" />}
         title="课表"

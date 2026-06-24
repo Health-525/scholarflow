@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Clock } from "lucide-react";
 import Link from "next/link";
+import { memo } from "react";
 
 import { cardClasses } from "@/components/ui/card";
 import { queryKeys } from "@/hooks/useQueries";
@@ -97,7 +98,7 @@ async function fetchNextExam(): Promise<ExamCountdownResult> {
   return { nextExam: null, countdown: "" };
 }
 
-export function ExamCountdownCard() {
+export const ExamCountdownCard = memo(function ExamCountdownCard() {
   const { schoolId, userId } = useAuthStore((s) => s);
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.exams(schoolId, userId),
@@ -161,4 +162,4 @@ export function ExamCountdownCard() {
       </div>
     </Link>
   );
-}
+});

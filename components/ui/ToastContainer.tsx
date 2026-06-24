@@ -4,8 +4,16 @@ import { Toaster, toast } from "sonner";
 
 export type ToastType = "success" | "error" | "info" | "warning";
 
-export function showToast(type: ToastType, message: string, duration = 3000) {
-  const options = duration > 0 ? { duration } : { duration: Infinity };
+export function showToast(
+  type: ToastType,
+  message: string,
+  duration = 3000,
+  action?: { label: string; onClick: () => void }
+) {
+  const options = {
+    ...(duration > 0 ? { duration } : { duration: Infinity }),
+    ...(action ? { action } : {}),
+  };
   switch (type) {
     case "success":
       toast.success(message, options);

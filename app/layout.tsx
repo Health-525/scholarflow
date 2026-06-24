@@ -44,7 +44,6 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover", // iOS 安全区：启用后 env(safe-area-inset-*) 才非 0（灵动岛/刘海适配）
   themeColor: [
-    { media: "(max-width: 767px)", color: "#fef8fa" },
     { color: "#faf7f2" },
   ],
 };
@@ -65,11 +64,8 @@ export default async function RootLayout({
       className={cn(geistSans.variable)}
     >
       <head>
-        {/* CSP：Electron 环境允许本地资源与 DeepSeek API；开发模式 HMR 需要 unsafe-eval */}
-        <meta
-          httpEquiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:* https://api.deepseek.com; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
-        />
+        {/* CSP 由 middleware.ts 统一通过 HTTP Header 下发，此处不再重复设置 meta，
+            避免策略冲突或 meta 覆盖更严格的 header。 */}
 
         {/* 萌系大标题字体(站酷快乐体)— Google Fonts;加载不出则回退黑体,不影响功能
             App Router 下使用 <link> 加载第三方字体是已知模式,此处为特殊中文字体,
@@ -111,15 +107,18 @@ export default async function RootLayout({
                   var skin = localStorage.getItem('sf_skin');
                   if (skin !== 'blue' && skin !== 'ximi') skin = 'ximi';
                   document.documentElement.setAttribute('data-skin', skin);
-                  var isMobile = window.matchMedia('(max-width: 767px)').matches;
-                  if (isMobile) {
-                    document.documentElement.style.backgroundColor = skin === 'blue' ? '#f2faf8' : '#fef8fa';
-                  } else if (effective === 'dark') {
-                    document.documentElement.style.backgroundColor = '#171717';
+                  if (effective === 'dark') {
+                    document.documentElement.style.backgroundColor = '#0a0a0f';
                   } else {
                     document.documentElement.style.backgroundColor = '#f7f7f5';
                   }
-                } catch(e) {}
+                } catch(e) {
+                  // 主题初始化失败不应阻塞渲染，但开发环境应暴露问题。
+                  if (process.env.NODE_ENV === "development") {
+                    // eslint-disable-next-line no-console
+                    console.error("[ThemeInit] failed:", e);
+                  }
+                }
               })();
             `,
           }}

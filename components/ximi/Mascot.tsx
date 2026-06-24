@@ -15,13 +15,11 @@ type MascotSize = keyof typeof SIZE_PX;
  */
 export function Mascot({
   size = "md",
-  float = false,
   eager = false,
   className,
   alt = "小咪",
 }: {
   size?: MascotSize;
-  float?: boolean;
   /** 首屏可见时设 true,提前加载 */
   eager?: boolean;
   className?: string;
@@ -38,7 +36,6 @@ export function Mascot({
         style={{ width: px, height: px, fontSize: Math.round(px * 0.6) }}
         className={cn(
           "inline-flex shrink-0 items-center justify-center rounded-full bg-primary-container text-on-primary-container",
-          float && "ximi-float",
           className,
         )}
       >
@@ -59,8 +56,7 @@ export function Mascot({
       decoding="async"
       onError={() => setFailed(true)}
       className={cn(
-        "inline-block shrink-0 select-none object-contain drop-shadow-[0_8px_16px_rgba(var(--ximi-glow),0.35)]",
-        float && "ximi-float",
+        "inline-block shrink-0 select-none object-contain",
         className,
       )}
     />

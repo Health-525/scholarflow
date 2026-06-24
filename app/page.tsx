@@ -15,7 +15,6 @@ import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useDashboardSummary } from "@/lib/dashboard/use-dashboard-summary";
-import { RUNNING_GOAL } from "@/lib/running-utils";
 
 const MobileHome = lazy(() =>
   import("@/components/ximi/MobileHome").then((m) => ({ default: m.MobileHome }))
@@ -69,7 +68,12 @@ function useGreeting() {
         weekday: "long",
       });
 
-      setGreeting({ text, emoji, date });
+      setGreeting((prev) => {
+        if (prev.text === text && prev.emoji === emoji && prev.date === date) {
+          return prev;
+        }
+        return { text, emoji, date };
+      });
     };
 
     update();
@@ -86,18 +90,10 @@ export default function DashboardPage() {
   const { data: dashboardData, loading: dashboardLoading } =
     useDashboardSummary();
 
-  const heroStats = dashboardData?.overview
-    ? {
-        courses: dashboardData.overview.courses ?? 0,
-        assignments: dashboardData.overview.pendingAssignments ?? 0,
-        running: `${dashboardData.overview.running?.total ?? 0}/${RUNNING_GOAL}`,
-      }
-    : null;
-
   if (isMobile) {
     return (
       <ErrorBoundary>
-        <Suspense fallback={<div className="max-w-md mx-auto py-5 animate-page"><div className="h-80 rounded-[28px] border border-border bg-card skeleton" /></div>}>
+        <Suspense fallback={<div className="max-w-md mx-auto py-5"><div className="h-80 rounded-3xl border border-border bg-card skeleton" /></div>}>
           <MobileHome />
         </Suspense>
       </ErrorBoundary>
@@ -105,32 +101,18 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-[1280px] mx-auto py-5 pb-24 md:pb-10 space-y-6 animate-page">
+    <div className="max-w-[1280px] mx-auto py-5 pb-24 md:pb-10 space-y-6">
       {/* Hero + Quick Actions — unified header */}
-      <header className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[var(--hero-from)] to-[var(--hero-to)] border border-border shadow-sm animate-fade-up">
-        <div
-          className="pointer-events-none absolute inset-0"
-          aria-hidden="true"
-        >
-          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/8 dark:bg-primary/[0.03] blur-3xl" />
-        </div>
-
+      <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--hero-from)] to-[var(--hero-to)] border border-border shadow-sm">
         <div className="relative px-6 pt-4 pb-2">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0" suppressHydrationWarning>
-              <h1 className="text-[26px] font-bold leading-tight font-display text-foreground tracking-tight">
+              <h1 className="text-3xl font-bold leading-tight font-display text-foreground tracking-tight">
                 {greeting}
               </h1>
-              <p className="text-[13px] text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 {dateStr} · 新的一天，从计划开始
               </p>
-              {heroStats && (
-                <p className="text-[12px] text-muted-foreground/60 mt-1.5 flex items-center gap-3">
-                  <span>课程 {heroStats.courses}</span>
-                  <span>作业 {heroStats.assignments}</span>
-                  <span>跑步 {heroStats.running}</span>
-                </p>
-              )}
             </div>
 
             <div
@@ -138,7 +120,7 @@ export default function DashboardPage() {
               suppressHydrationWarning
             >
               <RefreshButton />
-              <div className="relative flex h-12 w-12 items-center justify-center rounded-[18px] bg-card/80 text-[28px] backdrop-blur-xl shadow-sm dark:bg-secondary/80">
+              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-card/80 text-3xl backdrop-blur-xl shadow-sm dark:bg-secondary/80">
                 {greetingEmoji}
               </div>
             </div>
@@ -154,46 +136,25 @@ export default function DashboardPage() {
       {/* Dashboard Sections */}
       <section className="space-y-4 animate-fade-up stagger-2">
         <div className="space-y-2.5">
-          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
-            快捷统计
-          </span>
           <SummaryBanner data={dashboardData} loading={dashboardLoading} />
         </div>
 
         <div className="space-y-2.5">
-          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
-            今日焦点
-          </span>
           <ScheduleCard />
         </div>
 
-        <div className="space-y-2.5">
-          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
-            任务与健康
-          </span>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <AssignmentsCard />
-            <RunningCard />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <AssignmentsCard />
+          <RunningCard />
         </div>
 
-        <div className="space-y-2.5">
-          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
-            数据追踪
-          </span>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <ScreenTimeCard />
-            <ExamCountdownCard />
-            <RecentDailyCard />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <ScreenTimeCard />
+          <ExamCountdownCard />
+          <RecentDailyCard />
         </div>
 
-        <div className="space-y-2.5">
-          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
-            信息浏览
-          </span>
-          <JwcNewsCard />
-        </div>
+        <JwcNewsCard />
       </section>
     </div>
   );

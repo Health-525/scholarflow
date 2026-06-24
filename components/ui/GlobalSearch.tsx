@@ -139,6 +139,10 @@ export function GlobalSearch() {
                 onKeyDown={handleKeyDown}
                 placeholder="搜索页面或功能..."
                 aria-label="搜索页面或功能"
+                aria-controls="global-search-results"
+                aria-activedescendant={results.length > 0 ? `search-item-${selectedIndex}` : undefined}
+                role="combobox"
+                aria-expanded={open}
                 className="flex-1 bg-transparent outline-none text-[14px] text-foreground placeholder:text-muted-foreground"
               />
               <div className="flex items-center gap-1.5">
@@ -157,7 +161,12 @@ export function GlobalSearch() {
             </div>
 
             {/* Results */}
-            <div className="max-h-[50vh] overflow-y-auto p-2">
+            <div
+              id="global-search-results"
+              className="max-h-[50vh] overflow-y-auto p-2"
+              role="listbox"
+              aria-label="搜索结果"
+            >
               {results.length === 0 ? (
                 <div className="py-8 text-center text-[13px] text-muted-foreground">
                   未找到匹配结果
@@ -169,6 +178,9 @@ export function GlobalSearch() {
                     return (
                       <button
                         key={item.id}
+                        id={`search-item-${index}`}
+                        role="option"
+                        aria-selected={selected}
                         onClick={() => handleSelect(item)}
                         onMouseEnter={() => setSelectedIndex(index)}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${

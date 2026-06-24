@@ -98,35 +98,34 @@ function TodayPane({
   return (
     <div className="flex flex-col gap-4">
       {/* Hero：下节课 / 全部结束 */}
-      <section className="relative overflow-hidden rounded-[28px] bg-surface-container-lowest p-5 shadow-[0_20px_40px_-20px_rgba(var(--ximi-glow),0.3)]">
-        <div className="pointer-events-none absolute inset-0 rounded-[28px] border-[1.5px] border-white/60" />
+      <section className="relative overflow-hidden rounded-3xl bg-surface-container-lowest p-5 shadow-sm border border-border/50">
         <div className="relative z-10 flex items-center gap-4">
           <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 border-white bg-primary-container/25">
-            <Mascot size="md" float className="!drop-shadow-none" />
+            <Mascot size="md" className="!drop-shadow-none" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center gap-2">
-              <span className="text-[12px] font-medium text-on-surface-variant">
+              <span className="text-xs font-medium text-on-surface-variant">
                 {weekday} · {dateLabel}
               </span>
               {nextCourse && (
-                <span className="rounded-full bg-primary-container px-2.5 py-0.5 text-[11px] font-bold text-on-primary-container">
+                <span className="rounded-full bg-primary-container px-2.5 py-0.5 text-xs font-bold text-on-primary-container">
                   下节课
                 </span>
               )}
             </div>
             {nextCourse ? (
               <>
-                <h2 className="truncate text-[19px] font-bold text-on-surface">
+                <h2 className="truncate text-lg font-bold text-on-surface">
                   {nextCourse.item.title}
                 </h2>
-                <p className="mt-0.5 truncate text-[13px] text-on-surface-variant">
+                <p className="mt-0.5 truncate text-sm text-on-surface-variant">
                   {nextCourse.item.timeText}
                   {nextCourse.item.location && <span className="ml-1.5">· {nextCourse.item.location}</span>}
                 </p>
               </>
             ) : (
-              <p className="text-[15px] font-semibold text-on-surface">
+              <p className="text-base font-semibold text-on-surface">
                 今天的课都上完啦，休息一下喵~
               </p>
             )}
@@ -277,21 +276,21 @@ function WeekPane({
           type="button"
           onClick={() => setWeekOffset((w) => w - 1)}
           aria-label="上一周"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-lowest text-primary shadow-[0_4px_12px_rgba(var(--ximi-glow),0.16)] transition active:scale-90"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-lowest text-primary shadow-sm transition active:scale-90"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
         <div className="flex flex-col items-center">
-          <span className="text-[14px] font-bold text-on-surface">{weekInfo.label}</span>
+          <span className="text-sm font-bold text-on-surface">{weekInfo.label}</span>
           <div className="mt-0.5 flex items-center gap-2">
-            <span className="rounded-full bg-primary-container/40 px-2.5 py-0.5 text-[11px] font-semibold text-on-primary-container">
+            <span className="rounded-full bg-primary-container/40 px-2.5 py-0.5 text-xs font-semibold text-on-primary-container">
               第 {weekInfo.weekNum} 周
             </span>
             {weekOffset !== 0 && (
               <button
                 type="button"
                 onClick={() => setWeekOffset(0)}
-                className="text-[11px] font-semibold text-primary"
+                className="text-xs font-semibold text-primary"
               >
                 回到本周
               </button>
@@ -302,14 +301,14 @@ function WeekPane({
           type="button"
           onClick={() => setWeekOffset((w) => w + 1)}
           aria-label="下一周"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-lowest text-primary shadow-[0_4px_12px_rgba(var(--ximi-glow),0.16)] transition active:scale-90"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-lowest text-primary shadow-sm transition active:scale-90"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
 
       {/* 网格卡片 */}
-      <div className="overflow-hidden rounded-[28px] bg-surface-container-lowest p-2 shadow-[0_12px_32px_-8px_rgba(var(--ximi-glow),0.28)]">
+      <div className="overflow-hidden rounded-3xl bg-surface-container-lowest p-2 shadow-sm border border-border/50">
         <div className="overflow-x-auto">
           <div className="min-w-[600px]">
             {/* 表头 */}
@@ -317,7 +316,7 @@ function WeekPane({
               className="grid border-b border-outline-variant/40"
               style={{ gridTemplateColumns: `${LABEL_W}px repeat(7, 1fr)`, height: HEADER_H }}
             >
-              <div className="flex items-center justify-center text-[9px] text-on-surface-variant">
+              <div className="flex items-center justify-center text-[10px] text-on-surface-variant">
                 节次
               </div>
               {weekInfo.days.map((day, idx) => {
@@ -414,15 +413,15 @@ function WeekPane({
                             key={i}
                             type="button"
                             onClick={() => handleCourseClick(cb.item, day)}
-                            className={`absolute left-1 right-1 overflow-hidden rounded-2xl border px-2 py-1.5 text-left transition active:scale-[0.97] hover:shadow-md ${cuteOf(cb.item.title)}`}
+                            className={`absolute left-1 right-1 overflow-hidden rounded-2xl border px-2 py-1.5 text-left transition active:scale-[0.97] hover:brightness-105 ${cuteOf(cb.item.title)}`}
                             style={{ top: blockTop, height: blockHeight }}
                             aria-label={cb.item.title + " " + (cb.item.timeText || "")}
                           >
-                            <div className="line-clamp-2 text-[11px] font-bold leading-tight">
+                            <div className="line-clamp-2 text-xs font-bold leading-tight">
                               {cb.item.title}
                             </div>
                             {cb.item.location && (
-                              <div className="mt-0.5 truncate text-[9px] opacity-75">
+                              <div className="mt-0.5 truncate text-[10px] opacity-75">
                                 {cb.item.location}
                               </div>
                             )}
@@ -569,7 +568,7 @@ export function MobileSchedule({
             />
           )}
           {tab === "query" && (
-            <div className="rounded-[28px] bg-surface-container-lowest p-4 shadow-[0_12px_32px_-8px_rgba(var(--ximi-glow),0.28)]">
+            <div className="rounded-3xl bg-surface-container-lowest p-4 shadow-sm border border-border/50">
               <QueryView schedule={schedule} adjustments={adjustments} />
             </div>
           )}

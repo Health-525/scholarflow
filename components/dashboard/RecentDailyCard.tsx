@@ -2,6 +2,7 @@
 
 import { FileText } from "lucide-react";
 import Link from "next/link";
+import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,7 +30,7 @@ function recencyLabel(dateStr: string): string {
   } catch { return ""; }
 }
 
-export function RecentDailyCard() {
+export const RecentDailyCard = memo(function RecentDailyCard() {
   const { entries, isLoading, error, reload } = useDailyReports();
   const recent = entries.slice(0, 5);
   const isAuthError = /unauthorized|forbidden|401|403/i.test(
@@ -102,6 +103,6 @@ export function RecentDailyCard() {
       </CardContent>
     </Card>
   );
-}
+});
 
 export default RecentDailyCard;

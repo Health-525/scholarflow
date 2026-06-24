@@ -2,7 +2,7 @@
 
 import { ClipboardList } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,7 +41,7 @@ const URGENCY_CONFIG = {
   },
 };
 
-export function AssignmentsCard() {
+export const AssignmentsCard = memo(function AssignmentsCard() {
   const { assignments, isLoading, error, reload } = useAssignmentsQuery();
   const pending = assignments.filter((a) => !a.done).slice(0, 5);
   const [mounted, setMounted] = useState(false);
@@ -147,6 +147,6 @@ export function AssignmentsCard() {
       </CardContent>
     </Card>
   );
-}
+});
 
 export default AssignmentsCard;

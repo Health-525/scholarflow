@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 
 import { resolveUserId, buildDataKey } from "@/lib/account-prefix";
-import { resolveAuthorizedAccount } from "@/lib/auth/account-access";
+import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { mergeExams } from "@/lib/exams/merge";
 import { schoolCookieBodySchema } from "@/lib/schemas/fetch";
@@ -28,14 +28,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `unknown school: ${schoolId}` }, { status: 400 });
     }
 
-    const credentials = { schoolId, data: { cookie }, expiresAt: Date.now() + 30 * 60 * 1000 };
-    const fetchedExams = await adapter.fetchExams(credentials);
-
     const db = getServerDB();
-    const targetAccount = resolveAuthorizedAccount(request, db, { schoolId, userId: username });
+    const targetAccount = getAuthorizedAccount({ schoolId, userId: username }, db);
     if (!targetAccount) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
+
+    const credentials = { schoolId, data: { cookie }, expiresAt: Date.now() + 30 * 60 * 1000 };
+    const fetchedExams = await adapter.fetchExams(credentials);
 
     const userId = resolveUserId(targetAccount.userId);
     const prefix = `${targetAccount.schoolId}:${userId}`;

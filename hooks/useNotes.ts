@@ -21,15 +21,16 @@ export function useNoteTree() {
   const userId = useAuthStore((s) => s.userId);
   const prevKeyRef = useRef<string | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (signal?: AbortSignal) => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/notes/tree?${getAuthParams()}`);
+      const res = await fetch(`/api/notes/tree?${getAuthParams()}`, { signal });
       if (!res.ok) throw new Error("加载文件树失败");
       const data = (await res.json()) as NoteTreeNode[];
       setTree(data);
     } catch (err) {
+      if (signal?.aborted) return;
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       setIsLoading(false);
@@ -41,11 +42,19 @@ export function useNoteTree() {
     const key = `${schoolId || ""}:${userId || ""}`;
     if (prevKeyRef.current !== key) {
       prevKeyRef.current = key;
-      load();
+      const abort = new AbortController();
+      load(abort.signal);
+      return () => abort.abort();
     }
   }, [schoolId, userId, load]);
 
-  return { tree, isLoading, error, reload: load };
+  const reload = useCallback(() => {
+    const abort = new AbortController();
+    load(abort.signal);
+    return () => abort.abort();
+  }, [load]);
+
+  return { tree, isLoading, error, reload };
 }
 
 /**
@@ -60,7 +69,7 @@ export function useNoteContent(path: string | null) {
   const schoolId = useAuthStore((s) => s.schoolId);
   const userId = useAuthStore((s) => s.userId);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (signal?: AbortSignal) => {
     if (!path) {
       setContent("");
       setError(null);
@@ -69,11 +78,12 @@ export function useNoteContent(path: string | null) {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/notes?${getAuthParams()}&path=${encodeURIComponent(path)}`);
+      const res = await fetch(`/api/notes?${getAuthParams()}&path=${encodeURIComponent(path)}`, { signal });
       if (!res.ok) throw new Error("加载笔记失败");
       const data = (await res.json()) as { content: string };
       setContent(data.content);
     } catch (err) {
+      if (signal?.aborted) return;
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       setIsLoading(false);
@@ -89,15 +99,25 @@ export function useNoteContent(path: string | null) {
     const key = `${schoolId || ""}:${userId || ""}`;
     if (prevAccountKeyRef.current !== key) {
       prevAccountKeyRef.current = key;
-      load();
+      const abort = new AbortController();
+      load(abort.signal);
+      return () => abort.abort();
     }
   }, [schoolId, userId, load]);
 
   useEffect(() => {
-    load();
+    const abort = new AbortController();
+    load(abort.signal);
+    return () => abort.abort();
   }, [load]);
 
-  return { content, isLoading, error, reload: load, setContent };
+  const reload = useCallback(() => {
+    const abort = new AbortController();
+    load(abort.signal);
+    return () => abort.abort();
+  }, [load]);
+
+  return { content, isLoading, error, reload, setContent };
 }
 
 /**

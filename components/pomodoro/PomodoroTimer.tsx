@@ -68,6 +68,7 @@ function useIsDark() {
 
 function SettingRow({
   label,
+  htmlFor,
   icon,
   value,
   onChange,
@@ -75,6 +76,7 @@ function SettingRow({
   max,
 }: {
   label: string;
+  htmlFor: string;
   icon: React.ReactNode;
   value: number;
   onChange: (v: number) => void;
@@ -85,11 +87,14 @@ function SettingRow({
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-2">
         {icon}
-        <span className="text-[12px] text-muted-foreground">{label}</span>
+        <label htmlFor={htmlFor} className="text-xs text-muted-foreground">
+          {label}
+        </label>
       </div>
       <div className="flex items-center gap-2">
         <Clock className="w-3.5 h-3.5 text-muted-foreground" />
         <Input
+          id={htmlFor}
           type="number"
           min={min}
           max={max}
@@ -100,9 +105,9 @@ function SettingRow({
             const n = parseInt(raw, 10);
             if (!isNaN(n)) onChange(Math.max(min, Math.min(max, n)));
           }}
-          className="w-16 h-8 text-center text-[13px] tabular-nums"
+          className="w-16 h-8 text-center text-sm tabular-nums"
         />
-        <span className="text-[12px] text-muted-foreground">分钟</span>
+        <span className="text-xs text-muted-foreground">分钟</span>
       </div>
     </div>
   );
@@ -238,6 +243,16 @@ function PomodoroTimerInner({
     []
   );
 
+  // Esc 关闭设置面板
+  useEffect(() => {
+    if (!state.showSettings) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") dispatch({ type: "TOGGLE_SETTINGS" });
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [state.showSettings]);
+
   const progress =
     state.phase === "idle"
       ? 0
@@ -299,17 +314,17 @@ function PomodoroTimerInner({
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span
-              className={`text-[42px] font-bold tabular-nums font-display ${phaseColorClass(state.phase, isDark)} ${
+              className={`text-5xl font-bold tabular-nums font-display ${phaseColorClass(state.phase, isDark)} ${
                 state.isRunning && !prefersReducedMotion ? "animate-breathe" : ""
               }`}
             >
               {formatTime(state.remaining)}
             </span>
-            <span className="text-[11px] mt-1 text-muted-foreground">
+            <span className="text-xs mt-1 text-muted-foreground">
               {phaseLabel[state.phase]}
             </span>
             {state.phase !== "idle" && (
-              <span className="text-[11px] mt-0.5 text-muted-foreground/60">
+              <span className="text-xs mt-0.5 text-muted-foreground/60">
                 {state.phase === "focus"
                   ? `${state.settings.focusMinutes}分钟`
                   : state.phase === "break"
@@ -374,7 +389,7 @@ function PomodoroTimerInner({
             }`}
           />
         ))}
-        <span className="text-[11px] ml-1 text-muted-foreground">
+        <span className="text-xs ml-1 text-muted-foreground">
           第 {state.completedFocus + 1} 轮
         </span>
       </div>
@@ -382,17 +397,20 @@ function PomodoroTimerInner({
       {/* Settings panel */}
       {state.showSettings && (
         <Card
-          className={`mb-6 hover:translate-y-0 hover:shadow-sm ${
+          role="region"
+          aria-label="番茄钟时间设置"
+          className={`mb-6 ${
             !prefersReducedMotion ? "animate-fade-up" : ""
           }`}
         >
           <CardHeader>
-            <CardTitle className="text-[13px]">时间设置</CardTitle>
+            <CardTitle className="text-sm">时间设置</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <SettingRow
                 label="专注"
+                htmlFor="pomodoro-focus-minutes"
                 icon={<Brain className="w-3.5 h-3.5 text-primary" />}
                 value={state.settings.focusMinutes}
                 onChange={(v) => updateSettings("focusMinutes", v)}
@@ -401,6 +419,7 @@ function PomodoroTimerInner({
               />
               <SettingRow
                 label="短休息"
+                htmlFor="pomodoro-break-minutes"
                 icon={<Coffee className="w-3.5 h-3.5 text-green-600" />}
                 value={state.settings.breakMinutes}
                 onChange={(v) => updateSettings("breakMinutes", v)}
@@ -409,6 +428,7 @@ function PomodoroTimerInner({
               />
               <SettingRow
                 label="长休息"
+                htmlFor="pomodoro-long-break-minutes"
                 icon={<Hourglass className="w-3.5 h-3.5 text-green-600" />}
                 value={state.settings.longBreakMinutes}
                 onChange={(v) => updateSettings("longBreakMinutes", v)}
@@ -421,12 +441,12 @@ function PomodoroTimerInner({
       )}
 
       {/* Stats */}
-      <Card className="hover:translate-y-0 hover:shadow-sm">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between text-[13px]">
+          <CardTitle className="flex items-center justify-between text-sm">
             <span>今日统计</span>
             {state.stats.streak > 0 && (
-              <Badge variant="default" className="text-[11px]">
+              <Badge variant="default" className="text-xs">
                 <Flame className="w-3 h-3 mr-1" />
                 连续 {state.stats.streak} 天
               </Badge>
@@ -443,7 +463,7 @@ function PomodoroTimerInner({
               >
                 {state.stats.todaySessions}
               </div>
-              <div className="text-[11px] mt-0.5 text-muted-foreground">
+              <div className="text-xs mt-0.5 text-muted-foreground">
                 专注次数
               </div>
             </div>
@@ -455,7 +475,7 @@ function PomodoroTimerInner({
               >
                 {formatMinutes(state.stats.todayFocus)}
               </div>
-              <div className="text-[11px] mt-0.5 text-muted-foreground">
+              <div className="text-xs mt-0.5 text-muted-foreground">
                 专注时长
               </div>
             </div>
@@ -467,7 +487,7 @@ function PomodoroTimerInner({
               >
                 {state.completedFocus}
               </div>
-              <div className="text-[11px] mt-0.5 text-muted-foreground">
+              <div className="text-xs mt-0.5 text-muted-foreground">
                 本轮完成
               </div>
             </div>
@@ -478,9 +498,9 @@ function PomodoroTimerInner({
       {/* Notification permission */}
       {typeof Notification !== "undefined" &&
         Notification.permission === "default" && (
-          <Card className="mt-3 hover:translate-y-0 hover:shadow-sm">
+          <Card className="mt-3">
             <CardContent className="flex items-center justify-between gap-3 py-3">
-              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Bell className="w-3.5 h-3.5 text-primary" />
                 开启通知提醒，番茄钟结束时通知你
               </div>
@@ -524,7 +544,7 @@ export function PomodoroTimer() {
           <Skeleton className="w-14 h-14 rounded-2xl" />
           <Skeleton className="w-11 h-11 rounded-xl" />
         </div>
-        <Card className="hover:translate-y-0 hover:shadow-sm">
+        <Card>
           <CardHeader>
             <Skeleton className="h-4 w-20" />
           </CardHeader>

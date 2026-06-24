@@ -6,13 +6,19 @@ export function middleware(request: NextRequest) {
 
   const isDev = process.env.NODE_ENV !== "production";
 
+  // 桌面端 Electron 需要连接本地 standalone server 与 DeepSeek API。
+  // 生产环境保持最小区间；开发环境为 HMR 保留 unsafe-eval。
+  const connectSrc = isDev
+    ? "'self' http://localhost:* http://127.0.0.1:* https://api.deepseek.com https://fonts.googleapis.com"
+    : "'self' http://localhost:3456 http://127.0.0.1:3456 https://api.deepseek.com https://fonts.googleapis.com";
+
   const cspHeader = `
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""};
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' blob: data:;
     font-src 'self' https://fonts.gstatic.com;
-    connect-src 'self' https://fonts.googleapis.com;
+    connect-src ${connectSrc};
     object-src 'none';
     base-uri 'self';
     form-action 'self';

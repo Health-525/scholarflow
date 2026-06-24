@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, CalendarDays, Check, Trash2 } from "lucide-react";
+import { CalendarDays, Check, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -76,7 +76,7 @@ export function AssignmentItem({
   return (
     <div
       className={cn(
-        "group flex items-center gap-3 rounded-xl border bg-card p-3 transition-all duration-200 hover:bg-muted/40 min-h-[52px]",
+        "group flex items-center gap-3 rounded-xl border bg-card p-3 min-h-[52px]",
         isDone ? "opacity-70 border-border/60" : "border-border"
       )}
     >
@@ -91,56 +91,31 @@ export function AssignmentItem({
         type="button"
         onClick={handleComplete}
         className={cn(
-          "relative grid place-items-center size-11 shrink-0 rounded-full cursor-pointer transition-all duration-300 ease-out",
+          "relative grid place-items-center size-9 shrink-0 rounded-full cursor-pointer transition-colors duration-200",
           animating && "animate-check-bounce"
         )}
         aria-label={isDone ? "撤销完成" : "标记完成"}
         title={isDone ? "撤销完成" : "标记完成"}
       >
-        {/* 视觉圆圈层 */}
         <div
           className={cn(
-            "relative size-[22px] rounded-full grid place-items-center transition-all duration-300",
+            "relative size-5 rounded-full grid place-items-center border transition-colors duration-200",
             isDone
-              ? "text-white shadow-[0_1px_3px_rgba(var(--status-success-rgb),0.3)]"
-              : "border border-muted-foreground/25 group-hover:border-[var(--primary)]/50 group-hover:shadow-[0_0_0_3px_rgba(var(--primary-rgb),0.08)]"
+              ? "bg-[var(--status-success)] border-[var(--status-success)] text-white"
+              : "border-muted-foreground/25 group-hover:border-[var(--primary)]/50"
           )}
-          style={
-            isDone
-              ? {
-                  background: `linear-gradient(135deg, var(--status-success), color-mix(in srgb, var(--status-success) 80%, #fff))`,
-                }
-              : undefined
-          }
         >
-          {/* 完成态光泽 */}
-          {isDone && (
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent" />
-          )}
-          {/* 完成态 check */}
           {isDone && (
             <Check
               className={cn(
-                "relative size-3 transition-all duration-200",
+                "relative size-3 transition-transform duration-200",
                 justCompleted ? "scale-110" : "scale-100"
               )}
               strokeWidth={3}
             />
           )}
-          {/* 未完成态 hover 底色 */}
-          {!isDone && (
-            <div className="absolute inset-0 rounded-full bg-[var(--primary)]/0 group-hover:bg-[var(--primary)]/8 transition-all duration-300" />
-          )}
         </div>
       </button>
-
-      {/* 科目图标 */}
-      <div
-        className="flex size-9 shrink-0 items-center justify-center rounded-xl"
-        style={{ backgroundColor: style.bg, color: style.color }}
-      >
-        <BookOpen className="size-4" />
-      </div>
 
       {/* 内容区域 */}
       <div className="min-w-0 flex-1">
@@ -174,8 +149,9 @@ export function AssignmentItem({
           variant="ghost"
           size="icon"
           onClick={() => setShowDeleteConfirm(true)}
-          className="size-8 text-muted-foreground/40 opacity-60 md:opacity-0 md:group-hover:opacity-100 hover:text-[var(--destructive)] transition-opacity duration-150"
+          className="size-8 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors duration-150"
           title="删除"
+          aria-label={`删除「${a.title}」`}
         >
           <Trash2 className="size-3.5" />
         </Button>

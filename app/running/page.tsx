@@ -21,7 +21,7 @@ export default function RunningPage() {
   const stats = calculateRunStats(records);
 
   return (
-    <div className="max-w-5xl mx-auto min-h-screen bg-background text-foreground animate-page">
+    <div className="max-w-5xl mx-auto min-h-screen bg-background text-foreground">
       <PageHeader
         icon={<Zap className="w-5 h-5 text-[var(--status-success)]" />}
         title="阳光长跑"

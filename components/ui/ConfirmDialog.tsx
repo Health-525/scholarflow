@@ -48,7 +48,7 @@ export function ConfirmDialog({
         <AlertDialog.Popup
           className={cn(
             "fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2",
-            "rounded-[24px] bg-card p-6 shadow-lg ring-1 ring-border outline-none",
+            "rounded-3xl bg-card p-6 shadow-lg ring-1 ring-border outline-none",
             "data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0 data-[closed]:zoom-out-95 data-[open]:zoom-in-95"
           )}
         >

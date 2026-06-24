@@ -36,7 +36,6 @@ import {
   AiConfigSection,
   DataExportSection,
   DataRefreshSection,
-  StorageInfoCard,
   ThemeSection,
   UserProfileCard,
 } from "./components";
@@ -221,7 +220,7 @@ export default function SettingsPage() {
   const isSynced = !!studentInfo?.studentId || !!schoolId;
 
   return (
-    <div className="pb-20 md:pb-0 max-w-lg mx-auto animate-page">
+    <div className="pb-20 md:pb-0 max-w-lg mx-auto">
       <PageHeader
         icon={<User className="w-5 h-5 text-primary" />}
         title="用户中心"
@@ -296,8 +295,6 @@ export default function SettingsPage() {
         onExportActivity={() => downloadActivityCSV().catch(() => {})}
         onConfirmClearActivity={confirmClearActivity}
       />
-
-      <StorageInfoCard />
 
       <AboutCard />
 

@@ -155,7 +155,7 @@ export default function GPAPage() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto pb-20 md:pb-0 animate-page">
+      <div className="max-w-5xl mx-auto pb-20 md:pb-0">
         <PageHeader icon={<TrendingUp className="w-5 h-5 text-primary" />} title="绩点" description="加载中..." />
         <div className="flex flex-col items-center justify-center py-12 gap-4">
           <LoadingSpinner size="lg" label="正在加载成绩..." />
@@ -166,7 +166,7 @@ export default function GPAPage() {
 
   if (!grades) {
     return (
-      <div className="max-w-5xl mx-auto pb-20 md:pb-0 animate-page">
+      <div className="max-w-5xl mx-auto pb-20 md:pb-0">
         <PageHeader icon={<TrendingUp className="w-5 h-5 text-primary" />} title="绩点" />
         <EmptyState
           icon={BookOpen}
@@ -178,7 +178,7 @@ export default function GPAPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto pb-20 md:pb-0 animate-page">
+    <div className="max-w-5xl mx-auto pb-20 md:pb-0">
       <PageHeader icon={<TrendingUp className="w-5 h-5 text-primary" />} title="绩点" description="数据来自教务系统" />
 
       {/* 学期筛选 */}
@@ -192,24 +192,18 @@ export default function GPAPage() {
       </div>
 
       {/* GPA 主卡片 */}
-      <Card className="mb-4 text-center relative overflow-hidden hover:translate-y-0 hover:shadow-sm">
-        <div
-          className="absolute inset-0 opacity-40 pointer-events-none"
-          style={{
-            background: `radial-gradient(circle at 50% 30%, rgba(${gpaColorRGB(filteredGPA)}, 0.08) 0%, transparent 60%)`,
-          }}
-        />
+      <Card className="mb-4 text-center relative overflow-hidden">
         <CardContent className="relative flex flex-col items-center pt-6 pb-6">
           <div className="relative">
             <GPARing value={filteredGPA} size={140} strokeWidth={10} />
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <div
-                className="text-[36px] font-bold tabular-nums leading-none"
+                className="text-4xl font-bold tabular-nums leading-none"
                 style={{ color: gpaColor(filteredGPA) }}
               >
                 {filteredGPA > 0 ? filteredGPA.toFixed(2) : "--"}
               </div>
-              <div className="text-[11px] mt-0.5 text-muted-foreground">GPA</div>
+              <div className="text-xs mt-0.5 text-muted-foreground">GPA</div>
             </div>
           </div>
           <div className="flex items-center gap-0 mt-4 w-full max-w-[280px]">
@@ -222,10 +216,10 @@ export default function GPAPage() {
                 key={i}
                 className={`flex-1 text-center ${i < 2 ? "border-r border-border" : ""}`}
               >
-                <div className="text-[18px] font-semibold tabular-nums text-foreground">
+                <div className="text-lg font-semibold tabular-nums text-foreground">
                   {item.value}
                 </div>
-                <div className="text-[11px] text-muted-foreground">{item.label}</div>
+                <div className="text-xs text-muted-foreground">{item.label}</div>
               </div>
             ))}
           </div>
@@ -233,12 +227,12 @@ export default function GPAPage() {
       </Card>
 
       {/* 成绩分布 */}
-      <Card className="mb-4 hover:translate-y-0 hover:shadow-sm">
+      <Card className="mb-4">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-[13px]">
+          <CardTitle className="flex items-center gap-2 text-sm">
             <BarChart3 className="w-4 h-4 text-primary" />
             成绩分布
-            <span className="ml-auto text-[11px] font-normal text-muted-foreground">
+            <span className="ml-auto text-xs font-normal text-muted-foreground">
               {numeric.length}门有分数
             </span>
           </CardTitle>
@@ -253,12 +247,12 @@ export default function GPAPage() {
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: r.color }} />
-                      <span className="text-[11px] font-medium text-muted-foreground">{r.label}</span>
-                      <span className="text-[11px] text-muted-foreground/60">{r.sub}</span>
+                      <span className="text-xs font-medium text-muted-foreground">{r.label}</span>
+                      <span className="text-xs text-muted-foreground/60">{r.sub}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[13px] font-semibold tabular-nums text-foreground">{count}</span>
-                      <span className="text-[11px] text-muted-foreground">门</span>
+                      <span className="text-sm font-semibold tabular-nums text-foreground">{count}</span>
+                      <span className="text-xs text-muted-foreground">门</span>
                     </div>
                   </div>
                   <div className="h-2 rounded-full overflow-hidden bg-secondary">
@@ -289,19 +283,19 @@ export default function GPAPage() {
               const expanded = expandedSemesters[sem] ?? false;
               const semCredits = calcCredits(courses);
               return (
-                <Card key={sem} className="overflow-hidden hover:translate-y-0 hover:shadow-sm">
+                <Card key={sem} className="overflow-hidden">
                   <Button
                     variant="ghost"
                     className="w-full h-auto flex items-center justify-between p-4 text-left rounded-none"
                     onClick={() => toggleSemester(sem)}
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="text-[14px] font-semibold text-foreground">
+                      <div className="text-sm font-semibold text-foreground">
                         {getSemesterLabel(sem)}
                       </div>
                       <div className="flex items-center gap-3 mt-0.5">
-                        <span className="text-[11px] text-muted-foreground">{courses.length}门</span>
-                        <span className="text-[11px] text-muted-foreground">{semCredits}学分</span>
+                        <span className="text-xs text-muted-foreground">{courses.length}门</span>
+                        <span className="text-xs text-muted-foreground">{semCredits}学分</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -312,7 +306,7 @@ export default function GPAPage() {
                         }}
                       >
                         <div
-                          className="text-[18px] font-bold tabular-nums leading-none"
+                          className="text-lg font-bold tabular-nums leading-none"
                           style={{ color: gpaColor(semGPA) }}
                         >
                           {semGPA > 0 ? semGPA.toFixed(2) : "--"}
@@ -334,11 +328,11 @@ export default function GPAPage() {
             })}
           </div>
         ) : (
-          <Card className="overflow-hidden hover:translate-y-0 hover:shadow-sm">
+          <Card className="overflow-hidden">
             <CardHeader>
-              <CardTitle className="flex items-center justify-between text-[14px]">
+              <CardTitle className="flex items-center justify-between text-sm">
                 <span>{getSemesterLabel(activeSemester)}</span>
-                <span className="text-[11px] font-normal text-muted-foreground">
+                <span className="text-xs font-normal text-muted-foreground">
                   {filteredCourses.length}门 · {filteredCredits}学分
                 </span>
               </CardTitle>
@@ -351,9 +345,9 @@ export default function GPAPage() {
       </div>
 
       {/* GPA 参考 */}
-      <Card className="mb-4 hover:translate-y-0 hover:shadow-sm">
+      <Card className="mb-4">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-[13px]">
+          <CardTitle className="flex items-center gap-2 text-sm">
             <TrendingUp className="w-4 h-4 text-primary" />
             百分制 ↔ GPA
           </CardTitle>
@@ -362,10 +356,10 @@ export default function GPAPage() {
           <div className="grid grid-cols-4 gap-2">
             {GPA_REF.map((r) => (
               <div key={r.range} className="p-2 rounded-xl text-center bg-secondary">
-                <Badge variant="secondary" className="text-[11px]">
+                <Badge variant="secondary" className="text-xs">
                   {r.range}
                 </Badge>
-                <div className="text-[16px] font-bold mt-1" style={{ color: r.color }}>
+                <div className="text-base font-bold mt-1" style={{ color: r.color }}>
                   {r.gpa}
                 </div>
               </div>
@@ -388,18 +382,18 @@ function CourseList({ courses }: { courses: JwglCourse[] }) {
             className={`flex items-center gap-2.5 p-2.5 rounded-xl ${i % 2 !== 0 ? "bg-secondary" : ""}`}
           >
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[12px] font-bold tabular-nums"
+              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold tabular-nums"
               style={{ backgroundColor: badge.bg, color: badge.color }}
             >
               {getScoreDisplay(c.score)}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[12px] font-medium truncate text-foreground">{c.course}</div>
+              <div className="text-xs font-medium truncate text-foreground">{c.course}</div>
               <div className="flex items-center gap-2 mt-0.5">
-                <Badge variant={c.type === "必修" ? "default" : "secondary"} className="text-[11px]">
+                <Badge variant={c.type === "必修" ? "default" : "secondary"} className="text-xs">
                   {c.type}
                 </Badge>
-                <span className="text-[11px] text-muted-foreground">{c.credit}学分</span>
+                <span className="text-xs text-muted-foreground">{c.credit}学分</span>
               </div>
             </div>
           </div>

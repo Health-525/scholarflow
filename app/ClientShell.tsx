@@ -6,12 +6,9 @@ import { useEffect, useState } from "react";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { installApiFetchGuard } from "@/lib/install-fetch-guard";
 import { applyTheme, watchSystemTheme } from "@/lib/theme";
 import { useAuthStore } from "@/store/auth";
 import { useThemeStore } from "@/store/theme";
-
-installApiFetchGuard();
 
 const PUBLIC_PATHS = ["/setup"];
 
@@ -39,11 +36,14 @@ export default function ClientShell({ children }: ClientShellProps) {
   // Restore auth state once on mount only
   // pathname 不应作为依赖，避免每次路由变化都重新调用 /api/auth/session
   useEffect(() => {
+    let cancelled = false;
+
     async function restoreAuth() {
       // Server-side session is the source of truth.
       // Zustand persist already provides a synchronous fallback.
       try {
         const res = await fetch("/api/auth/session");
+        if (cancelled) return;
         if (res.ok) {
           const data = await res.json();
           if (data.authenticated && data.schoolId && data.userId) {
@@ -59,11 +59,14 @@ export default function ClientShell({ children }: ClientShellProps) {
       } catch {
         // Offline or server error — rely on Zustand persist state
       } finally {
-        setIsRestoring(false);
+        if (!cancelled) setIsRestoring(false);
       }
     }
 
     restoreAuth();
+    return () => {
+      cancelled = true;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setAuth, clearAuth]); // intentionally omit pathname — only restore once on mount
 

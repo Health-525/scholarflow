@@ -2,6 +2,7 @@
 
 import { Zap } from "lucide-react";
 import Link from "next/link";
+import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { useRunningQuery } from "@/hooks/useQueries";
 import { calculateRunStats, RUNNING_GOAL } from "@/lib/running-utils";
 
-export function RunningCard() {
+export const RunningCard = memo(function RunningCard() {
   const { records, isLoading, error, reload } = useRunningQuery();
   const stats = calculateRunStats(records);
   const pct = stats.progressPercent;
@@ -74,6 +75,6 @@ export function RunningCard() {
       </CardContent>
     </Card>
   );
-}
+});
 
 export default RunningCard;

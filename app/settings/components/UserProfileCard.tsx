@@ -44,35 +44,22 @@ export function UserProfileCard({
   onLogout,
 }: UserProfileCardProps) {
   return (
-    <Card className="rounded-[28px] p-0 mb-5 relative overflow-hidden animate-fade-up hover:translate-y-0 hover:shadow-sm">
-        {/* Background decoration */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          aria-hidden="true"
-        >
-          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/6 blur-3xl" />
-          <div className="absolute -left-8 -bottom-8 h-24 w-24 rounded-full bg-primary/4 blur-2xl" />
-        </div>
-
+    <Card className="rounded-3xl p-0 mb-5 relative overflow-hidden hover:translate-y-0 hover:shadow-sm">
         <CardHeader className="relative px-6 pt-6 pb-0">
           <div className="flex items-center gap-4">
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div
-                className="absolute inset-0 rounded-[22px] bg-primary/10 blur-xl"
-                aria-hidden="true"
-              />
-              <div className="relative w-14 h-14 rounded-[22px] flex items-center justify-center bg-primary text-primary-foreground font-display text-[22px] font-bold shadow-sm">
+              <div className="relative w-14 h-14 rounded-2xl flex items-center justify-center bg-primary text-primary-foreground font-display text-2xl font-bold shadow-sm">
                 {avatarLetter}
               </div>
             </div>
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-[16px] font-semibold tabular-nums text-foreground truncate">
+              <CardTitle className="text-base font-semibold tabular-nums text-foreground truncate">
                 {displayName}
               </CardTitle>
-              <CardDescription className="flex items-center gap-2 mt-1 text-[11px]">
+              <CardDescription className="flex items-center gap-2 mt-1 text-xs">
                 <Badge
                   variant="secondary"
                   aria-hidden="true"
@@ -88,7 +75,7 @@ export function UserProfileCard({
                 </span>
               </CardDescription>
               {schoolId && (
-                <CardDescription className="flex items-center gap-1.5 mt-0.5 text-[11px]">
+                <CardDescription className="flex items-center gap-1.5 mt-0.5 text-xs">
                   <School className="w-3 h-3 text-primary/60" />
                   <span>{schoolName}</span>
                 </CardDescription>
@@ -104,7 +91,7 @@ export function UserProfileCard({
               aria-label="退出登录"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span className="text-[12px]">退出</span>
+              <span className="text-xs">退出</span>
             </Button>
           </div>
         </CardHeader>

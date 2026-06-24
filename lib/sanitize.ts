@@ -34,13 +34,12 @@ const DOMPURIFY_CONFIG = {
  */
 let serverDOMPurify: typeof DOMPurify | null = null;
 
-function getServerDOMPurify() {
+async function getServerDOMPurify(): Promise<typeof DOMPurify | null> {
   if (serverDOMPurify) return serverDOMPurify;
   try {
-    // 用 Function 绕过 webpack 静态分析，避免打包 jsdom 到客户端
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const dynamicRequire = new Function('m', 'return require(m)') as NodeRequire;
-    const { JSDOM } = dynamicRequire("jsdom");
+    // 使用动态 import 加载 jsdom，并显式忽略 webpack，避免被打包到客户端。
+    // next.config.js 已将 jsdom 标记为 serverExternalPackages。
+    const { JSDOM } = await import(/* webpackIgnore: true */ "jsdom");
     const window = new JSDOM("").window;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     serverDOMPurify = DOMPurify(window as any);
@@ -70,10 +69,10 @@ function getServerDOMPurify() {
  * 净化 HTML 字符串，防止 XSS 攻击
  * 白名单模式：只允许安全标签和属性
  */
-export function sanitizeHtml(html: string): string {
+export async function sanitizeHtml(html: string): Promise<string> {
   if (typeof window === "undefined") {
     // Server-side: 使用 jsdom + DOMPurify，失败时回退到正则
-    const purify = getServerDOMPurify();
+    const purify = await getServerDOMPurify();
     if (purify) {
       return purify.sanitize(html, DOMPURIFY_CONFIG) as string;
     }

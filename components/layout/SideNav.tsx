@@ -21,7 +21,7 @@ function NavItem({ item }: { item: NavItemConfig }) {
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={[
-        "group flex items-center gap-3 px-3 py-2.5 min-h-[40px] rounded-xl text-[13px] font-medium transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1",
+        "group flex items-center gap-3 px-3 py-2.5 min-h-[40px] rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1",
         active
           ? "bg-primary/10 text-primary dark:bg-primary/[0.12] dark:text-primary"
           : wip
@@ -41,7 +41,7 @@ function NavItem({ item }: { item: NavItemConfig }) {
       />
       <span className="flex-1">{label}</span>
       {wip && (
-        <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground/60 shrink-0">
+        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground/60 shrink-0">
           开发中
         </span>
       )}
@@ -73,17 +73,14 @@ export function SideNav() {
             style={{ objectFit: "cover" }}
           />
           <div className="flex items-baseline gap-1.5">
-            <span className="font-display text-[18px] font-semibold text-primary tracking-tight">
+            <span className="font-display text-lg font-semibold text-primary tracking-tight">
               Scholar
             </span>
-            <span className="font-display text-[18px] font-semibold text-foreground tracking-tight">
+            <span className="font-display text-lg font-semibold text-foreground tracking-tight">
               Flow
             </span>
           </div>
         </div>
-        <p className="text-[11px] mt-1.5 text-muted-foreground/50">
-          学习管理中枢
-        </p>
       </div>
 
       {/* Grouped navigation */}
@@ -94,7 +91,7 @@ export function SideNav() {
       >
         {SIDE_NAV_GROUPS.map((group) => (
           <div key={group.label} className="mb-5">
-            <p className="px-3 py-1.5 text-[11px] font-medium text-muted-foreground/60">
+            <p className="px-3 py-1.5 text-xs font-medium text-muted-foreground/60">
               {group.label}
             </p>
             <div className="space-y-1">

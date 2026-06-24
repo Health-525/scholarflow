@@ -1,3 +1,8 @@
+import fs from "fs";
+import path from "path";
+
+import { resolveDataDir } from "@/lib/server-db/path";
+
 export const INTERNAL_TOKEN_HEADER = "x-scholarflow-internal-token";
 
 const DEFAULT_ALLOWED_ORIGINS = [
@@ -38,14 +43,26 @@ export function isTrustedOrigin(
   return false;
 }
 
+function readInternalTokenFromFile(): string | null {
+  // 仅在服务端运行时可用；热重载开发态下 next dev 与 Electron 主进程共享 data/.internal-token
+  if (typeof window !== "undefined") return null;
+  try {
+    const tokenPath = path.join(resolveDataDir(), ".internal-token");
+    if (fs.existsSync(tokenPath)) {
+      return fs.readFileSync(tokenPath, "utf-8").trim() || null;
+    }
+  } catch {
+    // 忽略读取失败，回退到环境变量
+  }
+  return null;
+}
+
 export function hasValidInternalToken(request: Request): boolean {
   const token = request.headers.get(INTERNAL_TOKEN_HEADER);
-  const expected = process.env.SCHOLARFLOW_INTERNAL_TOKEN;
-  // 生产环境必须配置 token；开发环境未配置时降级放行，避免本地联调受阻
-  if (!expected && process.env.NODE_ENV === "development") {
-    return true;
-  }
-  return !!token && token === expected;
+  const expected = process.env.SCHOLARFLOW_INTERNAL_TOKEN || readInternalTokenFromFile();
+  // 生产环境和开发环境都必须配置有效的内部 token；未配置时一律拒绝。
+  // Electron 主进程启动时会自动生成并注入该 token，正常启动不会为空。
+  return !!expected && !!token && token === expected;
 }
 
 /** 返回统一的 403 响应 */

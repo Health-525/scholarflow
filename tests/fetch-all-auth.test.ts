@@ -114,13 +114,13 @@ describe("POST /api/fetch/all auth guard", () => {
     expect(mockAdapter.login).not.toHaveBeenCalled();
   });
 
-  it("内部 token 调用允许使用 password 进行静默重登", async () => {
+  it("内部 token 调用允许为当前账号使用 password 进行静默重登", async () => {
     const { POST } = await import("@/app/api/fetch/all/route");
 
     mockFindActiveCredentials.mockReturnValue({
       schoolId: "hebau",
-      userId: "other-user",
-      username: "other-user",
+      userId: "2023084010117",
+      username: "2023084010117",
       expiresAt: Date.now() + 60_000,
     });
     mockFindMostRecentCredential.mockReturnValue(null);
@@ -152,5 +152,36 @@ describe("POST /api/fetch/all auth guard", () => {
       password: "remembered-password",
     });
     expect(mockSaveCredentials).toHaveBeenCalled();
+  });
+
+  it("内部 token 不能跨账号静默重登", async () => {
+    const { POST } = await import("@/app/api/fetch/all/route");
+
+    mockFindActiveCredentials.mockReturnValue({
+      schoolId: "hebau",
+      userId: "other-user",
+      username: "other-user",
+      expiresAt: Date.now() + 60_000,
+    });
+    mockFindMostRecentCredential.mockReturnValue(null);
+    mockGetCredentials.mockReturnValue(null);
+
+    const request = new Request("http://localhost:3000/api/fetch/all", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-scholarflow-internal-token": "internal-token",
+      },
+      body: JSON.stringify({
+        schoolId: "hebau",
+        username: "2023084010117",
+        password: "remembered-password",
+      }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({ error: "unauthorized" });
+    expect(mockAdapter.login).not.toHaveBeenCalled();
   });
 });

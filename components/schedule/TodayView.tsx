@@ -126,7 +126,7 @@ export function TodayView({
                 key={idx}
                 variant="secondary"
                 onClick={() => setSelectedItem(item)}
-                className={`w-full h-auto text-left rounded-xl p-4 transition-all duration-200 active:scale-[0.98] hover:shadow-md animate-fade-up stagger-${Math.min(idx + 1, 7)} items-start justify-start whitespace-normal`}
+                className="w-full h-auto text-left rounded-xl p-4 transition-colors duration-150 active:scale-[0.98] items-start justify-start whitespace-normal"
                 style={{
                   backgroundColor: colors.bg,
                   border: `1px solid ${colors.border}`,

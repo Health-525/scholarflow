@@ -97,7 +97,7 @@ export function QuickAddForm({
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <span className="mb-1.5 block text-sm font-medium text-foreground">
+              <span id="exam-subject-label" className="mb-1.5 block text-sm font-medium text-foreground">
                 科目
               </span>
               <SubjectSelector
@@ -105,11 +105,12 @@ export function QuickAddForm({
                 value={subject}
                 onChange={setSubject}
                 className="max-h-32 overflow-y-auto"
+                aria-labelledby="exam-subject-label"
               />
             </div>
 
             <div>
-              <span className="mb-1.5 block text-sm font-medium text-foreground">
+              <span id="exam-datetime-label" className="mb-1.5 block text-sm font-medium text-foreground">
                 日期时间
               </span>
               <div className="flex flex-wrap gap-1.5 mb-2">
@@ -145,14 +146,16 @@ export function QuickAddForm({
                   </button>
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3" aria-labelledby="exam-datetime-label">
                 <DatePicker
+                  id="exam-date"
                   value={date}
                   onChange={setDate}
                   placeholder="选择日期"
                   disabled={disabled}
                 />
                 <TimePicker
+                  id="exam-time"
                   value={time}
                   onChange={setTime}
                   placeholder="选择时间"

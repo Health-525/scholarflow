@@ -11,6 +11,7 @@ import type {
   AdjustmentDraft,
 } from "@/lib/schedule/adjustments";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
+import type { CourseBlock } from "@/lib/schedule/components";
 import { courseColor } from "@/lib/schedule/course-color";
 import { getWeekNumber } from "@/lib/schedule/schedule";
 import type {
@@ -36,12 +37,6 @@ interface WeekGridProps {
   onAddAdjustment: (draft: AdjustmentDraft) => Promise<unknown>;
   onRemoveAdjustment: (id: string) => Promise<unknown>;
   onClearAdjustments: () => Promise<unknown>;
-}
-
-interface CourseBlock {
-  item: DayItem;
-  firstPeriod: number;
-  span: number;
 }
 
 interface WeekInfo {
@@ -389,13 +384,13 @@ export function WeekGrid({
                       </div>
                     )}
                     {/* Course blocks */}
-                    {courses.map((cb, i) => {
+                    {courses.map((cb) => {
                       const colors = courseColor(cb.item.title);
                       const blockTop = (cb.firstPeriod - 1) * ROW_H + 2;
                       const blockHeight = cb.span * ROW_H - 4;
                       return (
                         <Button
-                          key={i}
+                          key={`${dayIdx}-${cb.firstPeriod}-${cb.item.title}`}
                           variant="secondary"
                           draggable
                           onClick={() => handleCourseClick(cb.item, day)}

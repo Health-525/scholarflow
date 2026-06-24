@@ -66,15 +66,13 @@ export async function POST(request: Request) {
     const db = getServerDB();
     const userId = resolveUserId(username);
 
-    // 浏览器来源请求必须匹配当前活跃/最近账号；只有持有内部 token 的内部调用
-    // 才允许使用 password 走静默重登。
-    if (!hasValidInternalToken) {
-      const active = db.findActiveCredentials();
-      const recent = db.findMostRecentCredential();
-      const allowed = active || recent;
-      if (!allowed || allowed.userId !== userId || allowed.schoolId !== schoolId) {
-        return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-      }
+    // 所有请求（含内部 token）都必须匹配当前活跃/最近账号。内部 token 仅用于
+    // 通过同源门控，以及允许在凭证过期时使用保存的密码做静默重登。
+    const active = db.findActiveCredentials();
+    const recent = db.findMostRecentCredential();
+    const allowed = active || recent;
+    if (!allowed || allowed.userId !== userId || allowed.schoolId !== schoolId) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
 
     let savedCreds = db.getCredentials(schoolId, userId);

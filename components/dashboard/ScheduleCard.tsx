@@ -2,7 +2,7 @@
 
 import { CalendarDays, Check } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 
 import { CountdownTimer } from "@/components/schedule/CountdownTimer";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ import { courseColor } from "@/lib/schedule/course-color";
 import { getNextCourse } from "@/lib/schedule/next-course";
 import { getNowInTimeZone } from "@/lib/schedule/timezone";
 
-export function ScheduleCard() {
+export const ScheduleCard = memo(function ScheduleCard() {
   const { data, isLoading, error, refetch } = useScheduleQuery();
   const schedule = data?.schedule;
   const adjustments = data?.adjustments ?? [];
@@ -121,7 +121,7 @@ export function ScheduleCard() {
                       }}
                     >
                       <span
-                        className="w-[3px] h-8 rounded-[999px] shrink-0"
+                        className="w-[3px] h-8 rounded-full shrink-0"
                         style={{ backgroundColor: colors.accent }}
                       />
                       <span
@@ -152,6 +152,6 @@ export function ScheduleCard() {
       </CardContent>
     </Card>
   );
-}
+});
 
 export default ScheduleCard;

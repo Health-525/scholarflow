@@ -40,10 +40,9 @@
   --inverse-primary: var(--primary);
 }
 
-/* ── 移动端:Material-3「小咪」粉色皮肤(亮色恒定) ── */
+/* ── 移动端:Material-3「小咪」粉色皮肤(仅亮色;暗色沿用桌面暗色主题) ── */
 @media (max-width: 767px) {
-  :root,
-  [data-theme="dark"] {
+  :root:not([data-theme="dark"]) {
     /* 核心 shadcn token 覆盖 */
     --background: #fef8fa;
     --foreground: #1d1b1d;
@@ -98,7 +97,6 @@
     --status-error: #ba1a1a;
     --status-info: #42617d;
 
-    --grain-opacity: 0;
     --bg-gradient: #fef8fa;
 
     /* 萌系光晕色(粉默认;蓝皮在 [data-skin="blue"] 覆盖) */
@@ -154,17 +152,6 @@
     font-family: "ZCOOL KuaiLe", var(--font-noto-sans-sc), "Noto Sans SC",
       ui-sans-serif, "PingFang SC", "Microsoft YaHei", sans-serif;
   }
-}
-
-/* ── 小咪吉祥物浮动动画 ── */
-@keyframes ximi-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-.ximi-float { animation: ximi-float 3s ease-in-out infinite; }
-
-@media (prefers-reduced-motion: reduce) {
-  .ximi-float { animation: none; }
 }
 
 /* ── 移动端:既有 shadcn 卡片圆润化 + 柔和粉调阴影,与萌系卡片协调 ── */
@@ -234,7 +221,6 @@
     --status-error: #ba1a1a;
     --status-info: #0e7490;
 
-    --grain-opacity: 0;
     --bg-gradient: #f2faf8;
 
     /* 青色光晕 → 上方所有 --shadow-* 与组件内联阴影自动跟随 */

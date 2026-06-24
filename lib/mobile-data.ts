@@ -9,7 +9,6 @@ import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
 
 import { getCurrentAuth } from "./api/auth-params";
-import { apiFetch } from "./api-client";
 
 export const isNative = Capacitor.isNativePlatform();
 
@@ -73,7 +72,7 @@ export async function readData(type: string): Promise<unknown> {
   const { schoolId, userId } = getCurrentUser();
   const params = new URLSearchParams({ type, schoolId });
   if (userId) params.set("userId", userId);
-  const res = await apiFetch(`/api/local-data?${params.toString()}`);
+  const res = await fetch(`/api/local-data?${params.toString()}`);
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`读取失败 (${res.status}): ${text || res.statusText}`);
@@ -91,7 +90,7 @@ export async function writeData(file: string, content: string, action = "更新"
   const { schoolId, userId } = getCurrentUser();
   const body: Record<string, string> = { file, content, action, schoolId };
   if (userId) body.userId = userId;
-  const res = await apiFetch("/api/local-save", {
+  const res = await fetch("/api/local-save", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

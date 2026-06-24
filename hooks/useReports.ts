@@ -20,11 +20,11 @@ export function useDailyReports(): ReportsState {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (signal?: AbortSignal) => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/local-data?type=dailyReports&${getAuthParams()}`);
+      const res = await fetch(`/api/local-data?type=dailyReports&${getAuthParams()}`, { signal });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -36,6 +36,7 @@ export function useDailyReports(): ReportsState {
         setEntries([]);
       }
     } catch (err) {
+      if (signal?.aborted) return;
       setError(err instanceof Error ? err : new Error(String(err)));
       setEntries([]);
     } finally {
@@ -44,7 +45,9 @@ export function useDailyReports(): ReportsState {
   }, []);
 
   useEffect(() => {
-    load();
+    const abort = new AbortController();
+    load(abort.signal);
+    return () => abort.abort();
   }, [load]);
 
   return { entries, isLoading, error, reload: load };
@@ -58,11 +61,11 @@ export function useWeeklyReports(): ReportsState {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (signal?: AbortSignal) => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/local-data?type=weeklyReports&${getAuthParams()}`);
+      const res = await fetch(`/api/local-data?type=weeklyReports&${getAuthParams()}`, { signal });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -74,6 +77,7 @@ export function useWeeklyReports(): ReportsState {
         setEntries([]);
       }
     } catch (err) {
+      if (signal?.aborted) return;
       setError(err instanceof Error ? err : new Error(String(err)));
       setEntries([]);
     } finally {
@@ -82,7 +86,9 @@ export function useWeeklyReports(): ReportsState {
   }, []);
 
   useEffect(() => {
-    load();
+    const abort = new AbortController();
+    load(abort.signal);
+    return () => abort.abort();
   }, [load]);
 
   return { entries, isLoading, error, reload: load };

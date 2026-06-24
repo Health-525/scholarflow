@@ -1,6 +1,7 @@
 "use client";
 
 import { Newspaper } from "lucide-react";
+import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +13,7 @@ const CATEGORY_STYLES: Record<string, { dot: string; bg: string; text: string }>
   "教学动态": { dot: "bg-[var(--status-success)]", bg: "bg-[var(--status-success)]/10", text: "text-[var(--status-success)]" },
 };
 
-export function JwcNewsCard() {
+export const JwcNewsCard = memo(function JwcNewsCard() {
   const { data, isLoading, error, refetch } = useJwcNewsQuery();
   const items = (data?.items ?? []).slice(0, 8);
   const fetchedAt = data?.fetchedAt ?? "";
@@ -78,6 +79,6 @@ export function JwcNewsCard() {
       </CardContent>
     </Card>
   );
-}
+});
 
 export default JwcNewsCard;

@@ -311,7 +311,7 @@ function createActivityTracker(options) {
     currentDomain = categorized.domain || '';
     currentProject = categorized.project || '';
     currentBeginAt = Date.now();
-    log('info', `[ActivityTracker] window: app=${win.owner?.name}, title=${win.title?.slice(0, 60)}, category=${currentCategory}`);
+    log('info', `[ActivityTracker] segment started: category=${currentCategory}`);
 
     insertSegment('app', {
       app: currentApp,
@@ -329,7 +329,7 @@ function createActivityTracker(options) {
    */
   function handleWindowChange(win) {
     const categorized = categorizeActivity(win.owner?.name || 'Unknown', win.title || '');
-    log('info', `[ActivityTracker] window: app=${win.owner?.name}, title=${win.title?.slice(0, 60)}, category=${categorized.category}`);
+    log('info', `[ActivityTracker] window changed: category=${categorized.category}`);
     const sameApp = categorized.app === currentApp && win.title === currentTitle;
     if (sameApp) return;
 

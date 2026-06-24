@@ -48,6 +48,40 @@
 
 > 注意：`scholarflow/skills/` 目录不会被 kimi-code 自动扫描注册；Kimi 项目级 skill 请使用 `.kimi-code/skills/` 路径。Agent 仍可通过 `Read` 主动读取任一目录下的 SKILL.md。
 
+## 设计系统方向（Design System Direction）
+
+项目正在从「装饰优先」向「克制、一致、可维护」迁移，参考 Linear、Apple Design、Notion 等长寿命应用。后续 UI 改动应遵循以下原则：
+
+### 1. 动画：解释状态，而非装饰
+- **不再使用全局路由进入动画**（已移除 `AppShell` 的 `animate-page`）。页面切换应瞬时完成。
+- 保留有意义的微交互：按钮 active、完成勾选、弹窗进入、骨架屏。
+- 所有动画必须尊重 `prefers-reduced-motion`。
+
+### 2. 导航：单一入口，避免重复
+- **移动端「更多」统一指向 `/more` 页面**，不再维护独立的 `MobileMore` 组件和底部抽屉。
+- `/chat` 已加入全局搜索；`/stats` 等不存在路由已从快捷键移除。
+- 桌面端侧边栏保持 4 个分组；新增一级入口需审慎。
+
+### 3. 卡片与容器：减少视觉噪音
+- 卡片默认 hover 仅做边框色变化，不再整体上浮/加阴影。
+- 移除无意义的装饰性模糊光斑、grain 叠加、大投影。
+- 优先用留白和分组替代边框和阴影。
+
+### 4. 设计 token：逐步约束，减少任意值
+- **圆角**：优先使用 `rounded-md(6)/lg(12)/xl(18)/2xl(24)/full`，逐步替换 `rounded-[22px]`、`rounded-[28px]` 等任意值。
+- **字号**：优先使用 `text-xs(12)/sm(14)/base(15)/lg(18)/xl(20)/2xl(24)`，逐步替换 `text-[11px]`、`text-[13px]`、`text-[15px]` 等任意值。
+- **间距**：优先使用 `space-1/2/3/4/5/6/8`，减少 `gap-2.5`、`gap-3.5` 等混合值。
+- **阴影**：仅使用 `--shadow-xs/sm/md/lg`，禁止内联 `shadow-[...]`。
+
+### 5. 空状态与表单
+- 空状态只保留一个主操作，移除示例/占位数据（已完成笔记示例清理）。
+- 表单标签统一为 `text-xs font-medium text-muted-foreground`，不再使用 uppercase + tracking。
+- 所有输入框统一走 `Input` / `Textarea` 组件，保持焦点环一致。
+
+### 6. 主题与响应式
+- 移动端 `ximi` 皮肤目前强制浅色，后续需提供暗色变体或改为仅调整强调色。
+- 响应式优先复用组件，而非维护两套独立 UI（`MobileHome` / `MobileSchedule` 等属于历史债务）。
+
 ## 通用执行原则
 
 1. **最小改动**：只做实现目标所必需的修改，不重构无关代码。

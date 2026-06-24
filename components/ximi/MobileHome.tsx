@@ -1,6 +1,6 @@
 "use client";
 
-import { BatteryCharging, Clock, Plus, Smile, Timer } from "lucide-react";
+import { Clock, Plus, Timer } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -47,10 +47,10 @@ function TodayTasks() {
   const pending = assignments.filter((a) => !a.done).slice(0, 4);
 
   return (
-    <section className="relative w-full overflow-hidden rounded-[32px] bg-surface-container-lowest p-5 shadow-[0_20px_40px_-20px_rgba(var(--ximi-glow),0.25)]">
-      <div className="pointer-events-none absolute inset-0 rounded-[32px] border-[1.5px] border-white/60" />
+    <section className="relative w-full overflow-hidden rounded-3xl bg-surface-container-lowest p-5 shadow-sm">
+      <div className="pointer-events-none absolute inset-0 rounded-3xl border border-white/60" />
       <div className="relative z-10 mb-4 flex items-center justify-between">
-        <h2 className="text-[20px] font-bold text-on-surface">今日任务</h2>
+        <h2 className="text-xl font-bold text-on-surface">今日任务</h2>
         <Link
           href="/assignments"
           aria-label="查看作业"
@@ -64,7 +64,7 @@ function TodayTasks() {
         {(!mounted || isLoading) && [1, 2].map((i) => <div key={i} className="skeleton h-[68px] rounded-3xl" />)}
 
         {mounted && error && !isLoading && (
-          <button onClick={reload} className="rounded-3xl bg-surface px-4 py-5 text-[14px] text-on-surface-variant">
+          <button onClick={reload} className="rounded-3xl bg-surface px-4 py-5 text-sm text-on-surface-variant">
             加载失败,点击重试
           </button>
         )}
@@ -72,7 +72,7 @@ function TodayTasks() {
         {mounted && !isLoading && !error && pending.length === 0 && (
           <div className="flex flex-col items-center gap-2 py-6">
             <Mascot size="md" />
-            <p className="text-[14px] text-on-surface-variant">今天没有作业啦，和小咪一起放松吧~</p>
+            <p className="text-sm text-on-surface-variant">今天没有作业啦，和小咪一起放松吧~</p>
           </div>
         )}
 
@@ -90,12 +90,12 @@ function TodayTasks() {
             >
               <span className="mt-0.5 h-6 w-6 shrink-0 rounded-full border-2 border-outline" />
               <div className="min-w-0 flex-1">
-                <h3 className="mb-1 truncate text-[15px] font-semibold text-on-surface">{a.title}</h3>
+                <h3 className="mb-1 truncate text-base font-semibold text-on-surface">{a.title}</h3>
                 <div className="flex items-center gap-2">
-                  <span className={`rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${chipClass(a.subject || "")}`}>
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${chipClass(a.subject || "")}`}>
                     {a.subject || "作业"}
                   </span>
-                  <span className={`flex items-center gap-1 text-[12px] font-semibold ${danger ? "text-error" : "text-on-surface-variant"}`}>
+                  <span className={`flex items-center gap-1 text-xs font-semibold ${danger ? "text-error" : "text-on-surface-variant"}`}>
                     <Clock className="h-3.5 w-3.5" /> {when}
                   </span>
                 </div>
@@ -121,30 +121,20 @@ export function MobileHome() {
     <div className="mx-auto flex max-w-md flex-col gap-7 pb-4 pt-4 md:hidden">
       {/* Hero：小咪 */}
       <section className="relative flex flex-col items-center">
-        <div className="absolute left-1/2 top-10 -z-10 h-56 w-56 -translate-x-1/2 rounded-full bg-primary-container/30 blur-[42px]" />
-        <div className="flex h-40 w-40 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-surface-container-lowest shadow-[0_20px_40px_-15px_rgba(var(--ximi-glow),0.4)]">
-          <Mascot size="xl" eager float className="!drop-shadow-none" />
+        <div className="absolute left-1/2 top-12 -z-10 h-40 w-40 -translate-x-1/2 rounded-full bg-primary-container/25 blur-[36px]" />
+        <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-surface-container-lowest shadow-sm">
+          <Mascot size="lg" eager className="!drop-shadow-none" />
         </div>
-        <div className="z-10 -mt-5 flex gap-3">
-          <span className="flex items-center gap-1.5 rounded-full border border-white/60 bg-white/90 px-4 py-1.5 shadow-[0_8px_16px_-4px_rgba(var(--ximi-glow),0.25)] backdrop-blur-md">
-            <Smile className="h-4 w-4 text-primary" />
-            <span className="text-[12px] font-semibold text-on-surface">元气满满</span>
-          </span>
-          <span className="flex items-center gap-1.5 rounded-full border border-white/60 bg-white/90 px-4 py-1.5 shadow-[0_8px_16px_-4px_rgba(var(--ximi-glow),0.25)] backdrop-blur-md">
-            <BatteryCharging className="h-4 w-4 text-secondary" />
-            <span className="text-[12px] font-semibold text-on-surface">准备学习</span>
-          </span>
-        </div>
-        <p className="mt-4 text-center text-[15px] font-semibold text-on-surface">{greeting}，今天也要加油哦~</p>
+        <p className="mt-4 text-center text-base font-semibold text-on-surface">{greeting}，今天也要加油哦~</p>
       </section>
 
       {/* 开始专注 */}
       <Link
         href="/pomodoro"
-        className="flex w-full items-center justify-center gap-3 rounded-[2rem] bg-primary-container py-4 text-on-primary-container shadow-[0_12px_24px_-8px_rgba(var(--ximi-glow),0.5)] transition-transform active:scale-[0.98]"
+        className="flex w-full items-center justify-center gap-3 rounded-full bg-primary-container py-4 text-on-primary-container shadow-sm transition-transform active:scale-[0.98]"
       >
         <Timer className="h-7 w-7" />
-        <span className="text-[18px] font-bold">开始专注</span>
+        <span className="text-lg font-bold">开始专注</span>
       </Link>
 
       {/* 今日任务 */}
@@ -154,7 +144,7 @@ export function MobileHome() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2 px-1">
           <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-          <span className="text-[13px] font-bold text-on-surface-variant">今日看板</span>
+          <span className="text-sm font-bold text-on-surface-variant">今日看板</span>
         </div>
         <ScheduleCard />
         <SummaryBanner data={dashboardData} loading={dashboardLoading} />

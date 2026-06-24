@@ -30,7 +30,10 @@ export function useGoalSaver(
         date: today,
       };
       queue.current = queue.current
-        .catch(() => {})
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.error("[useGoalSaver] previous save failed, continuing queue:", err);
+        })
         .then(() => saveGoals(state, nextHistory, schoolId, userId));
       return queue.current;
     },

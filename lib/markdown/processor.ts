@@ -20,9 +20,9 @@ export async function renderMarkdown(markdown: string, _options?: MarkdownOption
     .use(remarkGfm)
     .use(calloutPlugin)
     .use(wikiLinkPlugin)
-    .use(remarkRehype, { allowDangerousHtml: true })
-    .use(rehypeStringify, { allowDangerousHtml: true })
+    .use(remarkRehype)
+    .use(rehypeStringify)
     .process(markdown);
 
-  return sanitizeHtml(String(result));
+  return await sanitizeHtml(String(result));
 }

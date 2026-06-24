@@ -68,7 +68,7 @@ export default function WeeklyReportsPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-6 animate-page">
+    <div className="max-w-5xl mx-auto py-6">
       <PageHeader
         icon={<CalendarDays className="w-5 h-5 text-primary" />}
         title="周报"
