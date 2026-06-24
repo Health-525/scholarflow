@@ -60,26 +60,20 @@ export function DateStrip({ selectedDate, datesWithReport, onSelect }: DateStrip
               type="button"
               onClick={() => onSelect(date)}
               className={cn(
-                "flex flex-col items-center justify-center min-w-[3.25rem] h-14 rounded-xl text-xs transition-colors relative",
+                "flex flex-col items-center justify-center min-w-[3.25rem] h-14 rounded-xl text-xs transition-colors",
                 isSelected
                   ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                  : hasReport
+                    ? "bg-primary/[0.08] text-primary hover:bg-primary/[0.14]"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
               )}
             >
-              <span className={cn("text-[10px] font-medium mb-0.5", isSelected ? "text-primary-foreground/80" : "")}>
+              <span className={cn("text-[10px] font-medium mb-0.5", isSelected ? "text-primary-foreground/80" : hasReport ? "text-primary/80" : "")}>
                 {isToday ? "今" : weekday}
               </span>
               <span className={cn("text-sm font-semibold tabular-nums", isSelected && "text-primary-foreground")}>
                 {d.getDate()}
               </span>
-              {hasReport && (
-                <span
-                  className={cn(
-                    "absolute bottom-1.5 h-1 w-1 rounded-full",
-                    isSelected ? "bg-primary-foreground" : "bg-primary"
-                  )}
-                />
-              )}
             </button>
           );
         })}
