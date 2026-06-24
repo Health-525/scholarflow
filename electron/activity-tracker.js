@@ -11,12 +11,38 @@
 
 'use strict';
 
-const activeWindow = require('active-win');
 const { powerMonitor } = require('electron');
 const path = require('path');
 const { app } = require('electron');
 const { categorizeActivity } = require('./activity-categorize');
 const { normalizeSegments } = require('../lib/activity/normalize-segments');
+
+// get-windows (原 active-win) v9+ 是纯 ESM，Electron CommonJS 主进程通过动态导入使用
+/** @type {import('get-windows').activeWindow | null} */
+let activeWindowFn = null;
+let activeWindowLoadPromise = null;
+
+async function loadActiveWindow() {
+  if (activeWindowFn) return activeWindowFn;
+  if (activeWindowLoadPromise) return activeWindowLoadPromise;
+
+  activeWindowLoadPromise = import('get-windows')
+    .then((mod) => {
+      activeWindowFn = mod.activeWindow;
+      return activeWindowFn;
+    })
+    .catch((err) => {
+      activeWindowLoadPromise = null;
+      throw err;
+    });
+
+  return activeWindowLoadPromise;
+}
+
+async function activeWindow() {
+  const fn = await loadActiveWindow();
+  return fn();
+}
 
 const fs = require('fs');
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -445,7 +471,6 @@ function createActivityTracker(options) {
     const rawTitle = win.title || '';
     const processPath = win.owner?.path || '';
     const categorized = categorizeActivity(ownerName, rawTitle, win.url, processPath);
-    log('info', `[ActivityTracker] window changed: category=${categorized.category}`);
 
     // 排除应用：不记录其片段；如果当前正在追踪该应用，结束它
     if (isExcludedApp(categorized.app) || isExcludedApp(ownerName)) {
@@ -463,6 +488,8 @@ function createActivityTracker(options) {
       categorized.category === currentCategory &&
       (categorized.domain || '') === currentDomain;
     if (sameApp) return;
+
+    log('info', `[ActivityTracker] window changed: app=${categorized.app}, category=${categorized.category}`);
 
     const now = Date.now();
     closeOpenSegments(now);
@@ -607,6 +634,55 @@ function createActivityTracker(options) {
     powerMonitor.off('resume', onSystemResumed);
   }
 
+  /**
+   * 根据当前分类规则重新校正历史 app 片段的 app 名和 category。
+   * 只会在 SQLite 模式（生产环境）执行，HTTP fallback（开发模式）跳过。
+   */
+  function recategorizeHistoricalData() {
+    if (storageMode !== 'sqlite' || !db) return 0;
+
+    try {
+      const rows = /** @type {Array<{ id: number, app: string | null, title: string | null, domain: string | null, category: string | null }>} */ (
+        db.prepare("SELECT id, app, title, domain, category FROM activity_segments WHERE type = 'app'").all()
+      );
+      if (rows.length === 0) return 0;
+
+      const updateStmt = db.prepare(
+        'UPDATE activity_segments SET app = @app, category = @category, domain = @domain WHERE id = @id'
+      );
+      const updates = [];
+
+      for (const row of rows) {
+        const categorized = categorizeActivity(row.app, row.title, row.domain || undefined);
+        if (
+          categorized.app !== row.app ||
+          categorized.category !== row.category ||
+          categorized.domain !== row.domain
+        ) {
+          updates.push({
+            id: row.id,
+            app: categorized.app,
+            category: categorized.category,
+            domain: categorized.domain || null,
+          });
+        }
+      }
+
+      if (updates.length === 0) return 0;
+
+      const tx = db.transaction((list) => {
+        for (const u of list) updateStmt.run(u);
+      });
+      tx(updates);
+
+      log('info', `[ActivityTracker] recategorized ${updates.length} historical segments`);
+      return updates.length;
+    } catch (err) {
+      log('error', `[ActivityTracker] recategorizeHistoricalData failed: ${err.message}`);
+      return 0;
+    }
+  }
+
   function startInSqliteMode() {
     const Database = require('better-sqlite3');
     const dbPath = resolveDbPath();
@@ -621,6 +697,7 @@ function createActivityTracker(options) {
     ensureSchema();
     prepareStatements();
     cleanupOldData();
+    recategorizeHistoricalData();
 
     // Close any dangling segments from a previous crash/quit
     const now = Date.now();
@@ -675,7 +752,7 @@ function createActivityTracker(options) {
     log('info', '[ActivityTracker] started (http)');
   }
 
-  function start() {
+  async function start() {
     if (storageMode) return;
 
     try {

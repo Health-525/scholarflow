@@ -439,11 +439,11 @@ function createWindow() {
 
   mainWindow.loadURL(APP_URL);
 
-  mainWindow.once('ready-to-show', () => {
+  mainWindow.once('ready-to-show', async () => {
     mainWindow.show();
     mainWindow.focus();
     if (activityTracker) {
-      activityTracker.start();
+      await activityTracker.start();
       migrateLegacyActivityData();
     }
   });
