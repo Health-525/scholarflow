@@ -50,9 +50,12 @@ const INTERNAL_TOKEN_HEADER = 'x-scholarflow-internal-token';
 
 const DEFAULT_ACTIVITY_SETTINGS = {
   paused: false,
-  excludedApps: [],
+  // 默认排除 ScholarFlow 本身：用户看屏幕时间时，自己这个应用的时间没有意义
+  excludedApps: ['ScholarFlow'],
   recordTitles: true,
   idleThresholdMinutes: 5,
+  // 用户自定义应用分类覆盖，例如 { pattern: 'NRC Launcher', category: 'entertainment' }
+  appOverrides: [],
 };
 
 function getActivitySettingsPath() {
@@ -64,11 +67,22 @@ function loadActivitySettings() {
     const raw = fs.readFileSync(getActivitySettingsPath(), 'utf8');
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object') {
+      const overrides = Array.isArray(parsed.appOverrides)
+        ? parsed.appOverrides
+            .filter((o) => o && typeof o === 'object')
+            .map((o) => ({
+              pattern: String(o.pattern || ''),
+              app: o.app != null ? String(o.app) : undefined,
+              category: String(o.category || ''),
+            }))
+            .filter((o) => o.pattern && o.category)
+        : [];
       return {
         paused: !!parsed.paused,
         excludedApps: Array.isArray(parsed.excludedApps) ? parsed.excludedApps.map(String) : [],
         recordTitles: parsed.recordTitles !== false,
         idleThresholdMinutes: typeof parsed.idleThresholdMinutes === 'number' ? parsed.idleThresholdMinutes : 5,
+        appOverrides: overrides,
       };
     }
   } catch (err) {
@@ -121,6 +135,7 @@ function createActivityTracker(options) {
   let excludedApps = new Set(settings.excludedApps.map((a) => a.toLowerCase()));
   let recordTitles = settings.recordTitles;
   let idleThresholdMs = Math.max(1, settings.idleThresholdMinutes) * 60 * 1000;
+  let appOverrides = settings.appOverrides || [];
 
   /** @type {'sqlite' | 'http' | null} */
   let storageMode = null;
@@ -385,11 +400,14 @@ function createActivityTracker(options) {
       excludedApps: Array.from(excludedApps),
       recordTitles,
       idleThresholdMinutes: Math.round(idleThresholdMs / 60000),
+      appOverrides,
     };
   }
 
   function updateSettings(patch) {
     if (!patch || typeof patch !== 'object') return getSettings();
+
+    let shouldRecategorize = false;
 
     if (typeof patch.paused === 'boolean') {
       isPaused = patch.paused;
@@ -421,8 +439,26 @@ function createActivityTracker(options) {
       idleThresholdMs = Math.max(1, Math.round(patch.idleThresholdMinutes)) * 60 * 1000;
     }
 
+    if (Array.isArray(patch.appOverrides)) {
+      appOverrides = patch.appOverrides
+        .filter((o) => o && typeof o === 'object')
+        .map((o) => ({
+          pattern: String(o.pattern || ''),
+          app: o.app != null ? String(o.app) : undefined,
+          category: String(o.category || ''),
+        }))
+        .filter((o) => o.pattern && o.category);
+      shouldRecategorize = true;
+    }
+
     settings = getSettings();
     saveActivitySettings(settings);
+
+    if (shouldRecategorize) {
+      recategorizeHistoricalData();
+      broadcastState();
+    }
+
     return settings;
   }
 
@@ -437,7 +473,7 @@ function createActivityTracker(options) {
     const ownerName = win.owner?.name || 'Unknown';
     const rawTitle = win.title || '';
     const processPath = win.owner?.path || '';
-    const categorized = categorizeActivity(ownerName, rawTitle, win.url, processPath);
+    const categorized = categorizeActivity(ownerName, rawTitle, win.url, processPath, appOverrides);
 
     if (isExcludedApp(categorized.app) || isExcludedApp(ownerName)) {
       resetCurrentWindow();
@@ -470,7 +506,7 @@ function createActivityTracker(options) {
     const ownerName = win.owner?.name || 'Unknown';
     const rawTitle = win.title || '';
     const processPath = win.owner?.path || '';
-    const categorized = categorizeActivity(ownerName, rawTitle, win.url, processPath);
+    const categorized = categorizeActivity(ownerName, rawTitle, win.url, processPath, appOverrides);
 
     // 排除应用：不记录其片段；如果当前正在追踪该应用，结束它
     if (isExcludedApp(categorized.app) || isExcludedApp(ownerName)) {
@@ -653,7 +689,7 @@ function createActivityTracker(options) {
       const updates = [];
 
       for (const row of rows) {
-        const categorized = categorizeActivity(row.app, row.title, row.domain || undefined);
+        const categorized = categorizeActivity(row.app, row.title, row.domain || undefined, undefined, appOverrides);
         if (
           categorized.app !== row.app ||
           categorized.category !== row.category ||
@@ -820,7 +856,8 @@ function createActivityTracker(options) {
     const categoryMap = new Map();
     const appMap = new Map();
 
-    const segments = normalized.map((row) => {
+    const segments = [];
+    for (const row of normalized) {
       const seg = {
         id: row.id,
         type: /** @type {'app'|'idle'|'away'} */ (row.type),
@@ -832,6 +869,9 @@ function createActivityTracker(options) {
         beginAt: row.begin_at,
         endAt: row.end_at,
       };
+
+      // 被排除的应用（如 ScholarFlow 自身）不应出现在任何统计或时间轴中
+      if (seg.type === 'app' && isExcludedApp(seg.app)) continue;
 
       const minutes = clipSegmentMinutes(seg.beginAt, seg.endAt, startMs, endMs);
       if (minutes > 0) {
@@ -856,8 +896,8 @@ function createActivityTracker(options) {
         }
       }
 
-      return seg;
-    });
+      segments.push(seg);
+    }
 
     const categoryBreakdown = Array.from(categoryMap.entries())
       .map(([category, minutes]) => ({ category, minutes }))
@@ -1051,6 +1091,7 @@ function createActivityTracker(options) {
     clearData,
     getCurrentState,
     migrateLegacyData,
+    recategorizeHistoricalData,
     getSettings,
     updateSettings,
     togglePaused,

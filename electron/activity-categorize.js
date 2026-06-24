@@ -92,12 +92,27 @@ function classifyBrowsing(domain, title) {
  * @param {string} title
  * @param {string} [url]
  * @param {string} [processPath]
+ * @param {Array<{ pattern: string, app?: string, category: string }>} [overrides]
  * @returns {{ app: string, category: string, domain?: string, project?: string }}
  */
-function categorizeActivity(app, title, url, processPath) {
+function categorizeActivity(app, title, url, processPath, overrides) {
   const a = (app || '').toLowerCase();
   const t = (title || '').toLowerCase();
   const p = (processPath || '').toLowerCase();
+
+  // 优先使用用户自定义覆盖规则（支持应用名或标题子串匹配）
+  if (Array.isArray(overrides)) {
+    for (const override of overrides) {
+      const pattern = (override.pattern || '').toLowerCase();
+      if (!pattern || !override.category) continue;
+      if (a.includes(pattern) || t.includes(pattern) || p.includes(pattern)) {
+        return {
+          app: override.app || app.charAt(0).toUpperCase() + app.slice(1),
+          category: override.category,
+        };
+      }
+    }
+  }
 
   // 优先使用真实 URL（部分平台 active-win 可提供），否则回退到标题推断
   let urlDomain;

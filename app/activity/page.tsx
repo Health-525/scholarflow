@@ -14,7 +14,9 @@ import {
   Monitor,
   PauseCircle,
   PlayCircle,
+  RefreshCw,
   Settings,
+  Tag,
   Trash2,
   X,
 } from "lucide-react";
@@ -165,6 +167,10 @@ export default function ActivityPage() {
   const trendDays = useActivityTrend();
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [excludedInput, setExcludedInput] = useState("");
+  const [overridePattern, setOverridePattern] = useState("");
+  const [overrideCategory, setOverrideCategory] = useState<Category>("study");
+  const [overrideApp, setOverrideApp] = useState("");
+  const [recategorizing, setRecategorizing] = useState(false);
 
   const isToday = date === todayStr();
   const totalMinutes = state.totalMinutes;
@@ -210,6 +216,55 @@ export default function ActivityPage() {
     await update({
       excludedApps: settings.excludedApps.filter((a) => a.toLowerCase() !== app.toLowerCase()),
     });
+  }
+
+  async function handleAddOverride() {
+    if (!settings) return;
+    const pattern = overridePattern.trim();
+    if (!pattern) return;
+    const next = settings.appOverrides.filter(
+      (o) => o.pattern.toLowerCase() !== pattern.toLowerCase()
+    );
+    const entry: { pattern: string; category: Category; app?: string } = {
+      pattern,
+      category: overrideCategory,
+    };
+    const displayApp = overrideApp.trim();
+    if (displayApp) entry.app = displayApp;
+    next.push(entry);
+    await update({ appOverrides: next });
+    setOverridePattern("");
+    setOverrideApp("");
+    setOverrideCategory("study");
+  }
+
+  async function handleRemoveOverride(pattern: string) {
+    if (!settings) return;
+    await update({
+      appOverrides: settings.appOverrides.filter(
+        (o) => o.pattern.toLowerCase() !== pattern.toLowerCase()
+      ),
+    });
+  }
+
+  async function handleCategorizeApp(app: string, category: Category) {
+    if (!settings) return;
+    const next = settings.appOverrides.filter(
+      (o) => o.pattern.toLowerCase() !== app.toLowerCase()
+    );
+    next.push({ pattern: app, category, app });
+    await update({ appOverrides: next });
+  }
+
+  async function handleRecategorize() {
+    const api = window.electronAPI;
+    if (!api?.recategorizeActivityData) return;
+    setRecategorizing(true);
+    try {
+      await api.recategorizeActivityData();
+    } finally {
+      setRecategorizing(false);
+    }
   }
 
   if (!state.isElectron) {
@@ -392,6 +447,89 @@ export default function ActivityPage() {
               </div>
             )}
           </div>
+
+          {/* ── 应用分类覆盖 ── */}
+          <div className="pt-2 border-t">
+            <div className="flex items-center gap-2 mb-2">
+              <Tag className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">
+                应用分类覆盖（未识别应用由你决定属于哪类）
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input
+                placeholder="匹配词：应用名或窗口标题子串"
+                value={overridePattern}
+                onChange={(e) => setOverridePattern(e.target.value)}
+                disabled={settingsLoading || !settings}
+                className="h-9 text-sm flex-1"
+              />
+              <Input
+                placeholder="显示名称（可选）"
+                value={overrideApp}
+                onChange={(e) => setOverrideApp(e.target.value)}
+                disabled={settingsLoading || !settings}
+                className="h-9 text-sm sm:w-40"
+              />
+              <select
+                value={overrideCategory}
+                onChange={(e) => setOverrideCategory(e.target.value as Category)}
+                disabled={settingsLoading || !settings}
+                className="h-9 text-sm rounded-md border border-input bg-background px-2"
+              >
+                {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <Button
+                type="button"
+                size="sm"
+                className="h-9"
+                onClick={handleAddOverride}
+                disabled={settingsLoading || !settings || !overridePattern.trim()}
+              >
+                添加
+              </Button>
+            </div>
+            {settings && settings.appOverrides.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {settings.appOverrides.map((o) => (
+                  <Badge
+                    key={o.pattern}
+                    variant="secondary"
+                    className="gap-1 pl-2 pr-1 py-0.5 text-xs font-normal"
+                  >
+                    {o.pattern}
+                    <span className="text-muted-foreground">→</span>
+                    {CATEGORY_LABELS[o.category as Category] || o.category}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveOverride(o.pattern)}
+                      className="rounded-full p-0.5 hover:bg-muted"
+                      aria-label={`移除 ${o.pattern}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2 mt-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1.5 text-xs"
+                onClick={handleRecategorize}
+                disabled={recategorizing || settingsLoading || !settings}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${recategorizing ? "animate-spin" : ""}`} />
+                重新校正历史数据
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -530,6 +668,7 @@ export default function ActivityPage() {
                 const catColor = isUncategorized
                   ? semanticColor("info")
                   : semanticColor(CATEGORY_SEMANTIC[category]);
+                const isBusy = settingsLoading || !settings;
                 return (
                   <div key={b.app} className="space-y-1.5">
                     <div className="flex items-center gap-3 text-xs">
@@ -539,16 +678,37 @@ export default function ActivityPage() {
                       >
                         {b.app}
                       </span>
-                      <Badge
-                        variant="outline"
-                        className="text-xs h-4 px-1.5 font-normal"
-                        style={{
-                          borderColor: catColor,
-                          color: catColor,
-                        }}
-                      >
-                        {isUncategorized ? "未分类" : CATEGORY_LABELS[category]}
-                      </Badge>
+                      {isUncategorized ? (
+                        <select
+                          value=""
+                          onChange={(e) => {
+                            const value = e.target.value as Category;
+                            if (value) handleCategorizeApp(b.app, value);
+                          }}
+                          disabled={isBusy}
+                          className="h-5 text-[10px] rounded border border-input bg-background px-1 py-0"
+                        >
+                          <option value="">未分类</option>
+                          {Object.entries(CATEGORY_LABELS)
+                            .filter(([key]) => key !== "other")
+                            .map(([key, label]) => (
+                              <option key={key} value={key}>
+                                归为 {label}
+                              </option>
+                            ))}
+                        </select>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="text-xs h-4 px-1.5 font-normal"
+                          style={{
+                            borderColor: catColor,
+                            color: catColor,
+                          }}
+                        >
+                          {CATEGORY_LABELS[category]}
+                        </Badge>
+                      )}
                       <div className="flex-1" />
                       <span className="tabular-nums text-muted-foreground">
                         {formatAppDuration(b.seconds)}

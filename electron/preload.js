@@ -48,6 +48,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   updateActivitySettings: (settings) => ipcRenderer.invoke("activity:update-settings", settings),
   /** 暂停 / 恢复屏幕时间追踪 */
   toggleActivityPaused: () => ipcRenderer.invoke("activity:toggle-paused"),
+  /** 按当前规则重新校正历史数据 */
+  recategorizeActivityData: () => ipcRenderer.invoke("activity:recategorize"),
 
   /** 监听活动状态变化 (回调参数: { state, app, title, category, since, durationSeconds }) */
   onActivityStateChanged: (callback) => {

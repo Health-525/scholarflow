@@ -84,4 +84,23 @@ describe("activity-categorize", () => {
     expect(result.app).toBe("文件管理");
     expect(result.category).toBe("system");
   });
+
+  it("用户 override 可覆盖任意未知应用分类", () => {
+    const overrides = [{ pattern: "NRC Launcher", category: "entertainment", app: "NRC Launcher" }];
+    const result = categorizeActivity("NRC Launcher", "NRC Launcher", undefined, undefined, overrides);
+    expect(result.app).toBe("NRC Launcher");
+    expect(result.category).toBe("entertainment");
+  });
+
+  it("用户 override 按标题子串匹配", () => {
+    const overrides = [{ pattern: "leetcode", category: "study" }];
+    const result = categorizeActivity("MyBrowser", "Problem - LeetCode", undefined, undefined, overrides);
+    expect(result.category).toBe("study");
+  });
+
+  it("ScholarFlow 自身归为 system，但应由 tracker 排除不计入屏幕时间", () => {
+    const result = categorizeActivity("scholarflow.exe", "ScholarFlow", undefined, "D:/A/scholarflow/dist/win-unpacked/ScholarFlow.exe");
+    expect(result.app).toBe("ScholarFlow");
+    expect(result.category).toBe("system");
+  });
 });

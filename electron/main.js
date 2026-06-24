@@ -440,6 +440,7 @@ function setupActivityTrackerIPC() {
   ipcMain.handle('activity:get-settings', async () => activityTracker.getSettings());
   ipcMain.handle('activity:update-settings', async (_event, settings) => activityTracker.updateSettings(settings));
   ipcMain.handle('activity:toggle-paused', async () => activityTracker.togglePaused());
+  ipcMain.handle('activity:recategorize', async () => activityTracker.recategorizeHistoricalData());
 }
 
 function migrateLegacyActivityData() {
@@ -456,6 +457,7 @@ function migrateLegacyActivityData() {
       const backupPath = `${legacyPath}.bak`;
       fs.renameSync(legacyPath, backupPath);
       logToFile('info', `[ActivityTracker] legacy data migrated to SQLite, backup at ${backupPath}`);
+      activityTracker.recategorizeHistoricalData();
     }
   } catch (err) {
     logToFile('error', `[ActivityTracker] legacy migration failed: ${err.message}`);

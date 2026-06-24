@@ -46,6 +46,7 @@ interface ActivitySettings {
   excludedApps: string[];
   recordTitles: boolean;
   idleThresholdMinutes: number;
+  appOverrides: Array<{ pattern: string; app?: string; category: string }>;
 }
 
 interface ElectronAPI {
@@ -78,6 +79,7 @@ interface ElectronAPI {
   getActivitySettings: () => Promise<ActivitySettings>;
   updateActivitySettings: (settings: Partial<ActivitySettings>) => Promise<ActivitySettings>;
   toggleActivityPaused: () => Promise<ActivitySettings>;
+  recategorizeActivityData: () => Promise<number>;
   onActivityStateChanged: (callback: (info: ActivityStateInfo) => void) => () => void;
 }
 
