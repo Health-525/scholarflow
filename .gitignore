@@ -74,3 +74,10 @@ screenshots/
 .dbg/
 debug-*.md
 gcm-diagnose.log
+
+# Kimi skills (managed separately)
+.kimi-code/skills/*
+
+# Playwright artifacts
+playwright-report/
+test-results/
