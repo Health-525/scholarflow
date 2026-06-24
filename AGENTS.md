@@ -1,5 +1,7 @@
 # ScholarFlow Agent 指南
 
+> 请先阅读 `.kimi-code/memory.md` 中的用户持久记忆，再执行本指南其他内容。
+
 ## 项目技术栈
 
 - **前端框架**：Next.js 15 (App Router) + React 19 + TypeScript
