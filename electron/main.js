@@ -219,6 +219,60 @@ function launchServer() {
   });
 }
 
+// ── 启动 Next.js dev server（开发模式）──────────────────────
+function launchDevServer() {
+  return new Promise((resolve, reject) => {
+    const dataDir = path.resolve(process.cwd(), 'data');
+    fs.mkdirSync(dataDir, { recursive: true });
+    logToFile('info', `[SF] Dev data directory: ${dataDir}`);
+    console.log('[SF] Dev data directory:', dataDir);
+
+    const internalToken = getOrCreateInternalToken(dataDir);
+    globalThis.__scholarflowInternalToken = internalToken;
+
+    let serverScript;
+    try {
+      serverScript = require.resolve('next/dist/bin/next');
+    } catch (err) {
+      return reject(new Error(`找不到 next dev 入口: ${err.message}`));
+    }
+
+    console.log('[SF] Dev server script:', serverScript);
+
+    serverProcess = fork(serverScript, ['dev'], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        NODE_ENV: 'development',
+        PORT: String(PORT),
+        HOSTNAME: '127.0.0.1',
+        SCHOLARFLOW_DATA_DIR: dataDir,
+        ELECTRON_USER_DATA: dataDir,
+        SCHOLARFLOW_INTERNAL_TOKEN: internalToken,
+        // 子进程以纯 Node 模式运行 Electron 二进制(Electron ABI),
+        // 与主进程 ABI 一致，从而 activity-tracker 可直接使用 SQLite
+        ELECTRON_RUN_AS_NODE: '1',
+      },
+      stdio: 'pipe',
+    });
+
+    serverProcess.stdout && serverProcess.stdout.on('data', d => {
+      console.log('[DevServer]', d.toString().trim());
+    });
+
+    serverProcess.stderr && serverProcess.stderr.on('data', d => {
+      console.error('[DevServer ERR]', d.toString().trim());
+    });
+
+    serverProcess.on('error', reject);
+    serverProcess.on('exit', code => {
+      if (code && code !== 0) console.warn('[SF] Dev server exited with code', code);
+    });
+
+    setTimeout(resolve, 500);
+  });
+}
+
 // ── 创建窗口 ────────────────────────────────────────────────
 
 // ── IPC: 动态更新 titleBarOverlay 颜色（跟随主题）
@@ -600,7 +654,9 @@ app.whenReady().then(async () => {
       console.log('[SF] Waiting for port', PORT);
       await waitForPort(PORT, 60000);
     } else {
-      console.log('[SF] Dev mode — connecting to next dev on port', PORT);
+      console.log('[SF] Dev mode — launching next dev server on port', PORT);
+      await launchDevServer();
+      console.log('[SF] Waiting for port', PORT);
       await waitForPort(PORT, 30000);
     }
     console.log('[SF] Ready, opening window');
