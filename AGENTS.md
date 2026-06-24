@@ -14,7 +14,7 @@
 - 已删除未使用的 UI 组件、依赖和 Electron 后台功能（桌面宠物、抬头纹监控、Vision-Model 自动启动）
 - 已统一重复类型定义
 - 已移除前端无入口的僵尸功能（/progress、/knowledge、DashboardSummary 中的 health/knowledge 字段）
-- 验证状态：`npm run typecheck`、`npm run lint`、`npm test` 均通过
+- 验证状态：`npm run typecheck`、`npm run lint`、`npm test`、`npx playwright test` 均通过
 
 ## v1.0.2 桌面端调课功能重设计
 
@@ -86,7 +86,13 @@
 
 1. **最小改动**：只做实现目标所必需的修改，不重构无关代码。
 2. **行为保留**：重构/清理后必须运行 `npm run typecheck`、`npm run lint`、`npm test` 验证。
-3. **删除谨慎**：删除文件/依赖前，先用 Grep 确认没有引用。
+3. **提交前验证清单**：任何可能影响页面渲染、Electron 主进程或依赖的改动，在提交前必须依次执行：
+   - `npm run typecheck`
+   - `npm run lint`
+   - `npm test`
+   - `npx playwright test`（E2E）
+   若正在运行 Electron 热加载（`npm run electron:hot`），先停止它再跑测试，否则 `better-sqlite3` 二进制被占用会导致 ABI 切换失败。
+4. **删除谨慎**：删除文件/依赖前，先用 Grep 确认没有引用。
 4. **Electron 改动**：修改 `electron/` 后，使用 `node --check electron/main.js` 检查语法。
 5. **Windows 环境**：Bash 工具使用 Git Bash，路径使用 POSIX 风格（`/d/A/scholarflow` 或 `D:/A/scholarflow`）。
 6. **及时提交**：每完成一批阶段性任务后应及时 `git commit`，避免大量未提交改动堆积。
