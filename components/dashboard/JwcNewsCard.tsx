@@ -31,10 +31,10 @@ export const JwcNewsCard = memo(function JwcNewsCard() {
             <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">
               <Newspaper className="w-3.5 h-3.5 text-primary" />
             </div>
-            <h2 className="text-[13px] font-semibold tracking-wide font-display text-foreground">教务通知</h2>
+            <h2 className="text-sm font-semibold font-display text-foreground">教务通知</h2>
           </div>
           {fetchedLabel && (
-            <span className="text-[11px] text-muted-foreground">{fetchedLabel}</span>
+            <span className="text-xs text-muted-foreground">{fetchedLabel}</span>
           )}
         </div>
 
@@ -63,13 +63,13 @@ export const JwcNewsCard = memo(function JwcNewsCard() {
                     <div className="flex-1 min-w-0">
                       <span className="text-[12.5px] line-clamp-1 transition-colors group-hover:text-primary text-foreground">{item.title}</span>
                       <div className="flex items-center gap-2 mt-0.5">
-                        {item.date && <span className="text-[11px] tabular-nums text-muted-foreground">{item.date}</span>}
-                        <Badge variant="outline" className={`text-[10px] h-4 px-1 border-transparent ${style.bg} ${style.text}`}>
+                        {item.date && <span className="text-xs tabular-nums text-muted-foreground">{item.date}</span>}
+                        <Badge variant="outline" className={`text-xs h-4 px-1 border-transparent ${style.bg} ${style.text}`}>
                           {item.category}
                         </Badge>
                       </div>
                     </div>
-                    <span className="text-[11px] opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1 text-primary">↗</span>
+                    <span className="text-xs opacity-0 shrink-0 mt-1 text-primary">↗</span>
                   </a>
                 );
               })}

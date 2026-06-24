@@ -58,18 +58,18 @@ export const AssignmentsCard = memo(function AssignmentsCard() {
             <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-[var(--status-warning)]/10">
               <ClipboardList className="w-3.5 h-3.5 text-[var(--status-warning)]" />
             </div>
-            <h2 className="text-[13px] font-semibold tracking-wide font-display text-foreground">
+            <h2 className="text-sm font-semibold font-display text-foreground">
               待办作业
             </h2>
             {mounted && !isLoading && pending.length > 0 && (
-              <Badge variant="secondary" className="text-[10px] h-4 px-1 bg-[var(--status-warning)]/10 text-[var(--status-warning)] hover:bg-[var(--status-warning)]/10">
+              <Badge variant="secondary" className="text-xs h-4 px-1 bg-[var(--status-warning)]/10 text-[var(--status-warning)] hover:bg-[var(--status-warning)]/10">
                 {pending.length}
               </Badge>
             )}
           </div>
           <Link
             href="/assignments"
-            className="text-[11px] tracking-wide transition-colors hover:opacity-70 text-primary"
+            className="text-xs transition-colors hover:opacity-70 text-primary"
           >
             查看全部 →
           </Link>
@@ -92,7 +92,7 @@ export const AssignmentsCard = memo(function AssignmentsCard() {
           (pending.length === 0 ? (
             <div className="py-4 flex items-center justify-center gap-2">
               <span className="text-lg">✨</span>
-              <p className="text-[13px] text-muted-foreground">暂无待办作业</p>
+              <p className="text-sm text-muted-foreground">暂无待办作业</p>
             </div>
           ) : (
             <div className="space-y-1.5">
@@ -124,13 +124,13 @@ export const AssignmentsCard = memo(function AssignmentsCard() {
                     <div className="text-right shrink-0 flex items-center gap-1">
                       {cfg.label && (
                         <span
-                          className={`text-[10px] font-semibold ${cfg.labelColor}`}
+                          className={`text-xs font-semibold ${cfg.labelColor}`}
                         >
                           {cfg.label}
                         </span>
                       )}
                       <span
-                        className={`text-[11px] tabular-nums ${cfg.dayColor}`}
+                        className={`text-xs tabular-nums ${cfg.dayColor}`}
                       >
                         {diffDays <= 0
                           ? "今天"

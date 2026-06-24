@@ -24,16 +24,16 @@ export const ScreenTimeCard = memo(function ScreenTimeCard() {
         <div className="relative">
           <div className="flex items-center justify-center gap-2 mb-1">
             <Monitor className="w-4 h-4 text-primary" />
-            <span className="text-[12px] font-semibold text-muted-foreground">屏幕时间</span>
+            <span className="text-xs font-semibold text-muted-foreground">屏幕时间</span>
           </div>
-          <div className="text-[28px] font-bold tabular-nums transition-transform duration-200 group-hover:scale-105 text-foreground leading-none">
-            {state.totalMinutes}<span className="text-[13px] font-medium text-muted-foreground"> min</span>
+          <div className="text-3xl font-bold tabular-nums  text-foreground leading-none">
+            {state.totalMinutes}<span className="text-sm font-medium text-muted-foreground"> min</span>
           </div>
 
           {state.categoryBreakdown.length > 0 && (
             <div className="flex items-center justify-center flex-wrap gap-1.5 mt-2.5">
               {state.categoryBreakdown.slice(0, 3).map(c => (
-                <Badge key={c.category} variant="outline" className="text-[10px] h-4 px-1 gap-1 border-transparent" style={{ backgroundColor: c.color, color: "white" }}>
+                <Badge key={c.category} variant="outline" className="text-xs h-4 px-1 gap-1 border-transparent" style={{ backgroundColor: c.color, color: "white" }}>
                   {c.minutes}分
                 </Badge>
               ))}
@@ -41,7 +41,7 @@ export const ScreenTimeCard = memo(function ScreenTimeCard() {
           )}
 
           {mounted && !state.isElectron && state.categoryBreakdown.length === 0 && (
-            <div className="mt-2 text-[11px] text-muted-foreground">
+            <div className="mt-2 text-xs text-muted-foreground">
               桌面版可用
             </div>
           )}

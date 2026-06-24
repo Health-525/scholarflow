@@ -32,13 +32,13 @@ export const ScheduleCard = memo(function ScheduleCard() {
             <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">
               <CalendarDays className="w-3.5 h-3.5 text-primary" />
             </div>
-            <h2 className="text-[13px] font-semibold tracking-wide font-display text-foreground">
+            <h2 className="text-sm font-semibold font-display text-foreground">
               今日课表
             </h2>
           </div>
           <Link
             href="/schedule"
-            className="text-[11px] tracking-wide text-muted-foreground hover:text-primary transition-colors"
+            className="text-xs text-muted-foreground hover:text-primary transition-colors"
           >
             查看全部 →
           </Link>
@@ -74,7 +74,7 @@ export const ScheduleCard = memo(function ScheduleCard() {
               return (
                 <div className="py-4 flex items-center justify-center gap-2">
                   <Check className="w-5 h-5 text-[var(--status-success)]" />
-                  <p className="text-[13px] text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     今天没有课，好好休息
                   </p>
                 </div>
@@ -87,14 +87,14 @@ export const ScheduleCard = memo(function ScheduleCard() {
                   <div className="rounded-xl p-3 bg-primary/5 dark:bg-primary/10 border border-primary/10 dark:border-white/5 mb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
-                        <Badge variant="default" className="text-[10px]">
+                        <Badge variant="default" className="text-xs">
                           下节课
                         </Badge>
-                        <span className="text-[13px] font-semibold truncate text-foreground">
+                        <span className="text-sm font-semibold truncate text-foreground">
                           {nextCourse.item.title}
                         </span>
                       </div>
-                      <div className="text-[13px] font-bold tabular-nums text-primary animate-breathe">
+                      <div className="text-sm font-bold tabular-nums text-primary animate-breathe">
                         <CountdownTimer
                           targetTime={nextCourse.startTime}
                           label=""
@@ -102,7 +102,7 @@ export const ScheduleCard = memo(function ScheduleCard() {
                       </div>
                     </div>
                     {nextCourse.item.location && (
-                      <div className="text-[11px] text-muted-foreground mt-1 ml-[52px]">
+                      <div className="text-xs text-muted-foreground mt-1 ml-[52px]">
                         {nextCourse.item.location}
                       </div>
                     )}
@@ -131,7 +131,7 @@ export const ScheduleCard = memo(function ScheduleCard() {
                         {item.title}
                       </span>
                       {item.timeText && (
-                        <span className="text-[11px] shrink-0 tabular-nums text-muted-foreground">
+                        <span className="text-xs shrink-0 tabular-nums text-muted-foreground">
                           {item.timeText}
                         </span>
                       )}
@@ -141,7 +141,7 @@ export const ScheduleCard = memo(function ScheduleCard() {
                 {items.length > 4 && (
                   <Link
                     href="/schedule"
-                    className="text-[11px] text-center pt-1 text-primary hover:opacity-70 transition-opacity block"
+                    className="text-xs text-center pt-1 text-primary hover:opacity-70 transition-opacity block"
                   >
                     还有 {items.length - 4} 门课 · 共 {items.length} 门 →
                   </Link>

@@ -129,7 +129,7 @@ export const ExamCountdownCard = memo(function ExamCountdownCard() {
           >
             <Clock className={`w-3.5 h-3.5 ${urgent ? "text-destructive" : "text-primary"}`} />
           </div>
-          <span className="text-[12px] font-semibold text-foreground font-display">
+          <span className="text-xs font-semibold text-foreground font-display">
             考试倒计时
           </span>
         </div>
@@ -143,20 +143,20 @@ export const ExamCountdownCard = memo(function ExamCountdownCard() {
               className={`absolute -right-2 -bottom-2 w-16 h-16 rounded-full opacity-[0.06] pointer-events-none group-hover:opacity-[0.12] transition-opacity duration-300 ${urgent ? "bg-destructive" : "bg-primary"}`}
             />
             <div
-              className={`text-[28px] font-bold tabular-nums transition-transform duration-200 group-hover:scale-105 ${urgent ? "text-destructive" : "text-primary"}`}
+              className={`text-3xl font-bold tabular-nums  ${urgent ? "text-destructive" : "text-primary"}`}
             >
               {countdown}
             </div>
-            <div className="text-[12px] font-medium truncate text-foreground mt-1">
+            <div className="text-xs font-medium truncate text-foreground mt-1">
               {nextExam.subject}
             </div>
-            <div className="text-[10px] text-muted-foreground mt-0.5">
+            <div className="text-xs text-muted-foreground mt-0.5">
               {nextExam.date}
             </div>
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <span className="text-[12px] text-muted-foreground">暂无考试</span>
+            <span className="text-xs text-muted-foreground">暂无考试</span>
           </div>
         )}
       </div>

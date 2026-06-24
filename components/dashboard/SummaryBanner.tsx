@@ -85,16 +85,16 @@ const StatMiniCard = memo(function StatMiniCard({
         >
           <Icon size={18} className={colorClass} />
         </div>
-        <div className="text-[11px] text-muted-foreground font-medium">
+        <div className="text-xs text-muted-foreground font-medium">
           {label}
         </div>
         <div
-          className={`text-[36px] font-bold tabular-nums leading-none mt-1 ${colorClass}`}
+          className={`text-4xl font-bold tabular-nums leading-none mt-1 ${colorClass}`}
         >
           <AnimatedNumber value={value} />
         </div>
         {badge && (
-          <Badge variant="outline" className={`text-[10px] h-4 px-1 mt-1 border-transparent ${badgeClass}`}>
+          <Badge variant="outline" className={`text-xs h-4 px-1 mt-1 border-transparent ${badgeClass}`}>
             {badge}
           </Badge>
         )}
@@ -171,10 +171,10 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
             >
               <item.icon size={15} className={item.colorClass} />
             </div>
-            <div className="text-[11px] mb-0.5 text-muted-foreground font-medium">
+            <div className="text-xs mb-0.5 text-muted-foreground font-medium">
               {item.label}
             </div>
-            <div className="text-[22px] font-bold tabular-nums text-muted-foreground leading-none">
+            <div className="text-2xl font-bold tabular-nums text-muted-foreground leading-none">
               --
             </div>
           </div>

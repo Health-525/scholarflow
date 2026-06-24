@@ -23,9 +23,9 @@ export const RunningCard = memo(function RunningCard() {
             <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-[var(--status-success)]/10">
               <Zap className="w-3.5 h-3.5 text-[var(--status-success)]" />
             </div>
-            <h2 className="text-[13px] font-semibold tracking-wide font-display text-foreground">阳光长跑</h2>
+            <h2 className="text-sm font-semibold font-display text-foreground">阳光长跑</h2>
           </div>
-          <Link href="/running" className="text-[11px] tracking-wide transition-colors hover:opacity-70 text-primary" aria-label="查看跑步详情">
+          <Link href="/running" className="text-xs transition-colors hover:opacity-70 text-primary" aria-label="查看跑步详情">
             查看详情 →
           </Link>
         </div>
@@ -42,12 +42,12 @@ export const RunningCard = memo(function RunningCard() {
         {!isLoading && !error && (
           <div className="space-y-2.5">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-[28px] font-bold tabular-nums font-display text-foreground tracking-tight">
+              <span className="text-3xl font-bold tabular-nums font-display text-foreground tracking-tight">
                 {stats.total}
               </span>
-              <span className="text-[12px] text-muted-foreground">/ {RUNNING_GOAL} 次</span>
+              <span className="text-xs text-muted-foreground">/ {RUNNING_GOAL} 次</span>
               {pct >= 100 && (
-                <Badge variant="secondary" className="text-[10px] h-4 px-1 gap-1 bg-[var(--status-success)]/10 text-[var(--status-success)] hover:bg-[var(--status-success)]/10 ml-1">
+                <Badge variant="secondary" className="text-xs h-4 px-1 gap-1 bg-[var(--status-success)]/10 text-[var(--status-success)] hover:bg-[var(--status-success)]/10 ml-1">
                   达标 ✓
                 </Badge>
               )}
@@ -58,14 +58,14 @@ export const RunningCard = memo(function RunningCard() {
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-muted-foreground">
+              <span className="text-xs font-medium text-muted-foreground">
                 {pct.toFixed(0)}% 完成
               </span>
               <div className="flex items-center gap-3">
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   🌅 晨跑 <strong className="text-foreground font-semibold">{stats.morning}</strong>
                 </span>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   自由 <strong className="text-foreground font-semibold">{stats.free}</strong>
                 </span>
               </div>

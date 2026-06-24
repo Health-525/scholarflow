@@ -36,7 +36,7 @@ export const QuickActions = memo(function QuickActions() {
         <Link
           key={action.href}
           href={action.href}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[12px] font-medium bg-card hover:bg-secondary dark:bg-secondary/80 dark:hover:bg-muted shrink-0 transition-colors"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium bg-card hover:bg-secondary dark:bg-secondary/80 dark:hover:bg-muted shrink-0 transition-colors"
         >
           <action.Icon
             className="w-3.5 h-3.5 shrink-0"

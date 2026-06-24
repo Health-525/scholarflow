@@ -54,7 +54,7 @@ function StatCard({
         <div className="text-2xl font-bold tabular-nums leading-none text-foreground">
           {value}
         </div>
-        <div className="text-[11px] text-muted-foreground mt-0.5">{label}</div>
+        <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
       </div>
     </div>
   );

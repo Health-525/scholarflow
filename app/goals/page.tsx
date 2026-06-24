@@ -60,7 +60,7 @@ function ProgressRing({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-foreground">
-        <span className="text-[15px] font-bold tabular-nums">{percent}%</span>
+        <span className="text-base font-bold tabular-nums">{percent}%</span>
       </div>
     </div>
   );
@@ -229,7 +229,7 @@ export default function DailyGoalsPage() {
           <h1 className="text-xl font-bold font-display text-foreground">
             每日目标
           </h1>
-          <p className="text-[12px] text-muted-foreground">小步前进，积少成多</p>
+          <p className="text-xs text-muted-foreground">小步前进，积少成多</p>
         </div>
       </div>
 
@@ -237,7 +237,7 @@ export default function DailyGoalsPage() {
       <Card className="mb-4 hover:shadow-sm hover:translate-y-0">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-[13px]">近 7 天</CardTitle>
+            <CardTitle className="text-sm">近 7 天</CardTitle>
             <Badge variant="secondary">连续 {streak} 天</Badge>
           </div>
         </CardHeader>
@@ -248,7 +248,7 @@ export default function DailyGoalsPage() {
               return (
                 <div key={i} className="text-center">
                   <div
-                    className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center text-[13px] font-medium transition-colors ${
+                    className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
                       isToday
                         ? "ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/10 text-primary"
                         : d.full
@@ -260,7 +260,7 @@ export default function DailyGoalsPage() {
                   >
                     {d.full ? <Check size={16} /> : d.date.getDate()}
                   </div>
-                  <div className="text-[10px] mt-1 text-muted-foreground">
+                  <div className="text-xs mt-1 text-muted-foreground">
                     {d.label}
                   </div>
                 </div>
@@ -276,13 +276,13 @@ export default function DailyGoalsPage() {
           <CardContent className="flex items-center gap-5 py-5">
             <ProgressRing percent={loaded ? pct : 0} />
             <div>
-              <div className="text-[11px] font-semibold text-muted-foreground mb-0.5">
+              <div className="text-xs font-semibold text-muted-foreground mb-0.5">
                 今日进度
               </div>
               <div className="text-2xl font-bold tabular-nums text-foreground">
                 {done}/{goals.length}
               </div>
-              <div className="text-[10px] text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 {goals.length === 0
                   ? "先添加目标"
                   : allDone
@@ -299,13 +299,13 @@ export default function DailyGoalsPage() {
               <Flame className="w-8 h-8" />
             </div>
             <div>
-              <div className="text-[11px] font-semibold text-muted-foreground mb-0.5">
+              <div className="text-xs font-semibold text-muted-foreground mb-0.5">
                 连续天数
               </div>
               <div className="text-2xl font-bold tabular-nums text-foreground">
                 {loaded ? streak : "—"}
               </div>
-              <div className="text-[10px] text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 {streak > 0 ? "保持连胜" : "从全部完成开始"}
               </div>
             </div>
@@ -317,11 +317,11 @@ export default function DailyGoalsPage() {
       {allDone && (
         <Card className="mb-5 border-green-500/20 dark:border-green-500/30 bg-gradient-to-r from-green-500/10 to-emerald-500/5 dark:from-green-500/15 dark:to-emerald-500/10 animate-fade-up hover:shadow-sm hover:translate-y-0">
           <CardContent className="py-5 text-center">
-            <div className="text-[28px] mb-2">🎉</div>
-            <div className="text-[15px] font-semibold text-green-600 dark:text-green-400">
+            <div className="text-3xl mb-2">🎉</div>
+            <div className="text-base font-semibold text-green-600 dark:text-green-400">
               今日目标全部达成！
             </div>
-            <div className="text-[11px] text-muted-foreground mt-1">
+            <div className="text-xs text-muted-foreground mt-1">
               {streak > 0
                 ? `连续 ${streak} 天，明天继续`
                 : "明天继续设定新目标"}
@@ -335,7 +335,7 @@ export default function DailyGoalsPage() {
         <CardContent className="py-4">
           <label
             htmlFor="new-goal"
-            className="block text-[12px] font-medium text-muted-foreground mb-1.5"
+            className="block text-xs font-medium text-muted-foreground mb-1.5"
           >
             今天要做什么？
           </label>
@@ -346,7 +346,7 @@ export default function DailyGoalsPage() {
               onChange={(e) => setNewGoal(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && add()}
               placeholder="例如：背 20 个单词"
-              className="h-11 text-[14px]"
+              className="h-11 text-sm"
             />
             <Button
               onClick={add}
@@ -416,7 +416,7 @@ export default function DailyGoalsPage() {
                     type="button"
                     onClick={() => toggle(g.id)}
                     aria-label={`${g.done ? "标记为未完成" : "标记为完成"}：${g.text}`}
-                    className={`flex-1 text-left text-[14px] transition-all ${
+                    className={`flex-1 text-left text-sm transition-all ${
                       g.done
                         ? "line-through text-muted-foreground"
                         : "text-foreground font-medium"
@@ -443,10 +443,10 @@ export default function DailyGoalsPage() {
               <div className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-primary/10">
                 <Target className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-[14px] font-semibold mb-1.5 text-foreground">
+              <h3 className="text-sm font-semibold mb-1.5 text-foreground">
                 设定今日目标
               </h3>
-              <p className="text-[12px] leading-relaxed max-w-[260px] mx-auto text-muted-foreground">
+              <p className="text-xs leading-relaxed max-w-[260px] mx-auto text-muted-foreground">
                 每天 3 个小目标就够了。完成所有目标即可解锁连续天数。
               </p>
             </CardContent>
