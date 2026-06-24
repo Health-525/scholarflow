@@ -33,8 +33,11 @@ export default function AssignmentsPage() {
 
   const subjects = useMemo(() => {
     const titles = schedule?.courses?.map((c: { title: string }) => c.title) ?? [];
-    return Array.from(new Set(titles)).filter((s): s is string => Boolean(s)).sort();
-  }, [schedule]);
+    const assignmentSubjects = assignments.map((a) => a.subject).filter(Boolean);
+    return Array.from(new Set([...titles, ...assignmentSubjects]))
+      .filter((s): s is string => Boolean(s))
+      .sort();
+  }, [schedule, assignments]);
 
   const headerDescription = useMemo(() => {
     const pending = assignments.filter((a) => !a.done).length;

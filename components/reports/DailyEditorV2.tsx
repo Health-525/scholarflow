@@ -13,6 +13,7 @@ interface DailyEditorV2Props {
   initialContent?: string;
   onSaved?: () => void;
   onAutoSaved?: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 function insertText(textarea: HTMLTextAreaElement, before: string, after: string = "") {
@@ -26,7 +27,7 @@ function insertText(textarea: HTMLTextAreaElement, before: string, after: string
   return { value: nextValue, cursor };
 }
 
-export function DailyEditorV2({ date, initialContent = "", onSaved, onAutoSaved }: DailyEditorV2Props) {
+export function DailyEditorV2({ date, initialContent = "", onSaved, onAutoSaved, onDirtyChange }: DailyEditorV2Props) {
   const [content, setContent] = useState(initialContent);
   const [lastSaved, setLastSaved] = useState(initialContent);
   const [isPreview, setIsPreview] = useState(false);
@@ -38,6 +39,24 @@ export function DailyEditorV2({ date, initialContent = "", onSaved, onAutoSaved 
     setContent(initialContent);
     setLastSaved(initialContent);
   }, [initialContent]);
+
+  const isDirty = content !== lastSaved;
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
+
+  // 离开页面前提示未保存
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   const saveContent = useCallback(async (): Promise<boolean> => {
     if (!date) return false;
@@ -67,13 +86,25 @@ export function DailyEditorV2({ date, initialContent = "", onSaved, onAutoSaved 
     }
   }, [content, date]);
 
-  async function handleSave() {
+  const handleSave = useCallback(async () => {
     const ok = await saveContent();
     if (ok) {
       setLastSaved(content);
       onSaved?.();
     }
-  }
+  }, [content, onSaved, saveContent]);
+
+  // Ctrl/Cmd + S 手动保存
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [handleSave]);
 
   // 自动保存：停止输入 1.5s 后静默保存（不退出编辑状态）
   useEffect(() => {

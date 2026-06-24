@@ -78,6 +78,7 @@ export default function DailyReportsPage() {
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const [generating, setGenerating] = useState(false);
 
   const { entries, isLoading: listLoading, error: listError, reload: reloadList } = useDailyReports();
@@ -91,18 +92,35 @@ export default function DailyReportsPage() {
   const todayStr = useMemo(() => getTodayStr(), []);
   const isToday = selectedDate === todayStr;
 
-  const handleSelectDate = (date: string) => {
-    setSelectedDate(date);
-    setIsEditing(false);
-    setSidebarOpen(false);
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.searchParams.set("date", date);
-      window.history.replaceState(null, "", url.toString());
+  const confirmIfDirty = (action: () => void) => {
+    if (isDirty) {
+      // eslint-disable-next-line no-alert
+      const ok = window.confirm("当前日报有未保存的修改，确定要放弃吗？");
+      if (!ok) return;
     }
+    action();
+  };
+
+  const handleSelectDate = (date: string) => {
+    confirmIfDirty(() => {
+      setSelectedDate(date);
+      setIsEditing(false);
+      setIsDirty(false);
+      setSidebarOpen(false);
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        url.searchParams.set("date", date);
+        window.history.replaceState(null, "", url.toString());
+      }
+    });
   };
 
   const handleGenerate = async () => {
+    if (isDirty) {
+      // eslint-disable-next-line no-alert
+      const ok = window.confirm("当前日报有未保存的修改，生成 AI 日报会覆盖它，是否继续？");
+      if (!ok) return;
+    }
     setGenerating(true);
     try {
       const [pomodoroSessions, activityLog] = await Promise.all([
@@ -138,6 +156,7 @@ export default function DailyReportsPage() {
     reloadList();
     reloadContent();
     setIsEditing(false);
+    setIsDirty(false);
   };
 
   return (
@@ -310,6 +329,7 @@ export default function DailyReportsPage() {
                   initialContent={content}
                   onSaved={handleSaved}
                   onAutoSaved={() => reloadList()}
+                  onDirtyChange={setIsDirty}
                 />
               ) : hasReport ? (
                 <MarkdownRenderer content={content} className="markdown-body markdown-daily" />
