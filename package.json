@@ -40,6 +40,7 @@
     "abi:node": "node scripts/switch-abi.js node",
     "abi:electron": "node scripts/switch-abi.js electron",
     "electron:dev": "concurrently \"next dev\" \"electron .\"",
+    "electron:hot": "npm run electron:hot:win",
     "electron:hot:win": "node scripts/kill-port.js 3000 && node scripts/switch-abi.js node && set ELECTRON_DEV=1 && concurrently \"next dev\" \"electron .\"",
     "electron:hot:nix": "node scripts/kill-port.js 3000 && node scripts/switch-abi.js node && ELECTRON_DEV=1 concurrently \"next dev\" \"electron .\"",
     "electron:build": "node scripts/switch-abi.js node && next build && node electron/postbuild.js && electron-builder --win",
