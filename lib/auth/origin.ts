@@ -35,6 +35,13 @@ export function isTrustedOrigin(
     return allowed.includes(origin);
   }
 
+  // 浏览器对同源 fetch 通常不携带 Origin，但会发送 Sec-Fetch-Site: same-origin。
+  // 把它视为可信来源，以支持浏览器前端直接调用本地 API（包括 next dev）。
+  const secFetchSite = request.headers.get("sec-fetch-site");
+  if (secFetchSite === "same-origin") {
+    return true;
+  }
+
   // 非浏览器请求：若调用方声明允许内部 token，则校验 token
   if (options.allowInternalToken) {
     return hasValidInternalToken(request);

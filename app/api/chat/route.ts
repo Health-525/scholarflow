@@ -83,7 +83,13 @@ export async function GET(req: NextRequest) {
       online: !!aiConfig.apiKey,
       configured: !!aiConfig.apiKey,
       model: aiConfig.model || DEFAULT_DEEPSEEK_MODEL,
-      models: DEEPSEEK_MODELS,
+      // 保持与前端 useChat 的 Ollama 模型列表格式兼容（name 字段）
+      models: DEEPSEEK_MODELS.map((m) => ({
+        name: m.id,
+        label: m.label,
+        size: 0,
+        modified_at: new Date().toISOString(),
+      })),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
