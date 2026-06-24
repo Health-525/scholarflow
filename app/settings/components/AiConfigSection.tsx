@@ -56,7 +56,17 @@ export function AiConfigSection() {
     <SettingsSection icon={<Bot className="w-4 h-4" />} title="AI 助手">
       <div className="space-y-4">
         <p className="text-xs text-muted-foreground leading-relaxed">
-          接入 DeepSeek API 后可使用 AI 自动生成周报等内容。API Key 会在本地加密存储，仅由服务端调用模型时使用。
+          接入 DeepSeek API 后可使用 AI 聊天、自动生成日报/周报。API Key 会在本地加密存储，仅由服务端调用模型时使用。
+          没有 Key 可前往{" "}
+          <a
+            href="https://platform.deepseek.com/api_keys"
+            target="_blank"
+            rel="noreferrer"
+            className="text-primary hover:underline"
+          >
+            DeepSeek 开放平台
+          </a>{" "}
+          创建。
         </p>
 
         <div className="space-y-3">

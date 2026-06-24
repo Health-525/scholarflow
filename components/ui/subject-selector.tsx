@@ -102,7 +102,10 @@ export function SubjectSelector({
               cancelCreate();
             }
           }}
-          onBlur={cancelCreate}
+          onBlur={() => {
+            if (draft.trim()) submitCreate();
+            else cancelCreate();
+          }}
           placeholder={placeholder}
           className="h-8 min-w-32 rounded-full border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
         />

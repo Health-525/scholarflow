@@ -304,16 +304,15 @@ export default function DailyReportsPage() {
             </div>
           ) : (
             <div className="max-w-3xl mx-auto">
-              {hasReport ? (
-                isEditing ? (
-                  <DailyEditorV2
-                    date={selectedDate}
-                    initialContent={content}
-                    onSaved={handleSaved}
-                  />
-                ) : (
-                  <MarkdownRenderer content={content} className="markdown-body markdown-daily" />
-                )
+              {isEditing ? (
+                <DailyEditorV2
+                  date={selectedDate}
+                  initialContent={content}
+                  onSaved={handleSaved}
+                  onAutoSaved={() => reloadList()}
+                />
+              ) : hasReport ? (
+                <MarkdownRenderer content={content} className="markdown-body markdown-daily" />
               ) : (
                 <DailyEmptyState
                   dateLabel={formatDateLabel(selectedDate)}

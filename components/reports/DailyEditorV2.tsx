@@ -12,6 +12,7 @@ interface DailyEditorV2Props {
   date: string;
   initialContent?: string;
   onSaved?: () => void;
+  onAutoSaved?: () => void;
 }
 
 function insertText(textarea: HTMLTextAreaElement, before: string, after: string = "") {
@@ -20,12 +21,12 @@ function insertText(textarea: HTMLTextAreaElement, before: string, after: string
   const value = textarea.value;
   const selected = value.slice(start, end);
   const replacement = `${before}${selected}${after}`;
-  textarea.setRangeText(replacement, start, end, "select");
-  textarea.focus();
-  return textarea.value;
+  const nextValue = value.slice(0, start) + replacement + value.slice(end);
+  const cursor = start + replacement.length;
+  return { value: nextValue, cursor };
 }
 
-export function DailyEditorV2({ date, initialContent = "", onSaved }: DailyEditorV2Props) {
+export function DailyEditorV2({ date, initialContent = "", onSaved, onAutoSaved }: DailyEditorV2Props) {
   const [content, setContent] = useState(initialContent);
   const [lastSaved, setLastSaved] = useState(initialContent);
   const [isPreview, setIsPreview] = useState(false);
@@ -79,36 +80,44 @@ export function DailyEditorV2({ date, initialContent = "", onSaved }: DailyEdito
     if (!date || content === lastSaved || isSaving) return;
     const timer = setTimeout(() => {
       saveContent().then((ok) => {
-        if (ok) setLastSaved(content);
+        if (ok) {
+          setLastSaved(content);
+          onAutoSaved?.();
+        }
       });
     }, 1500);
     return () => clearTimeout(timer);
-  }, [content, date, isSaving, lastSaved, saveContent]);
+  }, [content, date, isSaving, lastSaved, onAutoSaved, saveContent]);
 
   const handleToolbar = useCallback((action: "bold" | "h2" | "h3" | "ul" | "ol") => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    let updated = content;
+    let result: { value: string; cursor: number } | null = null;
     switch (action) {
       case "bold":
-        updated = insertText(textarea, "**", "**");
+        result = insertText(textarea, "**", "**");
         break;
       case "h2":
-        updated = insertText(textarea, "## ");
+        result = insertText(textarea, "## ");
         break;
       case "h3":
-        updated = insertText(textarea, "### ");
+        result = insertText(textarea, "### ");
         break;
       case "ul":
-        updated = insertText(textarea, "- ");
+        result = insertText(textarea, "- ");
         break;
       case "ol":
-        updated = insertText(textarea, "1. ");
+        result = insertText(textarea, "1. ");
         break;
     }
-    setContent(updated);
-  }, [content]);
+    if (!result) return;
+    setContent(result.value);
+    requestAnimationFrame(() => {
+      textarea.selectionStart = textarea.selectionEnd = result.cursor;
+      textarea.focus();
+    });
+  }, []);
 
   return (
     <div className="rounded-xl border border-border/30 bg-surface-elevated/50 overflow-hidden">

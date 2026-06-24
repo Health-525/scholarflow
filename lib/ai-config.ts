@@ -11,10 +11,10 @@ import type { ServerDB } from "@/lib/server-db";
 
 const CONFIG_KEY = "ai-config";
 
-// 旧模型名迁移映射（2026-07-24 后 deepseek-chat / deepseek-reasoner 已弃用）
+// 旧模型名迁移映射（早期开发版本使用了不存在的 deepseek-v4-* ID）
 const LEGACY_MODEL_MAP: Record<string, string> = {
-  "deepseek-chat": "deepseek-v4-flash",
-  "deepseek-reasoner": "deepseek-v4-pro",
+  "deepseek-v4-flash": "deepseek-chat",
+  "deepseek-v4-pro": "deepseek-reasoner",
 };
 
 export interface AIConfig {
@@ -43,9 +43,9 @@ function migrateModel(model: string | undefined): string {
 
 export function getAIConfig(db: ServerDB, prefix: string): AIConfig {
   const raw = db.readData(configKey(prefix)) as StoredAIConfig | null;
-  const apiKey = raw?.encryptedKey ? decryptApiKey(raw.encryptedKey) || "" : "";
+  const storedKey = raw?.encryptedKey ? decryptApiKey(raw.encryptedKey) || "" : "";
   return {
-    apiKey,
+    apiKey: storedKey || process.env.DEEPSEEK_API_KEY || "",
     model: migrateModel(raw?.model),
   };
 }
