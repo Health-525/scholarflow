@@ -326,7 +326,7 @@ export default function NotesPage() {
         {isCreating || selectedPath ? (
           <Workspace {...workspaceProps} />
         ) : (
-          <EmptyWorkspaceState onCreate={startCreating} />
+          <EmptyWorkspaceState />
         )}
       </main>
     </div>

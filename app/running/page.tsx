@@ -64,10 +64,6 @@ export default function RunningPage() {
                 icon={Footprints}
                 title="还没有跑步记录"
                 description="点击右上角按钮记录你的第一次跑步"
-                action={{
-                  label: "记录跑步",
-                  onClick: () => setShowForm(true),
-                }}
               />
             ) : (
               <div className="space-y-4">

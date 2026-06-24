@@ -1,13 +1,8 @@
-import { FileText, Plus } from "lucide-react";
+import { FileText } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-interface EmptyWorkspaceStateProps {
-  onCreate: () => void;
-}
-
-export function EmptyWorkspaceState({ onCreate }: EmptyWorkspaceStateProps) {
+export function EmptyWorkspaceState() {
   return (
     <Card className="h-full flex flex-col items-center justify-center hover:shadow-sm hover:translate-y-0">
       <CardContent className="text-center animate-fade-up max-w-xs px-6 py-12">
@@ -15,12 +10,9 @@ export function EmptyWorkspaceState({ onCreate }: EmptyWorkspaceStateProps) {
           <FileText className="w-6 h-6 text-primary" />
         </div>
         <h3 className="text-base font-semibold mb-1.5 text-foreground">选择一个笔记开始写作</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground mb-5">
-          从左侧选择已有笔记，或创建一篇新笔记。
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          从左侧选择已有笔记，或点击左上角 + 创建新笔记。
         </p>
-        <Button onClick={onCreate} className="gap-1.5">
-          <Plus className="w-3.5 h-3.5" /> 新建笔记
-        </Button>
       </CardContent>
     </Card>
   );
