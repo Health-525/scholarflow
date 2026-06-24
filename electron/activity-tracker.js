@@ -17,8 +17,50 @@ const path = require('path');
 const { app } = require('electron');
 const { categorizeActivity } = require('./activity-categorize');
 
+const fs = require('fs');
 const DAY_MS = 24 * 60 * 60 * 1000;
 const INTERNAL_TOKEN_HEADER = 'x-scholarflow-internal-token';
+
+const DEFAULT_ACTIVITY_SETTINGS = {
+  paused: false,
+  excludedApps: [],
+  recordTitles: true,
+  idleThresholdMinutes: 5,
+};
+
+function getActivitySettingsPath() {
+  return path.join(app.getPath('userData'), 'activity-settings.json');
+}
+
+function loadActivitySettings() {
+  try {
+    const raw = fs.readFileSync(getActivitySettingsPath(), 'utf8');
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') {
+      return {
+        paused: !!parsed.paused,
+        excludedApps: Array.isArray(parsed.excludedApps) ? parsed.excludedApps.map(String) : [],
+        recordTitles: parsed.recordTitles !== false,
+        idleThresholdMinutes: typeof parsed.idleThresholdMinutes === 'number' ? parsed.idleThresholdMinutes : 5,
+      };
+    }
+  } catch (err) {
+    if (err.code !== 'ENOENT') {
+      // eslint-disable-next-line no-console
+      console.warn('[ActivityTracker] load settings failed:', err.message);
+    }
+  }
+  return { ...DEFAULT_ACTIVITY_SETTINGS };
+}
+
+function saveActivitySettings(settings) {
+  try {
+    fs.writeFileSync(getActivitySettingsPath(), JSON.stringify(settings, null, 2), 'utf8');
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('[ActivityTracker] save settings failed:', err.message);
+  }
+}
 
 /**
  * @typedef {object} TrackerOptions
@@ -39,13 +81,19 @@ function createActivityTracker(options) {
   const {
     sendToRenderer,
     log = (_level, _msg) => {},
-    idleThresholdMs = 5 * 60 * 1000,
     activePollMs = 1000,
     idlePollMs = 10000,
     retentionDays = 90,
     internalToken,
     port = process.env.PORT || 3000,
   } = options;
+
+  // Privacy / behavior settings persisted per machine
+  let settings = loadActivitySettings();
+  let isPaused = settings.paused;
+  let excludedApps = new Set(settings.excludedApps.map((a) => a.toLowerCase()));
+  let recordTitles = settings.recordTitles;
+  let idleThresholdMs = Math.max(1, settings.idleThresholdMinutes) * 60 * 1000;
 
   /** @type {'sqlite' | 'http' | null} */
   let storageMode = null;
@@ -300,13 +348,76 @@ function createActivityTracker(options) {
     currentProject = '';
   }
 
+  function isExcludedApp(appName) {
+    return excludedApps.has((appName || '').toLowerCase());
+  }
+
+  function getSettings() {
+    return {
+      paused: isPaused,
+      excludedApps: Array.from(excludedApps),
+      recordTitles,
+      idleThresholdMinutes: Math.round(idleThresholdMs / 60000),
+    };
+  }
+
+  function updateSettings(patch) {
+    if (!patch || typeof patch !== 'object') return getSettings();
+
+    if (typeof patch.paused === 'boolean') {
+      isPaused = patch.paused;
+      if (isPaused && storageMode) {
+        closeOpenSegments(Date.now());
+        resetCurrentWindow();
+        broadcastState();
+      }
+    }
+
+    if (Array.isArray(patch.excludedApps)) {
+      excludedApps = new Set(patch.excludedApps.map((a) => String(a).toLowerCase()).filter(Boolean));
+      // 如果当前正在追踪的应用被加入排除列表，立即结束当前片段
+      if (currentApp && isExcludedApp(currentApp) && storageMode) {
+        closeOpenSegments(Date.now());
+        resetCurrentWindow();
+        broadcastState();
+      }
+    }
+
+    if (typeof patch.recordTitles === 'boolean') {
+      recordTitles = patch.recordTitles;
+      if (!recordTitles) {
+        currentTitle = '';
+      }
+    }
+
+    if (typeof patch.idleThresholdMinutes === 'number') {
+      idleThresholdMs = Math.max(1, Math.round(patch.idleThresholdMinutes)) * 60 * 1000;
+    }
+
+    settings = getSettings();
+    saveActivitySettings(settings);
+    return settings;
+  }
+
+  function togglePaused() {
+    return updateSettings({ paused: !isPaused });
+  }
+
   /**
    * @param {object} win
    */
   function startAppSegment(win) {
-    const categorized = categorizeActivity(win.owner?.name || 'Unknown', win.title || '');
+    const ownerName = win.owner?.name || 'Unknown';
+    const rawTitle = win.title || '';
+    const categorized = categorizeActivity(ownerName, rawTitle, win.url);
+
+    if (isExcludedApp(categorized.app) || isExcludedApp(ownerName)) {
+      resetCurrentWindow();
+      return;
+    }
+
     currentApp = categorized.app;
-    currentTitle = win.title || '';
+    currentTitle = recordTitles ? rawTitle : '';
     currentCategory = categorized.category;
     currentDomain = categorized.domain || '';
     currentProject = categorized.project || '';
@@ -328,9 +439,26 @@ function createActivityTracker(options) {
    * @param {object} win
    */
   function handleWindowChange(win) {
-    const categorized = categorizeActivity(win.owner?.name || 'Unknown', win.title || '');
+    const ownerName = win.owner?.name || 'Unknown';
+    const rawTitle = win.title || '';
+    const categorized = categorizeActivity(ownerName, rawTitle, win.url);
     log('info', `[ActivityTracker] window changed: category=${categorized.category}`);
-    const sameApp = categorized.app === currentApp && win.title === currentTitle;
+
+    // 排除应用：不记录其片段；如果当前正在追踪该应用，结束它
+    if (isExcludedApp(categorized.app) || isExcludedApp(ownerName)) {
+      if (currentApp) {
+        closeOpenSegments(Date.now());
+        resetCurrentWindow();
+        broadcastState();
+      }
+      return;
+    }
+
+    // 仅当应用、分类或域名变化时才切分，避免同一浏览器内切换标签产生大量碎片
+    const sameApp =
+      categorized.app === currentApp &&
+      categorized.category === currentCategory &&
+      (categorized.domain || '') === currentDomain;
     if (sameApp) return;
 
     const now = Date.now();
@@ -428,6 +556,8 @@ function createActivityTracker(options) {
 
   async function tick() {
     try {
+      if (isPaused) return;
+
       const idleMs = powerMonitor.getSystemIdleTime() * 1000;
 
       if (state === 'active') {
@@ -624,11 +754,11 @@ function createActivityTracker(options) {
 
       const minutes = clipSegmentMinutes(seg.beginAt, seg.endAt, startMs, endMs);
       if (minutes > 0) {
-        totalMinutes += minutes;
         if (seg.type === 'idle') idleMinutes += minutes;
         if (seg.type === 'away') awayMinutes += minutes;
 
         if (seg.type === 'app') {
+          totalMinutes += minutes;
           const cat = seg.category || '';
           categoryMap.set(cat, (categoryMap.get(cat) || 0) + minutes);
 
@@ -823,7 +953,7 @@ function createActivityTracker(options) {
   function getCurrentState() {
     const now = Date.now();
     return {
-      state,
+      state: isPaused ? 'paused' : state,
       app: currentApp || undefined,
       title: currentTitle || undefined,
       category: currentCategory || undefined,
@@ -840,6 +970,9 @@ function createActivityTracker(options) {
     clearData,
     getCurrentState,
     migrateLegacyData,
+    getSettings,
+    updateSettings,
+    togglePaused,
   };
 }
 

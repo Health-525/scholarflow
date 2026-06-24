@@ -33,12 +33,19 @@ interface ActivityDaySummary {
 }
 
 interface ActivityStateInfo {
-  state: 'active' | 'idle' | 'away';
+  state: 'active' | 'idle' | 'away' | 'paused';
   app?: string;
   title?: string;
   category?: string;
   since: number;
   durationSeconds: number;
+}
+
+interface ActivitySettings {
+  paused: boolean;
+  excludedApps: string[];
+  recordTitles: boolean;
+  idleThresholdMinutes: number;
 }
 
 interface ElectronAPI {
@@ -68,6 +75,9 @@ interface ElectronAPI {
   queryActivityRange: (start: string, end: string) => Promise<Array<{ date: string; totalMinutes: number; idleMinutes: number; awayMinutes: number }>>;
   clearActivityData: () => Promise<void>;
   getActivityState: () => Promise<ActivityStateInfo>;
+  getActivitySettings: () => Promise<ActivitySettings>;
+  updateActivitySettings: (settings: Partial<ActivitySettings>) => Promise<ActivitySettings>;
+  toggleActivityPaused: () => Promise<ActivitySettings>;
   onActivityStateChanged: (callback: (info: ActivityStateInfo) => void) => () => void;
 }
 

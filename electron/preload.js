@@ -42,6 +42,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
   clearActivityData: () => ipcRenderer.invoke("activity:clear-data"),
   /** 获取当前追踪状态 */
   getActivityState: () => ipcRenderer.invoke("activity:get-state"),
+  /** 获取屏幕时间隐私设置 */
+  getActivitySettings: () => ipcRenderer.invoke("activity:get-settings"),
+  /** 更新屏幕时间隐私设置 */
+  updateActivitySettings: (settings) => ipcRenderer.invoke("activity:update-settings", settings),
+  /** 暂停 / 恢复屏幕时间追踪 */
+  toggleActivityPaused: () => ipcRenderer.invoke("activity:toggle-paused"),
 
   /** 监听活动状态变化 (回调参数: { state, app, title, category, since, durationSeconds }) */
   onActivityStateChanged: (callback) => {

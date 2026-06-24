@@ -10,8 +10,13 @@ interface TimelineBarProps {
   dateStr: string;
 }
 
-const SLOTS = 48; // 30 分钟一个格子
-const SLOT_MS = (24 * 60 * 60 * 1000) / SLOTS;
+const LANE_HEIGHT = 22;
+const LANE_GAP = 4;
+const TYPE_COLORS: Record<ActivityDaySummary["segments"][number]["type"], string> = {
+  app: "#94a3b8",
+  idle: "#f59e0b",
+  away: "#64748b",
+};
 
 function getDayBounds(dateStr: string): { start: number; end: number } {
   const [y, m, d] = dateStr.split("-").map(Number);
@@ -34,15 +39,19 @@ function formatDuration(seconds: number): string {
   return `${h}小时${rm ? `${rm}分` : ""}`;
 }
 
+type LaneSegment = {
+  segment: ActivityDaySummary["segments"][number];
+  leftPct: number;
+  widthPct: number;
+  color: string;
+  lane: number;
+};
+
 export function TimelineBar({ segments, dateStr }: TimelineBarProps) {
   const { start, end } = useMemo(() => getDayBounds(dateStr), [dateStr]);
   const [mounted, setMounted] = useState(false);
   const [now, setNow] = useState(Date.now());
-  const [hovered, setHovered] = useState<{
-    segment: ActivityDaySummary["segments"][number];
-    left: number;
-    top: number;
-  } | null>(null);
+  const [hovered, setHovered] = useState<LaneSegment & { left: number; top: number } | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -50,92 +59,114 @@ export function TimelineBar({ segments, dateStr }: TimelineBarProps) {
     return () => clearInterval(timer);
   }, []);
 
-  const blocks = useMemo(() => {
-    const result: Array<{
-      segment: ActivityDaySummary["segments"][number];
-      leftPct: number;
-      widthPct: number;
-      color: string;
-    }> = [];
+  const { lanes, items } = useMemo(() => {
+    const sorted = [...segments].sort((a, b) => a.beginAt - b.beginAt);
+    const laneEnds: number[] = [];
+    const result: LaneSegment[] = [];
 
-    for (const segment of segments) {
-      if (segment.type !== "app") continue;
+    for (const segment of sorted) {
       const segStart = Math.max(segment.beginAt, start);
       const segEnd = Math.min(segment.endAt ?? now, end);
       if (segEnd <= segStart) continue;
 
       const leftPct = ((segStart - start) / (end - start)) * 100;
       const widthPct = ((segEnd - segStart) / (end - start)) * 100;
-      const color = CATEGORY_COLORS[(segment.category as Category) || "other"];
 
-      result.push({ segment, leftPct, widthPct, color });
+      let color: string;
+      if (segment.type === "app") {
+        color = CATEGORY_COLORS[(segment.category as Category) || "other"];
+      } else {
+        color = TYPE_COLORS[segment.type];
+      }
+
+      // 找到第一个不重叠的 lane（允许 1px 制造视觉分隔）
+      let lane = laneEnds.findIndex((lastEnd) => segStart >= lastEnd);
+      if (lane === -1) {
+        lane = laneEnds.length;
+        laneEnds.push(segEnd);
+      } else {
+        laneEnds[lane] = segEnd;
+      }
+
+      result.push({ segment, leftPct, widthPct, color, lane });
     }
 
-    return result;
+    return { lanes: laneEnds.length, items: result };
   }, [segments, start, end, now]);
+
+  const containerHeight = Math.max(1, lanes) * LANE_HEIGHT + Math.max(0, lanes - 1) * LANE_GAP + 8;
 
   return (
     <div className="relative">
-      <div className="flex gap-0.5 overflow-x-auto pb-2 md:overflow-visible">
-        {Array.from({ length: SLOTS }).map((_, i) => {
-          const slotStart = start + i * SLOT_MS;
-          const hour = Math.floor(i / 2);
-          const isHourStart = i % 2 === 0;
-          return (
-            <div
-              key={i}
-              className="flex-shrink-0 relative"
-              style={{ width: `${100 / SLOTS}%`, minWidth: "6px" }}
-            >
-              <div className="h-16 rounded-sm bg-muted/40" />
-              {isHourStart && (
-                <span className="absolute -bottom-5 left-0 text-xs text-muted-foreground hidden md:block">
-                  {hour}
-                </span>
-              )}
-              {/* 当前时间刻度线 */}
-              {mounted && now >= slotStart && now < slotStart + SLOT_MS && (
-                <div
-                  className="absolute top-0 bottom-0 w-px bg-destructive z-10"
-                  style={{
-                    left: `${((now - slotStart) / SLOT_MS) * 100}%`,
-                  }}
-                />
-              )}
-            </div>
-          );
-        })}
+      {/* 小时刻度 */}
+      <div className="relative h-5 mb-1">
+        {Array.from({ length: 24 }).map((_, h) => (
+          <span
+            key={h}
+            className="absolute text-[10px] text-muted-foreground tabular-nums -translate-x-1/2"
+            style={{ left: `${(h / 24) * 100}%` }}
+          >
+            {h}
+          </span>
+        ))}
       </div>
 
-      {/* Segment overlays */}
-      <div className="absolute top-0 left-0 right-0 h-16 pointer-events-none">
-        {blocks.map((b, idx) => (
+      <div
+        className="relative rounded-md bg-muted/40 overflow-hidden"
+        style={{ height: containerHeight }}
+      >
+        {/* 垂直网格线 */}
+        {Array.from({ length: 24 }).map((_, h) => (
           <div
-            key={idx}
-            className="absolute top-0 h-full rounded-sm pointer-events-auto cursor-pointer"
-            style={{
-              left: `${b.leftPct}%`,
-              width: `${Math.max(b.widthPct, 0.5)}%`,
-              backgroundColor: b.color,
-              opacity: 0.85,
-            }}
-            onMouseEnter={(e) =>
-              setHovered({
-                segment: b.segment,
-                left: e.clientX,
-                top: e.clientY,
-              })
-            }
-            onMouseMove={(e) =>
-              setHovered((prev) =>
-                prev?.segment === b.segment
-                  ? { segment: b.segment, left: e.clientX, top: e.clientY }
-                  : prev
-              )
-            }
-            onMouseLeave={() => setHovered(null)}
+            key={`grid-${h}`}
+            className="absolute top-0 bottom-0 w-px bg-border/40"
+            style={{ left: `${(h / 24) * 100}%` }}
           />
         ))}
+
+        {/* 当前时间线 */}
+        {mounted && now >= start && now <= end && (
+          <div
+            className="absolute top-0 bottom-0 w-px bg-destructive z-20"
+            style={{ left: `${((now - start) / (end - start)) * 100}%` }}
+          />
+        )}
+
+        {/* 片段块 */}
+        {items.map((item, idx) => {
+          const top = item.lane * (LANE_HEIGHT + LANE_GAP) + 4;
+          return (
+            <div
+              key={idx}
+              className={cn(
+                "absolute rounded-sm cursor-pointer transition-opacity hover:opacity-100",
+                item.segment.type === "app" ? "opacity-90" : "opacity-50"
+              )}
+              style={{
+                left: `${item.leftPct}%`,
+                width: `${Math.max(item.widthPct, 0.25)}%`,
+                top,
+                height: LANE_HEIGHT,
+                backgroundColor: item.color,
+              }}
+              onMouseEnter={(e) =>
+                setHovered({
+                  ...item,
+                  left: e.clientX,
+                  top: e.clientY,
+                })
+              }
+              onMouseMove={(e) =>
+                setHovered((prev) =>
+                  prev?.segment === item.segment
+                    ? { ...item, left: e.clientX, top: e.clientY }
+                    : prev
+                )
+              }
+              onMouseLeave={() => setHovered(null)}
+            />
+          );
+        })}
       </div>
 
       {/* Tooltip */}
@@ -151,9 +182,10 @@ export function TimelineBar({ segments, dateStr }: TimelineBarProps) {
           }}
         >
           <div className="font-medium truncate">
-            {hovered.segment.app || "未知应用"}
+            {hovered.segment.app ||
+              (hovered.segment.type === "idle" ? "系统空闲" : hovered.segment.type === "away" ? "离开" : "未知")}
           </div>
-          {hovered.segment.title && (
+          {hovered.segment.title && hovered.segment.type === "app" && (
             <div className="text-muted-foreground truncate mt-0.5">
               {hovered.segment.title}
             </div>
@@ -161,7 +193,7 @@ export function TimelineBar({ segments, dateStr }: TimelineBarProps) {
           <div className="mt-1 text-muted-foreground">
             {formatTime(hovered.segment.beginAt)} -{" "}
             {hovered.segment.endAt ? formatTime(hovered.segment.endAt) : "现在"}
-            {" "}·{" "}
+            {" · "}
             {formatDuration(
               Math.round(
                 ((hovered.segment.endAt ?? now) - hovered.segment.beginAt) / 1000

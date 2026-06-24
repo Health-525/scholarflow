@@ -43,6 +43,7 @@ export interface ScreenTimeState {
   appBreakdown: Array<{ app: string; seconds: number; category?: Category }>;
   segments: ActivityDaySummary["segments"];
   loading: boolean;
+  paused: boolean;
 }
 
 /** @deprecated 保留旧接口名作为别名 */
@@ -153,6 +154,7 @@ function buildEmptyState(): ScreenTimeState {
     appBreakdown: [],
     segments: [],
     loading: false,
+    paused: false,
   };
 }
 
@@ -180,7 +182,11 @@ function buildState(
   let durationSeconds = 0;
 
   if (current) {
-    if (current.state === "active") {
+    if (current.state === "paused") {
+      currentApp = "已暂停";
+      currentSince = current.since;
+      durationSeconds = current.durationSeconds;
+    } else if (current.state === "active") {
       currentApp = current.app || "未知应用";
       currentTitle = current.title || "";
       currentCategory = (current.category as Category) || "other";
@@ -242,6 +248,7 @@ function buildState(
     appBreakdown,
     segments,
     loading: false,
+    paused: current?.state === "paused" || false,
   };
 }
 

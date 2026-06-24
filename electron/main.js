@@ -383,6 +383,9 @@ function setupActivityTrackerIPC() {
   ipcMain.handle('activity:query-range', async (_event, start, end) => activityTracker.queryRange(start, end));
   ipcMain.handle('activity:clear-data', async () => activityTracker.clearData());
   ipcMain.handle('activity:get-state', async () => activityTracker.getCurrentState());
+  ipcMain.handle('activity:get-settings', async () => activityTracker.getSettings());
+  ipcMain.handle('activity:update-settings', async (_event, settings) => activityTracker.updateSettings(settings));
+  ipcMain.handle('activity:toggle-paused', async () => activityTracker.togglePaused());
 }
 
 function migrateLegacyActivityData() {

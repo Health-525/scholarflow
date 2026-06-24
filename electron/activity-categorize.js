@@ -17,9 +17,9 @@ const CATEGORIES = Object.freeze({
   OTHER: 'other',
 });
 
-const DOMAIN_CODING = /github\.com|gitlab\.com|stackoverflow\.com|docs\.microsoft\.com|developer\.mozilla\.org|juejin\.cn|csdn\.net|gitee\.com|npmjs\.com/i;
-const DOMAIN_ENTERTAINMENT = /bilibili\.com|youtube\.com|netflix\.com|iqiyi\.com|youku\.com|v\.qq\.com|douyin\.com|kuaishou\.com|xiaohongshu\.com|huya\.com|douyu\.com|twitch\.tv/i;
-const DOMAIN_STUDY = /zhihu\.com|csdn\.net|juejin\.cn|arxiv\.org|wikipedia\.org|baike\.baidu\.com|mooc\.cn|icourse163\.org|coursera\.org|edx\.org|khanacademy\.org/i;
+const DOMAIN_CODING = /github\.com|gitlab\.com|stackoverflow\.com|docs\.microsoft\.com|developer\.mozilla\.org|juejin\.cn|csdn\.net|gitee\.com|npmjs\.com|leetcode\.com|luogu\.com|nowcoder\.com|acwing\.com|cppreference\.com|cplusplus\.com|rust-lang\.org|go\.dev|vuejs\.org|react\.dev|angular\.io|webpack\.js\.org|tailwindcss\.com|developer\.apple\.com|developers\.google\.com/i;
+const DOMAIN_ENTERTAINMENT = /bilibili\.com|youtube\.com|netflix\.com|iqiyi\.com|youku\.com|v\.qq\.com|douyin\.com|kuaishou\.com|xiaohongshu\.com|huya\.com|douyu\.com|twitch\.tv|weibo\.com|tieba\.baidu\.com|x\.com|instagram\.com|reddit\.com|facebook\.com|tiktok\.com|qq\.com\/(?:music|video)|spotify\.com/i;
+const DOMAIN_STUDY = /zhihu\.com|csdn\.net|juejin\.cn|arxiv\.org|wikipedia\.org|baike\.baidu\.com|mooc\.cn|icourse163\.org|coursera\.org|edx\.org|khanacademy\.org|chaoxing\.com|zhihuishu\.com|cnki\.net|wos\.com|pubmed\.ncbi\.nlm\.nih\.gov|scholar\.google\.com|books\.google\.com|runoob\.com|w3schools\.com|python123\.io/i;
 
 /**
  * Extract a domain from a window title such as "标题 - github.com - Chrome".
@@ -80,9 +80,9 @@ function classifyBrowsing(domain, title) {
     if (DOMAIN_STUDY.test(d)) return CATEGORIES.STUDY;
     return CATEGORIES.BROWSING;
   }
-  if (/github|gitlab/i.test(t)) return CATEGORIES.CODING;
-  if (/bilibili|youtube|netflix/i.test(t)) return CATEGORIES.ENTERTAINMENT;
-  if (/zhihu|csdn|juejin|stackoverflow|medium|arxiv|wikipedia/i.test(t)) return CATEGORIES.STUDY;
+  if (/github|gitlab|stackoverflow|juejin|csdn|gitee|npm|leetcode|luogu|nowcoder|acwing|cppreference|rust-lang|go\.dev|vue|react|angular|webpack|tailwind/i.test(t)) return CATEGORIES.CODING;
+  if (/bilibili|youtube|netflix|iqiyi|youku|腾讯?视频|douyin|抖音|kuaishou|快手|xiaohongshu|小红书|huya|虎牙|douyu|斗鱼|twitch|weibo|微博|tieba|贴吧|instagram|reddit|facebook|x\.com|tiktok|spotify|网易云音乐|qq音乐/i.test(t)) return CATEGORIES.ENTERTAINMENT;
+  if (/zhihu|csdn|juejin|stackoverflow|medium|arxiv|wikipedia|baike|mooc|icourse|coursera|edx|khan|chaoxing|zhihuishu|cnki|wos|pubmed|scholar|runoob|w3schools|python123|anki|notion|obsidian|zotero/i.test(t)) return CATEGORIES.STUDY;
   return CATEGORIES.BROWSING;
 }
 
@@ -90,16 +90,27 @@ function classifyBrowsing(domain, title) {
  * Normalize an application name.
  * @param {string} app
  * @param {string} title
+ * @param {string} [url]
  * @returns {{ app: string, category: string, domain?: string, project?: string }}
  */
-function categorizeActivity(app, title) {
+function categorizeActivity(app, title, url) {
   const a = (app || '').toLowerCase();
   const t = (title || '').toLowerCase();
+
+  // 优先使用真实 URL（部分平台 active-win 可提供），否则回退到标题推断
+  let urlDomain;
+  if (url) {
+    try {
+      urlDomain = new URL(url).hostname.replace(/^www\./, '');
+    } catch {
+      urlDomain = undefined;
+    }
+  }
 
   // Browsers
   if (/chrome|edge|firefox|brave/.test(a)) {
     const browser = a.includes('edge') ? 'Edge' : a.includes('firefox') ? 'Firefox' : a.includes('brave') ? 'Brave' : 'Chrome';
-    const domain = extractDomain(title);
+    const domain = urlDomain || extractDomain(title);
     return { app: browser, category: classifyBrowsing(domain, title), domain };
   }
 

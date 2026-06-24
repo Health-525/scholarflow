@@ -5,16 +5,21 @@ import {
   BookOpen,
   Code,
   Download,
+  Eye,
+  EyeOff,
   Gamepad2,
   Globe,
   HelpCircle,
   MessageCircle,
   Monitor,
+  PauseCircle,
+  PlayCircle,
   Settings,
   Trash2,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { DateNavigator } from "@/components/activity/DateNavigator";
 import { TimelineBar } from "@/components/activity/TimelineBar";
@@ -29,6 +34,7 @@ import {
 } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Input } from "@/components/ui/input";
 import {
   CATEGORY_LABELS,
   CATEGORY_SEMANTIC,
@@ -76,15 +82,92 @@ function formatSeconds(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+function useActivitySettings() {
+  const [settings, setSettings] = useState<ActivitySettings | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function load() {
+    const api = window.electronAPI;
+    if (!api?.getActivitySettings) return;
+    setLoading(true);
+    try {
+      const s = await api.getActivitySettings();
+      setSettings(s);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[ActivitySettings] load failed:", e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function update(patch: Partial<ActivitySettings>) {
+    const api = window.electronAPI;
+    if (!api?.updateActivitySettings) return;
+    try {
+      const s = await api.updateActivitySettings(patch);
+      setSettings(s);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[ActivitySettings] update failed:", e);
+    }
+  }
+
+  async function togglePaused() {
+    const api = window.electronAPI;
+    if (!api?.toggleActivityPaused) return;
+    try {
+      const s = await api.toggleActivityPaused();
+      setSettings(s);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[ActivitySettings] toggle failed:", e);
+    }
+  }
+
+  return { settings, loading, update, togglePaused, reload: load };
+}
+
+function useActivityTrend() {
+  const [days, setDays] = useState<Array<{ date: string; totalMinutes: number; idleMinutes: number; awayMinutes: number }>>([]);
+
+  useEffect(() => {
+    const api = window.electronAPI;
+    if (!api?.queryActivityRange) return;
+
+    const end = new Date();
+    const start = new Date(end);
+    start.setDate(start.getDate() - 6);
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    api
+      .queryActivityRange(fmt(start), fmt(end))
+      .then(setDays)
+      .catch((e) => {
+        // eslint-disable-next-line no-console
+        console.error("[ActivityTrend] load failed:", e);
+      });
+  }, []);
+
+  return days;
+}
+
 export default function ActivityPage() {
   const router = useRouter();
   const [date, setDate] = useState(todayStr());
   const state = useScreenTime(date);
+  const { settings, update, togglePaused, loading: settingsLoading } = useActivitySettings();
+  const trendDays = useActivityTrend();
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
+  const [excludedInput, setExcludedInput] = useState("");
 
   const isToday = date === todayStr();
   const totalMinutes = state.totalMinutes;
-  // totalMinutes 仅包含 app segments 的时长，idle/away 已单独统计
   const activeMinutes = Math.max(0, totalMinutes);
   const hasData = totalMinutes > 0 || state.idleMinutes > 0 || state.awayMinutes > 0;
   const [appsExpanded, setAppsExpanded] = useState(false);
@@ -96,17 +179,38 @@ export default function ActivityPage() {
     [state.appBreakdown]
   );
 
+  const isPaused = settings?.paused ?? false;
+
   const statusColor = useMemo(() => {
+    if (isPaused) return semanticColor("warning");
     if (state.currentApp === "系统空闲") return semanticColor("warning");
     if (state.currentApp === "离开") return semanticColor("info");
     return semanticColor("success");
-  }, [state.currentApp]);
+  }, [isPaused, state.currentApp]);
 
   const statusBg = useMemo(() => {
+    if (isPaused) return semanticBg("warning");
     if (state.currentApp === "系统空闲") return semanticBg("warning");
     if (state.currentApp === "离开") return semanticBg("info");
     return semanticBg("success");
-  }, [state.currentApp]);
+  }, [isPaused, state.currentApp]);
+
+  async function handleAddExcluded(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter") return;
+    const value = excludedInput.trim();
+    if (!value || !settings) return;
+    const next = new Set(settings.excludedApps.map((a) => a.toLowerCase()));
+    next.add(value.toLowerCase());
+    await update({ excludedApps: Array.from(next) });
+    setExcludedInput("");
+  }
+
+  async function handleRemoveExcluded(app: string) {
+    if (!settings) return;
+    await update({
+      excludedApps: settings.excludedApps.filter((a) => a.toLowerCase() !== app.toLowerCase()),
+    });
+  }
 
   if (!state.isElectron) {
     return (
@@ -154,7 +258,7 @@ export default function ActivityPage() {
                 {formatDuration(totalMinutes)}
               </div>
               <div className="text-xs text-muted-foreground mt-2">
-                空闲 {state.idleMinutes} 分钟 · 离开 {state.awayMinutes} 分钟
+                前台应用 {formatDuration(activeMinutes)} · 空闲 {state.idleMinutes} 分钟 · 离开 {state.awayMinutes} 分钟
               </div>
             </div>
             <div
@@ -176,20 +280,22 @@ export default function ActivityPage() {
           <CardContent>
             <div className="flex items-center gap-3 mb-3">
               <span className="relative flex h-3 w-3">
-                <span
-                  className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                  style={{ backgroundColor: statusColor }}
-                />
+                {!isPaused && (
+                  <span
+                    className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                    style={{ backgroundColor: statusColor }}
+                  />
+                )}
                 <span
                   className="relative inline-flex rounded-full h-3 w-3"
                   style={{ backgroundColor: statusColor }}
                 />
               </span>
               <span className="text-sm font-medium text-foreground truncate">
-                {state.currentApp || "未追踪"}
+                {isPaused ? "已暂停追踪" : state.currentApp || "未追踪"}
               </span>
             </div>
-            {state.currentTitle && (
+            {state.currentTitle && !isPaused && (
               <div
                 className="text-xs text-muted-foreground truncate mb-3"
                 title={state.currentTitle}
@@ -201,7 +307,7 @@ export default function ActivityPage() {
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
               style={{ backgroundColor: statusBg, color: statusColor }}
             >
-              已持续 {formatSeconds(state.durationSeconds)}
+              {isPaused ? "追踪已暂停" : `已持续 ${formatSeconds(state.durationSeconds)}`}
             </div>
           </CardContent>
         </Card>
@@ -221,6 +327,104 @@ export default function ActivityPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* ── 隐私与追踪设置 ── */}
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>追踪设置</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <Button
+              variant={isPaused ? "default" : "outline"}
+              size="sm"
+              className="gap-2"
+              onClick={togglePaused}
+              disabled={settingsLoading}
+            >
+              {isPaused ? <PlayCircle className="w-4 h-4" /> : <PauseCircle className="w-4 h-4" />}
+              {isPaused ? "恢复追踪" : "暂停追踪"}
+            </Button>
+            <Button
+              variant={settings?.recordTitles ? "outline" : "secondary"}
+              size="sm"
+              className="gap-2"
+              onClick={() => update({ recordTitles: !settings?.recordTitles })}
+              disabled={settingsLoading || !settings}
+            >
+              {settings?.recordTitles ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              {settings?.recordTitles ? "记录窗口标题" : "不记录窗口标题"}
+            </Button>
+          </div>
+
+          <div>
+            <label htmlFor="excluded-apps" className="text-xs text-muted-foreground mb-1.5 block">
+              排除应用（不会记录这些应用的活动，按回车添加）
+            </label>
+            <Input
+              id="excluded-apps"
+              placeholder="例如：WeChat、QQ、微信"
+              value={excludedInput}
+              onChange={(e) => setExcludedInput(e.target.value)}
+              onKeyDown={handleAddExcluded}
+              disabled={settingsLoading || !settings}
+              className="h-9 text-sm"
+            />
+            {settings && settings.excludedApps.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {settings.excludedApps.map((app) => (
+                  <Badge
+                    key={app}
+                    variant="secondary"
+                    className="gap-1 pl-2 pr-1 py-0.5 text-xs font-normal"
+                  >
+                    {app}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveExcluded(app)}
+                      className="rounded-full p-0.5 hover:bg-muted"
+                      aria-label={`移除 ${app}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── 近 7 天趋势 ── */}
+      {trendDays.length > 0 && (
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle>近 7 天趋势</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end gap-2 h-28">
+              {trendDays.map((day) => {
+                const max = Math.max(1, ...trendDays.map((d) => d.totalMinutes));
+                const h = Math.round((day.totalMinutes / max) * 100);
+                return (
+                  <div key={day.date} className="flex-1 flex flex-col items-center gap-1">
+                    <div className="w-full flex-1 flex items-end justify-center">
+                      <div
+                        className="w-full max-w-10 rounded-t-sm bg-primary/80"
+                        style={{ height: `${Math.max(h, 4)}%` }}
+                        title={`${day.date}：${formatDuration(day.totalMinutes)}`}
+                      />
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">
+                      {day.date.slice(5)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* ── 无数据空状态 ── */}
       {isToday && !hasData && !state.loading && (
