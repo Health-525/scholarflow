@@ -153,6 +153,8 @@ function computePomodoro(sessionsRaw: unknown, date: string): PomodoroSummary | 
  * POST /api/reports/daily/generate?schoolId=...&userId=...
  *
  * 根据当前登录账号的某日课表、作业、考试、目标、跑步等数据生成日报。
+ * - 默认优先使用 DeepSeek AI 生成（需先在设置中配置 API Key）。
+ * - 未配置 Key 或 AI 调用失败时自动降级为本地模板。
  * 生成结果写入 `dailyReport:<prefix>:<date>`。
  */
 export async function POST(request: Request) {
@@ -251,32 +253,51 @@ export async function POST(request: Request) {
 
     const existingDaily = readExistingDaily(db.readData(`dailyReport:${prefix}:${date}`));
 
+    // 优先尝试 AI 生成；未配置 Key 或 AI 失败时自动降级到本地模板
     let markdown: string;
-    if (body.ai) {
-      const aiConfig = getAIConfig(db, prefix);
-      if (!aiConfig.apiKey) {
-        return NextResponse.json(
-          { error: "DeepSeek API Key 未配置，无法使用 AI 生成" },
-          { status: 503 }
-        );
+    let usedAI = false;
+    const aiConfig = getAIConfig(db, prefix);
+    if (aiConfig.apiKey) {
+      try {
+        markdown = await generateDailyReportWithAI(aiConfig.apiKey, aiConfig.model, {
+          date,
+          now,
+          courses,
+          dayItems,
+          tomorrowCourses,
+          tomorrowDayItems,
+          assignments,
+          exams,
+          goals,
+          goalStreak,
+          runningRecords,
+          jwcNews,
+          screenTime,
+          pomodoro,
+          existingDaily,
+        });
+        usedAI = true;
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn("[/api/reports/daily/generate] AI failed, falling back to template:", (err as Error)?.message ?? err);
+        markdown = buildDailyReportMarkdown({
+          date,
+          now,
+          courses,
+          dayItems,
+          tomorrowCourses,
+          tomorrowDayItems,
+          assignments,
+          exams,
+          goals,
+          goalStreak,
+          runningRecords,
+          jwcNews,
+          screenTime,
+          pomodoro,
+          existingDaily,
+        });
       }
-      markdown = await generateDailyReportWithAI(aiConfig.apiKey, aiConfig.model, {
-        date,
-        now,
-        courses,
-        dayItems,
-        tomorrowCourses,
-        tomorrowDayItems,
-        assignments,
-        exams,
-        goals,
-        goalStreak,
-        runningRecords,
-        jwcNews,
-        screenTime,
-        pomodoro,
-        existingDaily,
-      });
     } else {
       markdown = buildDailyReportMarkdown({
         date,
@@ -300,10 +321,10 @@ export async function POST(request: Request) {
     db.writeData(`dailyReport:${prefix}:${date}`, {
       content: markdown,
       generatedAt: Date.now(),
-      ai: !!body.ai,
+      ai: usedAI,
     });
 
-    return NextResponse.json({ ok: true, date, ai: !!body.ai });
+    return NextResponse.json({ ok: true, date, ai: usedAI });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error("[/api/reports/daily/generate] error:", (err as Error)?.message ?? err);

@@ -1,21 +1,25 @@
 "use client";
 
-import { CalendarDays, ChevronLeft, ChevronRight, PenLine, Sparkles } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Pencil, PenLine, Sparkles } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { PageHeader } from "@/components/layout/PageHeader";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
-import { DailyCalendarSidebar } from "@/components/reports/DailyCalendarSidebar";
 import { DailyEditorV2 } from "@/components/reports/DailyEditorV2";
 import { DailyEmptyState } from "@/components/reports/DailyEmptyState";
+import { DateStrip } from "@/components/reports/DateStrip";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { showToast } from "@/components/ui/ToastContainer";
 import { useDailyReport, useDailyReports } from "@/hooks/useReports";
 import { getAuthParams } from "@/lib/api/auth-params";
 import { parseISODate } from "@/lib/date-utils";
-import { cn } from "@/lib/utils";
 
 function getTodayStr(): string {
   const d = new Date();
@@ -27,6 +31,21 @@ function addDays(dateStr: string, days: number): string {
   const date = new Date(y, m - 1, d);
   date.setDate(date.getDate() + days);
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function formatDateLabel(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString("zh-CN", {
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function formatWeekday(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString("zh-CN", { weekday: "long" });
 }
 
 async function loadPomodoroSessions(): Promise<unknown> {
@@ -52,21 +71,6 @@ async function loadActivityLog(dateStr: string): Promise<unknown> {
   return null;
 }
 
-function formatDateLabel(dateStr: string): string {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  const date = new Date(y, m - 1, d);
-  return date.toLocaleDateString("zh-CN", {
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function formatWeekday(dateStr: string): string {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  const date = new Date(y, m - 1, d);
-  return date.toLocaleDateString("zh-CN", { weekday: "long" });
-}
-
 export default function DailyReportsPage() {
   const searchParams = useSearchParams();
 
@@ -76,10 +80,10 @@ export default function DailyReportsPage() {
   }, [searchParams]);
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const { entries, isLoading: listLoading, error: listError, reload: reloadList } = useDailyReports();
   const { content, isLoading: contentLoading, error: contentError, reload: reloadContent } = useDailyReport(selectedDate);
@@ -106,7 +110,6 @@ export default function DailyReportsPage() {
       setSelectedDate(date);
       setIsEditing(false);
       setIsDirty(false);
-      setSidebarOpen(false);
       if (typeof window !== "undefined") {
         const url = new URL(window.location.href);
         url.searchParams.set("date", date);
@@ -118,7 +121,7 @@ export default function DailyReportsPage() {
   const handleGenerate = async () => {
     if (isDirty) {
       // eslint-disable-next-line no-alert
-      const ok = window.confirm("当前日报有未保存的修改，生成 AI 日报会覆盖它，是否继续？");
+      const ok = window.confirm("当前日报有未保存的修改，生成日报会覆盖它，是否继续？");
       if (!ok) return;
     }
     setGenerating(true);
@@ -131,15 +134,14 @@ export default function DailyReportsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ai: true,
           date: selectedDate,
           pomodoroSessions,
           activityLog,
         }),
       });
-      const data = (await res.json()) as { ok?: boolean; date?: string; error?: string };
+      const data = (await res.json()) as { ok?: boolean; date?: string; ai?: boolean; error?: string };
       if (res.ok && data.ok) {
-        showToast("success", "AI 日报生成成功");
+        showToast("success", data.ai ? "AI 日报生成成功" : "已使用模板生成日报");
         await Promise.all([reloadList(), reloadContent()]);
         setIsEditing(false);
       } else {
@@ -159,72 +161,75 @@ export default function DailyReportsPage() {
     setIsDirty(false);
   };
 
+  const selectedDateObj = useMemo(() => {
+    const d = parseISODate(selectedDate);
+    return d ?? undefined;
+  }, [selectedDate]);
+
   return (
-    <div className="h-[calc(100vh-4rem)] flex overflow-hidden">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <button
-          type="button"
-          aria-label="关闭侧边栏"
-          className="fixed inset-0 bg-black/10 z-40 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+    <div className="max-w-3xl mx-auto py-6 px-4">
+      <PageHeader
+        icon={<CalendarDays className="w-5 h-5 text-primary" />}
+        title="日报"
+        description="记录每日课程、作业与思考"
+      />
 
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed md:static inset-y-0 left-0 z-50 w-72 bg-background/80 backdrop-blur-xl border-r border-border/30 transform transition-transform duration-200 ease-out md:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        <DailyCalendarSidebar
-          selectedDate={selectedDate}
-          onSelectDate={handleSelectDate}
-          datesWithReport={datesWithReport}
-        />
-      </aside>
+      {/* Date strip + calendar picker */}
+      <Card className="mb-4">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2">
+            <DateStrip
+              selectedDate={selectedDate}
+              datesWithReport={datesWithReport}
+              onSelect={handleSelectDate}
+            />
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <PopoverTrigger
+                className="inline-flex items-center justify-center h-9 w-9 shrink-0 rounded-md border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                <CalendarDays className="h-4 w-4" />
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={selectedDateObj}
+                  onSelect={(date) => {
+                    if (date) {
+                      handleSelectDate(
+                        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+                      );
+                      setCalendarOpen(false);
+                    }
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Main content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header */}
-        <header className="shrink-0 px-5 md:px-12 lg:px-16 pt-8 md:pt-10 pb-5 md:pb-6">
-          <div className="max-w-3xl mx-auto">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2 md:gap-3 mb-1">
-                  <h1 className="text-2xl md:text-4xl font-semibold tracking-tight text-foreground">
-                    {formatDateLabel(selectedDate)}
-                  </h1>
-                  <span className="text-sm text-muted-foreground font-medium">
-                    {formatWeekday(selectedDate)}
-                  </span>
-                </div>
-                <p className="text-xs text-text-tertiary">
-                  {isToday ? "今天" : selectedDate}
-                </p>
+      {/* Selected day card */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="flex items-baseline gap-2 mb-1">
+                <h1 className="text-2xl font-bold text-foreground">
+                  {formatDateLabel(selectedDate)}
+                </h1>
+                <span className="text-sm text-muted-foreground font-medium">
+                  {formatWeekday(selectedDate)}
+                </span>
               </div>
+              <div className="flex items-center gap-2">
+                {isToday && <Badge variant="secondary">今天</Badge>}
+                {hasReport && <Badge variant="outline">已记录</Badge>}
+                {!hasReport && <Badge variant="outline" className="text-muted-foreground">未记录</Badge>}
+              </div>
+            </div>
 
-              <div className="hidden md:flex items-center gap-1.5 shrink-0">
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => handleSelectDate(addDays(selectedDate, -1))}
-                  aria-label="前一天"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => handleSelectDate(addDays(selectedDate, 1))}
-                  aria-label="后一天"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-                <div className="w-px h-4 bg-border/60 mx-1" />
+            <div className="flex items-center gap-1.5 shrink-0">
+              {!isEditing && (
                 <Button
                   size="sm"
                   onClick={handleGenerate}
@@ -234,85 +239,40 @@ export default function DailyReportsPage() {
                   <Sparkles className="w-3.5 h-3.5" />
                   {generating ? "生成中..." : "生成日报"}
                 </Button>
-                {hasReport && !isEditing && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setIsEditing(true)}
-                    className="gap-1.5 h-8 px-3 text-xs font-medium border-border/60"
-                  >
-                    <PenLine className="w-3.5 h-3.5" />
-                    编辑
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Mobile toolbar */}
-            <div className="flex md:hidden items-center justify-between mt-4">
-              <div className="flex items-center gap-0.5">
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => handleSelectDate(addDays(selectedDate, -1))}
-                  aria-label="前一天"
-                  className="text-muted-foreground hover:text-foreground h-9 w-9"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => handleSelectDate(addDays(selectedDate, 1))}
-                  aria-label="后一天"
-                  className="text-muted-foreground hover:text-foreground h-9 w-9"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-1.5">
+              )}
+              {hasReport && !isEditing && (
                 <Button
                   size="sm"
-                  onClick={handleGenerate}
-                  disabled={generating}
-                  className="gap-1.5 h-9 px-3 text-xs font-medium"
+                  variant="outline"
+                  onClick={() => setIsEditing(true)}
+                  className="gap-1.5 h-8 px-3 text-xs font-medium"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  {generating ? "生成中" : "生成"}
+                  <Pencil className="w-3.5 h-3.5" />
+                  编辑
                 </Button>
-                {hasReport && !isEditing && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setIsEditing(true)}
-                    className="gap-1.5 h-9 px-3 text-xs font-medium border-border/60"
-                  >
-                    <PenLine className="w-3.5 h-3.5" />
-                    编辑
-                  </Button>
-                )}
+              )}
+              {!hasReport && !isEditing && (
                 <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => setSidebarOpen(true)}
-                  className="text-muted-foreground hover:text-foreground h-9 w-9"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsEditing(true)}
+                  className="gap-1.5 h-8 px-3 text-xs font-medium"
                 >
-                  <CalendarDays className="w-4 h-4" />
+                  <PenLine className="w-3.5 h-3.5" />
+                  手写
                 </Button>
-              </div>
+              )}
             </div>
           </div>
-        </header>
+        </CardHeader>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto px-6 md:px-12 lg:px-16 pb-16">
+        <CardContent className="pt-0">
           {listLoading || contentLoading ? (
-            <div className="py-24">
+            <div className="py-20">
               <LoadingSpinner label="加载中..." />
             </div>
           ) : listError || contentError ? (
-            <div className="max-w-3xl mx-auto py-12">
+            <div className="py-12">
               <ErrorFallback
                 message={(listError || contentError)?.message || "加载失败"}
                 onRetry={() => {
@@ -321,30 +281,54 @@ export default function DailyReportsPage() {
                 }}
               />
             </div>
-          ) : (
-            <div className="max-w-3xl mx-auto">
-              {isEditing ? (
-                <DailyEditorV2
-                  date={selectedDate}
-                  initialContent={content}
-                  onSaved={handleSaved}
-                  onAutoSaved={() => reloadList()}
-                  onDirtyChange={setIsDirty}
-                />
-              ) : hasReport ? (
-                <MarkdownRenderer content={content} className="markdown-body markdown-daily" />
-              ) : (
-                <DailyEmptyState
-                  dateLabel={formatDateLabel(selectedDate)}
-                  onGenerate={handleGenerate}
-                  onWrite={() => setIsEditing(true)}
-                  generating={generating}
-                />
-              )}
+          ) : isEditing ? (
+            <DailyEditorV2
+              date={selectedDate}
+              initialContent={content}
+              onSaved={handleSaved}
+              onAutoSaved={() => reloadList()}
+              onDirtyChange={setIsDirty}
+            />
+          ) : hasReport ? (
+            <div className="pb-2">
+              <MarkdownRenderer content={content} className="markdown-body markdown-daily" />
             </div>
+          ) : (
+            <DailyEmptyState dateLabel={formatDateLabel(selectedDate)} />
           )}
-        </div>
-      </main>
+        </CardContent>
+      </Card>
+
+      {/* Quick today / prev / next for mobile */}
+      <div className="flex items-center justify-between mt-4 md:hidden">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1 text-muted-foreground"
+          onClick={() => handleSelectDate(addDays(selectedDate, -1))}
+        >
+          <ChevronLeft className="w-4 h-4" />
+          前一天
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground"
+          onClick={() => handleSelectDate(todayStr)}
+          disabled={isToday}
+        >
+          今天
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1 text-muted-foreground"
+          onClick={() => handleSelectDate(addDays(selectedDate, 1))}
+        >
+          后一天
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   );
 }
