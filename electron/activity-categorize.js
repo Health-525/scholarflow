@@ -17,7 +17,7 @@ const CATEGORIES = Object.freeze({
   OTHER: 'other',
 });
 
-const DOMAIN_CODING = /github\.com|gitlab\.com|stackoverflow\.com|docs\.microsoft\.com|developer\.mozilla\.org|juejin\.cn|csdn\.net|gitee\.com|npmjs\.com|leetcode\.com|luogu\.com|nowcoder\.com|acwing\.com|cppreference\.com|cplusplus\.com|rust-lang\.org|go\.dev|vuejs\.org|react\.dev|angular\.io|webpack\.js\.org|tailwindcss\.com|developer\.apple\.com|developers\.google\.com/i;
+const DOMAIN_CODING = /github\.com|gitlab\.com|stackoverflow\.com|docs\.microsoft\.com|developer\.mozilla\.org|juejin\.cn|csdn\.net|gitee\.com|npmjs\.com|leetcode\.com|luogu\.com|nowcoder\.com|acwing\.com|cppreference\.com|cplusplus\.com|rust-lang\.org|go\.dev|vuejs\.org|react\.dev|angular\.io|webpack\.js\.org|tailwindcss\.com|developer\.apple\.com|developers\.google\.com|scholarflow/i;
 const DOMAIN_ENTERTAINMENT = /bilibili\.com|youtube\.com|netflix\.com|iqiyi\.com|youku\.com|v\.qq\.com|douyin\.com|kuaishou\.com|xiaohongshu\.com|huya\.com|douyu\.com|twitch\.tv|weibo\.com|tieba\.baidu\.com|x\.com|instagram\.com|reddit\.com|facebook\.com|tiktok\.com|qq\.com\/(?:music|video)|spotify\.com/i;
 const DOMAIN_STUDY = /zhihu\.com|csdn\.net|juejin\.cn|arxiv\.org|wikipedia\.org|baike\.baidu\.com|mooc\.cn|icourse163\.org|coursera\.org|edx\.org|khanacademy\.org|chaoxing\.com|zhihuishu\.com|cnki\.net|wos\.com|pubmed\.ncbi\.nlm\.nih\.gov|scholar\.google\.com|books\.google\.com|runoob\.com|w3schools\.com|python123\.io/i;
 
@@ -91,11 +91,13 @@ function classifyBrowsing(domain, title) {
  * @param {string} app
  * @param {string} title
  * @param {string} [url]
+ * @param {string} [processPath]
  * @returns {{ app: string, category: string, domain?: string, project?: string }}
  */
-function categorizeActivity(app, title, url) {
+function categorizeActivity(app, title, url, processPath) {
   const a = (app || '').toLowerCase();
   const t = (title || '').toLowerCase();
+  const p = (processPath || '').toLowerCase();
 
   // 优先使用真实 URL（部分平台 active-win 可提供），否则回退到标题推断
   let urlDomain;
@@ -105,6 +107,12 @@ function categorizeActivity(app, title, url) {
     } catch {
       urlDomain = undefined;
     }
+  }
+
+  // ── This app itself ─────────────────────────────────────────
+  // Windows active-win 可能把 FileDescription 当作 app 名，因此同时看进程路径和标题
+  if (/scholarflow/i.test(a) || /scholarflow/i.test(t) || /scholarflow/i.test(p)) {
+    return { app: 'ScholarFlow', category: CATEGORIES.SYSTEM };
   }
 
   // Browsers
@@ -211,7 +219,7 @@ function categorizeActivity(app, title, url) {
   if (/onenote|microsoft onenote/.test(a)) return { app: 'OneNote', category: CATEGORIES.STUDY };
 
   // ── System / file management ────────────────────────────────
-  if (/explorer|文件资源管理器|nautilus|dolphin|文件管理/.test(a)) return { app: '文件管理', category: CATEGORIES.SYSTEM };
+  if (/explorer|资源管理器|文件资源管理器|nautilus|dolphin|文件管理/.test(a)) return { app: '文件管理', category: CATEGORIES.SYSTEM };
   if (/finder/.test(a)) return { app: 'Finder', category: CATEGORIES.SYSTEM };
   if (/system settings|settings|系统设置|控制面板|偏好设置/.test(a)) return { app: '系统设置', category: CATEGORIES.SYSTEM };
   if (/任务管理器|task manager/.test(a)) return { app: '任务管理器', category: CATEGORIES.SYSTEM };
@@ -220,6 +228,18 @@ function categorizeActivity(app, title, url) {
   if (/记事本|notepad(?!\+\+)/.test(a)) return { app: '记事本', category: CATEGORIES.SYSTEM };
   if (/截图|snipping|screenshot/.test(a)) return { app: '截图工具', category: CATEGORIES.SYSTEM };
   if (/录屏|screen recorder|obs/.test(a)) return { app: '录屏工具', category: CATEGORIES.SYSTEM };
+
+  // ── Title-based system detection for generic hosts ──────────
+  // Windows UWP apps run inside ApplicationFrameHost, so we detect them by title.
+  const isGenericHost = /application\s*frame\s*host|applicationframehost/.test(a);
+  if (isGenericHost) {
+    if (/计算器|calculator/.test(t)) return { app: '计算器', category: CATEGORIES.SYSTEM };
+    if (/记事本|notepad/.test(t)) return { app: '记事本', category: CATEGORIES.SYSTEM };
+    if (/任务管理器|task manager/.test(t)) return { app: '任务管理器', category: CATEGORIES.SYSTEM };
+    if (/设置|settings|控制面板|control panel|偏好设置/.test(t)) return { app: '系统设置', category: CATEGORIES.SYSTEM };
+    if (/截图|snipping|screenshot/.test(t)) return { app: '截图工具', category: CATEGORIES.SYSTEM };
+    if (/文件资源管理器|资源管理器|explorer/.test(t)) return { app: '文件管理', category: CATEGORIES.SYSTEM };
+  }
 
   // Fallback: title-based domain classification for unknown apps
   const domain = extractDomain(title);

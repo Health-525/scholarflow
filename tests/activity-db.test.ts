@@ -113,7 +113,7 @@ describe("activity-db", () => {
 
       const summary = queryDaySummary(day, base + 30 * 60000);
 
-      expect(summary.totalMinutes).toBe(18);
+      expect(summary.totalMinutes).toBe(10);
       expect(summary.idleMinutes).toBe(5);
       expect(summary.awayMinutes).toBe(3);
       expect(summary.categoryBreakdown).toEqual([{ category: "coding", minutes: 10 }]);

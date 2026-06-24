@@ -11,11 +11,12 @@
 
 'use strict';
 
-const { activeWindow } = require('active-win');
+const activeWindow = require('active-win');
 const { powerMonitor } = require('electron');
 const path = require('path');
 const { app } = require('electron');
 const { categorizeActivity } = require('./activity-categorize');
+const { normalizeSegments } = require('../lib/activity/normalize-segments');
 
 const fs = require('fs');
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -409,7 +410,8 @@ function createActivityTracker(options) {
   function startAppSegment(win) {
     const ownerName = win.owner?.name || 'Unknown';
     const rawTitle = win.title || '';
-    const categorized = categorizeActivity(ownerName, rawTitle, win.url);
+    const processPath = win.owner?.path || '';
+    const categorized = categorizeActivity(ownerName, rawTitle, win.url, processPath);
 
     if (isExcludedApp(categorized.app) || isExcludedApp(ownerName)) {
       resetCurrentWindow();
@@ -441,7 +443,8 @@ function createActivityTracker(options) {
   function handleWindowChange(win) {
     const ownerName = win.owner?.name || 'Unknown';
     const rawTitle = win.title || '';
-    const categorized = categorizeActivity(ownerName, rawTitle, win.url);
+    const processPath = win.owner?.path || '';
+    const categorized = categorizeActivity(ownerName, rawTitle, win.url, processPath);
     log('info', `[ActivityTracker] window changed: category=${categorized.category}`);
 
     // 排除应用：不记录其片段；如果当前正在追踪该应用，结束它
@@ -732,6 +735,7 @@ function createActivityTracker(options) {
     const rows = /** @type {Array<Record<string, unknown>>} */ (
       stmts.queryDay.all({ start: startMs, end: endMs })
     );
+    const normalized = normalizeSegments(rows);
 
     let totalMinutes = 0;
     let idleMinutes = 0;
@@ -739,17 +743,17 @@ function createActivityTracker(options) {
     const categoryMap = new Map();
     const appMap = new Map();
 
-    const segments = rows.map((row) => {
+    const segments = normalized.map((row) => {
       const seg = {
-        id: typeof row.id === 'number' ? row.id : undefined,
+        id: row.id,
         type: /** @type {'app'|'idle'|'away'} */ (row.type),
-        app: row.app ? String(row.app) : null,
-        title: row.title ? String(row.title) : null,
-        domain: row.domain ? String(row.domain) : null,
-        category: row.category ? String(row.category) : null,
-        project: row.project ? String(row.project) : null,
-        beginAt: Number(row.begin_at),
-        endAt: row.end_at != null ? Number(row.end_at) : null,
+        app: row.app,
+        title: row.title,
+        domain: row.domain,
+        category: row.category,
+        project: row.project,
+        beginAt: row.begin_at,
+        endAt: row.end_at,
       };
 
       const minutes = clipSegmentMinutes(seg.beginAt, seg.endAt, startMs, endMs);

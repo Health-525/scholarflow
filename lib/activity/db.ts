@@ -7,6 +7,8 @@
 
 import { getServerDB } from "../server-db";
 
+import { normalizeSegments, type RawSegmentRow } from "./normalize-segments";
+
 export interface ActivitySegment {
   id?: number;
   type: "app" | "idle" | "away";
@@ -47,17 +49,17 @@ interface LegacySegment {
 
 // ── Helpers ───────────────────────────────────────────────────
 
-function rowToSegment(row: Record<string, unknown>): ActivitySegment {
+function rowToSegment(row: import("./normalize-segments").NormalizedSegment): ActivitySegment {
   return {
-    id: typeof row.id === "number" ? row.id : undefined,
+    id: row.id,
     type: row.type as ActivitySegment["type"],
-    app: row.app as string | null | undefined,
-    title: row.title as string | null | undefined,
-    domain: row.domain as string | null | undefined,
-    category: row.category as string | null | undefined,
-    project: row.project as string | null | undefined,
-    beginAt: row.begin_at as number,
-    endAt: row.end_at as number | null | undefined,
+    app: row.app,
+    title: row.title,
+    domain: row.domain,
+    category: row.category,
+    project: row.project,
+    beginAt: row.begin_at,
+    endAt: row.end_at,
   };
 }
 
@@ -136,7 +138,7 @@ export function querySegmentsForDay(dateStr: string): ActivitySegment[] {
      ORDER BY begin_at ASC`
   );
   const rows = stmt.all({ start: startMs, end: endMs }) as Record<string, unknown>[];
-  return rows.map(rowToSegment);
+  return normalizeSegments(rows as RawSegmentRow[]).map(rowToSegment);
 }
 
 export function queryDaySummary(dateStr: string, nowMs: number): DaySummary {
@@ -154,8 +156,6 @@ export function queryDaySummary(dateStr: string, nowMs: number): DaySummary {
     const minutes = clipSegmentMinutes(seg.beginAt, seg.endAt, startMs, endMs, nowMs);
     if (minutes <= 0) continue;
 
-    totalMinutes += minutes;
-
     if (seg.type === "idle") {
       idleMinutes += minutes;
       continue;
@@ -166,6 +166,8 @@ export function queryDaySummary(dateStr: string, nowMs: number): DaySummary {
     }
 
     // app segments only
+    totalMinutes += minutes;
+
     const category = seg.category || "";
     categoryMap.set(category, (categoryMap.get(category) || 0) + minutes);
 
