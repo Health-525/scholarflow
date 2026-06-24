@@ -42,7 +42,7 @@ export function AppShell({ children, isOnline }: AppShellProps) {
         {/* 拖拽条 — Electron 窗口拖拽区域，固定不动 */}
         {showDragBar && (
           <div
-            className="h-[36px] shrink-0 flex items-center px-4 bg-background sticky top-0 z-10"
+            className="h-9 shrink-0 flex items-center px-4 bg-background sticky top-0 z-10"
             style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
           >
             {/* 窗口控制按钮区域 — 不拖拽 */}

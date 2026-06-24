@@ -32,7 +32,7 @@ export function DateRangeFilter({
         type="date"
         value={startDate}
         onChange={(e) => onStartChange(e.target.value)}
-        className="w-auto min-w-[9rem] text-xs"
+        className="w-auto min-w-36 text-xs"
         aria-label="开始日期"
       />
       <span className="text-xs text-muted-foreground">
@@ -42,7 +42,7 @@ export function DateRangeFilter({
         type="date"
         value={endDate}
         onChange={(e) => onEndChange(e.target.value)}
-        className="w-auto min-w-[9rem] text-xs"
+        className="w-auto min-w-36 text-xs"
         aria-label="结束日期"
       />
       {hasFilter && (

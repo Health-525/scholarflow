@@ -81,7 +81,7 @@ const StatMiniCard = memo(function StatMiniCard({
     <div className={cn(cardClasses, "p-3")}>
       <div className="relative">
         <div
-          className={`w-[44px] h-[44px] rounded-xl flex items-center justify-center mb-3 ${iconBgClass}`}
+          className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 ${iconBgClass}`}
         >
           <Icon size={18} className={colorClass} />
         </div>

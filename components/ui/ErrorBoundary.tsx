@@ -52,9 +52,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             刷新页面
           </button>
           {isDev && (
-            <details className="mt-4 text-muted-foreground text-xs max-w-[500px] text-left">
+            <details className="mt-4 text-muted-foreground text-xs max-w-lg text-left">
               <summary className="cursor-pointer">错误详情</summary>
-              <pre className="mt-2 p-3 bg-secondary/50 rounded-md overflow-auto text-[11px] leading-relaxed">
+              <pre className="mt-2 p-3 bg-secondary/50 rounded-md overflow-auto text-xs leading-relaxed">
                 {this.state.error?.stack || this.state.error?.message || "无详情"}
               </pre>
             </details>

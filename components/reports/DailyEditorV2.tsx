@@ -153,7 +153,7 @@ export function DailyEditorV2({ date, initialContent = "", onSaved }: DailyEdito
 
       <div className="p-0">
         {isPreview ? (
-          <div className="min-h-[400px] max-h-[640px] overflow-auto p-5">
+          <div className="min-h-96 max-h-2xl overflow-auto p-5">
             <MarkdownRenderer content={content || "（暂无内容）"} />
           </div>
         ) : (
@@ -162,7 +162,7 @@ export function DailyEditorV2({ date, initialContent = "", onSaved }: DailyEdito
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={`# ${date} 日报\n\n## 今日概览\n- 课程：\n- 待办：\n- 提交：\n\n## 课表\n\n## 收获与反思`}
-            className="min-h-[400px] max-h-[640px] w-full resize-y bg-transparent p-5 text-[15px] leading-[1.75] text-foreground outline-none placeholder:text-muted-foreground"
+            className="min-h-96 max-h-2xl w-full resize-y bg-transparent p-5 text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground"
           />
         )}
       </div>

@@ -31,7 +31,7 @@ function NavItem({ item }: { item: NavItemConfig }) {
     >
       <Icon
         className={[
-          "shrink-0 h-[18px] w-[18px] transition-colors duration-150",
+          "shrink-0 h-4.5 w-4.5 transition-colors duration-150",
           active
             ? "text-primary"
             : wip

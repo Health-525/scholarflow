@@ -330,7 +330,7 @@ export default function ActivityPage() {
                   <div key={b.app} className="space-y-1.5">
                     <div className="flex items-center gap-3 text-xs">
                       <span
-                        className="font-medium text-foreground truncate shrink-0 max-w-[8rem]"
+                        className="font-medium text-foreground truncate shrink-0 max-w-32"
                         title={b.app}
                       >
                         {b.app}

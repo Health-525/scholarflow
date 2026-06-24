@@ -257,13 +257,13 @@ export function WeekGrid({
 
       {/* Grid */}
       <div className="overflow-x-auto -mx-5 px-5">
-        <div className="min-w-full md:min-w-[660px]">
+        <div className="min-w-full md:min-w-2xl">
           {/* Header row */}
           <div
             className="grid grid-cols-[36px_repeat(7,minmax(0,1fr))] md:grid-cols-[44px_repeat(7,1fr)] border-b border-border dark:border-white/10"
             style={{ height: HEADER_H }}
           >
-            <div className="flex items-center justify-center text-[11px] text-muted-foreground">
+            <div className="flex items-center justify-center text-xs text-muted-foreground">
               节次
             </div>
             {weekInfo.days.map((day, idx) => {
@@ -313,21 +313,21 @@ export function WeekGrid({
                       className="absolute left-0 right-0 flex items-center"
                       style={{ top: top - 6 }}
                     >
-                      <span className="text-[11px] font-semibold text-muted-foreground bg-background px-1 z-10">
+                      <span className="text-xs font-semibold text-muted-foreground bg-background px-1 z-10">
                         {dividerLabel}
                       </span>
                       <div className="flex-1 h-px bg-border dark:bg-white/10" />
                     </div>
                   )}
                   <div
-                    className="absolute left-0 w-[44px] flex flex-col items-center justify-center text-center border-r border-border/30 dark:border-white/5"
+                    className="absolute left-0 w-11 flex flex-col items-center justify-center text-center border-r border-border/30 dark:border-white/5"
                     style={{ top: top, height: ROW_H }}
                   >
                     <span className="text-xs font-semibold text-foreground">
                       {p}
                     </span>
                     {timeStr && (
-                      <span className="text-[11px] text-muted-foreground leading-tight">
+                      <span className="text-xs text-muted-foreground leading-tight">
                         {timeStr.split("-")[0]}
                       </span>
                     )}
@@ -378,7 +378,7 @@ export function WeekGrid({
                     {/* Holiday banner */}
                     {holidays.length > 0 && (
                       <div className="absolute inset-x-1 top-2 z-10">
-                        <div className="rounded-lg px-2 py-1.5 text-center text-[11px] font-semibold bg-[var(--status-warning)]/10 text-[var(--status-warning)] border border-[var(--status-warning)]/20">
+                        <div className="rounded-lg px-2 py-1.5 text-center text-xs font-semibold bg-[var(--status-warning)]/10 text-[var(--status-warning)] border border-[var(--status-warning)]/20">
                           {holidays[0].title}
                         </div>
                       </div>
@@ -399,7 +399,7 @@ export function WeekGrid({
                           }
                           onDragEnd={handleDragEnd}
                           className={
-                            "absolute left-1 right-1 rounded-lg px-1.5 py-1 text-left transition-all overflow-hidden items-start justify-start whitespace-normal cursor-grab active:cursor-grabbing hover:shadow-sm active:scale-[0.97]"
+                            "absolute left-1 right-1 rounded-lg px-1.5 py-1 text-left transition-all overflow-hidden items-start justify-start whitespace-normal cursor-grab active:cursor-grabbing hover:shadow-sm active:scale-95"
                           }
                           style={{
                             top: blockTop,
@@ -420,18 +420,18 @@ export function WeekGrid({
                         >
                           <div className="flex flex-col leading-tight w-full pointer-events-none">
                             <div
-                              className={`text-[11px] font-semibold ${cb.span >= 2 ? "line-clamp-2" : "line-clamp-1"}`}
+                              className={`text-xs font-semibold ${cb.span >= 2 ? "line-clamp-2" : "line-clamp-1"}`}
                               style={{ color: colors.accent }}
                             >
                               {cb.item.title}
                             </div>
                             {cb.item.location && blockHeight > 52 && (
-                              <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                              <div className="text-xs text-muted-foreground mt-0.5 truncate">
                                 {cb.item.location}
                               </div>
                             )}
                             {cb.item.timeText && blockHeight >= 36 && (
-                              <div className="text-[10px] text-muted-foreground/70 mt-0.5 truncate">
+                              <div className="text-xs text-muted-foreground/70 mt-0.5 truncate">
                                 {cb.item.timeText}
                               </div>
                             )}
@@ -449,7 +449,7 @@ export function WeekGrid({
           {dayData.some((d) => d.specials.length > 0) && (
             <div className="mt-3 space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-semibold text-muted-foreground">
+                <span className="text-xs font-semibold text-muted-foreground">
                   特殊安排
                 </span>
                 <div className="flex-1 h-px bg-border" />
@@ -462,13 +462,13 @@ export function WeekGrid({
                       key={"sp-" + dayIdx + "-" + i}
                       variant="secondary"
                       onClick={() => handleCourseClick(item, day)}
-                      className="w-full h-auto rounded-lg px-3 py-2 text-left transition-all active:scale-[0.97] flex items-center gap-2 justify-start whitespace-normal"
+                      className="w-full h-auto rounded-lg px-3 py-2 text-left transition-all active:scale-95 flex items-center gap-2 justify-start whitespace-normal"
                       style={{
                         backgroundColor: colors.bg,
                         border: "1px solid " + colors.border,
                       }}
                     >
-                      <span className="text-[11px] text-muted-foreground tabular-nums w-6">
+                      <span className="text-xs text-muted-foreground tabular-nums w-6">
                         {WEEKDAY_LABELS[dayIdx]}
                       </span>
                       <span
@@ -478,7 +478,7 @@ export function WeekGrid({
                         {item.title}
                       </span>
                       {item.timeText && (
-                        <span className="text-[11px] text-muted-foreground ml-auto">
+                        <span className="text-xs text-muted-foreground ml-auto">
                           {item.timeText}
                         </span>
                       )}

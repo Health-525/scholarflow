@@ -49,7 +49,7 @@ export function SegmentedControl({
             variant="ghost"
             onClick={() => onChange(opt.id)}
             className={cn(
-              "flex-1 flex items-center justify-center gap-1.5 py-2.5 h-auto rounded-lg text-[12px] font-medium transition-all duration-200",
+              "flex-1 flex items-center justify-center gap-1.5 py-2.5 h-auto rounded-lg text-xs font-medium transition-all duration-200",
               selected
                 ? "bg-card text-primary shadow-sm hover:bg-card hover:text-primary"
                 : "text-muted-foreground hover:bg-transparent hover:text-foreground",

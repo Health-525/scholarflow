@@ -82,7 +82,7 @@ export function UpdateNotification() {
   if (state === "idle" || dismissed) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[100] w-[calc(100vw-2rem)] max-w-[340px] rounded-2xl overflow-hidden animate-fade-up bg-card border border-border shadow-lg">
+    <div className="fixed top-4 right-4 z-50 w-[calc(100vw-2rem)] max-w-sm rounded-2xl overflow-hidden animate-fade-up bg-card border border-border shadow-lg">
       {/* Available */}
       {state === "available" && (
         <div className="p-4">
@@ -91,10 +91,10 @@ export function UpdateNotification() {
               <Sparkles className="w-4 h-4 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-sm font-semibold text-foreground">
                 发现新版本
               </h3>
-              <p className="text-[11px] mt-0.5 text-muted-foreground">
+              <p className="text-xs mt-0.5 text-muted-foreground">
                 v{updateInfo?.version} 已发布，点击下载更新
               </p>
             </div>
@@ -109,14 +109,14 @@ export function UpdateNotification() {
           <div className="flex items-center gap-2 mt-3">
             <button
               onClick={handleDownload}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-medium transition-colors bg-primary text-primary-foreground"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium transition-colors bg-primary text-primary-foreground"
             >
               <Download className="w-3.5 h-3.5" />
               下载更新
             </button>
             <button
               onClick={handleManualDownload}
-              className="flex items-center gap-1 px-3 py-2 rounded-xl text-[12px] text-muted-foreground"
+              className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs text-muted-foreground"
               title="打开 GitHub 下载页面"
             >
               <ExternalLink className="w-3 h-3" />
@@ -134,10 +134,10 @@ export function UpdateNotification() {
               <RefreshCw className="w-4 h-4 animate-spin text-primary" />
             </div>
             <div className="flex-1">
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-sm font-semibold text-foreground">
                 正在下载更新
               </h3>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {progress ? `${progress.percent}% · ${formatSpeed(progress.bytesPerSecond)}` : "准备中..."}
               </p>
             </div>
@@ -157,7 +157,7 @@ export function UpdateNotification() {
           </div>
           <button
             onClick={handleManualDownload}
-            className="w-full mt-3 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] text-muted-foreground"
+            className="w-full mt-3 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs text-muted-foreground"
           >
             <ExternalLink className="w-3 h-3" />
             下载太慢？手动下载
@@ -173,17 +173,17 @@ export function UpdateNotification() {
               <Sparkles className="w-4 h-4 text-[var(--status-success)]" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-sm font-semibold text-foreground">
                 更新已就绪
               </h3>
-              <p className="text-[11px] mt-0.5 text-muted-foreground">
+              <p className="text-xs mt-0.5 text-muted-foreground">
                 v{updateInfo?.version} 已下载，重启后生效
               </p>
             </div>
           </div>
           <button
             onClick={handleInstall}
-            className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-medium transition-colors bg-[var(--status-success)] text-primary-foreground"
+            className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium transition-colors bg-[var(--status-success)] text-primary-foreground"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             重启并安装
@@ -199,10 +199,10 @@ export function UpdateNotification() {
               <Download className="w-4 h-4 text-destructive" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[13px] font-semibold text-foreground">
+              <h3 className="text-sm font-semibold text-foreground">
                 自动更新失败
               </h3>
-              <p className="text-[11px] mt-0.5 text-muted-foreground">
+              <p className="text-xs mt-0.5 text-muted-foreground">
                 {errorMsg || "网络异常，请手动下载安装"}
               </p>
             </div>
@@ -217,14 +217,14 @@ export function UpdateNotification() {
           <div className="flex items-center gap-2 mt-3">
             <button
               onClick={handleManualDownload}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-medium transition-colors bg-primary text-primary-foreground"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium transition-colors bg-primary text-primary-foreground"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               前往下载
             </button>
             <button
               onClick={handleDownload}
-              className="px-4 py-2 rounded-xl text-[12px] text-muted-foreground"
+              className="px-4 py-2 rounded-xl text-xs text-muted-foreground"
             >
               重试
             </button>

@@ -222,7 +222,7 @@ export default function SetupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-background relative overflow-hidden">
       {/* Background decoration — matching dashboard hero style */}
-      <div className="relative w-full max-w-[420px]">
+      <div className="relative w-full max-w-md">
         {/* Card container */}
         <Card className="rounded-3xl bg-card/80 backdrop-blur-xl shadow-md p-8 space-y-6">
 

@@ -206,7 +206,7 @@ export default function GPAPage() {
               <div className="text-xs mt-0.5 text-muted-foreground">GPA</div>
             </div>
           </div>
-          <div className="flex items-center gap-0 mt-4 w-full max-w-[280px]">
+          <div className="flex items-center gap-0 mt-4 w-full max-w-xs">
             {[
               { value: filteredCredits, label: "学分" },
               { value: filteredCourses.length, label: "课程" },

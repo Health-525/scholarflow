@@ -114,7 +114,7 @@ export function KeyboardOverlay() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Keyboard className="w-5 h-5 text-primary" />
-            <h2 id="keyboard-overlay-title" className="text-[14px] font-semibold text-foreground">快捷键</h2>
+            <h2 id="keyboard-overlay-title" className="text-sm font-semibold text-foreground">快捷键</h2>
           </div>
           <button
             ref={closeButtonRef}
@@ -129,15 +129,15 @@ export function KeyboardOverlay() {
         <div className="space-y-2">
           {SHORTCUTS.map(s => (
             <div key={s.key} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-secondary/50 transition-colors">
-              <span className="text-[12px] text-muted-foreground">{s.description}</span>
-              <kbd className="px-2 py-1 rounded-md text-[11px] font-mono font-semibold bg-secondary text-foreground border border-border min-w-[28px] text-center">
+              <span className="text-xs text-muted-foreground">{s.description}</span>
+              <kbd className="px-2 py-1 rounded-md text-xs font-mono font-semibold bg-secondary text-foreground border border-border min-w-7 text-center">
                 {s.key}
               </kbd>
             </div>
           ))}
         </div>
-        <p className="text-[10px] text-muted-foreground mt-4 text-center">
-          按 <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-secondary border border-border">?</kbd> 或 <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-secondary border border-border">/</kbd> 切换此面板
+        <p className="text-xs text-muted-foreground mt-4 text-center">
+          按 <kbd className="px-1 py-0.5 rounded text-xs font-mono bg-secondary border border-border">?</kbd> 或 <kbd className="px-1 py-0.5 rounded text-xs font-mono bg-secondary border border-border">/</kbd> 切换此面板
         </p>
       </div>
     </div>

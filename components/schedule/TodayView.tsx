@@ -126,7 +126,7 @@ export function TodayView({
                 key={idx}
                 variant="secondary"
                 onClick={() => setSelectedItem(item)}
-                className="w-full h-auto text-left rounded-xl p-4 transition-colors duration-150 active:scale-[0.98] items-start justify-start whitespace-normal"
+                className="w-full h-auto text-left rounded-xl p-4 transition-colors duration-150 active:scale-95 items-start justify-start whitespace-normal"
                 style={{
                   backgroundColor: colors.bg,
                   border: `1px solid ${colors.border}`,
@@ -148,7 +148,7 @@ export function TodayView({
                         {item.title}
                       </div>
                       {item.timeText && (
-                        <div className="text-[11px] text-muted-foreground mt-0.5">
+                        <div className="text-xs text-muted-foreground mt-0.5">
                           {item.timeText}
                           {item.location && (
                             <span className="ml-1.5 opacity-70">

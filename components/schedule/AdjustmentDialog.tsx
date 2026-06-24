@@ -153,7 +153,7 @@ export function AdjustmentDialog({
           }
         >
           <div className="flex items-start justify-between">
-            <Dialog.Title className="text-[15px] font-semibold font-display text-foreground">
+            <Dialog.Title className="text-base font-semibold font-display text-foreground">
               调课
             </Dialog.Title>
             <Dialog.Close
@@ -287,7 +287,7 @@ export function AdjustmentDialog({
                   单次
                 </button>
               </div>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {mode === "once"
                   ? `仅第 ${targetWeek} 周生效`
                   : `从第 ${targetWeek} 周开始长期生效`}

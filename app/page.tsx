@@ -101,7 +101,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-[1280px] mx-auto py-5 pb-24 md:pb-10 space-y-6">
+    <div className="max-w-7xl mx-auto py-5 pb-24 md:pb-10 space-y-6">
       {/* Hero + Quick Actions — unified header */}
       <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--hero-from)] to-[var(--hero-to)] border border-border shadow-sm">
         <div className="relative px-6 pt-4 pb-2">

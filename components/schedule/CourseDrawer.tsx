@@ -199,7 +199,7 @@ export function CourseDrawer({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-[var(--overlay)] backdrop-blur-[2px] animate-fade-in"
+        className="fixed inset-0 z-40 bg-[var(--overlay)] backdrop-blur-sm animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />

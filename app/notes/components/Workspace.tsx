@@ -115,7 +115,7 @@ export function Workspace(props: WorkspaceProps) {
               value={createContent}
               onChange={(e) => setCreateContent(e.target.value)}
               placeholder="从这里开始写…"
-              className="min-h-[12rem] resize-none"
+              className="min-h-48 resize-none"
             />
           </div>
           {createError && <p className="text-xs text-destructive">{createError}</p>}

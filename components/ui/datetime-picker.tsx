@@ -48,7 +48,7 @@ export function DatePicker({
         className={cn(
           "flex h-10 w-full items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm transition-all cursor-pointer",
           "hover:border-primary",
-          "focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(var(--primary-rgb),0.1)]",
+          "focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10",
           "disabled:cursor-not-allowed disabled:opacity-50",
           !date && "text-muted-foreground",
           className
@@ -143,7 +143,7 @@ export function TimePicker({
         className={cn(
           "flex h-10 w-full items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm transition-all cursor-pointer",
           "hover:border-primary",
-          "focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(var(--primary-rgb),0.1)]",
+          "focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10",
           "disabled:cursor-not-allowed disabled:opacity-50",
           !value && "text-muted-foreground",
           className
@@ -162,7 +162,7 @@ export function TimePicker({
         <div className="p-3 space-y-3">
           {TIME_GROUPS.map((group) => (
             <div key={group.label}>
-              <div className="text-[11px] font-medium text-muted-foreground mb-1.5">
+              <div className="text-xs font-medium text-muted-foreground mb-1.5">
                 {group.label}
               </div>
               <div className="grid grid-cols-4 gap-1.5">

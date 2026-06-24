@@ -84,9 +84,9 @@ export function DailyCalendarSidebar({
             month: "space-y-3 w-full",
             month_grid: "w-full border-collapse space-y-1",
             weekdays: "flex justify-around",
-            weekday: "text-text-tertiary w-7 font-normal text-[11px] text-center uppercase tracking-wide",
+            weekday: "text-text-tertiary w-7 font-normal text-xs text-center uppercase tracking-wide",
             week: "flex w-full mt-1 justify-around",
-            day: "h-8 w-8 text-center text-[13px] p-0 relative focus-within:relative focus-within:z-20",
+            day: "h-8 w-8 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
             day_button: cn(
               buttonVariants({ variant: "ghost" }),
               "h-8 w-8 p-0 font-normal text-foreground/85 hover:bg-muted/70 hover:text-foreground aria-selected:opacity-100 rounded-lg"
@@ -126,12 +126,12 @@ export function DailyCalendarSidebar({
                     <FileText className={cn("h-3.5 w-3.5 shrink-0", isSelected ? "text-primary" : "text-text-tertiary")} />
                     <span className="truncate">{formatDateCN(date)}</span>
                     {isSelected && !isToday && (
-                      <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-primary/[0.08] text-primary">
+                      <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-primary/[0.08] text-primary">
                         当前
                       </span>
                     )}
                     {isToday && (
-                      <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 dark:bg-primary/20 text-primary">
+                      <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-primary/10 dark:bg-primary/20 text-primary">
                         今天
                       </span>
                     )}

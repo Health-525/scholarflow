@@ -446,7 +446,7 @@ export default function DailyGoalsPage() {
               <h3 className="text-sm font-semibold mb-1.5 text-foreground">
                 设定今日目标
               </h3>
-              <p className="text-xs leading-relaxed max-w-[260px] mx-auto text-muted-foreground">
+              <p className="text-xs leading-relaxed max-w-xs mx-auto text-muted-foreground">
                 每天 3 个小目标就够了。完成所有目标即可解锁连续天数。
               </p>
             </CardContent>

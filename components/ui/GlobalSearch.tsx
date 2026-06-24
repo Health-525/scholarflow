@@ -111,7 +111,7 @@ export function GlobalSearch() {
           animate={{ opacity: 1 }}
           exit={reducedMotion ? { opacity: 0 } : { opacity: 0 }}
           transition={{ duration: reducedMotion ? 0 : 0.15 }}
-          className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]"
+          className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
         >
           <motion.div
             initial={reducedMotion ? false : { opacity: 0 }}
@@ -143,10 +143,10 @@ export function GlobalSearch() {
                 aria-activedescendant={results.length > 0 ? `search-item-${selectedIndex}` : undefined}
                 role="combobox"
                 aria-expanded={open}
-                className="flex-1 bg-transparent outline-none text-[14px] text-foreground placeholder:text-muted-foreground"
+                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
               />
               <div className="flex items-center gap-1.5">
-                <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono bg-secondary text-muted-foreground border border-border">
+                <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-mono bg-secondary text-muted-foreground border border-border">
                   <Command className="w-2.5 h-2.5" />K
                 </kbd>
                 <button
@@ -168,7 +168,7 @@ export function GlobalSearch() {
               aria-label="搜索结果"
             >
               {results.length === 0 ? (
-                <div className="py-8 text-center text-[13px] text-muted-foreground">
+                <div className="py-8 text-center text-sm text-muted-foreground">
                   未找到匹配结果
                 </div>
               ) : (
@@ -188,8 +188,8 @@ export function GlobalSearch() {
                         }`}
                       >
                         <span className={selected ? "text-primary" : "text-muted-foreground"}>{item.icon}</span>
-                        <span className="flex-1 text-[13px] font-medium">{item.title}</span>
-                        <span className="text-[10px] text-muted-foreground font-mono">{item.path}</span>
+                        <span className="flex-1 text-sm font-medium">{item.title}</span>
+                        <span className="text-xs text-muted-foreground font-mono">{item.path}</span>
                       </button>
                     );
                   })}
@@ -198,7 +198,7 @@ export function GlobalSearch() {
             </div>
 
             {/* Footer */}
-            <div className="hidden sm:flex items-center justify-between px-4 py-2 border-t border-border bg-secondary/30 text-[10px] text-muted-foreground">
+            <div className="hidden sm:flex items-center justify-between px-4 py-2 border-t border-border bg-secondary/30 text-xs text-muted-foreground">
               <span>↑↓ 选择 · Enter 跳转 · Esc 关闭</span>
               <span>{results.length} 个结果</span>
             </div>

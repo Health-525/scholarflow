@@ -52,13 +52,13 @@ export function ConfirmDialog({
             "data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0 data-[closed]:zoom-out-95 data-[open]:zoom-in-95"
           )}
         >
-          <AlertDialog.Title className="text-[15px] font-semibold font-display text-foreground">
+          <AlertDialog.Title className="text-base font-semibold font-display text-foreground">
             {title}
           </AlertDialog.Title>
           {description && (
             <AlertDialog.Description
               render={
-                <div className="mt-2 text-[13px] leading-relaxed text-muted-foreground" />
+                <div className="mt-2 text-sm leading-relaxed text-muted-foreground" />
               }
             >
               {description}
