@@ -28,8 +28,9 @@ function parseLocalDate(dateStr: string): Date {
  * POST /api/reports/weekly/generate?schoolId=...&userId=...
  *
  * 根据当前登录账号的本周日报、作业、课表数据生成周报。
- * - 默认使用模板生成。
- * - body 中传 { ai: true } 时调用 DeepSeek AI 生成（需先在设置中配置 API Key）。
+ * - 默认优先使用 DeepSeek AI 生成（需先在设置中配置 API Key）。
+ * - 未配置 Key 或 AI 调用失败时自动降级为本地模板。
+ * - body 中可传 { slug: "YYYY-MM-DD_YYYY-MM-DD" } 以重新生成指定周。
  * 生成结果写入 `weeklyReport:<prefix>:<slug>`。
  */
 export async function POST(request: Request) {
@@ -56,10 +57,23 @@ export async function POST(request: Request) {
     const schedule = db.readData(`schedule:${prefix}`) as RawScheduleData | null;
     const tz = schedule?.meta?.tz || "Asia/Shanghai";
 
-    const { start, end, slug } = getCurrentWeekRange(getNowInTimeZone(tz));
+    const body = (await request.json().catch(() => ({}))) as { slug?: string };
+
+    const dailyReports: { date: string; content: string }[] = [];
+    const dayCourses: Record<string, ReportCourseItem[]> = {};
+
+    // 如果 body 中传入了 slug（例如重新生成某一周），则按该 slug 解析周范围
+    let { start, end, slug } = getCurrentWeekRange(getNowInTimeZone(tz));
+    if (body.slug) {
+      const parts = body.slug.split("_");
+      if (parts.length === 2) {
+        start = parts[0];
+        end = parts[1];
+        slug = body.slug;
+      }
+    }
 
     // 汇总本周日报
-    const dailyReports: { date: string; content: string }[] = [];
     const cur = parseLocalDate(start);
     const weekEnd = parseLocalDate(end);
     while (cur <= weekEnd) {
@@ -90,7 +104,6 @@ export async function POST(request: Request) {
 
     // 计算本周每日实际生效的课程（已应用调课、周次过滤）
     const adjustments = (db.readData(`adjustments:${prefix}`) || []) as Adjustment[];
-    const dayCourses: Record<string, ReportCourseItem[]> = {};
     if (schedule) {
       for (const date of weekDates) {
         const { items } = getAdjustedItemsForDate(schedule, parseLocalDate(date), adjustments);
@@ -107,24 +120,31 @@ export async function POST(request: Request) {
       }
     }
 
-    const body = (await request.json().catch(() => ({}))) as { ai?: boolean };
-
+    // 优先尝试 AI 生成；未配置 Key 或 AI 失败时自动降级到本地模板
     let markdown: string;
-    if (body.ai) {
-      const aiConfig = getAIConfig(db, prefix);
-      if (!aiConfig.apiKey) {
-        return NextResponse.json(
-          { error: "DeepSeek API Key 未配置，无法使用 AI 生成" },
-          { status: 503 }
-        );
+    let usedAI = false;
+    const aiConfig = getAIConfig(db, prefix);
+    if (aiConfig.apiKey) {
+      try {
+        markdown = await generateWeeklyReportWithAI(aiConfig.apiKey, aiConfig.model, {
+          weekStart: start,
+          weekEnd: end,
+          dailyReports,
+          assignments,
+          dayCourses,
+        });
+        usedAI = true;
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn("[/api/reports/weekly/generate] AI failed, falling back to template:", (err as Error)?.message ?? err);
+        markdown = buildWeeklyReportMarkdown({
+          weekStart: start,
+          weekEnd: end,
+          dailyReports,
+          assignments,
+          dayCourses,
+        });
       }
-      markdown = await generateWeeklyReportWithAI(aiConfig.apiKey, aiConfig.model, {
-        weekStart: start,
-        weekEnd: end,
-        dailyReports,
-        assignments,
-        dayCourses,
-      });
     } else {
       markdown = buildWeeklyReportMarkdown({
         weekStart: start,
@@ -135,13 +155,13 @@ export async function POST(request: Request) {
       });
     }
 
-    const theme = body.ai
+    const theme = usedAI
       ? (extractWeeklyTheme(markdown) ?? generateWeeklyTheme({ weekStart: start, weekEnd: end, dailyReports, assignments, dayCourses }))
       : generateWeeklyTheme({ weekStart: start, weekEnd: end, dailyReports, assignments, dayCourses });
 
-    db.writeData(`weeklyReport:${prefix}:${slug}`, { content: markdown, theme, generatedAt: Date.now(), ai: !!body.ai });
+    db.writeData(`weeklyReport:${prefix}:${slug}`, { content: markdown, theme, generatedAt: Date.now(), ai: usedAI });
 
-    return NextResponse.json({ ok: true, slug, start, end, theme, ai: !!body.ai });
+    return NextResponse.json({ ok: true, slug, start, end, theme, ai: usedAI });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error("[/api/reports/weekly/generate] error:", (err as Error)?.message ?? err);

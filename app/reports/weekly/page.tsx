@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, CheckCircle2, Sparkles, Wand2 } from "lucide-react";
+import { CalendarDays, FileText, RotateCcw, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -43,19 +43,19 @@ export default function WeeklyReportsPage() {
     return `${fmt(monday)}_${fmt(sunday)}`;
   }, []);
 
-  const hasCurrentWeekReport = entries.some((e) => e.name.replace(".md", "") === currentWeekSlug);
+  const currentWeekEntry = entries.find((e) => e.name.replace(".md", "") === currentWeekSlug);
 
-  const handleGenerate = async (ai = false) => {
+  const handleGenerate = async () => {
     setGenerating(true);
     try {
       const res = await fetch(`/api/reports/weekly/generate?${getAuthParams()}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ai }),
+        body: JSON.stringify({}),
       });
-      const data = (await res.json()) as { ok?: boolean; slug?: string; error?: string };
+      const data = (await res.json()) as { ok?: boolean; slug?: string; ai?: boolean; error?: string };
       if (res.ok && data.ok) {
-        showToast("success", ai ? "AI 周报生成成功" : "周报生成成功");
+        showToast("success", data.ai ? "AI 周报生成成功" : "已使用模板生成周报");
         reload();
       } else {
         showToast("error", data.error || "周报生成失败");
@@ -75,35 +75,34 @@ export default function WeeklyReportsPage() {
         description="每周学习趋势分析"
         actions={
           <div className="flex items-center gap-2">
-            {hasCurrentWeekReport ? (
-              <Button
-                variant="outline"
-                disabled
-                className="gap-1.5 text-muted-foreground"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                本周已生成
-              </Button>
-            ) : (
+            {currentWeekEntry ? (
               <>
                 <Button
                   variant="outline"
-                  onClick={() => handleGenerate(true)}
-                  disabled={generating}
+                  onClick={() => window.open(`/reports/weekly/${currentWeekSlug}`, "_self")}
                   className="gap-1.5"
                 >
-                  <Wand2 className="w-4 h-4" />
-                  {generating ? "生成中..." : "AI 生成"}
+                  <FileText className="w-4 h-4" />
+                  查看本周周报
                 </Button>
                 <Button
-                  onClick={() => handleGenerate(false)}
+                  onClick={handleGenerate}
                   disabled={generating}
                   className="gap-1.5"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  {generating ? "生成中..." : "生成周报"}
+                  <RotateCcw className="w-4 h-4" />
+                  {generating ? "生成中..." : "重新生成"}
                 </Button>
               </>
+            ) : (
+              <Button
+                onClick={handleGenerate}
+                disabled={generating}
+                className="gap-1.5"
+              >
+                <Sparkles className="w-4 h-4" />
+                {generating ? "生成中..." : "生成本周周报"}
+              </Button>
             )}
           </div>
         }

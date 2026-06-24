@@ -153,12 +153,13 @@ interface WeeklyReportData {
 export function useReportContent(
   type: "daily" | "weekly",
   slug: string
-): { content: string; theme?: string; ai?: boolean; generatedAt?: number; isLoading: boolean; error: Error | null } {
+): { content: string; theme?: string; ai?: boolean; generatedAt?: number; isLoading: boolean; error: Error | null; reload: () => void } {
   const [data, setData] = useState<{ content: string; theme?: string; ai?: boolean; generatedAt?: number }>({
     content: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!slug) return;
@@ -196,7 +197,11 @@ export function useReportContent(
     return () => {
       cancelled = true;
     };
-  }, [type, slug]);
+  }, [type, slug, reloadKey]);
 
-  return { ...data, isLoading, error };
+  const reload = useCallback(() => {
+    setReloadKey((k) => k + 1);
+  }, []);
+
+  return { ...data, isLoading, error, reload };
 }
