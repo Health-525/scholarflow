@@ -89,7 +89,7 @@ export function TimelineBar({ segments, dateStr }: TimelineBarProps) {
             >
               <div className="h-16 rounded-sm bg-muted/40" />
               {isHourStart && (
-                <span className="absolute -bottom-5 left-0 text-[9px] text-muted-foreground hidden md:block">
+                <span className="absolute -bottom-5 left-0 text-xs text-muted-foreground hidden md:block">
                   {hour}
                 </span>
               )}

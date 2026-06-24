@@ -17,11 +17,11 @@ export function StorageInfoCard() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <Database className="w-4 h-4 text-primary" />
-          <CardTitle className="text-[13px] font-semibold">存储信息</CardTitle>
+          <CardTitle className="text-sm font-semibold">存储信息</CardTitle>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2 text-[11px]">
+        <div className="space-y-2 text-xs">
           <InfoRow
             icon={<ShieldCheck className="w-3 h-3" />}
             label="数据存储"

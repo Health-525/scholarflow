@@ -113,6 +113,13 @@ const config: Config = {
           ring: "var(--sidebar-ring)",
         },
       },
+      boxShadow: {
+        ximi: "var(--shadow-md)",
+        "ximi-sm": "var(--shadow-sm)",
+        "ximi-lg": "var(--shadow-lg)",
+        "ximi-input": "0 8px 30px -6px rgba(var(--ximi-glow), 0.35)",
+        "ximi-primary": "0 8px 20px -8px rgba(var(--primary-rgb), 0.5)",
+      },
       animation: {
         breathe: "breathe 1.8s ease-in-out infinite",
       },

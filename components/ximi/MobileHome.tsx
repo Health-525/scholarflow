@@ -61,7 +61,7 @@ function TodayTasks() {
       </div>
 
       <div className="relative z-10 flex flex-col gap-3">
-        {(!mounted || isLoading) && [1, 2].map((i) => <div key={i} className="skeleton h-[68px] rounded-3xl" />)}
+        {(!mounted || isLoading) && [1, 2].map((i) => <div key={i} className="skeleton h-16 rounded-3xl" />)}
 
         {mounted && error && !isLoading && (
           <button onClick={reload} className="rounded-3xl bg-surface px-4 py-5 text-sm text-on-surface-variant">
@@ -121,7 +121,7 @@ export function MobileHome() {
     <div className="mx-auto flex max-w-md flex-col gap-7 pb-4 pt-4 md:hidden">
       {/* Hero：小咪 */}
       <section className="relative flex flex-col items-center">
-        <div className="absolute left-1/2 top-12 -z-10 h-40 w-40 -translate-x-1/2 rounded-full bg-primary-container/25 blur-[36px]" />
+        <div className="absolute left-1/2 top-12 -z-10 h-40 w-40 -translate-x-1/2 rounded-full bg-primary-container/25 blur-2xl" />
         <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-surface-container-lowest shadow-sm">
           <Mascot size="lg" eager className="!drop-shadow-none" />
         </div>
@@ -131,7 +131,7 @@ export function MobileHome() {
       {/* 开始专注 */}
       <Link
         href="/pomodoro"
-        className="flex w-full items-center justify-center gap-3 rounded-full bg-primary-container py-4 text-on-primary-container shadow-sm transition-transform active:scale-[0.98]"
+        className="flex w-full items-center justify-center gap-3 rounded-full bg-primary-container py-4 text-on-primary-container shadow-sm transition-transform active:scale-95"
       >
         <Timer className="h-7 w-7" />
         <span className="text-lg font-bold">开始专注</span>

@@ -18,7 +18,7 @@ export function PageHeader({ icon, title, description, actions }: PageHeaderProp
       <div className="flex-1 min-w-0">
         <h1 className="text-xl font-bold font-display text-foreground">{title}</h1>
         {description && (
-          <p className="text-[12px] text-muted-foreground mt-0.5">{description}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
         )}
       </div>
       {actions && <div className="shrink-0">{actions}</div>}

@@ -28,7 +28,7 @@ export function SettingsMenuItem({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "w-full justify-start gap-3 px-2 py-3 h-auto text-left text-[13px] font-normal rounded-none",
+        "w-full justify-start gap-3 px-2 py-3 h-auto text-left text-sm font-normal rounded-none",
         !last && "border-b border-border",
         disabled &&
           "text-muted-foreground opacity-50 cursor-default hover:bg-transparent",

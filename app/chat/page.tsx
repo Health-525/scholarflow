@@ -185,7 +185,7 @@ function DesktopChat() {
             placeholder={ready ? "和小咪聊聊学习吧…" : "AI 未就绪"}
             disabled={!ready || loading}
             rows={1}
-            className="hide-scrollbar max-h-32 min-h-[40px] flex-1 resize-none border-none bg-transparent px-3 py-2.5 text-sm leading-relaxed outline-none placeholder:text-muted-foreground disabled:opacity-60"
+            className="hide-scrollbar max-h-32 min-h-10 flex-1 resize-none border-none bg-transparent px-3 py-2.5 text-sm leading-relaxed outline-none placeholder:text-muted-foreground disabled:opacity-60"
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
               target.style.height = "auto";
@@ -203,7 +203,7 @@ function DesktopChat() {
           </Button>
         </div>
         {ready && (
-          <p className="mt-1.5 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
+          <p className="mt-1.5 flex items-center justify-center gap-1 text-xs text-muted-foreground">
             <Info className="h-3 w-3" />
             {isNative ? "端侧模型运行中，回答仅供参考" : `当前模型 ${selectedModel}，回答仅供参考`}
           </p>

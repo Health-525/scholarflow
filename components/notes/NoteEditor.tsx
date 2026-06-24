@@ -141,14 +141,14 @@ export function NoteEditor({ content, onSave, onCancel, onChange }: NoteEditorPr
         <div className="flex-1" />
 
         {dirty && (
-          <span className="text-[10px] mr-2 text-[var(--status-warning)]">未保存</span>
+          <span className="text-xs mr-2 text-[var(--status-warning)]">未保存</span>
         )}
 
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] transition-colors text-muted-foreground hover:bg-secondary"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs transition-colors text-muted-foreground hover:bg-secondary"
           >
             <X className="w-3 h-3" />
             取消
@@ -158,7 +158,7 @@ export function NoteEditor({ content, onSave, onCancel, onChange }: NoteEditorPr
           type="button"
           onClick={triggerSave}
           disabled={!dirty || saving}
-          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
             dirty ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
           }`}
         >
@@ -173,13 +173,13 @@ export function NoteEditor({ content, onSave, onCancel, onChange }: NoteEditorPr
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        className="flex-1 w-full px-5 py-4 text-[14px] leading-[1.8] outline-none resize-none bg-transparent text-foreground font-mono"
+        className="flex-1 w-full px-5 py-4 text-sm leading-relaxed outline-none resize-none bg-transparent text-foreground font-mono"
         placeholder="开始写作…"
         spellCheck={false}
       />
 
       {/* Bottom bar */}
-      <div className="flex items-center justify-between px-4 py-2 text-[10px] shrink-0 border-t border-border text-muted-foreground">
+      <div className="flex items-center justify-between px-4 py-2 text-xs shrink-0 border-t border-border text-muted-foreground">
         <span>
           {value.length} 字符 · {value.split("\n").length} 行
         </span>

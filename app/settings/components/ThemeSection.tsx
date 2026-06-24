@@ -29,7 +29,7 @@ export function ThemeSection({ theme, onChange }: ThemeSectionProps) {
         onChange={(id) => onChange(id as ThemeValue)}
       />
       {isMobile && (
-        <p className="mt-2 text-[12px] text-muted-foreground">
+        <p className="mt-2 text-xs text-muted-foreground">
           萌系皮肤暂仅支持浅色模式，深色适配开发中
         </p>
       )}

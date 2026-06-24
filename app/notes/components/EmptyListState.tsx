@@ -14,8 +14,8 @@ export function EmptyListState({ onCreate }: EmptyListStateProps) {
         <div className="w-12 h-12 mx-auto mb-3 rounded-2xl flex items-center justify-center bg-primary/10">
           <FileText className="w-5 h-5 text-primary" />
         </div>
-        <p className="text-[13px] font-medium text-foreground">还没有笔记</p>
-        <p className="text-[11px] text-muted-foreground mt-1 mb-4">写下第一条想法</p>
+        <p className="text-sm font-medium text-foreground">还没有笔记</p>
+        <p className="text-xs text-muted-foreground mt-1 mb-4">写下第一条想法</p>
         <Button onClick={onCreate} className="w-full gap-1.5">
           <Plus className="w-3.5 h-3.5" /> 新建笔记
         </Button>

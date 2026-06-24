@@ -53,7 +53,7 @@ export function AppShell({ children, isOnline }: AppShellProps) {
         {!online && (
           <div
             className={cn(
-              "px-4 py-2.5 flex items-center justify-center gap-2 text-[12px] font-medium border-b animate-fade-in sticky z-10",
+              "px-4 py-2.5 flex items-center justify-center gap-2 text-xs font-medium border-b animate-fade-in sticky z-10",
               showDragBar ? "top-[36px]" : "top-0"
             )}
             style={{ backgroundColor: semanticBg("warning"), color: semanticColor("warning"), borderBottomColor: semanticBorder("warning") }}

@@ -134,7 +134,7 @@ function TodayPane({
         {nextCourse && (
           <div className="relative z-10 mt-4 flex items-center gap-3 rounded-2xl bg-primary-container/20 p-3.5">
             <Timer className="h-5 w-5 shrink-0 text-primary" />
-            <div className="text-[22px] font-bold tabular-nums text-primary">
+            <div className="text-2xl font-bold tabular-nums text-primary">
               <CountdownTimer targetTime={nextCourse.startTime} label="距离上课" />
             </div>
           </div>
@@ -143,9 +143,9 @@ function TodayPane({
 
       {/* 今日课程列表 */}
       {items.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-[28px] bg-surface-container-lowest py-8">
+        <div className="flex flex-col items-center gap-2 rounded-3xl bg-surface-container-lowest py-8">
           <Mascot size="md" />
-          <p className="text-[14px] text-on-surface-variant">今天没有课，享受自由时光~</p>
+          <p className="text-sm text-on-surface-variant">今天没有课，享受自由时光~</p>
         </div>
       ) : (
         <div className="flex flex-col gap-2.5">
@@ -154,12 +154,12 @@ function TodayPane({
               key={idx}
               type="button"
               onClick={() => setSelected(item)}
-              className={`flex items-center gap-3 rounded-3xl border px-4 py-3.5 text-left transition active:scale-[0.98] ${cuteOf(item.title)}`}
+              className={`flex items-center gap-3 rounded-3xl border px-4 py-3.5 text-left transition active:scale-95 ${cuteOf(item.title)}`}
             >
               <span className="h-9 w-1.5 shrink-0 rounded-full bg-current opacity-70" />
               <div className="min-w-0 flex-1">
-                <h3 className="truncate text-[15px] font-bold">{item.title}</h3>
-                <div className="mt-0.5 flex items-center gap-3 text-[12px] opacity-80">
+                <h3 className="truncate text-base font-bold">{item.title}</h3>
+                <div className="mt-0.5 flex items-center gap-3 text-xs opacity-80">
                   {item.timeText && (
                     <span className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" /> {item.timeText}
@@ -316,7 +316,7 @@ function WeekPane({
               className="grid border-b border-outline-variant/40"
               style={{ gridTemplateColumns: `${LABEL_W}px repeat(7, 1fr)`, height: HEADER_H }}
             >
-              <div className="flex items-center justify-center text-[10px] text-on-surface-variant">
+              <div className="flex items-center justify-center text-xs text-on-surface-variant">
                 节次
               </div>
               {weekInfo.days.map((day, idx) => {
@@ -326,7 +326,7 @@ function WeekPane({
                   <div key={idx} className="flex flex-col items-center justify-center gap-0.5">
                     <span
                       className={
-                        "text-[10px] font-medium " +
+                        "text-xs font-medium " +
                         (isWeekend ? "text-primary/60" : "text-on-surface-variant")
                       }
                     >
@@ -334,7 +334,7 @@ function WeekPane({
                     </span>
                     <span
                       className={
-                        "flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold " +
+                        "flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold " +
                         (isToday
                           ? "bg-primary-container text-on-primary-container shadow-sm"
                           : "text-on-surface")
@@ -357,7 +357,7 @@ function WeekPane({
                   <div key={p}>
                     {dividerLabel && (
                       <div className="absolute left-0 right-0 flex items-center" style={{ top: top - 6 }}>
-                        <span className="z-10 bg-surface-container-lowest px-1 text-[9px] font-semibold text-primary/70">
+                        <span className="z-10 bg-surface-container-lowest px-1 text-xs font-semibold text-primary/70">
                           {dividerLabel}
                         </span>
                         <div className="h-px flex-1 bg-outline-variant/30" />
@@ -367,9 +367,9 @@ function WeekPane({
                       className="absolute left-0 flex flex-col items-center justify-center text-center"
                       style={{ top, height: ROW_H, width: LABEL_W }}
                     >
-                      <span className="text-[11px] font-bold text-on-surface-variant">{p}</span>
+                      <span className="text-xs font-bold text-on-surface-variant">{p}</span>
                       {timeStr && (
-                        <span className="text-[7px] leading-tight text-on-surface-variant/60">
+                        <span className="text-xs leading-tight text-on-surface-variant/60">
                           {timeStr.split("-")[0]}
                         </span>
                       )}
@@ -413,7 +413,7 @@ function WeekPane({
                             key={i}
                             type="button"
                             onClick={() => handleCourseClick(cb.item, day)}
-                            className={`absolute left-1 right-1 overflow-hidden rounded-2xl border px-2 py-1.5 text-left transition active:scale-[0.97] hover:brightness-105 ${cuteOf(cb.item.title)}`}
+                            className={`absolute left-1 right-1 overflow-hidden rounded-2xl border px-2 py-1.5 text-left transition active:scale-95 hover:brightness-105 ${cuteOf(cb.item.title)}`}
                             style={{ top: blockTop, height: blockHeight }}
                             aria-label={cb.item.title + " " + (cb.item.timeText || "")}
                           >
@@ -421,7 +421,7 @@ function WeekPane({
                               {cb.item.title}
                             </div>
                             {cb.item.location && (
-                              <div className="mt-0.5 truncate text-[10px] opacity-75">
+                              <div className="mt-0.5 truncate text-xs opacity-75">
                                 {cb.item.location}
                               </div>
                             )}
@@ -441,7 +441,7 @@ function WeekPane({
       {hasSpecials && (
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2 px-1">
-            <span className="text-[11px] font-bold text-on-surface-variant">特殊安排</span>
+            <span className="text-xs font-bold text-on-surface-variant">特殊安排</span>
             <div className="h-px flex-1 bg-outline-variant/30" />
           </div>
           {weekInfo.days.map((day, dayIdx) =>
@@ -450,13 +450,13 @@ function WeekPane({
                 key={"sp-" + dayIdx + "-" + i}
                 type="button"
                 onClick={() => handleCourseClick(item, day)}
-                className={`flex items-center gap-2 rounded-2xl border px-3 py-2.5 text-left transition active:scale-[0.98] ${cuteOf(item.title)}`}
+                className={`flex items-center gap-2 rounded-2xl border px-3 py-2.5 text-left transition active:scale-95 ${cuteOf(item.title)}`}
               >
-                <span className="w-6 text-[11px] font-semibold opacity-70">
+                <span className="w-6 text-xs font-semibold opacity-70">
                   周{WEEKDAY_LABELS[dayIdx]}
                 </span>
-                <span className="flex-1 truncate text-[12px] font-bold">{item.title}</span>
-                {item.timeText && <span className="text-[11px] opacity-75">{item.timeText}</span>}
+                <span className="flex-1 truncate text-xs font-bold">{item.title}</span>
+                {item.timeText && <span className="text-xs opacity-75">{item.timeText}</span>}
               </button>
             )),
           )}
@@ -504,8 +504,8 @@ export function MobileSchedule({
     <div className="mx-auto flex max-w-md flex-col gap-4 pb-24 pt-3 md:hidden">
       {/* 标题 */}
       <div className="px-1">
-        <h1 className="text-[24px] font-bold text-primary">本周课表</h1>
-        <p className="text-[13px] text-on-surface-variant">今日课程与周视图，和小咪一起规划~</p>
+        <h1 className="text-2xl font-bold text-primary">本周课表</h1>
+        <p className="text-sm text-on-surface-variant">今日课程与周视图，和小咪一起规划~</p>
       </div>
 
       {/* 萌系分段控件 */}
@@ -519,7 +519,7 @@ export function MobileSchedule({
               type="button"
               onClick={() => setTab(t.id)}
               className={
-                "flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 text-[13px] font-semibold transition " +
+                "flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 text-sm font-semibold transition " +
                 (active
                   ? "bg-primary-container text-on-primary-container shadow-sm"
                   : "text-on-surface-variant")
@@ -535,17 +535,17 @@ export function MobileSchedule({
       {/* 内容 */}
       {!mounted && (
         <div className="flex flex-col gap-3">
-          <div className="skeleton h-28 rounded-[28px]" />
+          <div className="skeleton h-28 rounded-3xl" />
           <div className="skeleton h-16 rounded-3xl" />
           <div className="skeleton h-16 rounded-3xl" />
         </div>
       )}
 
       {mounted && !schedule && (
-        <div className="flex flex-col items-center gap-2 rounded-[28px] bg-surface-container-lowest py-10">
+        <div className="flex flex-col items-center gap-2 rounded-3xl bg-surface-container-lowest py-10">
           <Mascot size="md" />
-          <p className="text-[14px] font-medium text-on-surface">还没有课表数据</p>
-          <p className="text-[12px] text-on-surface-variant">去设置里导入课表吧~</p>
+          <p className="text-sm font-medium text-on-surface">还没有课表数据</p>
+          <p className="text-xs text-on-surface-variant">去设置里导入课表吧~</p>
         </div>
       )}
 

@@ -246,7 +246,7 @@ export default function SettingsPage() {
       {isMobile && (
         <SettingsSection icon={<Palette className="w-4 h-4" />} title="配色">
           <div className="mb-2">
-            <span className="text-[11px] text-muted-foreground/70">
+            <span className="text-xs text-muted-foreground/70">
               仅手机端生效
             </span>
           </div>
@@ -255,7 +255,7 @@ export default function SettingsPage() {
               <button
                 key={opt.value}
                 onClick={() => changeSkin(opt.value)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-medium transition-all duration-200 ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                   skin === opt.value
                     ? "bg-card text-primary shadow-sm"
                     : "text-muted-foreground"

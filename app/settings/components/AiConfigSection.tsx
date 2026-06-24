@@ -55,13 +55,13 @@ export function AiConfigSection() {
   return (
     <SettingsSection icon={<Bot className="w-4 h-4" />} title="AI 助手">
       <div className="space-y-4">
-        <p className="text-[12px] text-muted-foreground leading-relaxed">
+        <p className="text-xs text-muted-foreground leading-relaxed">
           接入 DeepSeek API 后可使用 AI 自动生成周报等内容。API Key 会在本地加密存储，仅由服务端调用模型时使用。
         </p>
 
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <label htmlFor="deepseek-api-key" className="text-[12px] font-medium text-foreground">
+            <label htmlFor="deepseek-api-key" className="text-xs font-medium text-foreground">
               DeepSeek API Key
             </label>
             <div className="relative">
@@ -82,20 +82,20 @@ export function AiConfigSection() {
                 {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               留空并保存可清除已保存的 Key。
             </p>
           </div>
 
           <div className="space-y-1.5">
-            <span className="text-[12px] font-medium text-foreground">模型选择</span>
+            <span className="text-xs font-medium text-foreground">模型选择</span>
             <div className="grid grid-cols-2 gap-2">
               {DEEPSEEK_MODELS.map((m) => (
                 <button
                   key={m.id}
                   type="button"
                   onClick={() => setModel(m.id)}
-                  className={`px-3 py-2 rounded-xl text-[12px] font-medium border transition-all text-left ${
+                  className={`px-3 py-2 rounded-xl text-xs font-medium border transition-all text-left ${
                     model === m.id
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border bg-card hover:bg-muted/50 text-foreground"

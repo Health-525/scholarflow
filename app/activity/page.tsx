@@ -337,7 +337,7 @@ export default function ActivityPage() {
                       </span>
                       <Badge
                         variant="outline"
-                        className="text-[11px] h-4 px-1.5 font-normal"
+                        className="text-xs h-4 px-1.5 font-normal"
                         style={{
                           borderColor: catColor,
                           color: catColor,

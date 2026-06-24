@@ -28,16 +28,16 @@ export default function NotesPathPage({ params }: PageProps) {
     <div className="max-w-4xl mx-auto py-6 px-6 pb-24 md:pb-8">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <Link href="/notes" className="text-[11px] text-primary hover:underline">
+          <Link href="/notes" className="text-xs text-primary hover:underline">
             ← 笔记首页
           </Link>
-          <h1 className="text-lg font-semibold font-[serif] text-foreground mt-1">
+          <h1 className="text-lg font-semibold font-serif text-foreground mt-1">
             {fileName}
           </h1>
         </div>
         <Link
           href={`/notes?path=${encodeURIComponent(notePath)}`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           <PenLine className="w-3 h-3" />
           编辑
@@ -59,7 +59,7 @@ export default function NotesPathPage({ params }: PageProps) {
           {isMd ? (
             <MarkdownRenderer content={content} />
           ) : (
-            <pre className="text-[13px] leading-relaxed overflow-x-auto whitespace-pre-wrap break-words font-mono text-muted-foreground">
+            <pre className="text-sm leading-relaxed overflow-x-auto whitespace-pre-wrap break-words font-mono text-muted-foreground">
               {content}
             </pre>
           )}

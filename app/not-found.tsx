@@ -3,10 +3,10 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-      <p className="text-6xl font-bold mb-4 font-[serif] text-primary opacity-30">
+      <p className="text-6xl font-bold mb-4 font-serif text-primary opacity-30">
         404
       </p>
-      <h1 className="text-xl font-semibold mb-2 font-[serif] text-foreground">
+      <h1 className="text-xl font-semibold mb-2 font-serif text-foreground">
         页面不存在
       </h1>
       <p className="text-sm mb-6 text-muted-foreground">

@@ -21,7 +21,7 @@ function NavItem({ item }: { item: NavItemConfig }) {
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={[
-        "group flex items-center gap-3 px-3 py-2.5 min-h-[40px] rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1",
+        "group flex items-center gap-3 px-3 py-2.5 min-h-10 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1",
         active
           ? "bg-primary/10 text-primary dark:bg-primary/[0.12] dark:text-primary"
           : wip
@@ -41,7 +41,7 @@ function NavItem({ item }: { item: NavItemConfig }) {
       />
       <span className="flex-1">{label}</span>
       {wip && (
-        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground/60 shrink-0">
+        <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground/60 shrink-0">
           开发中
         </span>
       )}

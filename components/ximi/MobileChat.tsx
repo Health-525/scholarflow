@@ -92,7 +92,7 @@ export function MobileChat() {
   if (!mounted) {
     return (
       <div className="mx-auto flex max-w-md flex-col gap-3 pt-4 md:hidden">
-        <div className="skeleton h-28 rounded-[28px]" />
+        <div className="skeleton h-28 rounded-3xl" />
         <div className="skeleton h-16 rounded-3xl" />
         <div className="skeleton h-16 rounded-3xl" />
       </div>
@@ -112,19 +112,19 @@ export function MobileChat() {
         {!ready &&
           (isNative ? (
             modelPhase === "error" ? (
-              <div className="flex items-start gap-3 rounded-[24px] border-[1.5px] border-white/60 bg-surface-container-lowest p-4 shadow-[0_10px_30px_-10px_rgba(var(--ximi-glow),0.3)]">
+              <div className="flex items-start gap-3 rounded-3xl border-[1.5px] border-white/60 bg-surface-container-lowest p-4 shadow-ximi">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-surface-container">
                   <Mascot size="xs" eager className="!drop-shadow-none" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[14px] font-semibold text-on-surface">小咪没能唤醒本地大脑</p>
-                  <p className="mt-1 text-[12px] leading-relaxed text-on-surface-variant">
+                  <p className="text-sm font-semibold text-on-surface">小咪没能唤醒本地大脑</p>
+                  <p className="mt-1 text-xs leading-relaxed text-on-surface-variant">
                     {modelError ?? "本地模型加载失败"}
                   </p>
                   <button
                     type="button"
                     onClick={reloadModel}
-                    className="mt-2 rounded-full bg-primary-container px-4 py-1.5 text-[12px] font-semibold text-on-primary-container transition active:scale-95"
+                    className="mt-2 rounded-full bg-primary-container px-4 py-1.5 text-xs font-semibold text-on-primary-container transition active:scale-95"
                   >
                     重试加载
                   </button>
@@ -132,39 +132,39 @@ export function MobileChat() {
               </div>
             ) : (
               /* 端侧模型加载中 —— 演示视频「模型本地加载过程」拍摄点 */
-              <div className="flex items-center gap-3 rounded-[24px] border-[1.5px] border-white/60 bg-surface-container-lowest p-4 shadow-[0_10px_30px_-10px_rgba(var(--ximi-glow),0.3)]">
+              <div className="flex items-center gap-3 rounded-3xl border-[1.5px] border-white/60 bg-surface-container-lowest p-4 shadow-ximi">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-surface-container">
                   <Mascot size="xs" eager className="!drop-shadow-none" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[14px] font-semibold text-on-surface">小咪正在唤醒本地大脑…🧠</p>
-                  <p className="mt-1 text-[12px] leading-relaxed text-on-surface-variant">
+                  <p className="text-sm font-semibold text-on-surface">小咪正在唤醒本地大脑…🧠</p>
+                  <p className="mt-1 text-xs leading-relaxed text-on-surface-variant">
                     首次在手机本地加载模型，稍等一下下~（全程离线、不联网）
                   </p>
                 </div>
                 <span className="flex shrink-0 items-center gap-1 self-center">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/40 [animation-delay:0s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/60 [animation-delay:0.2s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/80 [animation-delay:0.4s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/40" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/60 delay-200" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/80 delay-500" />
                 </span>
               </div>
             )
           ) : (
-            <div className="flex items-start gap-3 rounded-[24px] border-[1.5px] border-white/60 bg-surface-container-lowest p-4 shadow-[0_10px_30px_-10px_rgba(var(--ximi-glow),0.3)]">
+            <div className="flex items-start gap-3 rounded-3xl border-[1.5px] border-white/60 bg-surface-container-lowest p-4 shadow-ximi">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-surface-container">
                 <Mascot size="xs" eager className="!drop-shadow-none" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[14px] font-semibold text-on-surface">
+                <p className="text-sm font-semibold text-on-surface">
                   小咪还没连上大脑（Ollama 离线）
                 </p>
-                <p className="mt-1 text-[12px] leading-relaxed text-on-surface-variant">
+                <p className="mt-1 text-xs leading-relaxed text-on-surface-variant">
                   先启动{" "}
-                  <code className="rounded bg-surface-container px-1.5 py-0.5 text-[11px] text-on-surface">
+                  <code className="rounded bg-surface-container px-1.5 py-0.5 text-xs text-on-surface">
                     ollama serve
                   </code>
                   ，再拉取模型{" "}
-                  <code className="rounded bg-surface-container px-1.5 py-0.5 text-[11px] text-on-surface">
+                  <code className="rounded bg-surface-container px-1.5 py-0.5 text-xs text-on-surface">
                     ollama pull qwen2.5
                   </code>
                   ，小咪就能陪你学啦~
@@ -177,8 +177,8 @@ export function MobileChat() {
           /* 空状态:问候气泡 + 快捷动作网格 */
           <div className="flex max-w-[88%] gap-2">
             <CatAvatar />
-            <div className="min-w-0 rounded-2xl rounded-bl-sm border-[1.5px] border-white/50 bg-surface-container-lowest p-4 text-on-surface shadow-[0_10px_30px_-10px_rgba(var(--ximi-glow),0.3)]">
-              <p className="text-[15px] leading-relaxed">{GREETING}</p>
+            <div className="min-w-0 rounded-2xl rounded-bl-sm border-[1.5px] border-white/50 bg-surface-container-lowest p-4 text-on-surface shadow-ximi">
+              <p className="text-base leading-relaxed">{GREETING}</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {QUICK_ACTIONS.map(({ label, prompt, icon: Icon, tint }) => (
                   <button
@@ -190,8 +190,8 @@ export function MobileChat() {
                     }}
                     className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-left transition active:scale-95 ${tint}`}
                   >
-                    <Icon className="h-[18px] w-[18px] shrink-0" />
-                    <span className="text-[12px] font-semibold leading-tight">{label}</span>
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="text-xs font-semibold leading-tight">{label}</span>
                   </button>
                 ))}
               </div>
@@ -202,8 +202,8 @@ export function MobileChat() {
             {messages.map((msg) =>
               msg.role === "user" ? (
                 <div key={msg.id} className="flex justify-end">
-                  <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-3 text-primary-foreground shadow-[0_8px_20px_-8px_rgba(var(--primary-rgb),0.5)]">
-                    <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">
+                  <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-3 text-primary-foreground shadow-ximi-primary">
+                    <p className="whitespace-pre-wrap break-words text-base leading-relaxed">
                       {msg.content}
                     </p>
                   </div>
@@ -211,8 +211,8 @@ export function MobileChat() {
               ) : (
                 <div key={msg.id} className="flex max-w-[88%] gap-2">
                   <CatAvatar />
-                  <div className="min-w-0 rounded-2xl rounded-bl-sm border-[1.5px] border-white/50 bg-surface-container-lowest px-4 py-3 text-on-surface shadow-[0_10px_30px_-10px_rgba(var(--ximi-glow),0.3)]">
-                    <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">
+                  <div className="min-w-0 rounded-2xl rounded-bl-sm border-[1.5px] border-white/50 bg-surface-container-lowest px-4 py-3 text-on-surface shadow-ximi">
+                    <p className="whitespace-pre-wrap break-words text-base leading-relaxed">
                       {msg.content}
                     </p>
                   </div>
@@ -224,8 +224,8 @@ export function MobileChat() {
             {loading && streamingContent && (
               <div className="flex max-w-[88%] gap-2">
                 <CatAvatar />
-                <div className="min-w-0 rounded-2xl rounded-bl-sm border-[1.5px] border-white/50 bg-surface-container-lowest px-4 py-3 text-on-surface shadow-[0_10px_30px_-10px_rgba(var(--ximi-glow),0.3)]">
-                  <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">
+                <div className="min-w-0 rounded-2xl rounded-bl-sm border-[1.5px] border-white/50 bg-surface-container-lowest px-4 py-3 text-on-surface shadow-ximi">
+                  <p className="whitespace-pre-wrap break-words text-base leading-relaxed">
                     {streamingContent}
                     <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse bg-primary/60 align-middle" />
                   </p>
@@ -237,10 +237,10 @@ export function MobileChat() {
             {loading && !streamingContent && (
               <div className="flex max-w-[88%] gap-2">
                 <CatAvatar />
-                <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm border-[1.5px] border-white/50 bg-surface-container-lowest px-4 py-3.5 shadow-[0_10px_30px_-10px_rgba(var(--ximi-glow),0.3)]">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/40 [animation-delay:0s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/60 [animation-delay:0.2s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/80 [animation-delay:0.4s]" />
+                <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm border-[1.5px] border-white/50 bg-surface-container-lowest px-4 py-3.5 shadow-ximi">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/40" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/60 delay-200" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary/80 delay-500" />
                 </div>
               </div>
             )}
@@ -256,7 +256,7 @@ export function MobileChat() {
         style={{ bottom: inputBottom }}
       >
         <div className="mx-auto max-w-md">
-          <div className="flex items-end gap-2 rounded-full border-[1.5px] border-white/50 bg-white/80 p-2 shadow-[0_8px_30px_-6px_rgba(var(--ximi-glow),0.35)] backdrop-blur-md transition focus-within:border-primary-container">
+          <div className="flex items-end gap-2 rounded-full border-[1.5px] border-white/50 bg-white/80 p-2 shadow-ximi-input backdrop-blur-md transition focus-within:border-primary-container">
             <button
               type="button"
               aria-label="更多"
@@ -280,7 +280,7 @@ export function MobileChat() {
               }
               disabled={!ready || loading}
               rows={1}
-              className="hide-scrollbar max-h-32 min-h-[40px] flex-1 resize-none border-none bg-transparent py-2.5 text-[15px] leading-relaxed text-on-surface outline-none placeholder:text-on-surface-variant/50 disabled:opacity-60"
+              className="hide-scrollbar max-h-32 min-h-10 flex-1 resize-none border-none bg-transparent py-2.5 text-base leading-relaxed text-on-surface outline-none placeholder:text-on-surface-variant/50 disabled:opacity-60"
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement;
                 target.style.height = "auto";
@@ -298,7 +298,7 @@ export function MobileChat() {
             </button>
           </div>
           {ready && (
-            <p className="mt-1.5 flex items-center justify-center gap-1 text-[10px] text-on-surface-variant/60">
+            <p className="mt-1.5 flex items-center justify-center gap-1 text-xs text-on-surface-variant/60">
               <Info className="h-3 w-3" />
               {isNative
                 ? "小咪在线 · 端侧模型，回答仅供参考哦"

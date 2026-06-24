@@ -33,7 +33,7 @@ export function StatCard({
         <div className="text-2xl font-bold tabular-nums leading-none text-foreground">
           {value}
         </div>
-        <div className="text-[11px] text-muted-foreground mt-0.5">{label}</div>
+        <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
       </div>
     </div>
   );
@@ -45,7 +45,7 @@ export function StatCard({
         onClick={onClick}
         className={cn(
           cardClasses,
-          "p-3 text-left cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]",
+          "p-3 text-left cursor-pointer transition-all hover:scale-105 active:scale-95",
           active
             ? "ring-2 ring-primary/40 bg-primary/5"
             : "hover:bg-muted/50"
