@@ -157,7 +157,7 @@ git clone https://github.com/Health-525/scholarflow.git && cd scholarflow && npm
   <tr>
     <td width="33%">
       <h4>📊 仪表盘</h4>
-      <p>课表、作业、跑步、考试倒计时、教务通知、近期日报——<strong>一屏掌握全部学习状态</strong></p>
+      <p>课表、作业、考试倒计时、教务通知、近期日报——<strong>一屏掌握全部学习状态</strong></p>
     </td>
     <td width="33%">
       <h4>📅 课表</h4>
@@ -192,7 +192,7 @@ git clone https://github.com/Health-525/scholarflow.git && cd scholarflow && npm
       <p>专注 / 休息循环计时，<strong>助你进入心流</strong></p>
     </td>
     <td>
-      <h4>🏃 跑步 / 目标</h4>
+      <h4>🎯 目标</h4>
       <p>习惯打卡与<strong>目标追踪</strong></p>
     </td>
   </tr>
@@ -317,7 +317,7 @@ ScholarFlow is a **local-first campus study workspace** that deeply integrates a
 - 🔌 **Extensible** — `SchoolAdapter` pattern. NJTech and HEBau already integrated.
 - 📱 **Multi-platform** — Desktop (primary), Web/PWA, Android with a unique cute mobile skin.
 
-**Features:** Dashboard · Schedule · Assignments · Exams · GPA · Notes (Markdown) · Pomodoro · Running/Goals · Daily/Weekly Reports · AI Assistant (DeepSeek-powered weekly report) · Screen Time (second-level activity tracking with 90+ app recognition rules & CSV export) · Settings · Mobile Ximi Skin
+**Features:** Dashboard · Schedule · Assignments · Exams · GPA · Notes (Markdown) · Pomodoro · Goals · Daily/Weekly Reports · AI Assistant (DeepSeek-powered weekly report) · Screen Time (second-level activity tracking with 90+ app recognition rules & CSV export) · Settings · Mobile Ximi Skin
 
 **Platforms:** Electron desktop (full), Web/PWA (complementary), Android/Capacitor (experimental).
 

@@ -30,7 +30,7 @@ CREATE TABLE data_store (
 );
 ```
 
-用途：存储课表、成绩、作业、跑步记录、配置等所有结构化数据。
+用途：存储课表、成绩、作业、配置等所有结构化数据。
 
 ### `credentials` — 账号凭证
 
@@ -83,7 +83,6 @@ CREATE TABLE schema_version (
 | `exams:<schoolId>:<userId>` | 考试安排 |
 | `grades:<schoolId>:<userId>` | 成绩 + GPA |
 | `assignments:<schoolId>:<userId>` | 作业列表 |
-| `running:<schoolId>:<userId>` | 跑步记录 |
 | `jwc-news:<schoolId>:<userId>` | 教务公告 |
 | `remember-setting:<schoolId>:<userId>` | 记住密码偏好 |
 | `auto-refresh-state:<schoolId>:<userId>` | 自动刷新调度状态 |

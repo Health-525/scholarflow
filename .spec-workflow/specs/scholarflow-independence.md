@@ -19,7 +19,7 @@ ScholarFlow 当前依赖两个外部仓库：
 - GitHub Contents API 当数据库 — 每次写入是 git commit，速率限制 5000次/小时，延迟高
 - 用户必须提供 GitHub PAT — 对非技术用户是巨大障碍
 - 无法部署到远程服务器 — `local-data/route.ts` 用 `fs.readFileSync` 读本地文件系统
-- 数据隐私 — 课表、作业、跑步数据存在公开 GitHub 仓库
+- 数据隐私 — 课表、作业等数据存在公开 GitHub 仓库
 
 ### 1.2 改造目标
 
@@ -266,8 +266,6 @@ export async function GET(request: Request) {
       return NextResponse.json(db.readData("schedule") || { courses: [] });
     case "assignments":
       return NextResponse.json(db.readData("assignments") || []);
-    case "running":
-      return NextResponse.json(db.readData("running") || { records: [] });
     case "health":
       return NextResponse.json(db.readData("health-status") || { agents: [] });
     case "exams":
@@ -604,7 +602,7 @@ NJTECH 图书馆系统使用独立的 JWT 认证，不与教务系统共享。�
 - 删除 `useSyncFromGitHub()` 函数（约 80 行）
 - 删除 `useSyncToGitHub()` 函数（约 30 行）
 - 删除 `SyncResult` / `PushResult` 类型
-- 删除所有合并策略函数（`mergeAssignments`, `mergeRunRecords` 等 — 不再需要 GitHub 合并）
+- 删除所有合并策略函数（`mergeAssignments` 等 — 不再需要 GitHub 合并）
 - 将 `GitHubError` 类型替换为通用 `Error`
 - `saveLocally()` 中的 `getDB().cacheFile()` 调用 — 去掉 `repo` 和 `sha` 参数（见 6.4）
 
@@ -612,7 +610,6 @@ NJTECH 图书馆系统使用独立的 JWT 认证，不与教务系统共享。�
 - `queryKeys` 工厂
 - `useScheduleQuery()`
 - `useAssignmentsQuery()`（add/markDone/undo/reorder mutations）
-- `useRunningQuery()`
 - `useJwcNewsQuery()`
 - 所有本地数据读写逻辑（`tryLocalApi`, `saveLocally`）
 
@@ -776,7 +773,7 @@ const TIMETABLE_OUT_DIR = process.env.TIMETABLE_OUT_DIR || "../timetable/_out";
 const db = new ServerDB();
 
 // 迁移 data/ 目录
-const dataFiles = ["schedule.json", "assignments.json", "running.json", "library.json", "adjustments.json"];
+const dataFiles = ["schedule.json", "assignments.json", "library.json", "adjustments.json"];
 for (const file of dataFiles) {
   const filePath = path.join(TIMETABLE_DATA_DIR, file);
   if (fs.existsSync(filePath)) {

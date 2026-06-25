@@ -5,10 +5,9 @@ All notable changes to ScholarFlow will be documented in this file.
 ## [1.0.0] - 2026-06-05
 
 ### Added
-- 仪表板 Dashboard（5 张卡片：课表/作业/跑步/统计/日报）
+- 仪表板 Dashboard（4 张卡片：课表/作业/统计/日报）
 - 课表系统（Today View / Week Grid / 课程查询 / 时区感知）
 - 作业管理（CRUD + 紧急度分类 + 倒计时）
-- 跑步记录（热力图 + 进度统计 + 去重检测）
 - 日报/周报阅读器（GitHub Markdown 文件展示）
 - 笔记浏览器（文件树 + Markdown 渲染 + WikiLink 解析）
 - AI 聊天助手（Ollama 本地 LLM 集成，支持流式响应）

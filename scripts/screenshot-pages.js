@@ -12,7 +12,6 @@ const ROUTES = [
   '/goals',
   '/notes',
   '/exams',
-  '/running',
   '/gpa',
   '/pomodoro',
   '/settings',
