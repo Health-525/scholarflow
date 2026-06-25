@@ -66,10 +66,10 @@ function StatCard({
         onClick={onClick}
         className={cn(
           cardClasses,
-          "p-3 text-left cursor-pointer transition-all hover:scale-105 active:scale-95",
+          "p-3 text-left cursor-pointer transition-colors hover:bg-muted/50",
           active
-            ? "ring-2 ring-primary/40 bg-primary/5"
-            : "hover:bg-muted/50"
+            ? "ring-1 ring-primary/40 bg-primary/5"
+            : "hover:border-primary/30"
         )}
       >
         {content}

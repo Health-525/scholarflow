@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  CheckCircle2,
-  Circle,
+  CheckSquare,
   Clock,
   RotateCcw,
+  Square,
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
@@ -12,6 +12,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { cn } from "@/lib/utils";
 import type { Exam } from "@/types/exam";
 
 // ── 倒计时工具 ───────────────────────────────────────────────
@@ -78,27 +79,20 @@ export function ExamItem({
 
   return (
     <div className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:bg-muted/40">
-      {isCompleted ? (
-        <button
-          type="button"
-          onClick={() => onUncomplete(exam.id)}
-          className="flex min-w-11 min-h-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
-          aria-label={`取消「${exam.subject}」的完成状态`}
-          title="撤销完成"
-        >
-          <CheckCircle2 className="size-5" />
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={() => onComplete(exam.id)}
-          className="flex min-w-11 min-h-11 shrink-0 items-center justify-center rounded-full border-2 border-muted-foreground/30 text-muted-foreground/60 transition-colors hover:border-primary hover:text-primary"
-          aria-label={`标记「${exam.subject}」已完成`}
-          title="标记完成"
-        >
-          <Circle className="size-5" />
-        </button>
-      )}
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={() => (isCompleted ? onUncomplete(exam.id) : onComplete(exam.id))}
+        className={cn(
+          "shrink-0 text-muted-foreground/60 hover:text-primary hover:bg-transparent",
+          isCompleted && "text-primary"
+        )}
+        aria-label={isCompleted ? `取消「${exam.subject}」的完成状态` : `标记「${exam.subject}」已完成`}
+        title={isCompleted ? "撤销完成" : "标记完成"}
+      >
+        {isCompleted ? <CheckSquare className="size-5" /> : <Square className="size-5" />}
+      </Button>
 
       <div
         className="flex size-9 shrink-0 items-center justify-center rounded-xl"
