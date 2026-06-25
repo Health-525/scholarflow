@@ -84,7 +84,7 @@ function parseLocalRecords(local: unknown): RunRecord[] | null {
 }
 
 // ── Schedule Hook ──────────────────────────────────────────
-export function useScheduleQuery() {
+export function useScheduleQuery(initialData?: { schedule: RawScheduleData | null; adjustments: Adjustment[] }) {
   const schoolId = useAuthStore((s) => s.schoolId);
   const userId = useAuthStore((s) => s.userId);
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
@@ -117,7 +117,8 @@ export function useScheduleQuery() {
       }
       return { schedule: null, adjustments: [] };
     },
-    enabled: hasHydrated,
+    enabled: hasHydrated && initialData === undefined,
+    initialData,
     staleTime: 2 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: 1,
