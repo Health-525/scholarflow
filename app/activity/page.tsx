@@ -492,9 +492,6 @@ export default function ActivityPage() {
 
       {/* 追踪设置 */}
       <section className="mb-4">
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">追踪设置</h3>
-        </div>
         <Card>
           <CardContent className="p-4 space-y-4">
             <div className="flex flex-wrap items-center gap-2">
