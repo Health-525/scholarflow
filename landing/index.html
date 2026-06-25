@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ScholarFlow — 本地优先的校园学习工作台</title>
-  <meta name="description" content="ScholarFlow 将教务系统、图书馆服务和个人学习工具深度融合到一个本地优先的桌面应用中。数据只存你的设备，不上传、不追踪。" />
-  <meta name="theme-color" content="#6366f1" />
+  <meta name="description" content="ScholarFlow 将教务系统、图书馆服务和个人学习工具深度融合到一个本地优先的 Windows 桌面应用中。数据只存你的设备，不上传、不追踪。" />
+  <meta name="theme-color" content="#3b82f6" />
 
   <!-- Open Graph -->
   <meta property="og:title" content="ScholarFlow — 本地优先的校园学习工作台" />
-  <meta property="og:description" content="课表、成绩、考试、作业、笔记、番茄钟、AI 助手，一个应用覆盖你的全部校园学习流程。" />
+  <meta property="og:description" content="课表、成绩、考试、作业、笔记、番茄钟、AI 助手，一个 Windows 桌面应用覆盖你的全部校园学习流程。" />
   <meta property="og:image" content="https://raw.githubusercontent.com/Health-525/scholarflow/main/public/icons/icon-512.png" />
   <meta property="og:type" content="website" />
 
@@ -30,25 +30,16 @@
           },
           colors: {
             brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              200: '#c7d2fe',
-              300: '#a5b4fc',
-              400: '#818cf8',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-              800: '#3730a3',
-              900: '#312e81',
-            },
-            ximi: {
-              50: '#fdf2f8',
-              100: '#fce7f3',
-              200: '#fbcfe8',
-              300: '#f9a8d4',
-              400: '#f472b6',
-              500: '#ec4899',
-              600: '#db2777',
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
             }
           },
           animation: {
@@ -80,55 +71,74 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="assets/logo.png" />
 </head>
-<body class="bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-brand-200 selection:text-brand-900">
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-brand-500/30 selection:text-white">
 
-  <!-- Background ambient -->
-  <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-    <div class="ambient-orb ambient-orb-1"></div>
-    <div class="ambient-orb ambient-orb-2"></div>
-    <div class="ambient-orb ambient-orb-3"></div>
-    <div class="noise-overlay"></div>
-  </div>
+  <!-- Skip link for accessibility -->
+  <a href="#main-content" class="skip-link">跳转到主要内容</a>
+
+  <!-- Light background -->
+  <div class="light-bg"></div>
+  <div class="light-grid"></div>
 
   <!-- Navigation -->
   <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" id="navbar">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
       <div class="nav-glass flex items-center justify-between rounded-2xl px-5 py-3 mt-4">
-        <a href="#" class="flex items-center gap-3 group">
-          <div class="relative">
-            <img src="assets/logo.png" alt="ScholarFlow" class="h-9 w-9 rounded-xl shadow-sm group-hover:scale-105 transition-transform" />
-          </div>
+        <a href="#" class="flex items-center gap-3 group" aria-label="ScholarFlow 首页">
+          <img src="assets/logo.png" alt="" class="h-9 w-9 rounded-xl shadow-sm group-hover:scale-105 transition-transform" />
           <span class="text-lg font-bold tracking-tight">ScholarFlow</span>
         </a>
 
-        <nav class="hidden md:flex items-center gap-1">
+        <nav class="hidden md:flex items-center gap-1" aria-label="桌面端导航">
           <a href="#features" class="nav-link">功能</a>
-          <a href="#platforms" class="nav-link">平台</a>
           <a href="#showcase" class="nav-link">展示</a>
+          <a href="#platforms" class="nav-link">平台</a>
           <a href="#privacy" class="nav-link">隐私</a>
         </nav>
 
         <div class="flex items-center gap-3">
-          <a href="https://github.com/Health-525/scholarflow" target="_blank" rel="noopener" class="hidden sm:flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-            <i data-lucide="github" class="w-5 h-5"></i>
+          <a href="https://github.com/Health-525/scholarflow" target="_blank" rel="noopener" class="hidden sm:flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-github"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
             <span>GitHub</span>
           </a>
-          <a href="https://github.com/Health-525/scholarflow/releases" target="_blank" rel="noopener" class="btn-primary text-sm">
+          <a href="https://github.com/Health-525/scholarflow/releases" target="_blank" rel="noopener" class="btn-primary text-sm hidden md:inline-flex">
             <i data-lucide="download" class="w-4 h-4"></i>
             <span>下载</span>
+          </a>
+
+          <!-- Mobile menu button -->
+          <button type="button" id="mobile-menu-toggle" class="md:hidden inline-flex items-center justify-center p-2 rounded-lg text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500" aria-controls="mobile-menu" aria-expanded="false" aria-label="打开导航菜单">
+            <i data-lucide="menu" class="w-6 h-6 menu-open-icon"></i>
+            <i data-lucide="x" class="w-6 h-6 menu-close-icon hidden"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="md:hidden hidden absolute top-full left-0 right-0 px-6 pt-2 pb-4" role="dialog" aria-label="移动端导航" aria-modal="true">
+      <div class="nav-glass rounded-2xl p-4 space-y-2">
+        <a href="#features" class="mobile-nav-link">功能</a>
+        <a href="#showcase" class="mobile-nav-link">展示</a>
+        <a href="#platforms" class="mobile-nav-link">平台</a>
+        <a href="#privacy" class="mobile-nav-link">隐私</a>
+        <div class="pt-2 border-t border-brand-500/20">
+          <a href="https://github.com/Health-525/scholarflow/releases" target="_blank" rel="noopener" class="mobile-nav-link text-brand-600">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>下载 Windows 版</span>
           </a>
         </div>
       </div>
     </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <!-- Hero -->
-    <section class="relative pt-40 pb-24 lg:pt-52 lg:pb-40 overflow-hidden">
+    <section class="relative pt-36 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
       <div class="mx-auto max-w-7xl px-6 lg:px-8">
         <div class="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
           <div class="reveal-on-scroll text-center lg:text-left">
-            <div class="inline-flex items-center gap-2 rounded-full bg-brand-50 dark:bg-brand-900/30 border border-brand-100 dark:border-brand-800 px-4 py-1.5 text-sm font-semibold text-brand-700 dark:text-brand-300 mb-8">
+            <div class="hero-badge inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold text-brand-600 mb-6">
               <span class="relative flex h-2 w-2">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
@@ -136,71 +146,71 @@
               v1.0.3 现已发布
             </div>
 
-            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] mb-6">
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-6 text-glow">
               本地优先的
               <span class="text-gradient">校园学习</span>
               工作台
             </h1>
 
-            <p class="text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-auto lg:ml-0 mb-10">
-              将教务系统、图书馆服务与个人学习工具深度融合。课表、成绩、考试、作业、笔记、番茄钟、AI 助手——<strong class="text-slate-900 dark:text-white font-semibold">一个应用，覆盖你的全部校园学习流程。</strong>
+            <p class="text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0 mb-8">
+              将教务系统、图书馆服务与个人学习工具深度融合。课表、成绩、考试、作业、笔记、番茄钟、AI 助手——<strong class="text-brand-600 font-semibold">一个 Windows 桌面应用，覆盖你的全部校园学习流程。</strong>
             </p>
 
-            <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-12">
+            <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-10">
               <a href="https://github.com/Health-525/scholarflow/releases" target="_blank" rel="noopener" class="btn-primary btn-lg w-full sm:w-auto">
                 <i data-lucide="download" class="w-5 h-5"></i>
                 <span>免费下载 Windows 版</span>
               </a>
               <a href="https://github.com/Health-525/scholarflow" target="_blank" rel="noopener" class="btn-secondary btn-lg w-full sm:w-auto">
-                <i data-lucide="github" class="w-5 h-5"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-github"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
                 <span>查看源码</span>
               </a>
             </div>
 
-            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-sm text-slate-500 dark:text-slate-400">
+            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-sm text-slate-600">
               <div class="flex items-center gap-2">
-                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
+                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
                 <span>本地 SQLite 存储</span>
               </div>
               <div class="flex items-center gap-2">
-                <i data-lucide="lock" class="w-4 h-4 text-emerald-500"></i>
+                <i data-lucide="lock" class="w-4 h-4 text-emerald-600"></i>
                 <span>AES-256-GCM 加密</span>
               </div>
               <div class="flex items-center gap-2">
-                <i data-lucide="code-2" class="w-4 h-4 text-emerald-500"></i>
+                <i data-lucide="code-2" class="w-4 h-4 text-emerald-600"></i>
                 <span>完全开源</span>
               </div>
             </div>
           </div>
 
-          <div class="reveal-on-scroll relative perspective-container" style="transition-delay: 100ms;">
-            <div class="hero-image-tilt relative">
-              <div class="absolute -inset-4 bg-gradient-to-r from-brand-500/20 via-ximi-500/20 to-violet-500/20 rounded-[2.5rem] blur-3xl opacity-60"></div>
-              <div class="relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-xl shadow-2xl overflow-hidden">
+          <div class="reveal-on-scroll relative" style="transition-delay: 100ms;">
+            <div class="relative">
+              <div class="absolute -inset-4 bg-gradient-to-r from-brand-500/10 via-cyan-500/10 to-brand-500/10 rounded-2xl blur-2xl opacity-60"></div>
+              <div class="relative rounded-2xl border border-brand-200 glass-panel overflow-hidden shadow-2xl shadow-brand-500/10">
                 <img src="assets/dashboard-verify.png" alt="ScholarFlow 仪表盘" class="w-full h-auto" loading="eager" />
               </div>
 
               <!-- Floating badges -->
-              <div class="floating-badge floating-badge-1 glass-card px-4 py-3 rounded-2xl shadow-lg">
+              <div class="floating-badge floating-badge-1 glass-panel px-4 py-3 rounded-xl">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl bg-ximi-100 dark:bg-ximi-900/40 flex items-center justify-center text-ximi-600 dark:text-ximi-300">
+                  <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.15)]">
                     <i data-lucide="clock" class="w-5 h-5"></i>
                   </div>
                   <div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">下节课程</p>
-                    <p class="text-sm font-bold">高等数学 @ 3-201</p>
+                    <p class="text-xs text-slate-500">下节课程</p>
+                    <p class="text-sm font-bold text-slate-900">高等数学 @ 3-201</p>
                   </div>
                 </div>
               </div>
 
-              <div class="floating-badge floating-badge-2 glass-card px-4 py-3 rounded-2xl shadow-lg">
+              <div class="floating-badge floating-badge-2 glass-panel px-4 py-3 rounded-xl">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-300">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-[0_0_15px_rgba(5,150,105,0.2)]">
                     <i data-lucide="check-circle-2" class="w-5 h-5"></i>
                   </div>
                   <div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">今日专注</p>
-                    <p class="text-sm font-bold">4 小时 32 分钟</p>
+                    <p class="text-xs text-slate-500">今日专注</p>
+                    <p class="text-sm font-bold text-slate-900">4 小时 32 分钟</p>
                   </div>
                 </div>
               </div>
@@ -211,24 +221,24 @@
     </section>
 
     <!-- Stats / trust bar -->
-    <section class="py-12 border-y border-slate-100 dark:border-slate-900">
+    <section class="py-12 border-y border-brand-100 bg-gradient-to-r from-transparent via-brand-50 to-transparent">
       <div class="mx-auto max-w-7xl px-6 lg:px-8">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center reveal-on-scroll">
           <div class="stat-item">
             <div class="text-3xl font-black text-gradient">12+</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400 mt-1">核心功能模块</div>
+            <div class="text-sm text-slate-600 mt-1">核心功能模块</div>
           </div>
           <div class="stat-item">
-            <div class="text-3xl font-black text-gradient">3</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400 mt-1">平台覆盖</div>
-          </div>
-          <div class="stat-item">
-            <div class="text-3xl font-black text-gradient">2</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400 mt-1">已适配学校</div>
+            <div class="text-3xl font-black text-gradient">Windows</div>
+            <div class="text-sm text-slate-600 mt-1">桌面端专属</div>
           </div>
           <div class="stat-item">
             <div class="text-3xl font-black text-gradient">0</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400 mt-1">第三方数据上传</div>
+            <div class="text-sm text-slate-600 mt-1">第三方数据上传</div>
+          </div>
+          <div class="stat-item">
+            <div class="text-3xl font-black text-gradient">MIT</div>
+            <div class="text-sm text-slate-600 mt-1">完全开源</div>
           </div>
         </div>
       </div>
@@ -238,139 +248,107 @@
     <section id="features" class="py-24 lg:py-32">
       <div class="mx-auto max-w-7xl px-6 lg:px-8">
         <div class="max-w-3xl mx-auto text-center mb-16 lg:mb-20 reveal-on-scroll">
-          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
+          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6 text-glow">
             不只是工具，是完整的
             <span class="text-gradient">学习闭环</span>
           </h2>
-          <p class="text-lg text-slate-600 dark:text-slate-300">
+          <p class="text-lg text-slate-600">
             从课表到作业，从专注到复盘，每个环节都围绕真实校园场景设计，不再在十个应用之间切来切去。
           </p>
         </div>
 
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <!-- Feature cards -->
           <div class="feature-card reveal-on-scroll group">
-            <div class="feature-icon bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-300">
+            <div class="feature-icon bg-blue-100 text-blue-600">
               <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-lg font-bold mb-2">仪表盘</h3>
-            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">课表、作业、考试倒计时、通知、日报一屏掌握，每天打开就知道该做什么。</p>
+            <h3 class="text-lg font-bold mb-2 text-slate-900">仪表盘</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">课表、作业、考试倒计时、通知、日报一屏掌握，每天打开就知道该做什么。</p>
           </div>
 
           <div class="feature-card reveal-on-scroll group" style="transition-delay: 50ms;">
-            <div class="feature-icon bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300">
+            <div class="feature-icon bg-indigo-100 text-indigo-600">
               <i data-lucide="calendar-days" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-lg font-bold mb-2">智能课表</h3>
-            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">今日视图、本周网格、日期查询、学期周次自动计算，支持调课与单次取消。</p>
+            <h3 class="text-lg font-bold mb-2 text-slate-900">智能课表</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">今日视图、本周网格、日期查询、学期周次自动计算，支持调课与单次取消。</p>
           </div>
 
           <div class="feature-card reveal-on-scroll group" style="transition-delay: 100ms;">
-            <div class="feature-icon bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300">
+            <div class="feature-icon bg-amber-100 text-amber-600">
               <i data-lucide="clipboard-list" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-lg font-bold mb-2">作业管理</h3>
-            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">快速新增、列表管理、完成状态一键追踪，DDL 再也不会被遗忘。</p>
+            <h3 class="text-lg font-bold mb-2 text-slate-900">作业管理</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">快速新增、列表管理、完成状态一键追踪，DDL 再也不会被遗忘。</p>
           </div>
 
           <div class="feature-card reveal-on-scroll group" style="transition-delay: 150ms;">
-            <div class="feature-icon bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-300">
+            <div class="feature-icon bg-emerald-100 text-emerald-600">
               <i data-lucide="calculator" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-lg font-bold mb-2">成绩 / GPA</h3>
-            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">教务同步、绩点展示、按学期查看成绩趋势，学习成果一目了然。</p>
+            <h3 class="text-lg font-bold mb-2 text-slate-900">成绩 / GPA</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">教务同步、绩点展示、按学期查看成绩趋势，学习成果一目了然。</p>
           </div>
 
           <div class="feature-card reveal-on-scroll group" style="transition-delay: 200ms;">
-            <div class="feature-icon bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-300">
+            <div class="feature-icon bg-rose-100 text-rose-600">
               <i data-lucide="timer" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-lg font-bold mb-2">番茄钟</h3>
-            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">专注 / 休息循环计时，助你进入心流，把大任务拆成可控的专注单元。</p>
+            <h3 class="text-lg font-bold mb-2 text-slate-900">番茄钟</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">专注 / 休息循环计时，助你进入心流，把大任务拆成可控的专注单元。</p>
           </div>
 
           <div class="feature-card reveal-on-scroll group" style="transition-delay: 250ms;">
-            <div class="feature-icon bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-300">
+            <div class="feature-icon bg-cyan-100 text-cyan-600">
               <i data-lucide="file-text" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-lg font-bold mb-2">Markdown 笔记</h3>
-            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Markdown 编辑器、全文搜索、自动保存，课堂笔记和复习资料井井有条。</p>
+            <h3 class="text-lg font-bold mb-2 text-slate-900">Markdown 笔记</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">Markdown 编辑器、全文搜索、自动保存，课堂笔记和复习资料井井有条。</p>
           </div>
 
           <div class="feature-card reveal-on-scroll group" style="transition-delay: 300ms;">
-            <div class="feature-icon bg-fuchsia-50 dark:bg-fuchsia-900/30 text-fuchsia-600 dark:text-fuchsia-300">
+            <div class="feature-icon bg-violet-100 text-violet-600">
               <i data-lucide="brain" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-lg font-bold mb-2">AI 学习助手</h3>
-            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">基于 DeepSeek 的周报生成与学习数据智能总结，让 AI 成为你的学习搭档。</p>
+            <h3 class="text-lg font-bold mb-2 text-slate-900">AI 学习助手</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">基于 DeepSeek 的周报生成与学习数据智能总结，让 AI 成为你的学习搭档。</p>
           </div>
 
           <div class="feature-card reveal-on-scroll group" style="transition-delay: 350ms;">
-            <div class="feature-icon bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300">
+            <div class="feature-icon bg-blue-100 text-blue-600">
               <i data-lucide="monitor" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-lg font-bold mb-2">屏幕时间</h3>
-            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">秒级前台窗口检测，90+ 应用识别规则，支持 CSV 导出，看清时间都去哪了。</p>
-          </div>
-
-          <div class="feature-card reveal-on-scroll group" style="transition-delay: 400ms;">
-            <div class="feature-icon bg-ximi-50 dark:bg-ximi-900/30 text-ximi-500 dark:text-ximi-300">
-              <i data-lucide="smartphone" class="w-6 h-6"></i>
-            </div>
-            <h3 class="text-lg font-bold mb-2">小咪移动皮肤</h3>
-            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">移动端专属萌系 UI，M3 设计系统 + 可爱吉祥物，学习也可以很治愈。</p>
+            <h3 class="text-lg font-bold mb-2 text-slate-900">屏幕时间</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">秒级前台窗口检测，90+ 应用识别规则，支持 CSV 导出，看清时间都去哪了。</p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Showcase -->
-    <section id="showcase" class="py-24 lg:py-32 bg-slate-50/50 dark:bg-slate-900/30">
+    <section id="showcase" class="py-24 lg:py-32 relative">
       <div class="mx-auto max-w-7xl px-6 lg:px-8">
         <div class="max-w-3xl mx-auto text-center mb-16 reveal-on-scroll">
-          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
-            桌面端、Web、移动端
-            <span class="text-gradient">一致体验</span>
+          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6 text-glow">
+            为 Windows 桌面
+            <span class="text-gradient">原生打造</span>
           </h2>
-          <p class="text-lg text-slate-600 dark:text-slate-300">
-            桌面端是主力形态，Web / PWA 随时可用，Android 实验性支持让你随时随地查看课表和笔记。
+          <p class="text-lg text-slate-600">
+            Electron 加持下的 Windows 桌面应用，系统级安全存储、后台自动刷新、活动窗口统计、自动更新，网页版做不到的事，这里都能做。
           </p>
         </div>
 
         <div class="grid lg:grid-cols-2 gap-8 items-center">
-          <div class="reveal-on-scroll space-y-6">
-            <div class="showcase-point active" data-target="desktop">
+          <div class="reveal-on-scroll space-y-4">
+            <div class="showcase-point active w-full text-left" data-target="desktop" role="tab" aria-selected="true">
               <div class="flex items-start gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center text-brand-600 dark:text-brand-300 shrink-0">
+                <div class="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center text-brand-600 shrink-0 shadow-[0_0_20px_rgba(37,99,235,0.12)]">
                   <i data-lucide="monitor" class="w-6 h-6"></i>
                 </div>
                 <div>
-                  <h3 class="text-xl font-bold mb-1">桌面端 · 完整能力</h3>
-                  <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Electron 加持下的原生体验：系统级安全存储、后台自动刷新、活动窗口统计、自动更新。网页版做不到的事，这里都能做。</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="showcase-point" data-target="web">
-              <div class="flex items-start gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center text-violet-600 dark:text-violet-300 shrink-0">
-                  <i data-lucide="globe" class="w-6 h-6"></i>
-                </div>
-                <div>
-                  <h3 class="text-xl font-bold mb-1">Web / PWA · 随时可用</h3>
-                  <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">无需安装，打开浏览器就能用。支持 PWA 安装，离线也能查课表、写笔记、看成绩。</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="showcase-point" data-target="mobile">
-              <div class="flex items-start gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-ximi-100 dark:bg-ximi-900/40 flex items-center justify-center text-ximi-500 dark:text-ximi-300 shrink-0">
-                  <i data-lucide="smartphone" class="w-6 h-6"></i>
-                </div>
-                <div>
-                  <h3 class="text-xl font-bold mb-1">Android · 萌系小咪</h3>
-                  <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Capacitor 构建的 Android 应用，专属小咪皮肤，课表、作业、笔记随身查看。</p>
+                  <h3 class="text-xl font-bold mb-1 text-slate-900">Windows 桌面端 · 完整能力</h3>
+                  <p class="text-slate-600 text-sm leading-relaxed">Electron 加持下的原生体验：系统级安全存储、后台自动刷新、活动窗口统计、自动更新。把教务数据、图书馆服务和个人学习工具，收束到一个属于你自己的 Windows 应用中。</p>
                 </div>
               </div>
             </div>
@@ -378,7 +356,7 @@
 
           <div class="reveal-on-scroll relative" style="transition-delay: 150ms;">
             <div class="showcase-frame">
-              <img id="showcase-image" src="https://raw.githubusercontent.com/Health-525/scholarflow/main/screenshots/desktop-_.png" alt="ScholarFlow 桌面端" class="w-full h-auto rounded-2xl shadow-2xl transition-all duration-500" />
+              <img id="showcase-image" src="assets/desktop-_.png" alt="ScholarFlow 桌面端" class="w-full h-auto rounded-2xl shadow-lg transition-all duration-500" />
             </div>
           </div>
         </div>
@@ -389,76 +367,52 @@
     <section id="platforms" class="py-24 lg:py-32">
       <div class="mx-auto max-w-7xl px-6 lg:px-8">
         <div class="max-w-3xl mx-auto text-center mb-16 reveal-on-scroll">
-          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
-            能力矩阵
+          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6 text-glow">
+            Windows 桌面端能力
           </h2>
-          <p class="text-lg text-slate-600 dark:text-slate-300">
-            不同平台有不同侧重点，核心学习数据在三端之间保持一致。
+          <p class="text-lg text-slate-600">
+            专为 Windows 设计的原生桌面应用，完整能力一览。
           </p>
         </div>
 
-        <div class="reveal-on-scroll overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 glass-card">
+        <div class="reveal-on-scroll overflow-hidden rounded-2xl border border-slate-200 glass-panel">
           <div class="overflow-x-auto">
             <table class="w-full text-left">
               <thead>
-                <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80">
-                  <th class="py-5 px-6 text-sm font-semibold text-slate-900 dark:text-white">能力</th>
-                  <th class="py-5 px-6 text-sm font-semibold text-slate-900 dark:text-white text-center">
+                <tr class="border-b border-slate-200 bg-slate-50/80">
+                  <th class="py-5 px-6 text-sm font-semibold text-slate-900">能力</th>
+                  <th class="py-5 px-6 text-sm font-semibold text-slate-900 text-center">
                     <div class="flex items-center justify-center gap-2">
                       <i data-lucide="monitor" class="w-4 h-4 text-brand-500"></i>
-                      Electron 桌面
-                    </div>
-                  </th>
-                  <th class="py-5 px-6 text-sm font-semibold text-slate-900 dark:text-white text-center">
-                    <div class="flex items-center justify-center gap-2">
-                      <i data-lucide="globe" class="w-4 h-4 text-violet-500"></i>
-                      Web / PWA
-                    </div>
-                  </th>
-                  <th class="py-5 px-6 text-sm font-semibold text-slate-900 dark:text-white text-center">
-                    <div class="flex items-center justify-center gap-2">
-                      <i data-lucide="smartphone" class="w-4 h-4 text-ximi-500"></i>
-                      Android
+                      Windows 桌面端
                     </div>
                   </th>
                 </tr>
               </thead>
               <tbody class="text-sm">
-                <tr class="border-b border-slate-100 dark:border-slate-800/60">
-                  <td class="py-4 px-6 font-medium">课表 / 成绩 / 考试同步</td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-full">完整</span></td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-full">支持</span></td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-exp">实验性</span></td>
+                <tr class="border-b border-slate-100">
+                  <td class="py-4 px-6 font-medium text-slate-700">课表 / 成绩 / 考试同步</td>
+                  <td class="py-4 px-6 text-center"><span class="status-badge status-full">完整支持</span></td>
                 </tr>
-                <tr class="border-b border-slate-100 dark:border-slate-800/60">
-                  <td class="py-4 px-6 font-medium">作业 / 目标 / 番茄钟 / 笔记</td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-full">完整</span></td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-full">支持</span></td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-exp">实验性</span></td>
+                <tr class="border-b border-slate-100">
+                  <td class="py-4 px-6 font-medium text-slate-700">作业 / 目标 / 番茄钟 / 笔记</td>
+                  <td class="py-4 px-6 text-center"><span class="status-badge status-full">完整支持</span></td>
                 </tr>
-                <tr class="border-b border-slate-100 dark:border-slate-800/60">
-                  <td class="py-4 px-6 font-medium">本地安全加密存储</td>
+                <tr class="border-b border-slate-100">
+                  <td class="py-4 px-6 font-medium text-slate-700">本地安全加密存储</td>
                   <td class="py-4 px-6 text-center"><span class="status-badge status-full">系统级</span></td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-partial">部分</span></td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-partial">部分</span></td>
                 </tr>
-                <tr class="border-b border-slate-100 dark:border-slate-800/60">
-                  <td class="py-4 px-6 font-medium">AI 学习助手（周报生成）</td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-full">完整</span></td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-full">支持</span></td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-exp">实验性</span></td>
+                <tr class="border-b border-slate-100">
+                  <td class="py-4 px-6 font-medium text-slate-700">AI 学习助手（周报生成）</td>
+                  <td class="py-4 px-6 text-center"><span class="status-badge status-full">完整支持</span></td>
                 </tr>
-                <tr class="border-b border-slate-100 dark:border-slate-800/60">
-                  <td class="py-4 px-6 font-medium">活动窗口统计</td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-full">完整</span></td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-none">不支持</span></td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-none">不支持</span></td>
+                <tr class="border-b border-slate-100">
+                  <td class="py-4 px-6 font-medium text-slate-700">活动窗口统计</td>
+                  <td class="py-4 px-6 text-center"><span class="status-badge status-full">完整支持</span></td>
                 </tr>
                 <tr>
-                  <td class="py-4 px-6 font-medium">后台自动刷新</td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-full">完整</span></td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-none">不支持</span></td>
-                  <td class="py-4 px-6 text-center"><span class="status-badge status-none">不支持</span></td>
+                  <td class="py-4 px-6 font-medium text-slate-700">后台自动刷新</td>
+                  <td class="py-4 px-6 text-center"><span class="status-badge status-full">完整支持</span></td>
                 </tr>
               </tbody>
             </table>
@@ -469,65 +423,65 @@
 
     <!-- Privacy -->
     <section id="privacy" class="py-24 lg:py-32 relative overflow-hidden">
-      <div class="absolute inset-0 -z-10 bg-gradient-to-b from-emerald-50/50 to-transparent dark:from-emerald-950/20 dark:to-transparent"></div>
+      <div class="absolute inset-0 -z-10 bg-gradient-to-b from-emerald-500/5 to-transparent"></div>
       <div class="mx-auto max-w-7xl px-6 lg:px-8">
         <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <div class="reveal-on-scroll">
-            <div class="inline-flex items-center gap-2 rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-4 py-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-300 mb-6">
+            <div class="inline-flex items-center gap-2 rounded-full bg-emerald-100 border border-emerald-200 px-4 py-1.5 text-sm font-semibold text-emerald-600 mb-6 shadow-[0_0_20px_rgba(5,150,105,0.1)]">
               <i data-lucide="shield" class="w-4 h-4"></i>
               隐私优先
             </div>
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6 text-glow">
               你的数据，<br />
               <span class="text-gradient">只属于你</span>
             </h2>
-            <p class="text-lg text-slate-600 dark:text-slate-300 mb-8 leading-relaxed">
+            <p class="text-lg text-slate-600 mb-8 leading-relaxed">
               ScholarFlow 不是爬虫，也不经营你的数据。它用你自己的学号密码通过学校官方 API 登录，只获取你自己的数据。账号密码 AES-256-GCM 加密存储，学习数据默认落在本地 SQLite。
             </p>
 
-            <div class="space-y-4">
+            <div class="space-y-3">
               <div class="privacy-point">
-                <i data-lucide="lock" class="w-5 h-5 text-emerald-500"></i>
-                <span class="text-slate-700 dark:text-slate-300">AES-256-GCM 加密凭证，scrypt 派生密钥</span>
+                <i data-lucide="lock" class="w-5 h-5 text-emerald-600"></i>
+                <span class="text-slate-600">AES-256-GCM 加密凭证，scrypt 派生密钥</span>
               </div>
               <div class="privacy-point">
-                <i data-lucide="database" class="w-5 h-5 text-emerald-500"></i>
-                <span class="text-slate-700 dark:text-slate-300">本地 SQLite（WAL 模式），断网可用</span>
+                <i data-lucide="database" class="w-5 h-5 text-emerald-600"></i>
+                <span class="text-slate-600">本地 SQLite（WAL 模式），断网可用</span>
               </div>
               <div class="privacy-point">
-                <i data-lucide="eye-off" class="w-5 h-5 text-emerald-500"></i>
-                <span class="text-slate-700 dark:text-slate-300">零追踪、零广告、零数据采集</span>
+                <i data-lucide="eye-off" class="w-5 h-5 text-emerald-600"></i>
+                <span class="text-slate-600">零追踪、零广告、零数据采集</span>
               </div>
               <div class="privacy-point">
-                <i data-lucide="file-code-2" class="w-5 h-5 text-emerald-500"></i>
-                <span class="text-slate-700 dark:text-slate-300">代码完全开源，可自行审查每一行</span>
+                <i data-lucide="file-code-2" class="w-5 h-5 text-emerald-600"></i>
+                <span class="text-slate-600">代码完全开源，可自行审查每一行</span>
               </div>
             </div>
           </div>
 
           <div class="reveal-on-scroll" style="transition-delay: 150ms;">
             <div class="relative">
-              <div class="absolute -inset-4 bg-gradient-to-r from-emerald-500/10 to-brand-500/10 rounded-[2.5rem] blur-3xl"></div>
-              <div class="relative glass-card rounded-3xl p-8 border border-emerald-100 dark:border-emerald-900/30">
+              <div class="absolute -inset-4 bg-gradient-to-r from-emerald-500/10 to-brand-500/10 rounded-2xl blur-2xl"></div>
+              <div class="relative glass-panel rounded-2xl p-8 border border-emerald-200 shadow-[0_0_40px_rgba(5,150,105,0.08)]">
                 <div class="flex items-center gap-3 mb-6">
-                  <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-300">
+                  <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-[0_0_20px_rgba(5,150,105,0.15)]">
                     <i data-lucide="shield-check" class="w-5 h-5"></i>
                   </div>
-                  <span class="font-bold text-lg">安全架构概览</span>
+                  <span class="font-bold text-lg text-slate-900">安全架构概览</span>
                 </div>
 
-                <div class="space-y-4 font-mono text-xs sm:text-sm">
-                  <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-                    <span class="text-emerald-600 dark:text-emerald-400">✓</span> contextIsolation + nodeIntegration 严格隔离
+                <div class="space-y-3 font-mono text-xs sm:text-sm">
+                  <div class="p-4 rounded-xl bg-slate-50 border border-emerald-100 text-slate-700">
+                    <span class="text-emerald-600">✓</span> contextIsolation + nodeIntegration 严格隔离
                   </div>
-                  <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-                    <span class="text-emerald-600 dark:text-emerald-400">✓</span> 内部 API 带 token 校验
+                  <div class="p-4 rounded-xl bg-slate-50 border border-emerald-100 text-slate-700">
+                    <span class="text-emerald-600">✓</span> 内部 API 带 token 校验
                   </div>
-                  <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-                    <span class="text-emerald-600 dark:text-emerald-400">✓</span> safeStorage 记住密码
+                  <div class="p-4 rounded-xl bg-slate-50 border border-emerald-100 text-slate-700">
+                    <span class="text-emerald-600">✓</span> safeStorage 记住密码
                   </div>
-                  <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-                    <span class="text-emerald-600 dark:text-emerald-400">✓</span> 图书馆证书显式边界控制
+                  <div class="p-4 rounded-xl bg-slate-50 border border-emerald-100 text-slate-700">
+                    <span class="text-emerald-600">✓</span> 图书馆证书显式边界控制
                   </div>
                 </div>
               </div>
@@ -540,25 +494,25 @@
     <!-- CTA -->
     <section class="py-24 lg:py-32">
       <div class="mx-auto max-w-5xl px-6 lg:px-8">
-        <div class="reveal-on-scroll relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-brand-600 via-violet-600 to-ximi-600 p-10 sm:p-16 text-center text-white shadow-2xl">
+        <div class="reveal-on-scroll relative overflow-hidden rounded-2xl cta-glow p-10 sm:p-16 text-center text-white shadow-2xl shadow-brand-500/25">
           <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-30"></div>
-          <div class="absolute -top-24 -right-24 w-64 h-64 bg-white/20 rounded-full blur-3xl"></div>
-          <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+          <div class="absolute -top-24 -right-24 w-64 h-64 bg-cyan-400/20 rounded-full blur-3xl"></div>
+          <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl"></div>
 
           <div class="relative">
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6 drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
               准备好接管你的校园学习了吗？
             </h2>
             <p class="text-lg sm:text-xl text-white/80 mb-10 max-w-2xl mx-auto">
-              下载 Windows 桌面版，或直接在浏览器中体验 Web 版。完全免费，开源透明。
+              下载 Windows 桌面版，把全部校园学习数据收束到你自己的设备中。完全免费，开源透明。
             </p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href="https://github.com/Health-525/scholarflow/releases" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 bg-white text-brand-700 hover:bg-brand-50 px-8 py-4 rounded-2xl font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg w-full sm:w-auto">
+              <a href="https://github.com/Health-525/scholarflow/releases" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 bg-white text-brand-700 hover:bg-brand-50 px-8 py-4 rounded-xl font-bold text-base transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] active:scale-[0.98] shadow-lg w-full sm:w-auto">
                 <i data-lucide="download" class="w-5 h-5"></i>
                 下载 Windows 版
               </a>
-              <a href="https://github.com/Health-525/scholarflow" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-2xl font-semibold text-base transition-all border border-white/20 w-full sm:w-auto">
-                <i data-lucide="github" class="w-5 h-5"></i>
+              <a href="https://github.com/Health-525/scholarflow" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl font-semibold text-base transition-colors border border-white/20 w-full sm:w-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-github"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
                 GitHub 仓库
               </a>
             </div>
@@ -569,49 +523,54 @@
   </main>
 
   <!-- Footer -->
-  <footer class="border-t border-slate-100 dark:border-slate-900 py-16">
+  <footer class="border-t border-slate-200 py-16 bg-white">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
       <div class="grid md:grid-cols-4 gap-10 mb-12">
         <div class="md:col-span-2">
-          <a href="#" class="flex items-center gap-3 mb-4">
-            <img src="assets/logo.png" alt="ScholarFlow" class="h-10 w-10 rounded-xl" />
-            <span class="text-xl font-bold">ScholarFlow</span>
+          <a href="#" class="flex items-center gap-3 mb-4" aria-label="ScholarFlow 首页">
+            <img src="assets/logo.png" alt="" class="h-10 w-10 rounded-xl" />
+            <span class="text-xl font-bold text-slate-900">ScholarFlow</span>
           </a>
-          <p class="text-sm text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
-            本地优先的校园学习工作台。把教务数据、图书馆服务和个人学习工具，收束到一个属于你设备的应用中。
+          <p class="text-sm text-slate-600 max-w-sm leading-relaxed">
+            本地优先的校园学习工作台。把教务数据、图书馆服务和个人学习工具，收束到一个属于你设备的 Windows 应用中。
           </p>
         </div>
 
         <div>
-          <h4 class="font-semibold mb-4">资源</h4>
-          <ul class="space-y-3 text-sm text-slate-500 dark:text-slate-400">
-            <li><a href="https://github.com/Health-525/scholarflow/releases" target="_blank" rel="noopener" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">下载</a></li>
-            <li><a href="https://github.com/Health-525/scholarflow/blob/main/docs/school-adapter-guide.md" target="_blank" rel="noopener" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">学校接入指南</a></li>
-            <li><a href="https://github.com/Health-525/scholarflow/blob/main/docs/DATA_MODEL.md" target="_blank" rel="noopener" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">数据模型</a></li>
-            <li><a href="https://github.com/Health-525/scholarflow/blob/main/SECURITY.md" target="_blank" rel="noopener" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">安全说明</a></li>
+          <h4 class="font-semibold mb-4 text-slate-900">资源</h4>
+          <ul class="space-y-3 text-sm text-slate-600">
+            <li><a href="https://github.com/Health-525/scholarflow/releases" target="_blank" rel="noopener" class="hover:text-brand-600 transition-colors">下载</a></li>
+            <li><a href="https://github.com/Health-525/scholarflow/blob/main/docs/school-adapter-guide.md" target="_blank" rel="noopener" class="hover:text-brand-600 transition-colors">学校接入指南</a></li>
+            <li><a href="https://github.com/Health-525/scholarflow/blob/main/docs/DATA_MODEL.md" target="_blank" rel="noopener" class="hover:text-brand-600 transition-colors">数据模型</a></li>
+            <li><a href="https://github.com/Health-525/scholarflow/blob/main/SECURITY.md" target="_blank" rel="noopener" class="hover:text-brand-600 transition-colors">安全说明</a></li>
           </ul>
         </div>
 
         <div>
-          <h4 class="font-semibold mb-4">社区</h4>
-          <ul class="space-y-3 text-sm text-slate-500 dark:text-slate-400">
-            <li><a href="https://github.com/Health-525/scholarflow" target="_blank" rel="noopener" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">GitHub</a></li>
-            <li><a href="https://github.com/Health-525/scholarflow/issues" target="_blank" rel="noopener" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">问题反馈</a></li>
-            <li><a href="https://github.com/Health-525/scholarflow/issues" target="_blank" rel="noopener" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">功能建议</a></li>
-            <li><a href="https://github.com/Health-525/scholarflow/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">贡献指南</a></li>
+          <h4 class="font-semibold mb-4 text-slate-900">社区</h4>
+          <ul class="space-y-3 text-sm text-slate-600">
+            <li><a href="https://github.com/Health-525/scholarflow" target="_blank" rel="noopener" class="hover:text-brand-600 transition-colors">GitHub</a></li>
+            <li><a href="https://github.com/Health-525/scholarflow/issues" target="_blank" rel="noopener" class="hover:text-brand-600 transition-colors">问题反馈</a></li>
+            <li><a href="https://github.com/Health-525/scholarflow/issues" target="_blank" rel="noopener" class="hover:text-brand-600 transition-colors">功能建议</a></li>
+            <li><a href="https://github.com/Health-525/scholarflow/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener" class="hover:text-brand-600 transition-colors">贡献指南</a></li>
           </ul>
         </div>
       </div>
 
-      <div class="pt-8 border-t border-slate-100 dark:border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500 dark:text-slate-400">
+      <div class="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-600">
         <p>© 2026 Health-525. 以 MIT 协议开源。</p>
         <div class="flex items-center gap-4">
-          <a href="https://github.com/Health-525/scholarflow/blob/main/LICENSE" target="_blank" rel="noopener" class="hover:text-slate-900 dark:hover:text-white transition-colors">License</a>
-          <a href="https://github.com/Health-525/scholarflow/blob/main/SECURITY.md" target="_blank" rel="noopener" class="hover:text-slate-900 dark:hover:text-white transition-colors">Security</a>
+          <a href="https://github.com/Health-525/scholarflow/blob/main/LICENSE" target="_blank" rel="noopener" class="hover:text-slate-900 transition-colors">License</a>
+          <a href="https://github.com/Health-525/scholarflow/blob/main/SECURITY.md" target="_blank" rel="noopener" class="hover:text-slate-900 transition-colors">Security</a>
         </div>
       </div>
     </div>
   </footer>
+
+  <!-- Back to top -->
+  <button type="button" id="back-to-top" class="fixed bottom-6 right-6 z-40 p-3 rounded-full opacity-0 pointer-events-none transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="返回顶部">
+    <i data-lucide="arrow-up" class="w-5 h-5"></i>
+  </button>
 
   <script src="main.js"></script>
 </body>

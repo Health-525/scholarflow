@@ -2,126 +2,134 @@
  * ScholarFlow Landing Page Interactions
  */
 
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
   'use strict';
 
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   // Initialize Lucide icons
-  lucide.createIcons();
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
 
   // Navbar scroll effect
   const navbar = document.getElementById('navbar');
-  let lastScroll = 0;
 
   function handleScroll() {
-    const currentScroll = window.scrollY;
-    if (currentScroll > 20) {
+    if (window.scrollY > 20) {
       navbar.classList.add('scrolled');
     } else {
       navbar.classList.remove('scrolled');
     }
-    lastScroll = currentScroll;
   }
 
   window.addEventListener('scroll', handleScroll, { passive: true });
   handleScroll();
 
+  // Mobile menu
+  const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuOpenIcon = mobileMenuToggle?.querySelector('.menu-open-icon');
+  const menuCloseIcon = mobileMenuToggle?.querySelector('.menu-close-icon');
+  const mobileNavLinks = mobileMenu?.querySelectorAll('.mobile-nav-link');
+
+  function openMobileMenu() {
+    if (!mobileMenu || !mobileMenuToggle) return;
+    mobileMenu.classList.remove('hidden');
+    mobileMenuToggle.setAttribute('aria-expanded', 'true');
+    menuOpenIcon?.classList.add('hidden');
+    menuCloseIcon?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMobileMenu() {
+    if (!mobileMenu || !mobileMenuToggle) return;
+    mobileMenu.classList.add('hidden');
+    mobileMenuToggle.setAttribute('aria-expanded', 'false');
+    menuOpenIcon?.classList.remove('hidden');
+    menuCloseIcon?.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function toggleMobileMenu() {
+    const isExpanded = mobileMenuToggle.getAttribute('aria-expanded') === 'true';
+    if (isExpanded) {
+      closeMobileMenu();
+    } else {
+      openMobileMenu();
+    }
+  }
+
+  if (mobileMenuToggle && mobileMenu) {
+    mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+
+    mobileNavLinks?.forEach((link) => {
+      link.addEventListener('click', () => {
+        closeMobileMenu();
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && mobileMenuToggle.getAttribute('aria-expanded') === 'true') {
+        closeMobileMenu();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (
+        mobileMenuToggle.getAttribute('aria-expanded') === 'true' &&
+        !mobileMenu.contains(e.target) &&
+        !mobileMenuToggle.contains(e.target)
+      ) {
+        closeMobileMenu();
+      }
+    });
+  }
+
   // Intersection Observer for reveal animations
   const revealElements = document.querySelectorAll('.reveal-on-scroll');
 
-  const revealObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('revealed');
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    },
-    {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px',
-    }
-  );
+  const revealFallbackTimer = setTimeout(() => {
+    revealElements.forEach((el) => el.classList.add('revealed'));
+  }, 800);
 
-  revealElements.forEach((el) => revealObserver.observe(el));
+  if (!prefersReducedMotion && 'IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.05,
+        rootMargin: '0px 0px -30px 0px',
+      }
+    );
 
-  // Showcase image switcher
-  const showcasePoints = document.querySelectorAll('.showcase-point');
+    revealElements.forEach((el) => revealObserver.observe(el));
+  } else {
+    revealElements.forEach((el) => el.classList.add('revealed'));
+    clearTimeout(revealFallbackTimer);
+  }
+
+  // Showcase image (desktop only)
   const showcaseImage = document.getElementById('showcase-image');
 
-  const showcaseImages = {
-    desktop: 'assets/desktop-_.png',
-    web: 'assets/dashboard-verify.png',
-    mobile: 'assets/mobile-_.png',
-  };
-
-  function setActiveShowcase(target) {
-    showcasePoints.forEach((point) => {
-      if (point.dataset.target === target) {
-        point.classList.add('active');
-      } else {
-        point.classList.remove('active');
+  if (showcaseImage) {
+    const img = new Image();
+    img.onload = () => {
+      showcaseImage.src = 'assets/desktop-_.png';
+      if (!prefersReducedMotion) {
+        showcaseImage.animate(
+          [{ opacity: 0.8, transform: 'scale(0.99)' }, { opacity: 1, transform: 'scale(1)' }],
+          { duration: 300, easing: 'ease-out' }
+        );
       }
-    });
-
-    if (showcaseImages[target]) {
-      showcaseImage.style.opacity = '0';
-      showcaseImage.style.transform = 'scale(0.98)';
-
-      setTimeout(() => {
-        showcaseImage.src = showcaseImages[target];
-        showcaseImage.onload = () => {
-          showcaseImage.style.opacity = '1';
-          showcaseImage.style.transform = 'scale(1)';
-        };
-      }, 250);
-    }
-  }
-
-  showcasePoints.forEach((point) => {
-    point.addEventListener('click', () => {
-      setActiveShowcase(point.dataset.target);
-    });
-
-    point.addEventListener('mouseenter', () => {
-      setActiveShowcase(point.dataset.target);
-    });
-  });
-
-  // Auto-rotate showcase on mobile
-  let showcaseAutoRotate;
-  const targets = ['desktop', 'web', 'mobile'];
-  let currentTargetIndex = 0;
-
-  function startAutoRotate() {
-    if (showcaseAutoRotate) return;
-    showcaseAutoRotate = setInterval(() => {
-      currentTargetIndex = (currentTargetIndex + 1) % targets.length;
-      setActiveShowcase(targets[currentTargetIndex]);
-    }, 5000);
-  }
-
-  function stopAutoRotate() {
-    if (showcaseAutoRotate) {
-      clearInterval(showcaseAutoRotate);
-      showcaseAutoRotate = null;
-    }
-  }
-
-  // Start auto-rotate only on touch devices or small screens
-  if (window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 1024) {
-    startAutoRotate();
-  }
-
-  // Pause auto-rotate on hover
-  const showcaseSection = document.getElementById('showcase');
-  if (showcaseSection) {
-    showcaseSection.addEventListener('mouseenter', stopAutoRotate);
-    showcaseSection.addEventListener('mouseleave', () => {
-      if (window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 1024) {
-        startAutoRotate();
-      }
-    });
+    };
+    img.src = 'assets/desktop-_.png';
   }
 
   // Smooth reveal lazy images
@@ -131,32 +139,35 @@
       img.classList.add('loaded');
     } else {
       img.addEventListener('load', () => img.classList.add('loaded'));
+      img.addEventListener('error', () => img.classList.add('loaded'));
     }
   });
 
-  // 3D tilt effect for hero image (desktop only)
-  const heroImageTilt = document.querySelector('.hero-image-tilt');
-  const perspectiveContainer = document.querySelector('.perspective-container');
+  // Back to top button
+  const backToTop = document.getElementById('back-to-top');
 
-  if (heroImageTilt && perspectiveContainer && window.matchMedia('(pointer: fine)').matches) {
-    perspectiveContainer.addEventListener('mousemove', (e) => {
-      const rect = perspectiveContainer.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = (e.clientY - rect.top) / rect.height;
+  function handleBackToTopVisibility() {
+    if (!backToTop) return;
+    if (window.scrollY > 400) {
+      backToTop.classList.remove('opacity-0', 'pointer-events-none');
+    } else {
+      backToTop.classList.add('opacity-0', 'pointer-events-none');
+    }
+  }
 
-      const rotateY = (x - 0.5) * 12;
-      const rotateX = (0.5 - y) * 8;
-
-      heroImageTilt.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+  if (backToTop) {
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
     });
 
-    perspectiveContainer.addEventListener('mouseleave', () => {
-      heroImageTilt.style.transform = 'rotateY(-8deg) rotateX(4deg)';
-    });
+    window.addEventListener('scroll', handleBackToTopVisibility, { passive: true });
+    handleBackToTopVisibility();
   }
 
   // Re-initialize icons after dynamic content changes
   window.addEventListener('load', () => {
-    lucide.createIcons();
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   });
-})();
+});
