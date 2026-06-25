@@ -17,14 +17,14 @@ export function RunningStats({ stats }: RunningStatsProps) {
     <Card>
       <CardContent className="space-y-4">
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-[var(--status-success)]" />
+          <Zap className="w-4 h-4 text-statusSuccess" />
           <span className="text-base font-semibold text-foreground">
             阳光长跑进度
           </span>
           {stats.progressPercent >= 100 && (
             <Badge
               variant="outline"
-              className="ml-auto border-[var(--status-success)]/20 bg-[var(--status-success)]/10 text-[var(--status-success)]"
+              className="ml-auto border-statusSuccess/20 bg-statusSuccess/10 text-statusSuccess"
             >
               已达标
             </Badge>
@@ -50,9 +50,9 @@ export function RunningStats({ stats }: RunningStatsProps) {
         <div className="grid grid-cols-2 gap-3">
           <Card
             hover={false}
-            className="p-3 text-center bg-[var(--status-success)]/8 border-[var(--status-success)]/20 hover:translate-y-0 hover:shadow-sm"
+            className="p-3 text-center bg-statusSuccess/8 border-statusSuccess/20 hover:translate-y-0 hover:shadow-sm"
           >
-            <div className="text-xl font-bold text-[var(--status-success)]">
+            <div className="text-xl font-bold text-statusSuccess">
               {stats.morning}
             </div>
             <div className="text-xs mt-1 text-muted-foreground">

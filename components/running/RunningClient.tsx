@@ -28,7 +28,7 @@ export function RunningClient({ initialRecords }: RunningClientProps) {
   return (
     <div className="max-w-5xl mx-auto min-h-screen bg-background text-foreground">
       <PageHeader
-        icon={<Zap className="w-5 h-5 text-[var(--status-success)]" />}
+        icon={<Zap className="w-5 h-5 text-statusSuccess" />}
         title="阳光长跑"
         description="学期跑步进度追踪"
         actions={

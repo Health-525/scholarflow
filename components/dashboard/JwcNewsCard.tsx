@@ -10,7 +10,7 @@ import { useJwcNewsQuery } from "@/hooks/useQueries";
 
 const CATEGORY_STYLES: Record<string, { dot: string; bg: string; text: string }> = {
   "通知公告": { dot: "bg-primary", bg: "bg-primary/5", text: "text-primary" },
-  "教学动态": { dot: "bg-[var(--status-success)]", bg: "bg-[var(--status-success)]/10", text: "text-[var(--status-success)]" },
+  "教学动态": { dot: "bg-statusSuccess", bg: "bg-statusSuccess/10", text: "text-statusSuccess" },
 };
 
 export const JwcNewsCard = memo(function JwcNewsCard() {

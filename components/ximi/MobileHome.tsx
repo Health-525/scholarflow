@@ -95,7 +95,7 @@ function TodayTasks() {
                   <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${chipClass(a.subject || "")}`}>
                     {a.subject || "作业"}
                   </span>
-                  <span className={`flex items-center gap-1 text-xs font-semibold ${danger ? "text-error" : "text-on-surface-variant"}`}>
+                  <span className={`flex items-center gap-1 text-xs font-semibold ${danger ? "text-statusError" : "text-on-surface-variant"}`}>
                     <Clock className="h-3.5 w-3.5" /> {when}
                   </span>
                 </div>

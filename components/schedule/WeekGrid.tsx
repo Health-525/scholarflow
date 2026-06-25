@@ -278,7 +278,7 @@ export function WeekGrid({
                     className={
                       "text-xs font-medium " +
                       (isWeekend
-                        ? "text-[var(--status-warning)]"
+                        ? "text-statusWarning"
                         : "text-muted-foreground")
                     }
                   >
@@ -378,7 +378,7 @@ export function WeekGrid({
                     {/* Holiday banner */}
                     {holidays.length > 0 && (
                       <div className="absolute inset-x-1 top-2 z-10">
-                        <div className="rounded-lg px-2 py-1.5 text-center text-xs font-semibold bg-[var(--status-warning)]/10 text-[var(--status-warning)] border border-[var(--status-warning)]/20">
+                        <div className="rounded-lg px-2 py-1.5 text-center text-xs font-semibold bg-statusWarning/10 text-statusWarning border border-statusWarning/20">
                           {holidays[0].title}
                         </div>
                       </div>

@@ -20,17 +20,17 @@ const URGENCY_CONFIG = {
   },
   urgent: {
     label: "紧急",
-    row: "bg-[var(--status-warning)]/6 dark:bg-[var(--status-warning)]/10 border border-transparent",
-    dot: "bg-[var(--status-warning)]",
-    labelColor: "text-[var(--status-warning)]",
-    dayColor: "text-[var(--status-warning)]",
+    row: "bg-statusWarning/6 dark:bg-statusWarning/10 border border-transparent",
+    dot: "bg-statusWarning",
+    labelColor: "text-statusWarning",
+    dayColor: "text-statusWarning",
   },
   reminder: {
     label: "即将到",
-    row: "bg-[var(--status-warning)]/4 dark:bg-[var(--status-warning)]/6 border border-transparent",
-    dot: "bg-[var(--status-warning)]",
-    labelColor: "text-[var(--status-warning)]",
-    dayColor: "text-[var(--status-warning)]",
+    row: "bg-statusWarning/4 dark:bg-statusWarning/6 border border-transparent",
+    dot: "bg-statusWarning",
+    labelColor: "text-statusWarning",
+    dayColor: "text-statusWarning",
   },
   normal: {
     label: "",
@@ -55,14 +55,14 @@ export const AssignmentsCard = memo(function AssignmentsCard() {
       <CardContent>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-[var(--status-warning)]/10">
-              <ClipboardList className="w-3.5 h-3.5 text-[var(--status-warning)]" />
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-statusWarning/10">
+              <ClipboardList className="w-3.5 h-3.5 text-statusWarning" />
             </div>
             <h2 className="text-sm font-semibold font-display text-foreground">
               待办作业
             </h2>
             {mounted && !isLoading && pending.length > 0 && (
-              <Badge variant="secondary" className="text-xs h-4 px-1 bg-[var(--status-warning)]/10 text-[var(--status-warning)] hover:bg-[var(--status-warning)]/10">
+              <Badge variant="secondary" className="text-xs h-4 px-1 bg-statusWarning/10 text-statusWarning hover:bg-statusWarning/10">
                 {pending.length}
               </Badge>
             )}

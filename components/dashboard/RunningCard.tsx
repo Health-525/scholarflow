@@ -20,8 +20,8 @@ export const RunningCard = memo(function RunningCard() {
       <CardContent>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-[var(--status-success)]/10">
-              <Zap className="w-3.5 h-3.5 text-[var(--status-success)]" />
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-statusSuccess/10">
+              <Zap className="w-3.5 h-3.5 text-statusSuccess" />
             </div>
             <h2 className="text-sm font-semibold font-display text-foreground">阳光长跑</h2>
           </div>
@@ -47,14 +47,14 @@ export const RunningCard = memo(function RunningCard() {
               </span>
               <span className="text-xs text-muted-foreground">/ {RUNNING_GOAL} 次</span>
               {pct >= 100 && (
-                <Badge variant="secondary" className="text-xs h-4 px-1 gap-1 bg-[var(--status-success)]/10 text-[var(--status-success)] hover:bg-[var(--status-success)]/10 ml-1">
+                <Badge variant="secondary" className="text-xs h-4 px-1 gap-1 bg-statusSuccess/10 text-statusSuccess hover:bg-statusSuccess/10 ml-1">
                   达标 ✓
                 </Badge>
               )}
             </div>
 
             <div className="h-2.5 rounded-full overflow-hidden bg-muted border border-border/30" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`跑步进度 ${pct.toFixed(0)}%`}>
-              <div className="h-full rounded-full bg-gradient-to-r from-[var(--chart-success)] to-[var(--status-success)] transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%` }} />
+              <div className="h-full rounded-full bg-gradient-to-r from-[var(--chart-success)] to-statusSuccess transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%` }} />
             </div>
 
             <div className="flex items-center justify-between">

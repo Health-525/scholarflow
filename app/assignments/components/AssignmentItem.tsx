@@ -101,7 +101,7 @@ export function AssignmentItem({
           className={cn(
             "relative size-5 rounded-full grid place-items-center border transition-colors duration-200",
             isDone
-              ? "bg-[var(--status-success)] border-[var(--status-success)] text-white"
+              ? "bg-statusSuccess border-[var(--status-success)] text-white"
               : "border-muted-foreground/25 group-hover:border-[var(--primary)]/50"
           )}
         >

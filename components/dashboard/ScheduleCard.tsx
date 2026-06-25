@@ -73,7 +73,7 @@ export const ScheduleCard = memo(function ScheduleCard() {
             if (items.length === 0) {
               return (
                 <div className="py-4 flex items-center justify-center gap-2">
-                  <Check className="w-5 h-5 text-[var(--status-success)]" />
+                  <Check className="w-5 h-5 text-statusSuccess" />
                   <p className="text-sm text-muted-foreground">
                     今天没有课，好好休息
                   </p>

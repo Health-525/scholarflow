@@ -94,7 +94,7 @@ export function AddRunningForm({ records, onAdd, onCancel }: AddRunningFormProps
           </div>
 
           {isDuplicate && !error && (
-            <p className="text-sm text-[var(--status-warning)]">
+            <p className="text-sm text-statusWarning">
               ⚠️ 该日期已有{type === "morning" ? "晨跑" : "自由跑"}记录
             </p>
           )}

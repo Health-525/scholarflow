@@ -14,7 +14,7 @@ export function StatChip({ value, label, accent }: StatChipProps) {
       <div
         className={cn(
           "text-base font-semibold tabular-nums",
-          accent ? "text-[var(--status-success)]" : "text-foreground",
+          accent ? "text-statusSuccess" : "text-foreground",
         )}
       >
         {value}

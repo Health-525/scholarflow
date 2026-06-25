@@ -60,6 +60,10 @@ const config: Config = {
         "border-strong": "var(--border-strong)",
         ring: "var(--ring)",
         input: "var(--input)",
+        statusSuccess: "var(--status-success)",
+        statusWarning: "var(--status-warning)",
+        statusError: "var(--status-error)",
+        statusInfo: "var(--status-info)",
 
         // ── ScholarFlow paper palette ──
         accent: "var(--accent)",
@@ -117,8 +121,6 @@ const config: Config = {
         ximi: "var(--shadow-md)",
         "ximi-sm": "var(--shadow-sm)",
         "ximi-lg": "var(--shadow-lg)",
-        "ximi-input": "0 8px 30px -6px rgba(var(--ximi-glow), 0.35)",
-        "ximi-primary": "0 8px 20px -8px rgba(var(--primary-rgb), 0.5)",
       },
       animation: {
         breathe: "breathe 1.8s ease-in-out infinite",

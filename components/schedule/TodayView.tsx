@@ -99,8 +99,8 @@ export function TodayView({
           </div>
         ) : (
           <div className="text-center py-4">
-            <div className="w-12 h-12 mx-auto rounded-xl bg-[var(--status-success)]/10 flex items-center justify-center mb-3">
-              <Check className="w-6 h-6 text-[var(--status-success)]" />
+            <div className="w-12 h-12 mx-auto rounded-xl bg-statusSuccess/10 flex items-center justify-center mb-3">
+              <Check className="w-6 h-6 text-statusSuccess" />
             </div>
             <div className="font-medium text-foreground">
               今天的课程已全部结束

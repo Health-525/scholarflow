@@ -66,7 +66,7 @@ export function UserProfileCard({
                   className={cn(
                     "w-1.5 h-1.5 rounded-full p-0 border-0 shrink-0",
                     isSynced
-                      ? "bg-[var(--status-success)]"
+                      ? "bg-statusSuccess"
                       : "bg-muted-foreground/40",
                   )}
                 />

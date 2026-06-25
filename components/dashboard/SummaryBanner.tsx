@@ -140,14 +140,14 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
       {
         icon: ClipboardList,
         label: "待办作业",
-        colorClass: "text-[var(--status-warning)]",
-        iconBgClass: "bg-[var(--status-warning)]/10",
+        colorClass: "text-statusWarning",
+        iconBgClass: "bg-statusWarning/10",
       },
       {
         icon: Activity,
         label: "跑步",
-        colorClass: "text-[var(--status-success)]",
-        iconBgClass: "bg-[var(--status-success)]/10",
+        colorClass: "text-statusSuccess",
+        iconBgClass: "bg-statusSuccess/10",
       },
       {
         icon: Calculator,
@@ -210,28 +210,28 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
       value: overview.pendingAssignments,
       colorClass: urgentAssign
         ? "text-destructive"
-        : "text-[var(--status-warning)]",
+        : "text-statusWarning",
       iconBgClass: urgentAssign
         ? "bg-destructive/10"
-        : "bg-[var(--status-warning)]/10",
+        : "bg-statusWarning/10",
       badge: urgentAssign ? `${overview.urgentAssignments}紧急` : undefined,
       badgeClass: urgentAssign
         ? "bg-destructive/10 text-destructive"
-        : "bg-[var(--status-warning)]/10 text-[var(--status-warning)]",
+        : "bg-statusWarning/10 text-statusWarning",
     },
     {
       icon: Activity,
       label: "阳光长跑",
       value: overview.running?.total ?? 0,
       colorClass: runningDone
-        ? "text-[var(--status-success)]"
-        : "text-[var(--status-warning)]",
+        ? "text-statusSuccess"
+        : "text-statusWarning",
       iconBgClass: runningDone
-        ? "bg-[var(--status-success)]/10"
-        : "bg-[var(--status-warning)]/10",
+        ? "bg-statusSuccess/10"
+        : "bg-statusWarning/10",
       badge: runningDone ? "已达标" : undefined,
       badgeClass: runningDone
-        ? "bg-[var(--status-success)]/10 text-[var(--status-success)]"
+        ? "bg-statusSuccess/10 text-statusSuccess"
         : "",
     },
   ];

@@ -506,9 +506,9 @@ export default function SetupPage() {
               {/* Success header */}
               <div className="text-center space-y-2">
                 <div className="relative mx-auto w-12 h-12">
-                  <div className="absolute inset-0 rounded-2xl bg-[var(--status-success)]/10 blur-xl" aria-hidden="true" />
+                  <div className="absolute inset-0 rounded-2xl bg-statusSuccess/10 blur-xl" aria-hidden="true" />
                   <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-card/75 backdrop-blur-xl shadow-sm">
-                    <CheckCircle2 className="w-5 h-5 text-[var(--status-success)]" strokeWidth={1.5} />
+                    <CheckCircle2 className="w-5 h-5 text-statusSuccess" strokeWidth={1.5} />
                   </div>
                 </div>
                 <h1 className="text-2xl font-bold font-display text-foreground tracking-tight">
@@ -526,14 +526,14 @@ export default function SetupPage() {
                     key={s.key}
                     className={cn(
                       "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all",
-                      s.status === "done" && "bg-[rgba(var(--status-success-rgb),0.1)] border border-[var(--status-success)]/15",
+                      s.status === "done" && "bg-statusSuccess/10 border border-statusSuccess/15",
                       s.status === "loading" && "bg-secondary/50 border border-border/40",
                       s.status === "error" && "bg-[var(--callout-danger-bg)] border border-destructive/15",
                       s.status === "pending" && "bg-secondary/30 border border-border/30"
                     )}
                   >
                     {/* Status icon */}
-                    {s.status === "done" && <CheckCircle2 className="w-4 h-4 text-[var(--status-success)] shrink-0" />}
+                    {s.status === "done" && <CheckCircle2 className="w-4 h-4 text-statusSuccess shrink-0" />}
                     {s.status === "loading" && <Loader2 className="w-4 h-4 text-primary animate-spin shrink-0" />}
                     {s.status === "error" && <XCircle className="w-4 h-4 text-destructive shrink-0" />}
                     {s.status === "pending" && <div className="w-4 h-4 rounded-full bg-muted-foreground/20 shrink-0" />}

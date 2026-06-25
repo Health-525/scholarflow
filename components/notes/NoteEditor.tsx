@@ -141,7 +141,7 @@ export function NoteEditor({ content, onSave, onCancel, onChange }: NoteEditorPr
         <div className="flex-1" />
 
         {dirty && (
-          <span className="text-xs mr-2 text-[var(--status-warning)]">未保存</span>
+          <span className="text-xs mr-2 text-statusWarning">未保存</span>
         )}
 
         {onCancel && (
