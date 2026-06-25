@@ -2,6 +2,7 @@
 
 import {
   BookOpen,
+  ChevronDown,
   Code,
   Download,
   Eye,
@@ -31,6 +32,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/input";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import {
   clearActivityData,
   downloadActivityCSV,
@@ -171,6 +173,7 @@ export default function ActivityPage() {
   const state = useScreenTime(date);
   const { settings, update, togglePaused, loading: settingsLoading } = useActivitySettings();
   const trendDays = useActivityTrend();
+  const reducedMotion = usePrefersReducedMotion();
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [excludedInput, setExcludedInput] = useState("");
   const [overridePattern, setOverridePattern] = useState("");
@@ -307,7 +310,9 @@ export default function ActivityPage() {
                   </Badge>
                   {state.currentApp && (
                     <span className="relative flex size-1.5">
-                      <span className={cn("absolute inline-flex size-full animate-ping rounded-full opacity-75", isPaused ? "bg-muted-foreground" : "bg-statusSuccess")} />
+                      {!reducedMotion && (
+                        <span className={cn("absolute inline-flex size-full animate-ping rounded-full opacity-75", isPaused ? "bg-muted-foreground" : "bg-statusSuccess")} />
+                      )}
                       <span className={cn("relative inline-flex size-1.5 rounded-full", isPaused ? "bg-muted-foreground" : "bg-statusSuccess")} />
                     </span>
                   )}
@@ -410,24 +415,27 @@ export default function ActivityPage() {
                           {b.app}
                         </span>
                         {isUncategorized ? (
-                          <select
-                            value=""
-                            onChange={(e) => {
-                              const value = e.target.value as Category;
-                              if (value) handleCategorizeApp(b.app, value);
-                            }}
-                            disabled={settingsLoading || !settings}
-                            className="h-5 text-xs rounded border border-input bg-background px-1 py-0"
-                          >
-                            <option value="">未分类</option>
-                            {Object.entries(CATEGORY_LABELS)
-                              .filter(([key]) => key !== "other")
-                              .map(([key, label]) => (
-                                <option key={key} value={key}>
-                                  归为 {label}
-                                </option>
-                              ))}
-                          </select>
+                          <div className="relative">
+                            <select
+                              value=""
+                              onChange={(e) => {
+                                const value = e.target.value as Category;
+                                if (value) handleCategorizeApp(b.app, value);
+                              }}
+                              disabled={settingsLoading || !settings}
+                              className="h-5 appearance-none rounded border border-input bg-background pl-1.5 pr-4 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            >
+                              <option value="">未分类</option>
+                              {Object.entries(CATEGORY_LABELS)
+                                .filter(([key]) => key !== "other")
+                                .map(([key, label]) => (
+                                  <option key={key} value={key}>
+                                    归为 {label}
+                                  </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="pointer-events-none absolute right-0.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground" />
+                          </div>
                         ) : (
                           <Badge variant="secondary" className={cn("h-4 px-1.5 text-xs", cls.bg, cls.text)}>
                             {CATEGORY_LABELS[category]}
@@ -569,18 +577,21 @@ export default function ActivityPage() {
                   disabled={settingsLoading || !settings}
                   className="h-9 text-sm sm:w-40"
                 />
-                <select
-                  value={overrideCategory}
-                  onChange={(e) => setOverrideCategory(e.target.value as Category)}
-                  disabled={settingsLoading || !settings}
-                  className="h-9 text-sm rounded-md border border-input bg-background px-2"
-                >
-                  {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={overrideCategory}
+                    onChange={(e) => setOverrideCategory(e.target.value as Category)}
+                    disabled={settingsLoading || !settings}
+                    className="h-9 w-full appearance-none rounded-md border border-input bg-background px-2 pr-7 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+                      <option key={key} value={key}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                </div>
                 <Button
                   type="button"
                   size="sm"
@@ -632,7 +643,7 @@ export default function ActivityPage() {
           <Download className="size-4" />
           导出 CSV
         </Button>
-        <Button variant="destructive" className="h-9 gap-2" onClick={() => setClearDialogOpen(true)}>
+        <Button variant="ghost" className="h-9 gap-2 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setClearDialogOpen(true)}>
           <Trash2 className="size-4" />
           清除数据
         </Button>
