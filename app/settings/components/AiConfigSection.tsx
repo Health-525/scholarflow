@@ -5,9 +5,15 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { SettingsSection } from "@/components/ui/settings-section";
 import { showToast } from "@/components/ui/ToastContainer";
 import { DEEPSEEK_MODELS, DEFAULT_DEEPSEEK_MODEL } from "@/lib/chat/server-llm";
+
+const MODEL_DESCRIPTIONS: Record<string, string> = {
+  "deepseek-v4-pro": "能力最强，适合复杂推理、代码与深度分析",
+  "deepseek-v4-flash": "响应更快、性价比高，适合日常对话与轻度任务",
+};
 
 export function AiConfigSection() {
   const [apiKey, setApiKey] = useState("");
@@ -94,24 +100,17 @@ export function AiConfigSection() {
           <p className="text-xs text-muted-foreground">留空并保存可清除已保存的 Key。</p>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <span className="text-xs font-medium text-muted-foreground">模型选择</span>
-          <div className="flex flex-wrap gap-2">
-            {DEEPSEEK_MODELS.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => setModel(m.id)}
-                className={`rounded-lg px-3 py-2 text-xs font-medium transition-colors text-left ${
-                  model === m.id
-                    ? "bg-primary/10 text-primary"
-                    : "bg-secondary/60 hover:bg-secondary text-foreground"
-                }`}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            options={DEEPSEEK_MODELS.map((m) => ({ id: m.id, label: m.label }))}
+            value={model}
+            onChange={(id) => setModel(id)}
+            aria-label="选择 DeepSeek 模型"
+          />
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {MODEL_DESCRIPTIONS[model]}
+          </p>
         </div>
 
         <Button
