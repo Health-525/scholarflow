@@ -133,11 +133,11 @@ export function TimelineBar({ segments, dateStr }: TimelineBarProps) {
         )}
 
         {/* 片段块 */}
-        {items.map((item, idx) => {
+        {items.map((item) => {
           const top = item.lane * (LANE_HEIGHT + LANE_GAP) + 4;
           return (
             <div
-              key={idx}
+              key={`${item.segment.beginAt}-${item.segment.endAt ?? item.segment.beginAt}-${item.segment.app}-${item.segment.type}`}
               className={cn(
                 "absolute rounded-sm cursor-pointer transition-opacity hover:opacity-100",
                 item.segment.type === "app" ? "opacity-90" : "opacity-50"

@@ -271,7 +271,7 @@ export function WeekGrid({
               const isWeekend = idx >= 5;
               return (
                 <div
-                  key={idx}
+                  key={day.toISOString()}
                   className="flex flex-col items-center justify-center"
                 >
                   <div
@@ -455,11 +455,11 @@ export function WeekGrid({
                 <div className="flex-1 h-px bg-border" />
               </div>
               {weekInfo.days.map((day, dayIdx) =>
-                dayData[dayIdx].specials.map((item, i) => {
+                dayData[dayIdx].specials.map((item) => {
                   const colors = courseColor(item.title);
                   return (
                     <Button
-                      key={"sp-" + dayIdx + "-" + i}
+                      key={`sp-${dayIdx}-${item.title}-${item.timeText}`}
                       variant="secondary"
                       onClick={() => handleCourseClick(item, day)}
                       className="w-full h-auto rounded-lg px-3 py-2 text-left transition-all active:scale-95 flex items-center gap-2 justify-start whitespace-normal"

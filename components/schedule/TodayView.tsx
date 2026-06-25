@@ -119,11 +119,14 @@ export function TodayView({
             description="享受自由时光"
           />
         ) : (
-          items.map((item, idx) => {
+          items.map((item) => {
             const colors = courseColor(item.title);
+            const itemKey = item.kind === "course"
+              ? `course-${item.title}-${item.weekday}-${item.periods.join("-")}`
+              : `${item.kind}-${item.title}-${item.timeText}`;
             return (
               <Button
-                key={idx}
+                key={itemKey}
                 variant="secondary"
                 onClick={() => setSelectedItem(item)}
                 className="w-full h-auto text-left rounded-xl p-4 transition-colors duration-150 active:scale-95 items-start justify-start whitespace-normal"

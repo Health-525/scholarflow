@@ -149,9 +149,9 @@ function TodayPane({
         </div>
       ) : (
         <div className="flex flex-col gap-2.5">
-          {items.map((item, idx) => (
+          {items.map((item) => (
             <button
-              key={idx}
+              key={item.kind === "course" ? `course-${item.title}-${item.weekday}-${item.periods.join("-")}` : `${item.kind}-${item.title}-${item.timeText}`}
               type="button"
               onClick={() => setSelected(item)}
               className={`flex items-center gap-3 rounded-3xl border px-4 py-3.5 text-left transition active:scale-95 ${cuteOf(item.title)}`}

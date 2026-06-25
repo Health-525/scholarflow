@@ -55,10 +55,10 @@ export const JwcNewsCard = memo(function JwcNewsCard() {
             <p className="text-[12.5px] py-3 text-muted-foreground">暂无通知</p>
           ) : (
             <div className="divide-y divide-border">
-              {items.map((item: { title: string; url: string; date: string; category: string }, idx: number) => {
+              {items.map((item: { title: string; url: string; date: string; category: string }) => {
                 const style = CATEGORY_STYLES[item.category] || { dot: "bg-muted-foreground", bg: "bg-secondary", text: "text-muted-foreground" };
                 return (
-                  <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-2.5 py-2.5 group transition-colors">
+                  <a key={item.url} href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-2.5 py-2.5 group transition-colors">
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 transition-transform duration-200 group-hover:scale-150 ${style.dot}`} />
                     <div className="flex-1 min-w-0">
                       <span className="text-[12.5px] line-clamp-1 transition-colors group-hover:text-primary text-foreground">{item.title}</span>
