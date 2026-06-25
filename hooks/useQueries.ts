@@ -336,7 +336,7 @@ export function useAssignmentsQuery() {
 }
 
 // ── Running Hook ───────────────────────────────────────────
-export function useRunningQuery() {
+export function useRunningQuery(initialData?: RunRecord[]) {
   const queryClient = useQueryClient();
   const schoolId = useAuthStore((s) => s.schoolId);
   const userId = useAuthStore((s) => s.userId);
@@ -351,7 +351,8 @@ export function useRunningQuery() {
       if (localRecords && localRecords.length > 0) return localRecords;
       return [];
     },
-    enabled: hasHydrated,
+    enabled: hasHydrated && initialData === undefined,
+    initialData,
     staleTime: 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: 1,
