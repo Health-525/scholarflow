@@ -8,14 +8,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { useJwcNewsQuery } from "@/hooks/useQueries";
 
-const CATEGORY_STYLES: Record<string, { dot: string; bg: string; text: string }> = {
-  "通知公告": { dot: "bg-primary", bg: "bg-primary/5", text: "text-primary" },
-  "教学动态": { dot: "bg-statusSuccess", bg: "bg-statusSuccess/10", text: "text-statusSuccess" },
+const CATEGORY_STYLES: Record<string, { dot: string; text: string }> = {
+  "通知公告": { dot: "bg-primary", text: "text-primary" },
+  "教学动态": { dot: "bg-statusSuccess", text: "text-statusSuccess" },
 };
 
 export const JwcNewsCard = memo(function JwcNewsCard() {
   const { data, isLoading, error, refetch } = useJwcNewsQuery();
-  const items = (data?.items ?? []).slice(0, 8);
+  const items = (data?.items ?? []).slice(0, 6);
   const fetchedAt = data?.fetchedAt ?? "";
   const fetchError = error as Error | null;
 
@@ -24,14 +24,14 @@ export const JwcNewsCard = memo(function JwcNewsCard() {
     : "";
 
   return (
-    <Card>
-      <CardContent>
+    <Card className="h-full">
+      <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">
-              <Newspaper className="w-3.5 h-3.5 text-primary" />
+            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10">
+              <Newspaper className="size-4 text-primary" />
             </div>
-            <h2 className="text-sm font-semibold font-display text-foreground">教务通知</h2>
+            <h2 className="text-sm font-semibold text-foreground">教务通知</h2>
           </div>
           {fetchedLabel && (
             <span className="text-xs text-muted-foreground">{fetchedLabel}</span>
@@ -56,7 +56,7 @@ export const JwcNewsCard = memo(function JwcNewsCard() {
           ) : (
             <div className="divide-y divide-border">
               {items.map((item: { title: string; url: string; date: string; category: string }) => {
-                const style = CATEGORY_STYLES[item.category] || { dot: "bg-muted-foreground", bg: "bg-secondary", text: "text-muted-foreground" };
+                const style = CATEGORY_STYLES[item.category] || { dot: "bg-muted-foreground", text: "text-muted-foreground" };
                 return (
                   <a key={item.url} href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-2.5 py-2.5 group transition-colors">
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 transition-transform duration-200 group-hover:scale-150 ${style.dot}`} />
@@ -64,12 +64,11 @@ export const JwcNewsCard = memo(function JwcNewsCard() {
                       <span className="text-sm line-clamp-1 transition-colors group-hover:text-primary text-foreground">{item.title}</span>
                       <div className="flex items-center gap-2 mt-0.5">
                         {item.date && <span className="text-xs tabular-nums text-muted-foreground">{item.date}</span>}
-                        <Badge variant="outline" className={`text-xs h-4 px-1 border-transparent ${style.bg} ${style.text}`}>
+                        <Badge variant="secondary" className={`text-xs h-4 px-1 border-transparent ${style.text} bg-transparent`}>
                           {item.category}
                         </Badge>
                       </div>
                     </div>
-                    <span className="text-xs opacity-0 shrink-0 mt-1 text-primary">↗</span>
                   </a>
                 );
               })}

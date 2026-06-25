@@ -22,7 +22,6 @@ const MobileHome = lazy(() =>
 function useGreeting() {
   const [greeting, setGreeting] = useState({
     text: "你好",
-    emoji: "👋",
     date: "",
   });
 
@@ -46,21 +45,6 @@ function useGreeting() {
                     ? "晚上好"
                     : "夜深了";
 
-      const emoji =
-        hour < 6
-          ? "🌙"
-          : hour < 9
-            ? "☀️"
-            : hour < 12
-              ? "🌤️"
-              : hour < 14
-                ? "🍜"
-                : hour < 18
-                  ? "⚡"
-                  : hour < 22
-                    ? "🌃"
-                    : "🌙";
-
       const date = now.toLocaleDateString("zh-CN", {
         month: "long",
         day: "numeric",
@@ -68,10 +52,10 @@ function useGreeting() {
       });
 
       setGreeting((prev) => {
-        if (prev.text === text && prev.emoji === emoji && prev.date === date) {
+        if (prev.text === text && prev.date === date) {
           return prev;
         }
-        return { text, emoji, date };
+        return { text, date };
       });
     };
 
@@ -85,7 +69,7 @@ function useGreeting() {
 
 export default function DashboardPage() {
   const isMobile = useIsMobile();
-  const { text: greeting, emoji: greetingEmoji, date: dateStr } = useGreeting();
+  const { text: greeting, date: dateStr } = useGreeting();
   const { data: dashboardData, loading: dashboardLoading } =
     useDashboardSummary();
 
@@ -100,58 +84,37 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-5 pb-24 md:pb-10 space-y-6">
-      {/* Hero + Quick Actions — unified header */}
-      <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--hero-from)] to-[var(--hero-to)] border border-border shadow-sm">
-        <div className="relative px-6 pt-4 pb-2">
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0" suppressHydrationWarning>
-              <h1 className="text-3xl font-bold leading-tight font-display text-foreground tracking-tight">
-                {greeting}
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                {dateStr} · 新的一天，从计划开始
-              </p>
-            </div>
-
-            <div
-              className="relative shrink-0 flex items-center gap-3"
-              suppressHydrationWarning
-            >
-              <RefreshButton />
-              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-card/80 text-3xl backdrop-blur-xl shadow-sm dark:bg-secondary/80">
-                {greetingEmoji}
-              </div>
-            </div>
-          </div>
+    <div className="max-w-5xl mx-auto py-5 pb-24 md:pb-10 space-y-5">
+      {/* Header */}
+      <header className="flex items-center justify-between gap-4">
+        <div suppressHydrationWarning>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            {greeting}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {dateStr}
+          </p>
         </div>
-
-        {/* Quick Actions inside Hero */}
-        <div className="relative px-6 pb-4 animate-fade-up stagger-1">
-          <QuickActions />
-        </div>
+        <RefreshButton />
       </header>
 
-      {/* Dashboard Sections */}
-      <section className="space-y-4 animate-fade-up stagger-2">
-        <div className="space-y-2.5">
-          <SummaryBanner data={dashboardData} loading={dashboardLoading} />
-        </div>
+      <QuickActions />
 
-        <div className="space-y-2.5">
+      {/* Academic section */}
+      <section className="space-y-4">
+        <SummaryBanner data={dashboardData} loading={dashboardLoading} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <ScheduleCard />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <AssignmentsCard />
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <ScreenTimeCard />
-          <ExamCountdownCard />
-          <RecentDailyCard />
-        </div>
-
+      {/* Other widgets */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ExamCountdownCard />
+        <ScreenTimeCard />
+        <RecentDailyCard />
         <JwcNewsCard />
       </section>
     </div>

@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/lib/utils";
 
 interface StatChipProps {
@@ -10,7 +8,7 @@ interface StatChipProps {
 
 export function StatChip({ value, label, accent }: StatChipProps) {
   return (
-    <div className="rounded-xl p-2.5 text-center bg-secondary/60">
+    <div className="rounded-lg p-2.5 text-center bg-secondary/60">
       <div
         className={cn(
           "text-base font-semibold tabular-nums",

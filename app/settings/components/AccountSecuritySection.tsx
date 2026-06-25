@@ -16,19 +16,19 @@ export function AccountSecuritySection({
 }: AccountSecuritySectionProps) {
   return (
     <SettingsSection
-      icon={<KeyRound className="w-4 h-4" />}
+      icon={<KeyRound className="size-4" />}
       title="账户安全"
     >
       <p className="text-xs mb-3 text-muted-foreground">
         清除本地加密存储的教务密码，并停止后台自动刷新
       </p>
       <Button
-        variant="destructive"
+        variant="outline"
         onClick={onClearPassword}
         disabled={clearingPassword}
-        className="w-full justify-start gap-3 px-4 py-3 h-auto rounded-xl text-left text-sm font-medium active:translate-y-0.5 disabled:opacity-60"
+        className="w-full justify-start gap-3 px-3 py-2.5 h-auto text-left text-sm font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
       >
-        <KeyRound className="w-4 h-4 shrink-0" />
+        <KeyRound className="size-4 shrink-0" />
         <span>{clearingPassword ? "清除中..." : "清除已记住的密码"}</span>
       </Button>
     </SettingsSection>

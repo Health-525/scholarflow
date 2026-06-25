@@ -5,7 +5,7 @@ import { Clock } from "lucide-react";
 import Link from "next/link";
 import { memo } from "react";
 
-import { cardClasses } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { queryKeys } from "@/hooks/useQueries";
 import { parseExamDate } from "@/lib/parse-exam-date";
 import { cn } from "@/lib/utils";
@@ -117,49 +117,45 @@ export const ExamCountdownCard = memo(function ExamCountdownCard() {
       3 * 86400000;
 
   return (
-    <Link
-      href="/exams"
-      className={cn(cardClasses, "h-full")}
-      aria-label="考试倒计时"
-    >
-      <div className="flex flex-col h-full p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <div
-            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-transform duration-200 group-hover:scale-110 ${urgent ? "bg-destructive/10" : "bg-primary/10"}`}
-          >
-            <Clock className={`w-3.5 h-3.5 ${urgent ? "text-destructive" : "text-primary"}`} />
-          </div>
-          <span className="text-xs font-semibold text-foreground font-display">
-            考试倒计时
-          </span>
-        </div>
-        {isLoading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="skeleton h-12 w-24 rounded-xl" />
-          </div>
-        ) : nextExam ? (
-          <div className="flex-1 flex flex-col items-center justify-center relative">
+    <Link href="/exams" aria-label="考试倒计时">
+      <Card className="h-full transition-colors hover:bg-muted/30">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 mb-3">
             <div
-              className={`absolute -right-2 -bottom-2 w-16 h-16 rounded-full opacity-[0.06] pointer-events-none group-hover:opacity-[0.12] transition-opacity duration-300 ${urgent ? "bg-destructive" : "bg-primary"}`}
-            />
-            <div
-              className={`text-3xl font-bold tabular-nums  ${urgent ? "text-destructive" : "text-primary"}`}
+              className={cn(
+                "flex size-7 items-center justify-center rounded-lg",
+                urgent ? "bg-destructive/10" : "bg-primary/10"
+              )}
             >
-              {countdown}
+              <Clock className={cn("size-4", urgent ? "text-destructive" : "text-primary")} />
             </div>
-            <div className="text-xs font-medium truncate text-foreground mt-1">
-              {nextExam.subject}
-            </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
-              {nextExam.date}
-            </div>
+            <h2 className="text-sm font-semibold text-foreground">考试倒计时</h2>
           </div>
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <span className="text-xs text-muted-foreground">暂无考试</span>
-          </div>
-        )}
-      </div>
+
+          {isLoading ? (
+            <div className="skeleton h-10 w-24 rounded" />
+          ) : nextExam ? (
+            <div className="space-y-1">
+              <div
+                className={cn(
+                  "text-3xl font-bold tabular-nums leading-none",
+                  urgent ? "text-destructive" : "text-foreground"
+                )}
+              >
+                {countdown}
+              </div>
+              <div className="text-sm font-medium text-foreground truncate">
+                {nextExam.subject}
+              </div>
+              <div className="text-xs text-muted-foreground">{nextExam.date}</div>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">暂无考试</p>
+          )}
+        </CardContent>
+      </Card>
     </Link>
   );
 });
+
+export default ExamCountdownCard;

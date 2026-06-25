@@ -18,7 +18,7 @@ export function ThemeSection({ theme, onChange }: ThemeSectionProps) {
   const isMobile = useIsMobile();
 
   return (
-    <SettingsSection icon={<Sun className="w-4 h-4" />} title="外观">
+    <SettingsSection icon={<Sun className="size-4" />} title="外观">
       <SegmentedControl
         options={THEME_OPTIONS.map((opt) => ({
           id: opt.value,

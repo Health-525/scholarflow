@@ -5,34 +5,27 @@ import { Info } from "lucide-react";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { APP_VERSION } from "@/lib/version";
 
 export function AboutCard() {
   return (
-    <Card className="mb-4 hover:translate-y-0 hover:shadow-sm">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Info className="w-4 h-4 text-primary" />
-          <CardTitle className="text-sm font-semibold">关于</CardTitle>
+    <Card className="mb-4">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Info className="size-4 text-primary" />
+            <span className="text-sm font-semibold text-foreground">关于 ScholarFlow</span>
+          </div>
+          <span className="text-xs text-muted-foreground">v{APP_VERSION}</span>
         </div>
-      </CardHeader>
-      <CardContent className="text-center">
-        <div className="text-sm font-semibold mb-1 text-primary font-display">
-          ScholarFlow
-        </div>
-        <div className="text-xs text-muted-foreground">
-          v{APP_VERSION}
-        </div>
-        <div className="mt-3 text-xs text-muted-foreground">
+        <p className="mt-2 text-xs text-muted-foreground">
           按{" "}
           <kbd className="px-1 py-0.5 rounded text-xs font-mono bg-secondary border border-border">
             ?
           </kbd>{" "}
           查看快捷键
-        </div>
+        </p>
       </CardContent>
     </Card>
   );

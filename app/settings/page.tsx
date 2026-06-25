@@ -217,10 +217,10 @@ export default function SettingsPage() {
   const isSynced = !!studentInfo?.studentId || !!schoolId;
 
   return (
-    <div className="pb-20 md:pb-0 max-w-lg mx-auto">
+    <div className="pb-20 md:pb-0 max-w-2xl mx-auto">
       <PageHeader
         icon={<User className="w-5 h-5 text-primary" />}
-        title="用户中心"
+        title="设置"
       />
 
       <UserProfileCard

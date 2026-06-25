@@ -5,9 +5,8 @@ import Link from "next/link";
 import { useEffect, useState, memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { cardClasses } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useScreenTime } from "@/lib/activity-tracker-v3";
-import { cn } from "@/lib/utils";
 
 export const ScreenTimeCard = memo(function ScreenTimeCard() {
   const state = useScreenTime();
@@ -17,23 +16,34 @@ export const ScreenTimeCard = memo(function ScreenTimeCard() {
     setMounted(true);
   }, []);
 
+  const hours = Math.floor(state.totalMinutes / 60);
+  const minutes = state.totalMinutes % 60;
+
   return (
-    <Link href="/activity" className={cn(cardClasses, "h-full")}>
-      <div className="flex flex-col h-full p-4 justify-center text-center relative">
-        <div className="absolute -right-2 -bottom-2 w-16 h-16 rounded-full opacity-[0.04] dark:opacity-[0.07] pointer-events-none group-hover:opacity-[0.08] dark:group-hover:opacity-[0.13] transition-opacity duration-300 bg-primary" />
-        <div className="relative">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <Monitor className="w-4 h-4 text-primary" />
-            <span className="text-xs font-semibold text-muted-foreground">屏幕时间</span>
+    <Link href="/activity">
+      <Card className="h-full transition-colors hover:bg-muted/30">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10">
+              <Monitor className="size-4 text-primary" />
+            </div>
+            <h2 className="text-sm font-semibold text-foreground">屏幕时间</h2>
           </div>
-          <div className="text-3xl font-bold tabular-nums  text-foreground leading-none">
-            {state.totalMinutes}<span className="text-sm font-medium text-muted-foreground"> min</span>
+
+          <div className="text-3xl font-bold tabular-nums text-foreground leading-none">
+            {hours > 0 ? `${hours}h ` : ""}
+            {minutes}<span className="text-sm font-medium text-muted-foreground">m</span>
           </div>
 
           {state.categoryBreakdown.length > 0 && (
-            <div className="flex items-center justify-center flex-wrap gap-1.5 mt-2.5">
-              {state.categoryBreakdown.slice(0, 3).map(c => (
-                <Badge key={c.category} variant="outline" className="text-xs h-4 px-1 gap-1 border-transparent" style={{ backgroundColor: c.color, color: "white" }}>
+            <div className="flex flex-wrap items-center gap-1.5 mt-3">
+              {state.categoryBreakdown.slice(0, 3).map((c) => (
+                <Badge
+                  key={c.category}
+                  variant="secondary"
+                  className="text-xs h-5 px-1.5"
+                  style={{ backgroundColor: c.color, color: "white" }}
+                >
                   {c.minutes}分
                 </Badge>
               ))}
@@ -41,12 +51,12 @@ export const ScreenTimeCard = memo(function ScreenTimeCard() {
           )}
 
           {mounted && !state.isElectron && state.categoryBreakdown.length === 0 && (
-            <div className="mt-2 text-xs text-muted-foreground">
-              桌面版可用
-            </div>
+            <p className="mt-2 text-xs text-muted-foreground">桌面版可用</p>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </Link>
   );
 });
+
+export default ScreenTimeCard;
