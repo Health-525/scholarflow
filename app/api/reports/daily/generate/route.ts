@@ -28,7 +28,7 @@ import {
   getNowInTimeZone,
 } from "@/lib/schedule/timezone";
 import { getServerDB } from "@/lib/server-db";
-import type { Assignment, RunRecord } from "@/types";
+import type { Assignment } from "@/types";
 import type { Exam } from "@/types/exam";
 
 function parseLocalDate(dateStr: string): Date {
@@ -152,7 +152,7 @@ function computePomodoro(sessionsRaw: unknown, date: string): PomodoroSummary | 
 /**
  * POST /api/reports/daily/generate?schoolId=...&userId=...
  *
- * 根据当前登录账号的某日课表、作业、考试、目标、跑步等数据生成日报。
+ * 根据当前登录账号的某日课表、作业、考试、目标等数据生成日报。
  * - 默认优先使用 DeepSeek AI 生成（需先在设置中配置 API Key）。
  * - 未配置 Key 或 AI 调用失败时自动降级为本地模板。
  * 生成结果写入 `dailyReport:<prefix>:<date>`。
@@ -240,10 +240,6 @@ export async function POST(request: Request) {
       goalsState && goalsState.date === date ? goalsState.goals : [];
     const goalStreak = goalsState?.streak ?? 0;
 
-    // 跑步：当天的记录
-    const runningRaw = db.readData(`running:${prefix}`) as { records?: RunRecord[] } | null;
-    const runningRecords = (runningRaw?.records ?? []).filter((r) => r.date === date);
-
     // 教务处公告：全校共享，按 schoolId 区分；取最近 5 条
     const jwcNews = ((db.readData(`jwc-news:${schoolId}`) || []) as JwcNewsItem[]).slice(0, 5);
 
@@ -270,7 +266,6 @@ export async function POST(request: Request) {
           exams,
           goals,
           goalStreak,
-          runningRecords,
           jwcNews,
           screenTime,
           pomodoro,
@@ -291,7 +286,6 @@ export async function POST(request: Request) {
           exams,
           goals,
           goalStreak,
-          runningRecords,
           jwcNews,
           screenTime,
           pomodoro,
@@ -310,7 +304,6 @@ export async function POST(request: Request) {
         exams,
         goals,
         goalStreak,
-        runningRecords,
         jwcNews,
         screenTime,
         pomodoro,

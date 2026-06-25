@@ -49,7 +49,6 @@ test.describe('页面导航', () => {
     { path: '/schedule', name: '课表' },
     { path: '/assignments', name: '作业' },
     { path: '/notes', name: '笔记' },
-    { path: '/running', name: '跑步' },
     { path: '/reports', name: '日报' },
     { path: '/settings', name: '设置' },
   ];

@@ -17,7 +17,7 @@ import {
 import { parseSchedule } from "@/lib/schedule/schedule";
 import type { RawScheduleData } from "@/lib/schedule/schedule";
 import { useAuthStore } from "@/store/auth";
-import type { Assignment, AssignmentDraft, RunRecord, RunType } from "@/types";
+import type { Assignment, AssignmentDraft } from "@/types";
 
 // ============================================================
 // TanStack Query 数据层 v3 — SQLite 本地优先架构
@@ -34,7 +34,6 @@ export const queryKeys = {
   schedule: (schoolId?: string | null, userId?: string | null) => ["schedule", schoolId ?? "active", userId ?? "active"] as const,
   scheduleAdjustments: (schoolId?: string | null, userId?: string | null) => ["schedule-adjustments", schoolId ?? "active", userId ?? "active"] as const,
   assignments: (schoolId?: string | null, userId?: string | null) => ["assignments", schoolId ?? "active", userId ?? "active"] as const,
-  running: (schoolId?: string | null, userId?: string | null) => ["running", schoolId ?? "active", userId ?? "active"] as const,
   jwcNews: ["jwcNews"] as const,
   exams: (schoolId?: string | null, userId?: string | null) => ["exams", schoolId ?? "active", userId ?? "active"] as const,
 } as const;
@@ -73,14 +72,6 @@ function parseLocalAssignments(local: unknown): Assignment[] | null {
     raw = (local as { assignments: unknown[] }).assignments;
   if (!raw) return null;
   return raw.map(a => normalizeAssignment(a as Record<string, unknown>));
-}
-
-/** 解析本地跑步数据，兼容 { records: [...] } 和 [...] 格式 */
-function parseLocalRecords(local: unknown): RunRecord[] | null {
-  if (local && typeof local === "object" && Array.isArray((local as Record<string, unknown>).records))
-    return (local as { records: RunRecord[] }).records;
-  if (Array.isArray(local)) return local as RunRecord[];
-  return null;
 }
 
 // ── Schedule Hook ──────────────────────────────────────────
@@ -336,60 +327,6 @@ export function useAssignmentsQuery() {
   };
 }
 
-// ── Running Hook ───────────────────────────────────────────
-export function useRunningQuery(initialData?: RunRecord[]) {
-  const queryClient = useQueryClient();
-  const schoolId = useAuthStore((s) => s.schoolId);
-  const userId = useAuthStore((s) => s.userId);
-  const hasHydrated = useAuthStore((s) => s._hasHydrated);
-  const runningKey = queryKeys.running(schoolId, userId);
-
-  const query = useQuery({
-    queryKey: runningKey,
-    queryFn: async () => {
-      const local = await tryLocalApi("running");
-      const localRecords = parseLocalRecords(local);
-      if (localRecords && localRecords.length > 0) return localRecords;
-      return [];
-    },
-    enabled: hasHydrated && initialData === undefined,
-    initialData,
-    staleTime: 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-    retry: 1,
-  });
-
-  const getCurrentRecords = async (): Promise<RunRecord[]> => {
-    const cached = queryClient.getQueryData<RunRecord[]>(runningKey);
-    if (cached !== undefined) return cached;
-    const local = await tryLocalApi("running");
-    return parseLocalRecords(local) ?? [];
-  };
-
-  const addMutation = useMutation({
-    mutationFn: async (record: { date: string; type: RunType }) => {
-      const current = await getCurrentRecords();
-      const newRecord: RunRecord = { ...record, createdAt: new Date().toISOString() };
-      const updated = [...current, newRecord];
-      const content = JSON.stringify({ records: updated }, null, 2);
-      await saveLocally("data/running.json", content, "记录跑步");
-      return updated;
-    },
-    onSuccess: (updated) => {
-      queryClient.setQueryData(runningKey, updated);
-    },
-  });
-
-  return {
-    records: query.data ?? [],
-    isLoading: query.isLoading,
-    error: query.error as Error | null,
-    reload: () => query.refetch(),
-    addRecord: addMutation.mutateAsync,
-    isAdding: addMutation.isPending,
-  };
-}
-
 // ── JwcNews Hook ───────────────────────────────────────────
 export function useJwcNewsQuery() {
   return useQuery({
@@ -446,10 +383,9 @@ export function useRefreshData() {
       };
     },
     onSuccess: () => {
-      // 用前缀匹配，使所有账号的 schedule/assignments/running/exams 缓存都失效
+      // 用前缀匹配，使所有账号的 schedule/assignments/exams 缓存都失效
       queryClient.invalidateQueries({ queryKey: ["schedule"] });
       queryClient.invalidateQueries({ queryKey: ["assignments"] });
-      queryClient.invalidateQueries({ queryKey: ["running"] });
       queryClient.invalidateQueries({ queryKey: ["exams"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.jwcNews });
     },

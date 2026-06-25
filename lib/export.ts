@@ -1,7 +1,7 @@
 /**
  * 数据导出工具
  * - ICS: 课表日历导出（iCalendar）
- * - CSV: 作业/跑步数据导出
+ * - CSV: 作业数据导出
  */
 
 export { downloadICS, buildWeekICS } from "./ics";
@@ -53,20 +53,4 @@ export function exportAssignmentsCSV(
   downloadFile(csv, `assignments-${date}.csv`, "text/csv;charset=utf-8");
 }
 
-/**
- * 导出跑步记录为CSV
- */
-export function exportRunningCSV(
-  records: Array<{ date: string; type: string }>
-): void {
-  const headers = ["日期", "类型"];
-  const typeMap: Record<string, string> = { morning: "晨跑", free: "自由跑" };
-  const rows = records.map((r) => [
-    r.date,
-    escapeCSV(typeMap[r.type] || r.type),
-  ]);
 
-  const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-  const date = new Date().toISOString().slice(0, 10);
-  downloadFile(csv, `running-${date}.csv`, "text/csv;charset=utf-8");
-}

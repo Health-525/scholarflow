@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import { ExamCountdownCard } from "@/components/dashboard/ExamCountdownCard";
 import { JwcNewsCard } from "@/components/dashboard/JwcNewsCard";
 import { RecentDailyCard } from "@/components/dashboard/RecentDailyCard";
-import { RunningCard } from "@/components/dashboard/RunningCard";
 import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
 import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
 import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
@@ -148,7 +147,6 @@ export function MobileHome() {
         </div>
         <ScheduleCard />
         <SummaryBanner data={dashboardData} loading={dashboardLoading} />
-        <RunningCard />
         <ScreenTimeCard />
         <ExamCountdownCard />
         <RecentDailyCard />

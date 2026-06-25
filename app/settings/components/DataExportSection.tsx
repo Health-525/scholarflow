@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Activity,
   BarChart3,
   Calendar,
   ClipboardList,
@@ -10,17 +9,15 @@ import {
 } from "lucide-react";
 
 import { SettingsSection } from "@/components/ui/settings-section";
-import type { Assignment, RunRecord } from "@/types";
+import type { Assignment } from "@/types";
 
 import { SettingsMenuItem } from "./SettingsMenuItem";
 
 interface DataExportSectionProps {
   scheduleData?: { schedule: unknown };
   assignments: Assignment[];
-  records: RunRecord[];
   onExportICS: () => void;
   onExportAssignments: () => void;
-  onExportRunning: () => void;
   onExportActivity: () => void;
   onConfirmClearActivity: () => void;
 }
@@ -28,10 +25,8 @@ interface DataExportSectionProps {
 export function DataExportSection({
   scheduleData,
   assignments,
-  records,
   onExportICS,
   onExportAssignments,
-  onExportRunning,
   onExportActivity,
   onConfirmClearActivity,
 }: DataExportSectionProps) {
@@ -48,12 +43,6 @@ export function DataExportSection({
         label="导出作业 (CSV)"
         onClick={onExportAssignments}
         disabled={!assignments.length}
-      />
-      <SettingsMenuItem
-        icon={Activity}
-        label="导出跑步 (CSV)"
-        onClick={onExportRunning}
-        disabled={!records.length}
       />
       <SettingsMenuItem
         icon={BarChart3}

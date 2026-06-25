@@ -96,8 +96,8 @@ export async function POST(request: Request) {
 
     db.writeData(fullKey, data);
 
-    // 作业/课表/跑步/成绩变更后，清除仪表盘当天缓存，下次请求时重新计算
-    if (["assignments", "schedule", "running", "grades"].includes(key)) {
+    // 作业/课表/成绩变更后，清除仪表盘当天缓存，下次请求时重新计算
+    if (["assignments", "schedule", "grades"].includes(key)) {
       db.deleteData(`dashboard-summary:${prefix}`);
     }
 

@@ -1,4 +1,3 @@
-import { RUNNING_GOAL } from "@/lib/running-utils";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
 import type { Adjustment } from "@/lib/schedule/adjustments";
 import { getNowInTimeZone } from "@/lib/schedule/timezone";
@@ -12,7 +11,6 @@ export interface DashboardSummary {
     todayCourses: number;
     pendingAssignments: number;
     urgentAssignments: number;
-    running: { total: number; morning: number; completed: boolean };
     gpa: string;
   };
 }
@@ -28,15 +26,6 @@ interface CourseEntry {
 interface AssignmentEntry {
   done?: boolean;
   deadline?: string;
-}
-
-interface RunningRecord {
-  type?: string;
-}
-
-interface RunningData {
-  records?: RunningRecord[];
-  completed?: boolean;
 }
 
 interface ScheduleData {
@@ -56,13 +45,10 @@ export function buildDashboardSummary(db: ServerDB, prefix: string): DashboardSu
   const schedule = (db.readData(`schedule:${prefix}`) as ScheduleData | null) || { courses: [] };
   const adjustments = (db.readData(`adjustments:${prefix}`) as Adjustment[] | null) || [];
   const assignments = (db.readData(`assignments:${prefix}`) as AssignmentEntry[] | null) || [];
-  const runningData = (db.readData(`running:${prefix}`) as RunningData | null) || { records: [] };
   const grades = (db.readData(`grades:${prefix}`) as GradesData | null) || { gpa: "0.00" };
   const today = new Date().toISOString().slice(0, 10);
 
   const courses = schedule.courses || [];
-  const records = Array.isArray(runningData.records) ? runningData.records : [];
-  const runningTotal = records.length;
 
   // 计算今日课程数（按课表时区，并应用调课记录）
   let todayCourses = 0;
@@ -87,11 +73,6 @@ export function buildDashboardSummary(db: ServerDB, prefix: string): DashboardSu
       urgentAssignments: assignments.filter(
         (a) => !a.done && a.deadline && a.deadline <= today
       ).length,
-      running: {
-        total: runningTotal,
-        morning: records.filter((r) => r.type === "morning").length,
-        completed: runningData.completed === true || runningTotal >= RUNNING_GOAL,
-      },
       gpa: grades.gpa || "0.00",
     },
   };

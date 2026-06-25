@@ -54,9 +54,6 @@ export async function GET(request: Request) {
     case "assignments":
       return NextResponse.json(db.readData(`assignments:${prefix}`) || []);
 
-    case "running":
-      return NextResponse.json(db.readData(`running:${prefix}`) || { records: [] });
-
     case "jwc-news":
       // 教务通知是全校共享的，按 schoolId 区分
       return NextResponse.json(db.readData(`jwc-news:${account.schoolId}`) || []);

@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, ClipboardList, Activity, Calculator } from "lucide-react";
+import { BookOpen, ClipboardList, Calculator } from "lucide-react";
 import { memo, useEffect, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -144,12 +144,6 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
         iconBgClass: "bg-statusWarning/10",
       },
       {
-        icon: Activity,
-        label: "跑步",
-        colorClass: "text-statusSuccess",
-        iconBgClass: "bg-statusSuccess/10",
-      },
-      {
         icon: Calculator,
         label: "绩点",
         colorClass: "text-primary",
@@ -186,7 +180,6 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
   const { overview } = data;
 
   const urgentAssign = overview.urgentAssignments > 0;
-  const runningDone = overview.running?.completed;
 
   const items: {
     icon: typeof BookOpen;
@@ -218,21 +211,6 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
       badgeClass: urgentAssign
         ? "bg-destructive/10 text-destructive"
         : "bg-statusWarning/10 text-statusWarning",
-    },
-    {
-      icon: Activity,
-      label: "阳光长跑",
-      value: overview.running?.total ?? 0,
-      colorClass: runningDone
-        ? "text-statusSuccess"
-        : "text-statusWarning",
-      iconBgClass: runningDone
-        ? "bg-statusSuccess/10"
-        : "bg-statusWarning/10",
-      badge: runningDone ? "已达标" : undefined,
-      badgeClass: runningDone
-        ? "bg-statusSuccess/10 text-statusSuccess"
-        : "",
     },
   ];
 

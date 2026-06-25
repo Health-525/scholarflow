@@ -2,7 +2,6 @@
 
 import type { LucideIcon } from "lucide-react";
 import {
-  Activity,
   BookOpen,
   Brain,
   Calculator,
@@ -66,7 +65,6 @@ const FEATURE_GROUPS: FeatureGroup[] = [
   {
     label: "生活与其他",
     items: [
-      { href: "/running", title: "跑步", description: "运动记录与热力图", Icon: Activity },
       { href: "/chat", title: "AI 助手", description: "整理笔记、检查作业与答疑", Icon: Brain },
       { href: "/settings", title: "设置", description: "账号、数据导出与主题", Icon: Settings },
     ],

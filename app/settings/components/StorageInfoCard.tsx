@@ -29,7 +29,7 @@ export function StorageInfoCard() {
           />
           <InfoRow
             icon={<Clock className="w-3 h-3" />}
-            label="课表/作业/跑步"
+            label="课表/作业/考试"
             value="本地优先，自动持久化"
           />
           <InfoRow

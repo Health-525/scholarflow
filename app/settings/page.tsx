@@ -12,7 +12,6 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import {
   useScheduleQuery,
   useAssignmentsQuery,
-  useRunningQuery,
   useRefreshData,
 } from "@/hooks/useQueries";
 import {
@@ -21,7 +20,6 @@ import {
 } from "@/lib/activity-tracker-v3";
 import {
   exportAssignmentsCSV,
-  exportRunningCSV,
   buildWeekICS,
   downloadICS,
 } from "@/lib/export";
@@ -53,7 +51,6 @@ export default function SettingsPage() {
   const { schoolId, userId, username, clearToken } = useAuthStore((s) => s);
   const { data: scheduleData } = useScheduleQuery();
   const { assignments } = useAssignmentsQuery();
-  const { records } = useRunningQuery();
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
   const [mounted, setMounted] = useState(false);
   const [showClearPassword, setShowClearPassword] = useState(false);
@@ -235,7 +232,6 @@ export default function SettingsPage() {
         studentInfo={studentInfo}
         scheduleCourseCount={scheduleData?.schedule?.courses?.length ?? 0}
         pendingAssignmentsCount={assignments.filter((a) => !a.done).length}
-        recordsCount={records.length}
         onLogout={confirmLogout}
       />
 
@@ -288,10 +284,8 @@ export default function SettingsPage() {
       <DataExportSection
         scheduleData={scheduleData}
         assignments={assignments}
-        records={records}
         onExportICS={handleExportICS}
         onExportAssignments={() => exportAssignmentsCSV(assignments)}
-        onExportRunning={() => exportRunningCSV(records)}
         onExportActivity={() => downloadActivityCSV().catch(() => {})}
         onConfirmClearActivity={confirmClearActivity}
       />

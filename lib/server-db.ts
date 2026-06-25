@@ -283,7 +283,7 @@ export class ServerDB {
     const candidates = new Map<string, number>();
 
     for (const key of keys) {
-      const match = key.match(/^(schedule|grades|dashboard-summary|assignments|running|exams):([^:]+):([^:]+)$/);
+      const match = key.match(/^(schedule|grades|dashboard-summary|assignments|exams):([^:]+):([^:]+)$/);
       if (!match) continue;
       const [, , kSchool, userId] = match;
       if (kSchool !== schoolId) continue;
@@ -362,8 +362,8 @@ export class ServerDB {
 
   // ── Seed from legacy timetable/data ────────────────────────
 
-  seedFromTimetable(prefix: string): { assignments: number; running: number } {
-    const result = { assignments: 0, running: 0 };
+  seedFromTimetable(prefix: string): { assignments: number } {
+    const result = { assignments: 0 };
     const timetableDataDir = path.join(this.storePath, "..", "..", "timetable", "data");
 
     if (!this.readData(`assignments:${prefix}`)) {
@@ -374,18 +374,6 @@ export class ServerDB {
           const data = JSON.parse(content);
           this.writeData(`assignments:${prefix}`, data);
           result.assignments = Array.isArray(data) ? data.length : 0;
-        }
-      } catch { /* ignore */ }
-    }
-
-    if (!this.readData(`running:${prefix}`)) {
-      const runningPath = path.join(timetableDataDir, "running.json");
-      try {
-        if (fs.existsSync(runningPath)) {
-          const content = fs.readFileSync(runningPath, "utf8");
-          const data = JSON.parse(content);
-          this.writeData(`running:${prefix}`, data);
-          result.running = Array.isArray(data?.records) ? data.records.length : 0;
         }
       } catch { /* ignore */ }
     }

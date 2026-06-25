@@ -12,7 +12,7 @@ import type {
   ReportGoalItem,
   ScreenTimeSummary,
 } from "@/lib/reports/types";
-import type { Assignment, RunRecord } from "@/types";
+import type { Assignment } from "@/types";
 
 export interface DailyReportInput {
   /** 日期，格式 YYYY-MM-DD */
@@ -35,8 +35,6 @@ export interface DailyReportInput {
   goals: ReportGoalItem[];
   /** 连续打卡天数 */
   goalStreak: number;
-  /** 当天的跑步记录 */
-  runningRecords: RunRecord[];
   /** 近期教务处公告 */
   jwcNews: JwcNewsItem[];
   /** 当天屏幕时间汇总（Electron / Web 客户端上传） */
@@ -62,7 +60,7 @@ function getWeekdayLabel(dateStr: string): string {
 }
 
 function buildReportTitle(input: DailyReportInput): string {
-  const { date, courses, assignments, exams, goals, goalStreak, runningRecords, screenTime, pomodoro } = input;
+  const { date, courses, assignments, exams, goals, goalStreak, screenTime, pomodoro } = input;
   const pending = assignments.filter((a) => !a.done);
   const todayExams = exams.filter((e) => e.date === date);
   const upcomingExams = exams.filter((e) => e.date !== date);
@@ -101,11 +99,6 @@ function buildReportTitle(input: DailyReportInput): string {
     return `目标全达成：连续 ${goalStreak} 天`;
   }
 
-  // 运动日
-  if (runningRecords.length > 0) {
-    return `运动打卡日：${runningRecords.map((r) => (r.type === "morning" ? "晨跑" : "自由跑")).join("、")}`;
-  }
-
   // 专注日
   if (pomodoro && pomodoro.todaySessions >= 4) {
     return `高效专注日：${pomodoro.todaySessions} 个番茄钟`;
@@ -134,7 +127,6 @@ export function buildDailyReportMarkdown(input: DailyReportInput): string {
     exams,
     goals,
     goalStreak,
-    runningRecords,
     jwcNews,
     screenTime,
     pomodoro,
@@ -209,12 +201,6 @@ export function buildDailyReportMarkdown(input: DailyReportInput): string {
     lines.push("## 🎯 每日目标");
     lines.push(`连续打卡：${goalStreak} 天`);
     goals.forEach((g) => lines.push(`- ${g.done ? "[x]" : "[ ]"} ${g.text}`));
-    lines.push("");
-  }
-
-  if (runningRecords.length > 0) {
-    lines.push("## 🏃 运动打卡");
-    runningRecords.forEach((r) => lines.push(`- ${r.type === "morning" ? "晨跑" : "自由跑"}`));
     lines.push("");
   }
 

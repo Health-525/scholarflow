@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Activity,
   Brain,
   Calculator,
   CalendarDays,
@@ -66,7 +65,6 @@ export const SIDE_NAV_GROUPS: NavGroupConfig[] = [
   {
     label: "生活",
     items: [
-      { id: "running", href: "/running", label: "跑步", icon: Activity, keywords: ["跑步", "运动"], searchTitle: "阳光长跑" },
       { id: "activity", href: "/activity", label: "屏幕时间", icon: Monitor, keywords: ["屏幕时间", "使用统计"] },
     ],
   },
@@ -86,7 +84,6 @@ export const BOTTOM_NAV_CORE: NavItemConfig[] = [
   { id: "dashboard", href: "/", label: "仪表盘", icon: LayoutDashboard, keywords: ["首页", "home"], shortLabel: "首页" },
   { id: "schedule", href: "/schedule", label: "课表", icon: CalendarDays, keywords: ["课程", "课表"] },
   { id: "assignments", href: "/assignments", label: "作业", icon: ClipboardList, keywords: ["作业", "任务", "todo"] },
-  { id: "running", href: "/running", label: "跑步", icon: Activity, keywords: ["跑步", "运动"], shortLabel: "跑步" },
   { id: "notes", href: "/notes", label: "笔记", icon: FileText, keywords: ["笔记", "知识库"] },
 ];
 
@@ -95,7 +92,6 @@ export const GLOBAL_SEARCH_ITEMS: NavItemConfig[] = [
   { id: "dashboard", href: "/", label: "仪表盘", icon: LayoutDashboard, keywords: ["首页", "home"], searchTitle: "仪表板" },
   { id: "schedule", href: "/schedule", label: "课表", icon: CalendarDays, keywords: ["课程", "课表"] },
   { id: "assignments", href: "/assignments", label: "作业", icon: ClipboardList, keywords: ["作业", "任务", "todo"] },
-  { id: "running", href: "/running", label: "跑步", icon: Activity, keywords: ["跑步", "运动"], searchTitle: "阳光长跑" },
   { id: "exams", href: "/exams", label: "考试", icon: Clock, keywords: ["考试", "倒计时"], searchTitle: "考试倒计时" },
   { id: "goals", href: "/goals", label: "目标", icon: Target, keywords: ["目标", "习惯"], searchTitle: "每日目标" },
   { id: "notes", href: "/notes", label: "笔记", icon: FileText, keywords: ["笔记", "知识库"] },

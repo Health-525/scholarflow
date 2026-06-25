@@ -40,28 +40,6 @@ export interface AssignmentDraft {
   note?: string;
 }
 
-// ---- 跑步类型 ----
-export type RunType = "morning" | "free";
-
-export interface RunRecord {
-  date: string; // YYYY-MM-DD
-  type: RunType;
-  createdAt: string; // ISO 8601 时间戳
-}
-
-export interface RunStats {
-  total: number;
-  morning: number;
-  free: number;
-  progressPercent: number; // Math.min(total / RUNNING_GOAL * 100, 100)
-}
-
-export interface HeatmapDay {
-  date: string; // YYYY-MM-DD
-  hasMorning: boolean;
-  hasFree: boolean;
-}
-
 // ---- 通知提醒类型 ----
 export interface ReminderEntry {
   courseTitle: string;

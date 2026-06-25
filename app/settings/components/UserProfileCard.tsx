@@ -26,7 +26,6 @@ interface UserProfileCardProps {
   studentInfo: StudentInfo | null;
   scheduleCourseCount: number;
   pendingAssignmentsCount: number;
-  recordsCount: number;
   onLogout: () => void;
 }
 
@@ -40,7 +39,6 @@ export function UserProfileCard({
   studentInfo,
   scheduleCourseCount,
   pendingAssignmentsCount,
-  recordsCount,
   onLogout,
 }: UserProfileCardProps) {
   return (
@@ -98,7 +96,7 @@ export function UserProfileCard({
 
         <CardContent className="relative px-6 pb-6 pt-5">
           {/* Stats grid */}
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {studentInfo ? (
               <>
                 <StatChip value={studentInfo.gpa} label="GPA" accent />
@@ -117,7 +115,6 @@ export function UserProfileCard({
                 />
               </>
             )}
-            <StatChip value={String(recordsCount)} label="跑步" />
           </div>
         </CardContent>
       </Card>

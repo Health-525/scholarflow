@@ -3,7 +3,6 @@
 import {
   CalendarDays,
   ClipboardList,
-  Activity,
   Clock,
   FileText,
   Timer,
@@ -23,7 +22,6 @@ const QUICK_ACTIONS: Array<{
 }> = [
   { href: "/schedule", label: "课表", Icon: CalendarDays, colorType: "primary" },
   { href: "/assignments", label: "作业", Icon: ClipboardList, colorType: "success" },
-  { href: "/running", label: "跑步", Icon: Activity, colorType: "warning" },
   { href: "/exams", label: "考试", Icon: Clock, colorType: "error" },
   { href: "/pomodoro", label: "番茄钟", Icon: Timer, colorType: "info" },
   { href: "/notes", label: "笔记", Icon: FileText, colorType: "info" },

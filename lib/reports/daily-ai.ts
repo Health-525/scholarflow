@@ -53,7 +53,6 @@ export function buildDailyReportPrompt(input: DailyReportInput): string {
     exams,
     goals,
     goalStreak,
-    runningRecords,
     jwcNews,
     screenTime,
     pomodoro,
@@ -148,12 +147,6 @@ export function buildDailyReportPrompt(input: DailyReportInput): string {
     lines.push("");
   }
 
-  if (runningRecords.length > 0) {
-    lines.push("【运动打卡】");
-    runningRecords.forEach((r) => lines.push(`- ${r.type === "morning" ? "晨跑" : "自由跑"}`));
-    lines.push("");
-  }
-
   if (pomodoro || screenTime) {
     lines.push("【专注与屏幕时间】");
     if (pomodoro) {
@@ -189,7 +182,7 @@ export function buildDailyReportPrompt(input: DailyReportInput): string {
 
   lines.push("【输出要求】");
   lines.push("1. 使用 Markdown 格式。主标题必须根据当天最核心的事件或状态生成一个简短主题（5-12 字），例如：`# 无课日的屏幕时间反思`、`# 备考冲刺：距高数考试还有 2 天`、`# 作业截止日：3 项待提交`、`# 高效专注日：6 个番茄钟`、`# 考试日：数据结构`。不要只用 `# 日报` 这种泛泛标题，也不要在标题里写日期；");
-  lines.push("2. 包含以下几个小节：今日概览、课程回顾、作业进展、考试/目标/运动/专注（如适用）、收获与反思、明日计划；");
+  lines.push("2. 包含以下几个小节：今日概览、课程回顾、作业进展、考试/目标/专注（如适用）、收获与反思、明日计划；");
   lines.push("3. 结合数据给出具体、可执行的改进建议，不要泛泛而谈；");
   lines.push("4. 对即将截止的作业要给出明确的时间安排建议；");
   lines.push("5. 如果提供了明日课表，请根据课程安排给出具体的预习/准备建议；");

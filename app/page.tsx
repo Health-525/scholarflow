@@ -8,7 +8,6 @@ import { JwcNewsCard } from "@/components/dashboard/JwcNewsCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { RecentDailyCard } from "@/components/dashboard/RecentDailyCard";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
-import { RunningCard } from "@/components/dashboard/RunningCard";
 import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
 import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
 import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
@@ -145,7 +144,6 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <AssignmentsCard />
-          <RunningCard />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
