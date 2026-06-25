@@ -21,7 +21,7 @@ function NavItem({ item }: { item: NavItemConfig }) {
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={[
-        "group flex items-center gap-3 px-3 py-2.5 min-h-10 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1",
+        "group flex items-center gap-2.5 px-3 py-2 min-h-9 rounded-lg text-[13px] font-medium transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1",
         active
           ? "bg-primary/10 text-primary dark:bg-primary/[0.12] dark:text-primary"
           : wip
@@ -31,7 +31,7 @@ function NavItem({ item }: { item: NavItemConfig }) {
     >
       <Icon
         className={[
-          "shrink-0 h-4.5 w-4.5 transition-colors duration-150",
+          "shrink-0 h-4 w-4 transition-colors duration-150",
           active
             ? "text-primary"
             : wip
@@ -41,7 +41,7 @@ function NavItem({ item }: { item: NavItemConfig }) {
       />
       <span className="flex-1">{label}</span>
       {wip && (
-        <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground/60 shrink-0">
+        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground/60 shrink-0">
           开发中
         </span>
       )}
@@ -52,12 +52,12 @@ function NavItem({ item }: { item: NavItemConfig }) {
 export function SideNav() {
   return (
     <aside
-      className="hidden md:flex flex-col w-56 shrink-0 h-screen sticky top-0 border-r border-[rgba(0,0,0,0.04)] bg-card/60 backdrop-blur-2xl dark:bg-sidebar/95 dark:border-white/[0.06]"
+      className="hidden md:flex flex-col w-52 shrink-0 h-screen sticky top-0 border-r border-[rgba(0,0,0,0.04)] bg-card/60 backdrop-blur-2xl dark:bg-sidebar/95 dark:border-white/[0.06]"
       aria-label="侧边导航"
     >
       {/* Brand — 拖拽区域 */}
       <div
-        className="px-6 pt-6 pb-5"
+        className="px-5 pt-5 pb-4"
         style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
       >
         <div
@@ -85,16 +85,16 @@ export function SideNav() {
 
       {/* Grouped navigation */}
       <nav
-        className="flex-1 px-3 overflow-y-auto scrollbar-thin"
+        className="flex-1 px-2.5 overflow-y-auto scrollbar-thin"
         style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         role="navigation"
       >
         {SIDE_NAV_GROUPS.map((group) => (
-          <div key={group.label} className="mb-5">
-            <p className="px-3 py-1.5 text-xs font-medium text-muted-foreground/60">
+          <div key={group.label} className="mb-4">
+            <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/50">
               {group.label}
             </p>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {group.items.map((item) => (
                 <NavItem key={item.href} item={item} />
               ))}
@@ -105,7 +105,7 @@ export function SideNav() {
 
       {/* Settings */}
       <div
-        className="px-3 pb-4 border-t border-[rgba(0,0,0,0.04)] pt-3"
+        className="px-2.5 pb-3 border-t border-[rgba(0,0,0,0.04)] pt-2.5"
         style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
       >
         <NavItem item={SIDE_NAV_SETTINGS} />

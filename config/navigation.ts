@@ -61,13 +61,13 @@ export const SIDE_NAV_GROUPS: NavGroupConfig[] = [
     items: [
       { id: "pomodoro", href: "/pomodoro", label: "番茄钟", icon: Timer, keywords: ["番茄钟", "专注", "计时器"] },
       { id: "notes", href: "/notes", label: "笔记", icon: FileText, keywords: ["笔记", "知识库"] },
-      { id: "activity", href: "/activity", label: "屏幕时间", icon: Monitor, keywords: ["屏幕时间", "使用统计"] },
     ],
   },
   {
     label: "生活",
     items: [
       { id: "running", href: "/running", label: "跑步", icon: Activity, keywords: ["跑步", "运动"], searchTitle: "阳光长跑" },
+      { id: "activity", href: "/activity", label: "屏幕时间", icon: Monitor, keywords: ["屏幕时间", "使用统计"] },
     ],
   },
 ];
