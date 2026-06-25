@@ -52,7 +52,7 @@ export const JwcNewsCard = memo(function JwcNewsCard() {
 
         {!isLoading && !fetchError && (
           items.length === 0 ? (
-            <p className="text-[12.5px] py-3 text-muted-foreground">暂无通知</p>
+            <p className="text-sm py-3 text-muted-foreground">暂无通知</p>
           ) : (
             <div className="divide-y divide-border">
               {items.map((item: { title: string; url: string; date: string; category: string }) => {
@@ -61,7 +61,7 @@ export const JwcNewsCard = memo(function JwcNewsCard() {
                   <a key={item.url} href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-2.5 py-2.5 group transition-colors">
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 transition-transform duration-200 group-hover:scale-150 ${style.dot}`} />
                     <div className="flex-1 min-w-0">
-                      <span className="text-[12.5px] line-clamp-1 transition-colors group-hover:text-primary text-foreground">{item.title}</span>
+                      <span className="text-sm line-clamp-1 transition-colors group-hover:text-primary text-foreground">{item.title}</span>
                       <div className="flex items-center gap-2 mt-0.5">
                         {item.date && <span className="text-xs tabular-nums text-muted-foreground">{item.date}</span>}
                         <Badge variant="outline" className={`text-xs h-4 px-1 border-transparent ${style.bg} ${style.text}`}>

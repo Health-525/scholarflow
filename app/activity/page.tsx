@@ -553,7 +553,7 @@ export default function ActivityPage() {
                         title={`${day.date}：${formatDuration(day.totalMinutes)}`}
                       />
                     </div>
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {day.date.slice(5)}
                     </span>
                   </div>
@@ -686,7 +686,7 @@ export default function ActivityPage() {
                             if (value) handleCategorizeApp(b.app, value);
                           }}
                           disabled={isBusy}
-                          className="h-5 text-[10px] rounded border border-input bg-background px-1 py-0"
+                          className="h-5 text-xs rounded border border-input bg-background px-1 py-0"
                         >
                           <option value="">未分类</option>
                           {Object.entries(CATEGORY_LABELS)

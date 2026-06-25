@@ -103,7 +103,7 @@ export function TimelineBar({ segments, dateStr }: TimelineBarProps) {
         {Array.from({ length: 24 }).map((_, h) => (
           <span
             key={h}
-            className="absolute text-[10px] text-muted-foreground tabular-nums -translate-x-1/2"
+            className="absolute text-xs text-muted-foreground tabular-nums -translate-x-1/2"
             style={{ left: `${(h / 24) * 100}%` }}
           >
             {h}

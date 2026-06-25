@@ -99,6 +99,7 @@ export function UpdateNotification() {
               </p>
             </div>
             <button
+              type="button"
               onClick={() => setDismissed(true)}
               className="p-1 rounded-lg shrink-0 text-muted-foreground"
               aria-label="关闭更新提示"
@@ -108,6 +109,7 @@ export function UpdateNotification() {
           </div>
           <div className="flex items-center gap-2 mt-3">
             <button
+              type="button"
               onClick={handleDownload}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium transition-colors bg-primary text-primary-foreground"
             >
@@ -115,9 +117,11 @@ export function UpdateNotification() {
               下载更新
             </button>
             <button
+              type="button"
               onClick={handleManualDownload}
               className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs text-muted-foreground"
               title="打开 GitHub 下载页面"
+              aria-label="打开 GitHub 下载页面"
             >
               <ExternalLink className="w-3 h-3" />
               手动
@@ -182,6 +186,7 @@ export function UpdateNotification() {
             </div>
           </div>
           <button
+            type="button"
             onClick={handleInstall}
             className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium transition-colors bg-[var(--status-success)] text-primary-foreground"
           >
@@ -207,6 +212,7 @@ export function UpdateNotification() {
               </p>
             </div>
             <button
+              type="button"
               onClick={() => setDismissed(true)}
               className="p-1 rounded-lg shrink-0 text-muted-foreground"
               aria-label="关闭"
@@ -216,6 +222,7 @@ export function UpdateNotification() {
           </div>
           <div className="flex items-center gap-2 mt-3">
             <button
+              type="button"
               onClick={handleManualDownload}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium transition-colors bg-primary text-primary-foreground"
             >
@@ -223,6 +230,7 @@ export function UpdateNotification() {
               前往下载
             </button>
             <button
+              type="button"
               onClick={handleDownload}
               className="px-4 py-2 rounded-xl text-xs text-muted-foreground"
             >

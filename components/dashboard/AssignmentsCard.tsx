@@ -113,7 +113,7 @@ export const AssignmentsCard = memo(function AssignmentsCard() {
                       className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`}
                     />
                     <div className="flex-1 min-w-0">
-                      <span className="text-[12.5px] truncate block text-foreground">
+                      <span className="text-sm truncate block text-foreground">
                         <span className="text-muted-foreground">
                           {a.subject}
                         </span>

@@ -68,7 +68,7 @@ export function DateStrip({ selectedDate, datesWithReport, onSelect }: DateStrip
                     : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
               )}
             >
-              <span className={cn("text-[10px] font-medium mb-0.5", isSelected ? "text-primary-foreground/80" : hasReport ? "text-primary/80" : "")}>
+              <span className={cn("text-xs font-medium mb-0.5", isSelected ? "text-primary-foreground/80" : hasReport ? "text-primary/80" : "")}>
                 {isToday ? "今" : weekday}
               </span>
               <span className={cn("text-sm font-semibold tabular-nums", isSelected && "text-primary-foreground")}>

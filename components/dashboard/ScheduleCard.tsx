@@ -125,7 +125,7 @@ export const ScheduleCard = memo(function ScheduleCard() {
                         style={{ backgroundColor: colors.accent }}
                       />
                       <span
-                        className="text-[12.5px] font-semibold flex-1 truncate"
+                        className="text-sm font-semibold flex-1 truncate"
                         style={{ color: colors.accent }}
                       >
                         {item.title}
