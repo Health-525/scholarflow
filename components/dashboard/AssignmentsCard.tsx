@@ -69,9 +69,9 @@ export const AssignmentsCard = memo(function AssignmentsCard() {
           </div>
           <Link
             href="/assignments"
-            className="text-xs transition-colors hover:opacity-70 text-primary"
+            className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            查看全部 →
+            查看全部
           </Link>
         </div>
 
@@ -108,7 +108,7 @@ export const AssignmentsCard = memo(function AssignmentsCard() {
                 return (
                   <div
                     key={a.id}
-                    className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all duration-200 hover:shadow-sm ${cfg.row}`}
+                    className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:bg-muted/30 ${cfg.row}`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`}

@@ -47,7 +47,7 @@ export const RecentDailyCard = memo(function RecentDailyCard() {
             </div>
             <h2 className="text-sm font-semibold text-foreground">最近日报</h2>
           </div>
-          <Link href="/reports/daily" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/reports/daily" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
             查看全部
           </Link>
         </div>

@@ -38,9 +38,9 @@ export const ScheduleCard = memo(function ScheduleCard() {
           </div>
           <Link
             href="/schedule"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            查看全部 →
+            查看全部
           </Link>
         </div>
 
@@ -142,9 +142,9 @@ export const ScheduleCard = memo(function ScheduleCard() {
                   {items.length > MAX_LIST_COURSES && (
                     <Link
                       href="/schedule"
-                      className="text-xs text-center pt-1 text-primary hover:opacity-70 transition-opacity block"
+                      className="block pt-1 text-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      还有 {items.length - MAX_LIST_COURSES} 门课 · 共 {items.length} 门 →
+                      还有 {items.length - MAX_LIST_COURSES} 门课 · 共 {items.length} 门
                     </Link>
                   )}
                 </div>
