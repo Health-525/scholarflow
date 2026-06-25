@@ -28,7 +28,11 @@ export function AiConfigSection() {
     fetch("/api/settings/ai")
       .then((r) => r.json())
       .then((data: { model?: string; configured?: boolean }) => {
-        setModel(data.model || DEFAULT_DEEPSEEK_MODEL);
+        const savedModel = data.model || DEFAULT_DEEPSEEK_MODEL;
+        const validModel = DEEPSEEK_MODELS.some((m) => m.id === savedModel)
+          ? savedModel
+          : DEFAULT_DEEPSEEK_MODEL;
+        setModel(validModel);
         setConfigured(!!data.configured);
       })
       .catch(() => showToast("error", "加载 AI 配置失败"))
