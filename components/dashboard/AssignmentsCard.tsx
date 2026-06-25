@@ -51,8 +51,8 @@ export const AssignmentsCard = memo(function AssignmentsCard() {
   }, []);
 
   return (
-    <Card>
-      <CardContent>
+    <Card className="h-full flex flex-col">
+      <CardContent className="flex flex-col flex-1 min-h-0 p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-statusWarning/10">
@@ -75,28 +75,29 @@ export const AssignmentsCard = memo(function AssignmentsCard() {
           </Link>
         </div>
 
-        {isLoading && (
-          <div className="space-y-2">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="skeleton h-8 rounded-xl" />
-            ))}
-          </div>
-        )}
-
-        {error && !isLoading && (
-          <ErrorFallback message={error.message} onRetry={reload} />
-        )}
-
-        {!isLoading &&
-          !error &&
-          (pending.length === 0 ? (
-            <div className="py-4 flex items-center justify-center gap-2">
-              <span className="text-lg">✨</span>
-              <p className="text-sm text-muted-foreground">暂无待办作业</p>
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1 -mr-1">
+          {isLoading && (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="skeleton h-8 rounded-xl" />
+              ))}
             </div>
-          ) : (
-            <div className="space-y-1.5">
-              {pending.map((a) => {
+          )}
+
+          {error && !isLoading && (
+            <ErrorFallback message={error.message} onRetry={reload} />
+          )}
+
+          {!isLoading &&
+            !error &&
+            (pending.length === 0 ? (
+              <div className="py-4 flex items-center justify-center gap-2">
+                <span className="text-lg">✨</span>
+                <p className="text-sm text-muted-foreground">暂无待办作业</p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {pending.map((a) => {
                 const urgency = classifyUrgency(a.deadline, new Date());
                 const cfg = URGENCY_CONFIG[urgency];
                 const deadlineDate = new Date(a.deadline);
@@ -144,6 +145,7 @@ export const AssignmentsCard = memo(function AssignmentsCard() {
               })}
             </div>
           ))}
+        </div>
       </CardContent>
     </Card>
   );
