@@ -33,12 +33,13 @@ const DEEPSEEK_API_URL = process.env.DEEPSEEK_BASE_URL
   : "https://api.deepseek.com/chat/completions";
 
 // DeepSeek 官方可用模型（OpenAI 兼容接口）
+// deepseek-chat / deepseek-reasoner 将于 2026/07/24 弃用，分别对应 v4-flash 的非思考与思考模式。
 export const DEEPSEEK_MODELS = [
-  { id: "deepseek-chat", label: "DeepSeek Chat（通用）" },
-  { id: "deepseek-reasoner", label: "DeepSeek Reasoner（推理）" },
+  { id: "deepseek-v4-pro", label: "DeepSeek-V4 Pro" },
+  { id: "deepseek-v4-flash", label: "DeepSeek-V4 Flash" },
 ];
 
-export const DEFAULT_DEEPSEEK_MODEL = "deepseek-chat";
+export const DEFAULT_DEEPSEEK_MODEL = "deepseek-v4-flash";
 
 export class LLMConfigError extends Error {
   constructor(message: string) {
