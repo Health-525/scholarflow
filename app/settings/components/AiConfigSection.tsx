@@ -102,10 +102,10 @@ export function AiConfigSection() {
                 key={m.id}
                 type="button"
                 onClick={() => setModel(m.id)}
-                className={`rounded-lg px-3 py-2 text-xs font-medium border transition-colors text-left ${
+                className={`rounded-lg px-3 py-2 text-xs font-medium transition-colors text-left ${
                   model === m.id
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-card hover:bg-secondary text-foreground"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-secondary/60 hover:bg-secondary text-foreground"
                 }`}
               >
                 {m.label}
@@ -117,6 +117,7 @@ export function AiConfigSection() {
         <Button
           onClick={handleSave}
           disabled={saving || loading}
+          variant="outline"
           className="w-full gap-1.5"
         >
           {saving ? <Loader2 className="size-4 animate-spin" /> : <Key className="size-4" />}

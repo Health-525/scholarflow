@@ -24,10 +24,10 @@ export function DataRefreshSection({
         从学校教务系统重新抓取课表、成绩、考试等数据
       </p>
       <Button
-        variant="secondary"
+        variant="outline"
         onClick={onRefresh}
         disabled={isPending}
-        className="w-full justify-start gap-3 px-3 py-2.5 h-auto text-left text-sm font-medium"
+        className="w-full justify-start gap-3 px-3 py-2.5 h-auto text-left text-sm font-normal"
       >
         <RefreshCw
           className={cn(

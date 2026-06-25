@@ -42,7 +42,7 @@ export function UserProfileCard({
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground text-lg font-semibold">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary text-foreground text-base font-semibold">
               {avatarLetter}
             </div>
             <div className="min-w-0">
@@ -53,7 +53,7 @@ export function UserProfileCard({
                 <Badge
                   variant="secondary"
                   className={cn(
-                    "h-4 px-1 text-xs gap-1",
+                    "h-4 px-1.5 text-xs gap-1",
                     isSynced ? "text-statusSuccess" : "text-muted-foreground"
                   )}
                 >
@@ -71,10 +71,10 @@ export function UserProfileCard({
           </div>
 
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={onLogout}
-            className="shrink-0 gap-1.5"
+            className="shrink-0 gap-1.5 text-muted-foreground hover:text-foreground"
             aria-label="退出登录"
           >
             <LogOut className="size-3.5" />
@@ -85,7 +85,7 @@ export function UserProfileCard({
         <div className="grid grid-cols-3 gap-2 mt-4">
           {studentInfo ? (
             <>
-              <StatChip value={studentInfo.gpa} label="GPA" accent />
+              <StatChip value={studentInfo.gpa} label="GPA" />
               <StatChip value={String(studentInfo.totalCredits)} label="学分" />
               <StatChip value={String(studentInfo.courseCount)} label="课程" />
             </>
@@ -99,6 +99,7 @@ export function UserProfileCard({
                 value={String(pendingAssignmentsCount)}
                 label="待办"
               />
+              <StatChip value="—" label="GPA" />
             </>
           )}
         </div>

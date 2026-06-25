@@ -28,18 +28,18 @@ export function SettingsMenuItem({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "w-full justify-start gap-3 px-2 py-2.5 h-auto text-left text-sm font-normal rounded-none",
-        !last && "border-b border-border",
+        "w-full justify-start gap-3 px-2 py-2.5 h-auto text-left text-sm font-normal rounded-md",
+        !last && "border-b border-border rounded-b-none",
         disabled &&
           "text-muted-foreground opacity-50 cursor-default hover:bg-transparent",
         danger && !disabled && "text-destructive hover:bg-destructive/10",
         !danger && !disabled && "text-foreground hover:bg-secondary/50",
       )}
     >
-      <Icon className="size-4 shrink-0" />
+      <Icon className={cn("size-4 shrink-0", danger && !disabled ? "text-destructive" : "text-muted-foreground")} />
       <span>{label}</span>
       {!disabled && (
-        <ChevronRight className="size-3.5 ml-auto shrink-0 text-muted-foreground" />
+        <ChevronRight className="size-3.5 ml-auto shrink-0 text-muted-foreground/60" />
       )}
     </Button>
   );

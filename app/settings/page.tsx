@@ -210,7 +210,7 @@ export default function SettingsPage() {
 
   // ── Derived display values ──────────────────────────────────
   const displayName =
-    studentInfo?.studentId || userId || username || "ScholarFlow 用户";
+    username || studentInfo?.studentId || userId || "ScholarFlow 用户";
   const avatarLetter = displayName[0]?.toUpperCase() || "S";
   const schoolName =
     schoolId === "njtech" ? "南京工业大学" : schoolId || "未绑定";

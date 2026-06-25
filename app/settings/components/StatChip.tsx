@@ -1,20 +1,12 @@
-import { cn } from "@/lib/utils";
-
 interface StatChipProps {
   value: string;
   label: string;
-  accent?: boolean;
 }
 
-export function StatChip({ value, label, accent }: StatChipProps) {
+export function StatChip({ value, label }: StatChipProps) {
   return (
-    <div className="rounded-lg p-2.5 text-center bg-secondary/60">
-      <div
-        className={cn(
-          "text-base font-semibold tabular-nums",
-          accent ? "text-statusSuccess" : "text-foreground",
-        )}
-      >
+    <div className="rounded-lg p-2.5 text-center bg-secondary/50">
+      <div className="text-base font-semibold tabular-nums text-foreground">
         {value}
       </div>
       <div className="text-xs text-muted-foreground">{label}</div>

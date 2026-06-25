@@ -14,8 +14,8 @@ export function AboutCard() {
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Info className="size-4 text-primary" />
-            <span className="text-sm font-semibold text-foreground">关于 ScholarFlow</span>
+            <Info className="size-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">关于 ScholarFlow</span>
           </div>
           <span className="text-xs text-muted-foreground">v{APP_VERSION}</span>
         </div>
