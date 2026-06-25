@@ -302,7 +302,7 @@ export default function ActivityPage() {
             {isToday && (
               <div className="text-right">
                 <div className="flex items-center justify-end gap-2">
-                  <Badge variant="secondary" className={cn("h-4 px-1.5 text-[10px]", isPaused && "text-muted-foreground")}>
+                  <Badge variant="secondary" className={cn("h-4 px-1.5 text-xs", isPaused && "text-muted-foreground")}>
                     {isPaused ? "已暂停" : "追踪中"}
                   </Badge>
                   {state.currentApp && (
@@ -312,7 +312,7 @@ export default function ActivityPage() {
                     </span>
                   )}
                 </div>
-                <div className="mt-1 text-sm font-medium text-foreground truncate max-w-[180px]">
+                <div className="mt-1 text-sm font-medium text-foreground truncate max-w-44">
                   {state.currentApp || "未追踪"}
                 </div>
                 {state.currentApp && (
