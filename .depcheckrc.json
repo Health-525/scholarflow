@@ -1,0 +1,34 @@
+{
+  "ignores": [
+    "@types/*",
+    "mdast",
+    "eslint*",
+    "prettier*",
+    "typescript",
+    "tailwindcss*",
+    "postcss",
+    "autoprefixer",
+    "@playwright/test",
+    "playwright",
+    "vitest",
+    "@vitejs/*",
+    "electron-builder*",
+    "@electron/*",
+    "sharp",
+    "concurrently"
+  ],
+  "ignorePatterns": [
+    "dist",
+    "out",
+    ".next",
+    "node_modules",
+    "android",
+    "ios",
+    "electron",
+    "skills",
+    "scripts",
+    "landing",
+    "screenshots",
+    "docs"
+  ]
+}
