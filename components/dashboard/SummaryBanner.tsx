@@ -111,8 +111,8 @@ interface SummaryBannerProps {
 export const SummaryBanner = memo(function SummaryBanner({ data, loading = true }: SummaryBannerProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[1, 2, 3, 4].map((i) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {[1, 2, 3].map((i) => (
           <div
             key={i}
             className={cn(
@@ -151,7 +151,7 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
       },
     ];
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {fallbackItems.map((item, i) => (
           <div
             key={i}
@@ -226,7 +226,7 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
       {items.map((item, i) => (
         <StatMiniCard key={i} {...item} />
       ))}
