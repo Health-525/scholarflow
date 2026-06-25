@@ -1,14 +1,16 @@
 # ScholarFlow Landing Page
 
-这是一个独立、静态、响应式的项目展示页，用于向访客介绍 ScholarFlow 并引导下载。
+这是一个独立、静态、响应式的项目展示页，用于向访客介绍 ScholarFlow 并引导下载 Windows 桌面版。
 
 ## 特性
 
 - **纯静态**：只需 HTML + CSS + 少量 JS，无需构建工具
 - **响应式**：从手机到桌面端自适应
-- **暗色模式**：自动跟随系统 `prefers-color-scheme`
-- **动效克制**：滚动显现、3D 倾斜、悬浮徽章、毛玻璃效果
-- **无障碍**：支持 `prefers-reduced-motion`，语义化标签
+- **默认暗色科技蓝主题**：深空蓝黑背景 + 电光蓝/青渐变 + 玻璃拟态
+- **炫酷动效**：滚动显现、悬浮徽章、背景光晕、发光边框
+- **仅宣传 Windows 桌面端**：不展示 Web / Android / PWA 等其他平台
+- **无障碍**：Skip Link、ARIA 标签、语义化标签、可见焦点环、键盘导航
+- **返回顶部**：滚动后出现的返回顶部按钮
 - **SEO / Open Graph**：完整的 meta 标签和社交分享信息
 
 ## 本地预览
@@ -72,10 +74,11 @@ landing/
 
 - 修改 `index.html` 中的版本号、下载链接、GitHub 链接
 - 修改 Open Graph 图片 URL
-- 在 `showcaseImages`（`main.js`）中添加更多截图切换
-- 调整品牌色可在 `tailwind.config` 覆盖的 `brand` / `ximi` 色板中修改
+- 调整品牌色可在 `tailwind.config` 覆盖的 `brand` 色板中修改
+- 背景光晕、网格、卡片样式在 `styles.css` 中调整
 
 ## 注意事项
 
 - 页面依赖 CDN：Tailwind CSS、Lucide Icons、Google Fonts。如果部署环境无法访问外网，请下载这些资源到本地。
-- 截图来自 `screenshots/` 目录，通过 GitHub raw URL 引用。若仓库结构或分支变更，请同步更新 URL。
+- GitHub 图标使用内联 SVG，避免 Lucide UMD 版本中缺失该图标。
+- 截图来自 `assets/` 目录，请确保该目录存在所需图片。
