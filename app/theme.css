@@ -21,13 +21,13 @@
   --ring: #2a4494;
   --radius: 0.625rem;
 
-  --sidebar: #faf7f2;
+  --sidebar: #f2f0eb;
   --sidebar-foreground: #1a1510;
   --sidebar-primary: #2a4494;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f5f0e8;
+  --sidebar-accent: #e8e6e0;
   --sidebar-accent-foreground: #1a1510;
-  --sidebar-border: rgba(26, 21, 16, 0.1);
+  --sidebar-border: rgba(26, 21, 16, 0.06);
   --sidebar-ring: #2a4494;
 
   --surface: #f8f7f4;

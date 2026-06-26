@@ -56,15 +56,10 @@ export const SIDE_NAV_GROUPS: NavGroupConfig[] = [
     ],
   },
   {
-    label: "专注",
+    label: "工具",
     items: [
       { id: "pomodoro", href: "/pomodoro", label: "番茄钟", icon: Timer, keywords: ["番茄钟", "专注", "计时器"] },
       { id: "notes", href: "/notes", label: "笔记", icon: FileText, keywords: ["笔记", "知识库"] },
-    ],
-  },
-  {
-    label: "生活",
-    items: [
       { id: "activity", href: "/activity", label: "屏幕时间", icon: Monitor, keywords: ["屏幕时间", "使用统计"] },
     ],
   },

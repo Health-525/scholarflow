@@ -70,6 +70,11 @@ h3 {
   letter-spacing: -0.01em;
 }
 
+/* ── Shadow utilities aligned with design tokens ── */
+.shadow-xs {
+  box-shadow: var(--shadow-xs);
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;

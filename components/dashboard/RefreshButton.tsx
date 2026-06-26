@@ -49,19 +49,19 @@ export const RefreshButton = memo(function RefreshButton({ className }: { classN
 
   return (
     <Button
-      variant="outline"
-      size="icon-lg"
+      variant="ghost"
+      size="icon"
       onClick={handleRefresh}
       disabled={isPending}
       aria-label="刷新数据"
       aria-busy={isPending}
       title={isPending ? "刷新中…" : "从教务系统刷新数据"}
       className={cn(
-        "rounded-2xl backdrop-blur-xl bg-card/80 dark:bg-card/60",
+        "rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted",
         className
       )}
     >
-      <RefreshCw className={cn("w-5 h-5 text-primary", isPending && "animate-spin")} />
+      <RefreshCw className={cn("size-4", isPending && "animate-spin")} />
     </Button>
   );
 });

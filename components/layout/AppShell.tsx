@@ -64,7 +64,7 @@ export function AppShell({ children, isOnline }: AppShellProps) {
             网络连接已断开，离线数据仍可浏览
           </div>
         )}
-        <main className="relative flex-1 overflow-y-auto pb-20 md:pb-0 px-4 md:px-8 lg:px-10">
+        <main className="relative flex-1 overflow-y-auto pb-20 md:pb-0 px-4 md:px-6 lg:px-8">
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>
