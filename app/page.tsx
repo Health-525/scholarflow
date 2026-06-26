@@ -13,7 +13,9 @@ import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
 import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { useScheduleQuery } from "@/hooks/useQueries";
 import { useDashboardSummary } from "@/lib/dashboard/use-dashboard-summary";
+import { getWeekNumber } from "@/lib/schedule/schedule";
 
 const MobileHome = lazy(() =>
   import("@/components/ximi/MobileHome").then((m) => ({ default: m.MobileHome }))
@@ -72,6 +74,13 @@ export default function DashboardPage() {
   const { text: greeting, date: dateStr } = useGreeting();
   const { data: dashboardData, loading: dashboardLoading } =
     useDashboardSummary();
+  const { data: scheduleData } = useScheduleQuery();
+
+  const currentWeek = (() => {
+    const week1Monday = scheduleData?.schedule?.meta?.week1_monday;
+    if (!week1Monday) return null;
+    return getWeekNumber(new Date(), week1Monday);
+  })();
 
   if (isMobile) {
     return (
@@ -89,9 +98,16 @@ export default function DashboardPage() {
       <header className="rounded-2xl bg-card border border-black/[0.04] dark:border-white/[0.06] p-5 shadow-sm">
         <div className="flex items-center justify-between gap-4">
           <div suppressHydrationWarning>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              {greeting}
-            </h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                {greeting}
+              </h1>
+              {currentWeek && (
+                <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                  第{currentWeek}周
+                </span>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground mt-0.5">
               {dateStr}
             </p>

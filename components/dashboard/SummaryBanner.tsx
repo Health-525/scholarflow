@@ -174,7 +174,7 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
     {
       icon: ClipboardList,
       label: "待办作业",
-      value: overview.pendingAssignments,
+      value: overview.pendingAssignments > 99 ? "99+" : overview.pendingAssignments,
       colorClass: urgentAssign ? "text-destructive" : "text-foreground",
     },
   ];
