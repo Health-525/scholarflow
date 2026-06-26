@@ -95,6 +95,27 @@ export default function DashboardPage() {
             <p className="text-sm text-muted-foreground mt-0.5">
               {dateStr}
             </p>
+            {!dashboardLoading && dashboardData && (
+              <p className="text-xs text-muted-foreground/80 mt-2">
+                {(() => {
+                  const { todayCourses, pendingAssignments, urgentAssignments } =
+                    dashboardData.overview;
+                  if (todayCourses === 0 && pendingAssignments === 0) {
+                    return "今天没有安排，好好休息";
+                  }
+                  const parts: string[] = [];
+                  if (todayCourses > 0) {
+                    parts.push(`今天有 ${todayCourses} 节课`);
+                  }
+                  if (urgentAssignments > 0) {
+                    parts.push(`${urgentAssignments} 项作业已到期`);
+                  } else if (pendingAssignments > 0) {
+                    parts.push(`${pendingAssignments} 项作业待办`);
+                  }
+                  return parts.join(" · ");
+                })()}
+              </p>
+            )}
           </div>
           <RefreshButton />
         </div>
