@@ -5,7 +5,6 @@ import { useState } from "react";
 
 import { NoteEditor } from "@/components/notes/NoteEditor";
 import { NoteViewer } from "@/components/notes/NoteViewer";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/input";
@@ -57,7 +56,6 @@ export function Workspace(props: WorkspaceProps) {
     createError,
     onCreateSubmit,
     title,
-    category,
     content,
     previewContent,
     onPreviewChange,
@@ -79,18 +77,28 @@ export function Workspace(props: WorkspaceProps) {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const stickyCardClass =
-    "rounded-2xl bg-amber-50 dark:bg-amber-950 shadow-md border border-amber-100 dark:border-amber-900";
+  const cardClass =
+    "rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900 shadow-sm";
 
   if (isCreating) {
     return (
       <div className="max-w-2xl mx-auto w-full h-full flex flex-col">
-        <div className={`${stickyCardClass} h-full flex flex-col p-5`}>
-          <div className="mb-4">
+        <div className={`${cardClass} h-full flex flex-col`}>
+          <div className="flex items-center justify-between px-5 py-3 shrink-0 border-b border-amber-100/50 dark:border-amber-900/50">
             <h2 className="text-base font-semibold text-amber-950 dark:text-amber-50">新建便签</h2>
-            <p className="text-xs text-amber-700/70 dark:text-amber-300/70">写个标题就能创建</p>
+            {onBack && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onBack}
+                aria-label="返回列表"
+                className="h-9 w-9 rounded-lg text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+            )}
           </div>
-          <form onSubmit={onCreateSubmit} className="flex-1 flex flex-col gap-4 min-h-0">
+          <form onSubmit={onCreateSubmit} className="flex-1 flex flex-col gap-4 min-h-0 px-5 py-4">
             <Input
               type="text"
               value={createTitle}
@@ -121,65 +129,48 @@ export function Workspace(props: WorkspaceProps) {
 
   return (
     <div className="max-w-2xl mx-auto w-full h-full flex flex-col">
-      <div className={`${stickyCardClass} h-full flex flex-col`}>
+      <div className={`${cardClass} h-full flex flex-col`}>
         {/* Header */}
-        <div className="flex items-start justify-between px-5 pt-5 pb-2 shrink-0">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-semibold text-amber-950 dark:text-amber-50 truncate">
-                {title}
-              </h1>
-              {category && (
-                <Badge
-                  variant="secondary"
-                  className="shrink-0 bg-amber-100/70 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200"
-                >
-                  {category}
-                </Badge>
-              )}
-            </div>
-            <div className="flex items-center gap-2 min-h-4 mt-1">
-              {saving && (
-                <span className="text-xs text-amber-700/70 dark:text-amber-300/70">保存中…</span>
-              )}
-              {saveSuccess && (
-                <span className="text-xs text-green-600 dark:text-green-400">已保存</span>
-              )}
-              {saveError && (
-                <span className="text-xs text-destructive flex items-center gap-1">
-                  <XCircle className="w-3 h-3" /> {saveError}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center justify-between px-5 py-3 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
             {onBack && (
               <Button
                 variant="ghost"
-                size="icon-sm"
+                size="icon"
                 onClick={onBack}
                 aria-label="返回列表"
-                className="text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
+                className="h-9 w-9 rounded-lg text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900 md:hidden"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
             )}
+            {saveError ? (
+              <span className="text-xs text-destructive flex items-center gap-1">
+                <XCircle className="w-3 h-3" /> {saveError}
+              </span>
+            ) : saving ? (
+              <span className="text-xs text-amber-700/70 dark:text-amber-300/70">保存中…</span>
+            ) : saveSuccess ? (
+              <span className="text-xs text-green-600 dark:text-green-400">已保存</span>
+            ) : null}
+          </div>
+          <div className="flex items-center gap-1 rounded-xl bg-amber-100/50 dark:bg-amber-900/50 p-1 shrink-0">
             <Button
               variant="ghost"
-              size="icon-sm"
+              size="icon"
               onClick={() => onViewModeChange(viewMode === "edit" ? "view" : "edit")}
               aria-label={viewMode === "edit" ? "预览" : "编辑"}
-              className="text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
+              className="h-9 w-9 rounded-lg text-amber-700 dark:text-amber-300 hover:bg-amber-200/60 dark:hover:bg-amber-800/60"
             >
               {viewMode === "edit" ? <Eye className="w-4 h-4" /> : <PenLine className="w-4 h-4" />}
             </Button>
             <Button
               variant="ghost"
-              size="icon-sm"
+              size="icon"
               onClick={() => setShowDeleteConfirm(true)}
               aria-label="删除笔记"
               disabled={isLoading}
-              className="text-amber-700 dark:text-amber-300 hover:text-destructive hover:bg-amber-100 dark:hover:bg-amber-900 disabled:opacity-50"
+              className="h-9 w-9 rounded-lg text-amber-700 dark:text-amber-300 hover:text-destructive hover:bg-amber-200/60 dark:hover:bg-amber-800/60 disabled:opacity-50"
             >
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -197,7 +188,7 @@ export function Workspace(props: WorkspaceProps) {
         )}
 
         {/* Content */}
-        <div className="flex-1 min-h-0 pb-5">
+        <div className="flex-1 min-h-0">
           {isLoading && (
             <div className="flex items-center justify-center h-full px-5">
               <div className="text-center">
@@ -226,7 +217,7 @@ export function Workspace(props: WorkspaceProps) {
                   className="px-5 py-4"
                 />
               ) : (
-                <div className="h-full overflow-y-auto px-5 py-4">
+                <div className="h-full overflow-y-auto px-5 pt-3 pb-5">
                   <NoteViewer content={previewContent} isMarkdown />
                 </div>
               )}

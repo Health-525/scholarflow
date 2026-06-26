@@ -57,7 +57,7 @@ async function run() {
       await page.waitForTimeout(1500);
 
       // 进入新建便签
-      await page.locator('button[aria-label="新建笔记"]:visible').first().click();
+      await page.getByRole("button", { name: "新建笔记" }).first().click();
       await page.waitForSelector('form input[placeholder="标题"]:visible', { timeout: 5000 });
 
       await page.fill('form input[placeholder="标题"]:visible', "Calculus Review");
@@ -67,7 +67,7 @@ async function run() {
       await page.getByRole("button", { name: "创建便签" }).first().click();
 
       // 等待进入编辑态
-      await page.waitForSelector('h1:has-text("Calculus-Review"):visible', { timeout: 5000 });
+      await page.waitForSelector('textarea[placeholder="写点什么…"]:visible', { timeout: 5000 });
       await page.waitForTimeout(1000);
 
       await page.screenshot({

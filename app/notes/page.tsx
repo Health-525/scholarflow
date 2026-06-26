@@ -247,7 +247,7 @@ export default function NotesPage() {
                     <div className={`w-1.5 h-1.5 rounded-full ${selectedPath === note.path ? "bg-primary" : "bg-muted-foreground/40"}`} />
                     <span className="text-sm font-medium truncate flex-1">{note.title}</span>
                   </div>
-                  {note.category && <div className="text-xs text-muted-foreground mt-0.5 pl-3">{note.category}</div>}
+
                 </button>
               ))}
             </div>
@@ -321,7 +321,7 @@ export default function NotesPage() {
                       }`}
                     >
                       <div className="text-sm font-medium truncate">{note.title}</div>
-                      {note.category && <div className="text-xs text-muted-foreground mt-0.5">{note.category}</div>}
+
                     </button>
                   ))}
                 </div>
@@ -336,7 +336,7 @@ export default function NotesPage() {
         {isCreating || selectedPath ? (
           <Workspace {...workspaceProps} />
         ) : (
-          <EmptyWorkspaceState />
+          <EmptyWorkspaceState onCreate={startCreating} />
         )}
       </main>
     </div>

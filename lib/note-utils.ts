@@ -39,7 +39,7 @@ export function buildNotePath(title: string, category?: string): string {
 export function parseNotePath(path: string): NotePathInfo {
   const parts = path.replace(/\\/g, "/").split("/").filter(Boolean);
   const fileName = parts.pop() ?? path;
-  const title = fileName.replace(/\.md$/i, "");
+  const title = fileName.replace(/\.md$/i, "").replace(/[-_]/g, " ");
   const category = parts.join("/");
   return { category, title };
 }
