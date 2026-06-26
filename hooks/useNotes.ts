@@ -19,7 +19,6 @@ export function useNoteTree() {
   // 订阅 auth，让 schoolId/userId 变化时触发重载
   const schoolId = useAuthStore((s) => s.schoolId);
   const userId = useAuthStore((s) => s.userId);
-  const prevKeyRef = useRef<string | null>(null);
 
   const load = useCallback(async (signal?: AbortSignal) => {
     setIsLoading(true);
@@ -38,14 +37,10 @@ export function useNoteTree() {
   }, []);
 
   useEffect(() => {
-    // 只在账号 key 真正变化时重新加载（避免其他 auth 字段变化触发无意义请求）
-    const key = `${schoolId || ""}:${userId || ""}`;
-    if (prevKeyRef.current !== key) {
-      prevKeyRef.current = key;
-      const abort = new AbortController();
-      load(abort.signal);
-      return () => abort.abort();
-    }
+    // 只在 schoolId/userId 变化时加载，避免其他 auth 字段变化触发无意义请求
+    const abort = new AbortController();
+    load(abort.signal);
+    return () => abort.abort();
   }, [schoolId, userId, load]);
 
   const reload = useCallback(() => {

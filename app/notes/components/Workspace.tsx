@@ -1,13 +1,12 @@
 "use client";
 
-import { FileText, Trash2, CheckCircle2, XCircle, Eye, PenLine } from "lucide-react";
+import { ChevronLeft, Eye, FileText, PenLine, Trash2, XCircle } from "lucide-react";
 import { useState } from "react";
 
 import { NoteEditor } from "@/components/notes/NoteEditor";
 import { NoteViewer } from "@/components/notes/NoteViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,8 +33,8 @@ export interface WorkspaceProps {
   error: Error | null;
   reload: () => void;
   editorKey: string;
-  mobileMode: "edit" | "view";
-  onMobileModeChange: (m: "edit" | "view") => void;
+  viewMode: "edit" | "view";
+  onViewModeChange: (m: "edit" | "view") => void;
   saving: boolean;
   saveSuccess: boolean;
   saveError: string | null;
@@ -43,6 +42,7 @@ export interface WorkspaceProps {
   onDelete: () => Promise<void>;
   deletedBuffer: DeletedNote | null;
   onUndoDelete: () => Promise<void>;
+  onBack?: () => void;
 }
 
 export function Workspace(props: WorkspaceProps) {
@@ -65,8 +65,8 @@ export function Workspace(props: WorkspaceProps) {
     error,
     reload,
     editorKey,
-    mobileMode,
-    onMobileModeChange,
+    viewMode,
+    onViewModeChange,
     saving,
     saveSuccess,
     saveError,
@@ -74,151 +74,165 @@ export function Workspace(props: WorkspaceProps) {
     onDelete,
     deletedBuffer,
     onUndoDelete,
+    onBack,
   } = props;
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  const stickyCardClass =
+    "rounded-2xl bg-amber-50 dark:bg-amber-950 shadow-md border border-amber-100 dark:border-amber-900";
+
   if (isCreating) {
     return (
-      <Card className="h-full flex flex-col rounded-2xl">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">新建笔记</CardTitle>
-          <p className="text-xs text-muted-foreground">填写标题即可创建，分类可选</p>
-        </CardHeader>
-        <form onSubmit={onCreateSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div>
-            <label htmlFor="note-title" className="block text-xs font-medium text-muted-foreground mb-1.5">标题</label>
+      <div className="max-w-2xl mx-auto w-full h-full flex flex-col">
+        <div className={`${stickyCardClass} h-full flex flex-col p-5`}>
+          <div className="mb-4">
+            <h2 className="text-base font-semibold text-amber-950 dark:text-amber-50">新建便签</h2>
+            <p className="text-xs text-amber-700/70 dark:text-amber-300/70">写个标题就能创建</p>
+          </div>
+          <form onSubmit={onCreateSubmit} className="flex-1 flex flex-col gap-4 min-h-0">
             <Input
-              id="note-title"
               type="text"
               value={createTitle}
               onChange={(e) => setCreateTitle(e.target.value)}
-              placeholder="例如：高等数学复习"
-              className="h-10"
+              placeholder="标题"
+              className="border-0 border-b rounded-none bg-transparent px-0 text-lg font-medium placeholder:text-amber-700/60 dark:placeholder:text-amber-300/60"
             />
-          </div>
-          <div>
-            <label htmlFor="note-category" className="block text-xs font-medium text-muted-foreground mb-1.5">分类（可选）</label>
             <Input
-              id="note-category"
               type="text"
               value={createCategory}
               onChange={(e) => setCreateCategory(e.target.value)}
-              placeholder="例如：数学"
-              className="h-10"
+              placeholder="分类（可选）"
+              className="border-0 border-b rounded-none bg-transparent px-0 text-sm placeholder:text-amber-700/60 dark:placeholder:text-amber-300/60"
             />
-          </div>
-          <div>
-            <label htmlFor="note-content" className="block text-xs font-medium text-muted-foreground mb-1.5">内容</label>
             <Textarea
-              id="note-content"
               value={createContent}
               onChange={(e) => setCreateContent(e.target.value)}
               placeholder="从这里开始写…"
-              className="min-h-48 resize-none"
+              className="flex-1 resize-none border-0 bg-transparent px-0 text-base placeholder:text-amber-700/60 dark:placeholder:text-amber-300/60"
             />
-          </div>
-          {createError && <p className="text-xs text-destructive">{createError}</p>}
-          <Button type="submit" className="w-full">创建笔记</Button>
-        </form>
-      </Card>
+            {createError && <p className="text-xs text-destructive">{createError}</p>}
+            <Button type="submit" className="w-full">创建便签</Button>
+          </form>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="h-full flex flex-col rounded-2xl">
-      {/* Header */}
-      <CardHeader className="pb-2 shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-sm">📝</span>
-            <CardTitle className="text-base truncate">{title}</CardTitle>
-            {category && <Badge variant="secondary" className="shrink-0">{category}</Badge>}
+    <div className="max-w-2xl mx-auto w-full h-full flex flex-col">
+      <div className={`${stickyCardClass} h-full flex flex-col`}>
+        {/* Header */}
+        <div className="flex items-start justify-between px-5 pt-5 pb-2 shrink-0">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-semibold text-amber-950 dark:text-amber-50 truncate">
+                {title}
+              </h1>
+              {category && (
+                <Badge
+                  variant="secondary"
+                  className="shrink-0 bg-amber-100/70 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200"
+                >
+                  {category}
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-2 min-h-4 mt-1">
+              {saving && (
+                <span className="text-xs text-amber-700/70 dark:text-amber-300/70">保存中…</span>
+              )}
+              {saveSuccess && (
+                <span className="text-xs text-green-600 dark:text-green-400">已保存</span>
+              )}
+              {saveError && (
+                <span className="text-xs text-destructive flex items-center gap-1">
+                  <XCircle className="w-3 h-3" /> {saveError}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <div className="flex md:hidden items-center bg-secondary rounded-lg p-0.5">
+            {onBack && (
               <Button
-                variant={mobileMode === "edit" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => onMobileModeChange("edit")}
-                className="h-7 gap-1 rounded-md text-xs"
+                variant="ghost"
+                size="icon-sm"
+                onClick={onBack}
+                aria-label="返回列表"
+                className="text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
               >
-                <PenLine className="w-3 h-3" /> 编辑
+                <ChevronLeft className="w-4 h-4" />
               </Button>
-              <Button
-                variant={mobileMode === "view" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => onMobileModeChange("view")}
-                className="h-7 gap-1 rounded-md text-xs"
-              >
-                <Eye className="w-3 h-3" /> 阅读
-              </Button>
-            </div>
-            <Button variant="ghost" size="icon-sm" onClick={() => setShowDeleteConfirm(true)} aria-label="删除笔记" className="text-muted-foreground hover:text-destructive">
+            )}
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => onViewModeChange(viewMode === "edit" ? "view" : "edit")}
+              aria-label={viewMode === "edit" ? "预览" : "编辑"}
+              className="text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
+            >
+              {viewMode === "edit" ? <Eye className="w-4 h-4" /> : <PenLine className="w-4 h-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setShowDeleteConfirm(true)}
+              aria-label="删除笔记"
+              disabled={isLoading}
+              className="text-amber-700 dark:text-amber-300 hover:text-destructive hover:bg-amber-100 dark:hover:bg-amber-900 disabled:opacity-50"
+            >
               <Trash2 className="w-4 h-4" />
             </Button>
           </div>
         </div>
-        <div className="flex items-center gap-2 min-h-5">
-          {saveSuccess && (
-            <span className="text-xs font-medium px-1.5 py-0.5 rounded animate-fade-up bg-green-500/10 dark:bg-green-500/15 text-green-600 dark:text-green-400 flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" /> 已保存
-            </span>
-          )}
-          {saving && <span className="text-xs text-muted-foreground">保存中…</span>}
-          {saveError && (
-            <span className="text-xs text-destructive flex items-center gap-1">
-              <XCircle className="w-3 h-3" /> {saveError}
-            </span>
-          )}
-        </div>
-      </CardHeader>
 
-      {/* Undo toast */}
-      {deletedBuffer && Date.now() < deletedBuffer.expiresAt && (
-        <div className="flex items-center gap-2 px-3 py-2.5 text-sm bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-fade-up shrink-0">
-          <span className="flex-1 truncate">已删除「{parseNotePath(deletedBuffer.path).title}」</span>
-          <Button variant="secondary" size="sm" onClick={onUndoDelete} className="gap-1">
-            <Trash2 size={12} /> 撤销
-          </Button>
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="flex-1 overflow-hidden min-h-0">
-        {isLoading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="w-8 h-8 mx-auto mb-3 rounded-lg flex items-center justify-center animate-breathe bg-primary/10">
-                <FileText className="w-4 h-4 text-primary" />
-              </div>
-              <p className="text-xs text-muted-foreground">正在打开笔记…</p>
-            </div>
+        {/* Undo toast */}
+        {deletedBuffer && Date.now() < deletedBuffer.expiresAt && (
+          <div className="flex items-center gap-2 px-5 py-2 text-sm bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-fade-up motion-reduce:animate-none shrink-0">
+            <span className="flex-1 truncate">已删除「{parseNotePath(deletedBuffer.path).title}」</span>
+            <Button variant="secondary" size="sm" onClick={onUndoDelete} className="gap-1">
+              <Trash2 size={12} /> 撤销
+            </Button>
           </div>
         )}
-        {error && !isLoading && (
-          <div className="text-center py-20">
-            <p className="text-sm mb-2 text-destructive">加载失败</p>
-            <p className="text-xs text-muted-foreground">{error.message}</p>
-            <Button variant="secondary" size="sm" onClick={reload} className="mt-3">重试</Button>
-          </div>
-        )}
-        {!isLoading && !error && (
-          <div className="flex h-full">
-            <div className={`flex-1 min-w-0 h-full ${mobileMode === "view" ? "hidden md:block" : "block"}`}>
-              <NoteEditor key={editorKey} content={content} onSave={onSave} onChange={onPreviewChange} />
-            </div>
-            <div
-              className={`flex-1 min-w-0 h-full border-l border-border bg-secondary/20 overflow-y-auto ${
-                mobileMode === "edit" ? "hidden md:block" : "block"
-              }`}
-            >
-              <div className="px-5 py-4">
-                <NoteViewer content={previewContent} isMarkdown />
+
+        {/* Content */}
+        <div className="flex-1 min-h-0 pb-5">
+          {isLoading && (
+            <div className="flex items-center justify-center h-full px-5">
+              <div className="text-center">
+                <div className="w-8 h-8 mx-auto mb-2 rounded-lg flex items-center justify-center animate-breathe motion-reduce:animate-none bg-amber-100 dark:bg-amber-900">
+                  <FileText className="w-4 h-4 text-amber-700 dark:text-amber-300" />
+                </div>
+                <p className="text-xs text-amber-700/70 dark:text-amber-300/70">正在打开…</p>
               </div>
             </div>
-          </div>
-        )}
+          )}
+          {error && !isLoading && (
+            <div className="text-center px-5 py-20">
+              <p className="text-sm mb-2 text-destructive">加载失败</p>
+              <p className="text-xs text-muted-foreground">{error.message}</p>
+              <Button variant="secondary" size="sm" onClick={reload} className="mt-3">重试</Button>
+            </div>
+          )}
+          {!isLoading && !error && (
+            <div className="h-full">
+              {viewMode === "edit" ? (
+                <NoteEditor
+                  key={editorKey}
+                  content={content}
+                  onSave={onSave}
+                  onChange={onPreviewChange}
+                  className="px-5 py-4"
+                />
+              ) : (
+                <div className="h-full overflow-y-auto px-5 py-4">
+                  <NoteViewer content={previewContent} isMarkdown />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <ConfirmDialog
@@ -229,6 +243,6 @@ export function Workspace(props: WorkspaceProps) {
         confirmText="删除"
         onConfirm={onDelete}
       />
-    </Card>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Plus, ChevronLeft, Search } from "lucide-react";
+import { FileText, Plus, Search } from "lucide-react";
 import { useState, useCallback, useEffect, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { flattenTree, type DeletedNote } from "./utils";
 export default function NotesPage() {
   const { tree, isLoading: treeLoading, error: treeError, reload: reloadTree } = useNoteTree();
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
-  const [mobileMode, setMobileMode] = useState<"edit" | "view">("edit");
+  const [viewMode, setViewMode] = useState<"edit" | "view">("edit");
   const [isCreating, setIsCreating] = useState(false);
   const [createTitle, setCreateTitle] = useState("");
   const [createCategory, setCreateCategory] = useState("");
@@ -49,10 +49,17 @@ export default function NotesPage() {
     setPreviewContent(content);
   }, [content]);
 
+  // 删除提示 5 秒后自动清理
+  useEffect(() => {
+    if (!deletedBuffer) return;
+    const timer = window.setTimeout(() => setDeletedBuffer(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [deletedBuffer]);
+
   const handleSelect = useCallback((path: string) => {
     setIsCreating(false);
     setSelectedPath(path);
-    setMobileMode("edit");
+    setViewMode("edit");
   }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -70,7 +77,7 @@ export default function NotesPage() {
       setCreateContent("");
       setCreateError(null);
       setSelectedPath(path);
-      setMobileMode("edit");
+      setViewMode("edit");
       reloadTree();
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : "创建失败");
@@ -127,7 +134,12 @@ export default function NotesPage() {
     setIsCreating(true);
     setSelectedPath(null);
     setCreateError(null);
-    setMobileMode("edit");
+    setViewMode("edit");
+  };
+
+  const handleBack = () => {
+    setSelectedPath(null);
+    setIsCreating(false);
   };
 
   const selectedNote = notes.find((n) => n.path === selectedPath);
@@ -155,8 +167,8 @@ export default function NotesPage() {
     error: workspaceError,
     reload: reloadContent,
     editorKey,
-    mobileMode,
-    onMobileModeChange: setMobileMode,
+    viewMode,
+    onViewModeChange: setViewMode,
     saving,
     saveSuccess,
     saveError,
@@ -164,6 +176,7 @@ export default function NotesPage() {
     onDelete: handleDelete,
     deletedBuffer,
     onUndoDelete: undoDelete,
+    onBack: handleBack,
   };
 
   const hasSearch = search.trim().length > 0;
@@ -180,7 +193,7 @@ export default function NotesPage() {
               </div>
               <div>
                 <CardTitle className="text-sm">笔记</CardTitle>
-                <p className="text-xs text-muted-foreground">Markdown · 自动保存</p>
+                <p className="text-xs text-muted-foreground">随手记 · 自动保存</p>
               </div>
             </div>
             <Button variant="ghost" size="icon-sm" onClick={startCreating} aria-label="新建笔记">
@@ -243,12 +256,9 @@ export default function NotesPage() {
       </Card>
 
       {/* Mobile list */}
-      <div className="md:hidden w-full">
+      <div className="md:hidden w-full h-full flex flex-col">
         {selectedPath || isCreating ? (
-          <div className="h-full flex flex-col">
-            <Button variant="ghost" size="sm" onClick={() => { setSelectedPath(null); setIsCreating(false); }} className="mb-3 w-fit gap-1">
-              <ChevronLeft className="w-3.5 h-3.5" /> 返回笔记列表
-            </Button>
+          <div className="flex-1 min-h-0">
             <Workspace {...workspaceProps} />
           </div>
         ) : (
@@ -261,7 +271,7 @@ export default function NotesPage() {
                   </div>
                   <div>
                     <CardTitle className="text-sm">笔记</CardTitle>
-                    <p className="text-xs text-muted-foreground">Markdown · 自动保存</p>
+                    <p className="text-xs text-muted-foreground">随手记 · 自动保存</p>
                   </div>
                 </div>
                 <Button variant="ghost" size="icon-sm" onClick={startCreating} aria-label="新建笔记">

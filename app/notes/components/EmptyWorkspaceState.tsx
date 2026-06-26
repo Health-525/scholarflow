@@ -1,19 +1,19 @@
 import { FileText } from "lucide-react";
 
-import { Card, CardContent } from "@/components/ui/card";
-
 export function EmptyWorkspaceState() {
   return (
-    <Card className="h-full flex flex-col items-center justify-center hover:shadow-sm hover:translate-y-0">
-      <CardContent className="text-center animate-fade-up max-w-xs px-6 py-12">
-        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-primary/10">
-          <FileText className="w-6 h-6 text-primary" />
+    <div className="max-w-2xl mx-auto w-full h-full flex flex-col">
+      <div className="rounded-2xl bg-amber-50 dark:bg-amber-950 shadow-md border border-amber-100 dark:border-amber-900 h-full flex flex-col items-center justify-center p-8 text-center">
+        <div className="w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center bg-amber-100 dark:bg-amber-900">
+          <FileText className="w-5 h-5 text-amber-700 dark:text-amber-300" />
         </div>
-        <h3 className="text-base font-semibold mb-1.5 text-foreground">选择一个笔记开始写作</h3>
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          从左侧选择已有笔记，或点击左上角 + 创建新笔记。
+        <h3 className="text-base font-semibold text-amber-950 dark:text-amber-50 mb-1">
+          选一张便签开始写
+        </h3>
+        <p className="text-sm text-amber-700/70 dark:text-amber-300/70">
+          从左侧列表选择，或点击左上角 + 新建。
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
