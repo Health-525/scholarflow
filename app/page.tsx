@@ -86,16 +86,18 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto py-5 pb-24 md:pb-10 space-y-5">
       {/* Header */}
-      <header className="flex items-center justify-between gap-4">
-        <div suppressHydrationWarning>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {greeting}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {dateStr}
-          </p>
+      <header className="rounded-2xl bg-card border border-black/[0.04] dark:border-white/[0.06] p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <div suppressHydrationWarning>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              {greeting}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {dateStr}
+            </p>
+          </div>
+          <RefreshButton />
         </div>
-        <RefreshButton />
       </header>
 
       <QuickActions />
