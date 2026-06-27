@@ -153,10 +153,10 @@ export async function renderWechatPreviewHtml(options: RenderPreviewOptions): Pr
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
     }
   </style>
-  ${codeThemeLink}
   <style>
 ${themeCss}
   </style>
+  ${codeThemeLink}
 </head>
 <body>
   <div class="wechat-wrapper">

@@ -414,7 +414,7 @@ const BASE_CSS = `
   margin: 0.25em 0;
 }
 
-.wechat-output code {
+.wechat-output :not(pre) > code {
   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
   font-size: 90%;
   padding: 2px 5px;
@@ -436,8 +436,6 @@ const BASE_CSS = `
 .wechat-output pre code.hljs {
   display: block;
   padding: 0.75em 1em;
-  background: transparent;
-  color: inherit;
   font-size: 90%;
 }
 
