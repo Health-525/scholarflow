@@ -1,8 +1,9 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import { Download, X } from "lucide-react";
+import { Copy, Download, Monitor, RotateCcw, Smartphone, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { exportWechatHtml } from "@/lib/notes/export-import";
@@ -15,6 +16,7 @@ import {
   FONT_SIZE_OPTIONS,
   HEADING_LEVEL_OPTIONS,
   HEADING_STYLE_OPTIONS,
+  PREVIEW_WIDTH_OPTIONS,
   WECHAT_THEMES,
   type HeadingLevel,
   type HeadingStyleType,
@@ -175,6 +177,27 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
     }
   }, [title, content, config]);
 
+  const handleCopyHtml = useCallback(async () => {
+    const html = await renderWechatPreviewHtml({
+      title,
+      content,
+      config,
+      inlineCodeThemeCss: codeThemeCss ?? undefined,
+    });
+    try {
+      await navigator.clipboard.writeText(html);
+      toast.success("已复制 HTML 到剪贴板");
+    } catch {
+      toast.error("复制失败，请手动导出");
+    }
+  }, [title, content, config, codeThemeCss]);
+
+  const handleReset = useCallback(() => {
+    setConfig(defaultWechatStyleConfig());
+    setSelectedHeadingLevel(DEFAULT_HEADING_LEVEL);
+    toast.info("已恢复默认样式");
+  }, []);
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -190,20 +213,39 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
             <Dialog.Title className="text-base font-semibold font-display text-foreground">
               公众号文章预览
             </Dialog.Title>
-            <Dialog.Close render={<Button size="icon" variant="ghost" className="h-8 w-8" />}>
-              <X className="w-4 h-4" />
-            </Dialog.Close>
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+                onClick={handleReset}
+                title="重置样式"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+              <Dialog.Close render={<Button size="icon" variant="ghost" className="h-8 w-8" />}>
+                <X className="w-4 h-4" />
+              </Dialog.Close>
+            </div>
           </div>
 
           <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
             {/* Preview */}
-            <div className="relative flex min-h-[40vh] flex-1 flex-col overflow-hidden bg-muted">
-              <iframe
-                title="公众号预览"
-                srcDoc={srcDoc}
-                className="h-full w-full border-0"
-                sandbox="allow-same-origin"
-              />
+            <div className="relative flex min-h-[40vh] flex-1 flex-col items-center overflow-auto bg-muted">
+              <div
+                className={cn(
+                  "h-full min-h-full bg-card shadow-sm transition-all",
+                  config.previewWidth === "mobile" ? "w-full max-w-[414px]" : "w-full"
+                )}
+              >
+                <iframe
+                  title="公众号预览"
+                  srcDoc={srcDoc}
+                  className="h-full min-h-full w-full border-0"
+                  sandbox="allow-same-origin"
+                />
+              </div>
             </div>
 
             {/* Settings */}
@@ -310,7 +352,7 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
                 </SettingsSection>
 
                 <SettingsSection title="标题样式">
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-2">
                     <select
                       value={selectedHeadingLevel}
                       onChange={(e) => setSelectedHeadingLevel(e.target.value as HeadingLevel)}
@@ -322,21 +364,50 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
                         </option>
                       ))}
                     </select>
-                    <select
-                      value={config.headingStyles[selectedHeadingLevel] ?? "default"}
-                      onChange={(e) =>
-                        updateHeadingStyle(selectedHeadingLevel, e.target.value as HeadingStyleType)
-                      }
-                      className="h-9 flex-1 rounded-md border border-input bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-ring"
-                    >
-                      {HEADING_STYLE_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
+                    <span className="text-xs text-muted-foreground">样式</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">先选择标题级别，再选择样式。可重复设置各级标题。</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {HEADING_STYLE_OPTIONS.map((opt) => {
+                      const active =
+                        (config.headingStyles[selectedHeadingLevel] ?? "default") === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => updateHeadingStyle(selectedHeadingLevel, opt.value)}
+                          className={cn(
+                            "flex flex-col items-center justify-center gap-1 rounded-lg border px-1 py-2 text-[10px] transition-colors",
+                            active
+                              ? "border-primary bg-primary/5 text-foreground"
+                              : "border-border bg-background text-muted-foreground hover:bg-muted"
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "flex h-6 w-8 items-center justify-center rounded text-sm font-bold",
+                              opt.value === "color-only" && "text-[var(--preview-primary)]",
+                              opt.value === "border-bottom" && "border-b-2 text-foreground",
+                              opt.value === "border-left" && "border-l-2 pl-1 text-foreground"
+                            )}
+                            style={
+                              opt.value === "color-only"
+                                ? { color: config.primaryColor }
+                                : opt.value === "border-bottom" || opt.value === "border-left"
+                                  ? {
+                                      borderColor: config.primaryColor,
+                                      color: "inherit",
+                                    }
+                                  : undefined
+                            }
+                          >
+                            H
+                          </span>
+                          <span className="truncate">{opt.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">先选标题级别，再点样式图标；可分别设置 H1-H6。</p>
                 </SettingsSection>
 
                 <SettingsSection title="代码块高亮">
@@ -351,6 +422,31 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
                       </option>
                     ))}
                   </select>
+                </SettingsSection>
+
+                <SettingsSection title="预览宽度">
+                  <div className="flex rounded-lg border border-input p-1">
+                    {PREVIEW_WIDTH_OPTIONS.map((opt) => {
+                      const active = config.previewWidth === opt.value;
+                      const Icon = opt.value === "mobile" ? Smartphone : Monitor;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => updateConfig("previewWidth", opt.value)}
+                          className={cn(
+                            "flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-xs transition-colors",
+                            active
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:bg-muted"
+                          )}
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </SettingsSection>
 
                 <div className="space-y-3">
@@ -393,7 +489,16 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
                 </div>
               </div>
 
-              <div className="border-t border-border p-4">
+              <div className="border-t border-border p-4 space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={handleCopyHtml}
+                >
+                  <Copy className="w-4 h-4" />
+                  复制 HTML
+                </Button>
                 <Button
                   type="button"
                   className="w-full gap-2"

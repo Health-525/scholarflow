@@ -142,7 +142,7 @@ export async function renderWechatPreviewHtml(options: RenderPreviewOptions): Pr
       font-family: var(--md-font-family);
     }
     .wechat-wrapper {
-      max-width: 720px;
+      max-width: ${config.previewWidth === "mobile" ? "375px" : "720px"};
       margin: 0 auto;
       padding: 24px 16px;
     }
