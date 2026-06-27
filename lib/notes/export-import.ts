@@ -1,8 +1,9 @@
-import { renderMarkdown } from "@/lib/markdown/processor";
-
-import { getWechatThemeCss } from "./wechat-themes";
-
-export { WECHAT_THEMES, type WechatTheme } from "./wechat-themes";
+import { fetchCodeBlockThemeCss, renderWechatPreviewHtml } from "./wechat-renderer";
+import {
+  codeBlockThemeUrl,
+  defaultWechatStyleConfig,
+  type WechatStyleConfig,
+} from "./wechat-themes";
 
 function sanitizeFilename(name: string): string {
   return name.replace(/[\\/:*?"<>|]/g, "-").trim() || "笔记";
@@ -27,32 +28,28 @@ export function exportMarkdown(title: string, content: string) {
 /**
  * 将笔记导出为适合复制到微信公众号后台的 HTML。
  * - 图片会尝试内联为 base64，避免本地 URL 失效
- * - 支持多种主题（默认、浅蓝、暗夜、暖橙）
+ * - 代码块高亮主题 CSS 会内联到 HTML 中
  */
-export async function exportWechatHtml(title: string, content: string, themeId: string = "default") {
-  let html = await renderMarkdown(content);
+export async function exportWechatHtml(
+  title: string,
+  content: string,
+  config: WechatStyleConfig = defaultWechatStyleConfig()
+) {
+  let codeThemeCss = await fetchCodeBlockThemeCss(config.codeBlockTheme);
+  if (!codeThemeCss) {
+    // 离线或失败时保留链接，至少给出提示性样式
+    codeThemeCss = `/* 代码块主题加载失败，原链接：${codeBlockThemeUrl(config.codeBlockTheme)} */`;
+  }
+
+  let html = await renderWechatPreviewHtml({
+    title,
+    content,
+    config,
+    inlineCodeThemeCss: codeThemeCss,
+  });
   html = await inlineImages(html);
 
-  const fullHtml = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(title)}</title>
-  <style>
-${getWechatThemeCss(themeId)}
-  </style>
-</head>
-<body>
-  <div class="wrapper">
-    <article class="article">
-${html}
-    </article>
-  </div>
-</body>
-</html>`;
-
-  const blob = new Blob([fullHtml], { type: "text/html;charset=utf-8" });
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   triggerDownload(blob, `${sanitizeFilename(title)}.html`);
 }
 
@@ -89,15 +86,6 @@ function blobToDataUrl(blob: Blob): Promise<string> {
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }
 
 export function parseMarkdownFile(file: File): Promise<{ title: string; content: string }> {
