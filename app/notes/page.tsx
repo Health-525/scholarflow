@@ -111,6 +111,25 @@ export default function NotesPage() {
     }
   };
 
+  const handleImportMarkdown = async (title: string, mdContent: string) => {
+    const baseTitle = title.trim() || "导入的笔记";
+    let path = buildNotePath(baseTitle);
+    let counter = 1;
+    while (notes.some((n) => n.path === path)) {
+      path = buildNotePath(`${baseTitle} ${counter}`);
+      counter += 1;
+    }
+    try {
+      await createNote(path, mdContent);
+      setSelectedPath(path);
+      setViewMode("edit");
+      reloadTree();
+      window.setTimeout(() => titleInputRef.current?.focus(), 80);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "导入失败");
+    }
+  };
+
   const handleRename = async (newTitle: string) => {
     if (!selectedPath) return;
     const trimmed = newTitle.trim();
@@ -173,6 +192,7 @@ export default function NotesPage() {
     onSave: handleSave,
     onDelete: handleDelete,
     onRename: handleRename,
+    onImportMarkdown: handleImportMarkdown,
     deletedBuffer,
     onUndoDelete: undoDelete,
     onBack: handleBack,

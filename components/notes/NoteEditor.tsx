@@ -11,6 +11,8 @@ import {
   Bold,
   Code,
   Eye,
+  FileDown,
+  FileUp,
   Heading1,
   Heading2,
   Heading3,
@@ -18,6 +20,7 @@ import {
   Italic,
   List,
   ListOrdered,
+  MoreHorizontal,
   PenLine,
   Quote,
   Redo,
@@ -28,17 +31,25 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { exportMarkdown, exportWechatHtml, parseMarkdownFile } from "@/lib/notes/export-import";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 
 interface NoteEditorProps {
   content: string;
+  documentTitle?: string;
   onSave: (content: string) => Promise<void>;
   onCancel?: () => void;
   onChange?: (value: string) => void;
   viewMode?: "edit" | "view";
   onViewModeChange?: (mode: "edit" | "view") => void;
   onDelete?: () => void;
+  onImportMarkdown?: (title: string, content: string) => void;
   className?: string;
 }
 
@@ -78,6 +89,52 @@ function ToolbarGroup({ children }: { children: React.ReactNode }) {
 
 function ToolbarDivider() {
   return <div className="w-px h-5 bg-border mx-1" />;
+}
+
+function ExportImportMenu({
+  onExportMarkdown,
+  onExportWechat,
+  onImportClick,
+}: {
+  onExportMarkdown: () => void;
+  onExportWechat: () => void;
+  onImportClick: () => void;
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger
+        type="button"
+        aria-label="更多"
+        title="更多"
+        className="h-8 w-8 rounded-md text-muted-foreground/70 hover:bg-muted/70 hover:text-foreground transition-colors inline-flex items-center justify-center"
+      >
+        <MoreHorizontal className="w-4 h-4" />
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-44 p-1">
+        <button
+          type="button"
+          onClick={onExportMarkdown}
+          className="w-full flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md text-foreground/80 hover:bg-muted/70"
+        >
+          <FileDown className="w-4 h-4" /> 导出 Markdown
+        </button>
+        <button
+          type="button"
+          onClick={onExportWechat}
+          className="w-full flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md text-foreground/80 hover:bg-muted/70"
+        >
+          <FileDown className="w-4 h-4" /> 导出公众号
+        </button>
+        <button
+          type="button"
+          onClick={onImportClick}
+          className="w-full flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md text-foreground/80 hover:bg-muted/70"
+        >
+          <FileUp className="w-4 h-4" /> 导入 Markdown
+        </button>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 function ViewDeleteGroup({
@@ -212,18 +269,30 @@ function DesktopToolbar({
   viewMode,
   onViewModeChange,
   onDelete,
+  onExportMarkdown,
+  onExportWechat,
+  onImportClick,
 }: {
   editor: Editor;
   onInsertImage: () => void;
   viewMode?: "edit" | "view";
   onViewModeChange?: (mode: "edit" | "view") => void;
   onDelete?: () => void;
+  onExportMarkdown: () => void;
+  onExportWechat: () => void;
+  onImportClick: () => void;
 }) {
   return (
     <div className="hidden md:flex flex-wrap items-center gap-0.5 px-1 py-1.5 mb-4 bg-card/60 backdrop-blur-sm sticky top-0 z-10">
       <CommonToolbar editor={editor} onInsertImage={onInsertImage} />
       <ToolbarDivider />
       <ViewDeleteGroup viewMode={viewMode} onViewModeChange={onViewModeChange} onDelete={onDelete} />
+      <ToolbarDivider />
+      <ExportImportMenu
+        onExportMarkdown={onExportMarkdown}
+        onExportWechat={onExportWechat}
+        onImportClick={onImportClick}
+      />
     </div>
   );
 }
@@ -234,18 +303,30 @@ function MobileToolbar({
   viewMode,
   onViewModeChange,
   onDelete,
+  onExportMarkdown,
+  onExportWechat,
+  onImportClick,
 }: {
   editor: Editor;
   onInsertImage: () => void;
   viewMode?: "edit" | "view";
   onViewModeChange?: (mode: "edit" | "view") => void;
   onDelete?: () => void;
+  onExportMarkdown: () => void;
+  onExportWechat: () => void;
+  onImportClick: () => void;
 }) {
   return (
     <div className="flex md:hidden flex-nowrap items-center gap-0.5 py-2 mb-2 border-b border-border/30 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:w-0">
       <CommonToolbar editor={editor} onInsertImage={onInsertImage} />
       <ToolbarDivider />
       <ViewDeleteGroup viewMode={viewMode} onViewModeChange={onViewModeChange} onDelete={onDelete} />
+      <ToolbarDivider />
+      <ExportImportMenu
+        onExportMarkdown={onExportMarkdown}
+        onExportWechat={onExportWechat}
+        onImportClick={onImportClick}
+      />
     </div>
   );
 }
@@ -286,12 +367,14 @@ function hasImageInDataTransfer(items?: DataTransferItemList | null): boolean {
 
 export function NoteEditor({
   content,
+  documentTitle = "",
   onSave,
   onCancel,
   onChange,
   viewMode,
   onViewModeChange,
   onDelete,
+  onImportMarkdown,
   className = "",
 }: NoteEditorProps) {
   const [dirty, setDirty] = useState(false);
@@ -305,6 +388,7 @@ export function NoteEditor({
   const onChangeRef = useRef(onChange);
   const lastSavedContentRef = useRef(content);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
   const dragCounter = useRef(0);
 
   const schoolId = useAuthStore((s) => s.schoolId);
@@ -386,6 +470,36 @@ export function NoteEditor({
       setDirty(true);
     },
   });
+
+  const handleExportMarkdown = useCallback(() => {
+    if (!editor) return;
+    exportMarkdown(documentTitle || "笔记", getMarkdown(editor));
+  }, [editor, documentTitle, getMarkdown]);
+
+  const handleExportWechat = useCallback(async () => {
+    if (!editor) return;
+    await exportWechatHtml(documentTitle || "笔记", getMarkdown(editor));
+  }, [editor, documentTitle, getMarkdown]);
+
+  const handleImportClick = useCallback(() => {
+    importInputRef.current?.click();
+  }, []);
+
+  const handleImportFile = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !onImportMarkdown) return;
+      try {
+        const { title, content: md } = await parseMarkdownFile(file);
+        onImportMarkdown(title, md);
+      } catch (err) {
+        setUploadError(err instanceof Error ? err.message : "导入失败");
+      } finally {
+        e.target.value = "";
+      }
+    },
+    [onImportMarkdown]
+  );
 
   // 外部 content 变化时（切换笔记）同步到编辑器
   useEffect(() => {
@@ -530,6 +644,14 @@ export function NoteEditor({
         onChange={handleFileSelect}
         aria-label="插入图片"
       />
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".md,text/markdown,text/plain"
+        className="hidden"
+        onChange={handleImportFile}
+        aria-label="导入 Markdown"
+      />
       <BubbleToolbar editor={editor} onInsertImage={handleInsertImage} />
       <DesktopToolbar
         editor={editor}
@@ -537,6 +659,9 @@ export function NoteEditor({
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
         onDelete={onDelete}
+        onExportMarkdown={handleExportMarkdown}
+        onExportWechat={handleExportWechat}
+        onImportClick={handleImportClick}
       />
       <MobileToolbar
         editor={editor}
@@ -544,6 +669,9 @@ export function NoteEditor({
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
         onDelete={onDelete}
+        onExportMarkdown={handleExportMarkdown}
+        onExportWechat={handleExportWechat}
+        onImportClick={handleImportClick}
       />
       {uploadError && (
         <div className="flex items-center gap-1.5 text-xs text-destructive mb-2">

@@ -7,7 +7,6 @@ import { NoteEditor } from "@/components/notes/NoteEditor";
 import { NoteViewer } from "@/components/notes/NoteViewer";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { Input } from "@/components/ui/input";
 import { parseNotePath } from "@/lib/note-utils";
 
 import type { DeletedNote } from "../utils";
@@ -29,6 +28,7 @@ export interface WorkspaceProps {
   onSave: (content: string) => Promise<void>;
   onDelete: () => Promise<void>;
   onRename?: (newTitle: string) => Promise<void>;
+  onImportMarkdown?: (title: string, content: string) => void;
   deletedBuffer: DeletedNote | null;
   onUndoDelete: () => Promise<void>;
   onBack?: () => void;
@@ -92,6 +92,7 @@ export function Workspace(props: WorkspaceProps) {
     onSave,
     onDelete,
     onRename,
+    onImportMarkdown,
     deletedBuffer,
     onUndoDelete,
     onBack,
@@ -177,7 +178,7 @@ export function Workspace(props: WorkspaceProps) {
 
             {viewMode === "edit" ? (
               <>
-                <Input
+                <input
                   ref={titleInputRef}
                   type="text"
                   value={editingTitle}
@@ -185,7 +186,7 @@ export function Workspace(props: WorkspaceProps) {
                   onBlur={handleTitleBlur}
                   onKeyDown={handleTitleKeyDown}
                   placeholder="无标题笔记"
-                  className="border-0 bg-transparent px-0 text-3xl md:text-4xl font-medium text-foreground/90 placeholder:text-muted-foreground/25 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none tracking-tight font-display w-full"
+                  className="w-full h-auto py-2 bg-transparent border-0 px-0 text-3xl md:text-4xl font-medium text-foreground/90 placeholder:text-muted-foreground/25 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none tracking-tight font-display rounded-none"
                 />
                 <div className="flex items-center justify-end mt-1 mb-4">
                   <SaveStatus saving={saving} saveError={saveError} />
@@ -193,11 +194,13 @@ export function Workspace(props: WorkspaceProps) {
                 <NoteEditor
                   key={editorKey}
                   content={content}
+                  documentTitle={title}
                   onSave={onSave}
                   onChange={onPreviewChange}
                   viewMode={viewMode}
                   onViewModeChange={onViewModeChange}
                   onDelete={() => setShowDeleteConfirm(true)}
+                  onImportMarkdown={onImportMarkdown}
                   className="text-base leading-relaxed"
                 />
               </>
