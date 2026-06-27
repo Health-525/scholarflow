@@ -58,11 +58,11 @@ async function run() {
 
       // 进入新建便签
       await page.getByRole("button", { name: "新建笔记" }).first().click();
-      await page.waitForSelector('form input[placeholder="标题"]:visible', { timeout: 5000 });
+      await page.waitForSelector('input[placeholder="无标题笔记"]:visible', { timeout: 5000 });
 
-      await page.fill('form input[placeholder="标题"]:visible', "Calculus Review");
-      await page.fill('form input[placeholder="分类（可选）"]:visible', "Math");
-      await page.fill('form textarea[placeholder="从这里开始写…"]:visible', "# Calculus Review\n\n- Limit definition\n- Derivative formulas\n- Integration by substitution\n\n**Remember to practice!**");
+      await page.fill('input[placeholder="无标题笔记"]:visible', "Calculus Review");
+      await page.fill('input[placeholder="分类（可选）"]:visible', "Math");
+      await page.fill('textarea[placeholder="从这里开始写…"]:visible', "- Limit definition\n- Derivative formulas\n- Integration by substitution\n\n**Remember to practice!**");
 
       await page.getByRole("button", { name: "创建便签" }).first().click();
 
@@ -78,6 +78,7 @@ async function run() {
 
       // 切换到预览
       await page.getByRole("button", { name: "预览" }).first().click();
+      await page.waitForSelector('h1:has-text("Calculus Review"):visible', { timeout: 5000 });
       await page.waitForTimeout(1000);
 
       await page.screenshot({

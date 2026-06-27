@@ -140,6 +140,18 @@ export async function createNote(path: string, content = ""): Promise<void> {
 }
 
 /**
+ * 重命名笔记（保持原分类不变）
+ */
+export async function renameNote(path: string, newPath: string): Promise<void> {
+  const res = await fetch("/api/notes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "rename", path, newPath, ...getAuthBody() }),
+  });
+  if (!res.ok) throw new Error("重命名失败");
+}
+
+/**
  * 删除笔记
  */
 export async function deleteNote(path: string): Promise<void> {

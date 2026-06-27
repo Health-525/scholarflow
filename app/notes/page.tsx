@@ -6,7 +6,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { createNote, deleteNote, saveNote, useNoteContent, useNoteTree } from "@/hooks/useNotes";
+import { createNote, deleteNote, renameNote, saveNote, useNoteContent, useNoteTree } from "@/hooks/useNotes";
 import { buildNotePath } from "@/lib/note-utils";
 
 import { EmptyListState, EmptyWorkspaceState, Workspace } from "./components";
@@ -115,6 +115,26 @@ export default function NotesPage() {
     }
   };
 
+  const handleRename = async (newTitle: string) => {
+    if (!selectedPath) return;
+    const trimmed = newTitle.trim();
+    if (!trimmed) {
+      setSaveError("标题不能为空");
+      return;
+    }
+    const { category } = selectedNote ?? { category: "" };
+    const newPath = buildNotePath(trimmed, category);
+    if (newPath === selectedPath) return;
+    setSaveError(null);
+    try {
+      await renameNote(selectedPath, newPath);
+      setSelectedPath(newPath);
+      reloadTree();
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "重命名失败");
+    }
+  };
+
   const undoDelete = async () => {
     if (!deletedBuffer || Date.now() > deletedBuffer.expiresAt) {
       setDeletedBuffer(null);
@@ -174,6 +194,7 @@ export default function NotesPage() {
     saveError,
     onSave: handleSave,
     onDelete: handleDelete,
+    onRename: handleRename,
     deletedBuffer,
     onUndoDelete: undoDelete,
     onBack: handleBack,
