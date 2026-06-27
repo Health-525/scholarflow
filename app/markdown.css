@@ -30,6 +30,8 @@
 .markdown-body p { margin: 0 0 1em; }
 .markdown-body ul,
 .markdown-body ol { padding-left: 1.6em; margin-bottom: 1em; }
+.markdown-body ul { list-style-type: disc; }
+.markdown-body ol { list-style-type: decimal; }
 .markdown-body li { margin-bottom: 0.3em; }
 .markdown-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .markdown-body a:hover { color: var(--accent-hover); }

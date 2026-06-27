@@ -12,7 +12,7 @@ async function run() {
     { name: "desktop", width: 1280, height: 900 },
     { name: "mobile", width: 390, height: 844 },
   ]) {
-    const notePath = "Math/Calculus-Review.md";
+    const notePath = "Calculus-Review.md";
     const noteKey = `note:${PREFIX}:${notePath}`;
 
     const context = await browser.newContext({ viewport: vp });
@@ -56,19 +56,32 @@ async function run() {
       }).catch(() => {});
       await page.waitForTimeout(1500);
 
-      // 进入新建便签
+      // 一键新建空白笔记
       await page.getByRole("button", { name: "新建笔记" }).first().click();
       await page.waitForSelector('input[placeholder="无标题笔记"]:visible', { timeout: 5000 });
 
+      // 直接重命名为目标标题
       await page.fill('input[placeholder="无标题笔记"]:visible', "Calculus Review");
-      await page.fill('input[placeholder="分类（可选）"]:visible', "Math");
-      await page.fill('textarea[placeholder="从这里开始写…"]:visible', "- Limit definition\n- Derivative formulas\n- Integration by substitution\n\n**Remember to practice!**");
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(600);
 
-      await page.getByRole("button", { name: "创建便签" }).first().click();
+      // 等待 WYSIWYG 编辑器渲染并聚焦
+      const editor = page.locator('[contenteditable="true"]:visible').first();
+      await editor.waitFor({ timeout: 5000 });
+      await page.waitForTimeout(800);
 
-      // 等待进入编辑态
-      await page.waitForSelector('textarea[placeholder="写点什么…"]:visible', { timeout: 5000 });
-      await page.waitForTimeout(1000);
+      // 输入格式化内容：使用 Tiptap 输入规则 "- " 自动生成无序列表
+      await editor.click();
+      await page.keyboard.type("- Limit definition");
+      await page.keyboard.press("Enter");
+      await page.keyboard.type("Derivative formulas");
+      await page.keyboard.press("Enter");
+      await page.keyboard.type("Integration by substitution");
+      await page.keyboard.press("Enter");
+      await page.keyboard.press("Enter");
+      await page.keyboard.type("Remember to practice!");
+
+      await page.waitForTimeout(800);
 
       await page.screenshot({
         path: `screenshots/notes-edit-${vp.name}.png`,
