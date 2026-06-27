@@ -185,6 +185,14 @@ function BubbleToolbar({ editor, onInsertImage }: { editor: Editor; onInsertImag
   );
 }
 
+function DesktopToolbar({ editor, onInsertImage }: { editor: Editor; onInsertImage: () => void }) {
+  return (
+    <div className="hidden md:flex flex-wrap items-center gap-0.5 py-2 mb-3 border-b border-border/40">
+      <CommonToolbar editor={editor} onInsertImage={onInsertImage} />
+    </div>
+  );
+}
+
 function MobileToolbar({ editor, onInsertImage }: { editor: Editor; onInsertImage: () => void }) {
   return (
     <div className="flex md:hidden flex-wrap items-center gap-0.5 py-2 mb-2 border-b border-border/40">
@@ -414,6 +422,7 @@ export function NoteEditor({ content, onSave, onCancel, onChange, className = ""
         aria-label="插入图片"
       />
       <BubbleToolbar editor={editor} onInsertImage={handleInsertImage} />
+      <DesktopToolbar editor={editor} onInsertImage={handleInsertImage} />
       <MobileToolbar editor={editor} onInsertImage={handleInsertImage} />
       <EditorContent editor={editor} />
     </div>
