@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, PanelLeftClose, Plus } from "lucide-react";
+import { FileText, PanelLeftClose, PanelLeftOpen, Plus } from "lucide-react";
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -176,7 +176,6 @@ export default function NotesPage() {
     deletedBuffer,
     onUndoDelete: undoDelete,
     onBack: handleBack,
-    onOpenSidebar: sidebarOpen ? undefined : () => setSidebarOpen(true),
     titleInputRef,
   };
 
@@ -222,16 +221,14 @@ export default function NotesPage() {
             key={note.path}
             type="button"
             onClick={() => handleSelect(note.path)}
-            className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+            className={`w-full text-left px-3 py-2.5 rounded-md text-sm transition-colors ${
               selectedPath === note.path
                 ? "bg-primary/5 text-primary font-medium"
                 : "text-foreground/80 hover:bg-muted/50"
             }`}
           >
-            <span className="flex items-center justify-between gap-2">
-              <span className="truncate">{note.title}</span>
-              <span className="text-xs text-muted-foreground/60 shrink-0">{formatRelativeTime(note.updatedAt)}</span>
-            </span>
+            <span className="block leading-snug break-words">{note.title}</span>
+            <span className="block text-xs text-muted-foreground/50 mt-0.5">{formatRelativeTime(note.updatedAt)}</span>
           </button>
         ))}
       </div>
@@ -271,7 +268,18 @@ export default function NotesPage() {
       </div>
 
       {/* Desktop workspace paper */}
-      <main className="hidden md:block flex-1 min-w-0 h-full bg-card overflow-hidden">
+      <main className="hidden md:block relative flex-1 min-w-0 h-full bg-card overflow-hidden">
+        {!sidebarOpen && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="展开侧边栏"
+            className="absolute top-3 left-3 z-20 h-9 w-9 text-muted-foreground/70 hover:text-foreground"
+          >
+            <PanelLeftOpen className="w-4 h-4" />
+          </Button>
+        )}
         {selectedPath ? (
           <Workspace {...workspaceProps} />
         ) : (

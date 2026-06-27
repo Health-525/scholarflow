@@ -220,7 +220,7 @@ function DesktopToolbar({
   onDelete?: () => void;
 }) {
   return (
-    <div className="hidden md:flex flex-wrap items-center gap-0.5 px-2 py-1.5 mb-5 rounded-xl bg-muted/40 sticky top-0 z-10">
+    <div className="hidden md:flex flex-wrap items-center gap-0.5 px-1 py-1.5 mb-4 bg-card/60 backdrop-blur-sm sticky top-0 z-10">
       <CommonToolbar editor={editor} onInsertImage={onInsertImage} />
       <ToolbarDivider />
       <ViewDeleteGroup viewMode={viewMode} onViewModeChange={onViewModeChange} onDelete={onDelete} />

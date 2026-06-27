@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, FileText, PanelLeftOpen, PenLine, Trash2, XCircle } from "lucide-react";
+import { ChevronLeft, FileText, PenLine, Trash2, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { NoteEditor } from "@/components/notes/NoteEditor";
@@ -32,8 +32,46 @@ export interface WorkspaceProps {
   deletedBuffer: DeletedNote | null;
   onUndoDelete: () => Promise<void>;
   onBack?: () => void;
-  onOpenSidebar?: () => void;
   titleInputRef?: React.RefObject<HTMLInputElement | null>;
+}
+
+function SaveStatus({ saving, saveError }: { saving: boolean; saveError: string | null }) {
+  if (saveError) {
+    return (
+      <span className="text-xs text-destructive flex items-center gap-1">
+        <XCircle className="w-3 h-3" /> {saveError}
+      </span>
+    );
+  }
+  if (saving) {
+    return <span className="text-xs text-muted-foreground/60">保存中…</span>;
+  }
+  return <span className="text-xs text-muted-foreground/50">已自动保存</span>;
+}
+
+function PreviewActions({
+  onEdit,
+  onDelete,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-0.5 shrink-0">
+      <Button variant="ghost" size="icon-sm" onClick={onEdit} aria-label="编辑">
+        <PenLine className="w-4 h-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        onClick={onDelete}
+        aria-label="删除笔记"
+        className="hover:text-destructive"
+      >
+        <Trash2 className="w-4 h-4" />
+      </Button>
+    </div>
+  );
 }
 
 export function Workspace(props: WorkspaceProps) {
@@ -57,7 +95,6 @@ export function Workspace(props: WorkspaceProps) {
     deletedBuffer,
     onUndoDelete,
     onBack,
-    onOpenSidebar,
     titleInputRef,
   } = props;
 
@@ -85,72 +122,25 @@ export function Workspace(props: WorkspaceProps) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <header className="flex items-center justify-between px-5 py-2.5 border-b border-border/20 shrink-0">
+      {/* Mobile-only minimal header */}
+      <header className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-border/20 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          {onOpenSidebar && (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={onOpenSidebar}
-              aria-label="展开侧边栏"
-              className="hidden md:flex h-9 w-9"
-            >
-              <PanelLeftOpen className="w-4 h-4" />
-            </Button>
-          )}
           {onBack && (
             <Button
               variant="ghost"
               size="icon"
               onClick={onBack}
               aria-label="返回列表"
-              className="h-9 w-9 md:hidden"
+              className="h-9 w-9"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
           )}
-          {saveError ? (
-            <span className="text-xs text-destructive flex items-center gap-1">
-              <XCircle className="w-3 h-3" /> {saveError}
-            </span>
-          ) : saving ? (
-            <span className="text-xs text-muted-foreground">保存中…</span>
-          ) : null}
         </div>
         {viewMode === "view" && (
-          <div className="flex items-center gap-0.5 shrink-0">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => onViewModeChange("edit")}
-              aria-label="编辑"
-            >
-              <PenLine className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => setShowDeleteConfirm(true)}
-              aria-label="删除笔记"
-              disabled={isLoading}
-              className="hover:text-destructive disabled:opacity-50"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
+          <PreviewActions onEdit={() => onViewModeChange("edit")} onDelete={() => setShowDeleteConfirm(true)} />
         )}
       </header>
-
-      {/* Undo toast */}
-      {deletedBuffer && Date.now() < deletedBuffer.expiresAt && (
-        <div className="flex items-center gap-2 mx-5 mt-3 px-3 py-2 text-sm bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 animate-fade-up motion-reduce:animate-none shrink-0 rounded-lg">
-          <span className="flex-1 truncate">已删除「{parseNotePath(deletedBuffer.path).title}」</span>
-          <Button variant="secondary" size="sm" onClick={onUndoDelete} className="gap-1">
-            <Trash2 size={12} /> 撤销
-          </Button>
-        </div>
-      )}
 
       {/* Content */}
       <div className="flex-1 min-h-0 overflow-y-auto">
@@ -172,7 +162,19 @@ export function Workspace(props: WorkspaceProps) {
           </div>
         )}
         {!isLoading && !error && (
-          <div className="max-w-3xl mx-auto px-8 md:px-12 pt-6 pb-16">
+          <div className="max-w-3xl mx-auto px-6 md:px-12 pt-8 md:pt-10 pb-20">
+            {/* Undo toast */}
+            {deletedBuffer && Date.now() < deletedBuffer.expiresAt && (
+              <div className="sticky top-0 z-30 mb-6">
+                <div className="flex items-center gap-2 px-3 py-2 text-sm bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                  <span className="flex-1 truncate">已删除「{parseNotePath(deletedBuffer.path).title}」</span>
+                  <Button variant="secondary" size="sm" onClick={onUndoDelete} className="gap-1">
+                    <Trash2 size={12} /> 撤销
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {viewMode === "edit" ? (
               <>
                 <Input
@@ -183,24 +185,32 @@ export function Workspace(props: WorkspaceProps) {
                   onBlur={handleTitleBlur}
                   onKeyDown={handleTitleKeyDown}
                   placeholder="无标题笔记"
-                  className="border-0 bg-transparent px-0 text-3xl md:text-4xl font-medium text-foreground/90 placeholder:text-muted-foreground/25 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none tracking-tight font-display"
+                  className="border-0 bg-transparent px-0 text-3xl md:text-4xl font-medium text-foreground/90 placeholder:text-muted-foreground/25 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none tracking-tight font-display w-full"
                 />
-                <div className="mt-6">
-                  <NoteEditor
-                    key={editorKey}
-                    content={content}
-                    onSave={onSave}
-                    onChange={onPreviewChange}
-                    viewMode={viewMode}
-                    onViewModeChange={onViewModeChange}
-                    onDelete={() => setShowDeleteConfirm(true)}
-                    className="text-base leading-relaxed"
-                  />
+                <div className="flex items-center justify-end mt-1 mb-4">
+                  <SaveStatus saving={saving} saveError={saveError} />
                 </div>
+                <NoteEditor
+                  key={editorKey}
+                  content={content}
+                  onSave={onSave}
+                  onChange={onPreviewChange}
+                  viewMode={viewMode}
+                  onViewModeChange={onViewModeChange}
+                  onDelete={() => setShowDeleteConfirm(true)}
+                  className="text-base leading-relaxed"
+                />
               </>
             ) : (
               <>
-                <h1 className="text-3xl md:text-4xl font-semibold tracking-tight font-display">{title}</h1>
+                <div className="flex items-start justify-between gap-4">
+                  <h1 className="text-3xl md:text-4xl font-semibold tracking-tight font-display break-words">
+                    {title}
+                  </h1>
+                  <div className="hidden md:block pt-1">
+                    <PreviewActions onEdit={() => onViewModeChange("edit")} onDelete={() => setShowDeleteConfirm(true)} />
+                  </div>
+                </div>
                 <div className="pt-6">
                   <NoteViewer content={previewContent} isMarkdown />
                 </div>
