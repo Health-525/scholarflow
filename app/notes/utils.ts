@@ -5,6 +5,7 @@ export interface NoteListItem {
   path: string;
   title: string;
   category: string;
+  updatedAt: number;
 }
 
 export interface DeletedNote {
@@ -19,7 +20,12 @@ export function flattenTree(nodes: NoteTreeNode[]): NoteListItem[] {
     for (const node of list) {
       if (node.type === "file") {
         const parsed = parseNotePath(node.path);
-        result.push({ path: node.path, title: parsed.title, category: parentCategory });
+        result.push({
+          path: node.path,
+          title: parsed.title,
+          category: parentCategory,
+          updatedAt: node.updatedAt ?? 0,
+        });
       }
       if (node.children && node.children.length > 0) {
         walk(node.children, node.type === "dir" ? node.name : parentCategory);

@@ -25,7 +25,23 @@ export default function NotesPage() {
 
   const editorKey = selectedPath ?? "__none__";
 
-  const notes = useMemo(() => flattenTree(tree), [tree]);
+  const notes = useMemo(() => {
+    return flattenTree(tree).sort((a, b) => b.updatedAt - a.updatedAt);
+  }, [tree]);
+
+  function formatRelativeTime(ts: number): string {
+    if (!ts) return "";
+    const diff = Date.now() - ts;
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "刚刚";
+    if (minutes < 60) return `${minutes} 分钟前`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} 小时前`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days} 天前`;
+    const date = new Date(ts);
+    return `${date.getMonth() + 1}月${date.getDate()}日`;
+  }
 
   useEffect(() => {
     setSaveError(null);
@@ -212,7 +228,10 @@ export default function NotesPage() {
                 : "text-foreground/80 hover:bg-muted/50"
             }`}
           >
-            <span className="block truncate">{note.title}</span>
+            <span className="flex items-center justify-between gap-2">
+              <span className="truncate">{note.title}</span>
+              <span className="text-xs text-muted-foreground/60 shrink-0">{formatRelativeTime(note.updatedAt)}</span>
+            </span>
           </button>
         ))}
       </div>

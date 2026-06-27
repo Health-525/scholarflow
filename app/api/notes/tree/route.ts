@@ -5,7 +5,7 @@ import { z } from "zod";
 import { resolveAccountPrefix } from "@/lib/account-prefix";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 // eslint-disable-next-line import/order
-import { buildNoteTree, listNotePaths } from "@/lib/notes/store";
+import { buildNoteTree, getNoteUpdatedAt, listNotePaths } from "@/lib/notes/store";
 import { getServerDB } from "@/lib/server-db";
 
 const notesTreeQuerySchema = z.object({
@@ -35,7 +35,8 @@ export async function GET(request: Request) {
     const prefix = resolveAccountPrefix({ schoolId, userId }, active);
 
     const paths = listNotePaths(prefix);
-    const tree = buildNoteTree(paths);
+    const updatedAtMap = new Map(paths.map((p) => [p, getNoteUpdatedAt(prefix, p) ?? 0]));
+    const tree = buildNoteTree(paths, updatedAtMap);
 
     return NextResponse.json(tree);
   } catch (e: unknown) {

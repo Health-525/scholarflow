@@ -30,6 +30,14 @@ export function readNote(prefix: string, path: string): string | null {
 }
 
 /**
+ * 读取单篇笔记的最后更新时间（ms）
+ */
+export function getNoteUpdatedAt(prefix: string, path: string): number | null {
+  const db = getServerDB();
+  return db.getUpdatedAt(noteKey(prefix, path));
+}
+
+/**
  * 保存笔记（新建或更新）
  */
 export function writeNote(prefix: string, path: string, content: string): void {
@@ -58,7 +66,7 @@ export function renameNote(prefix: string, oldPath: string, newPath: string): bo
 /**
  * 根据路径列表构建目录树
  */
-export function buildNoteTree(paths: string[]): NoteTreeNode[] {
+export function buildNoteTree(paths: string[], updatedAtMap?: Map<string, number>): NoteTreeNode[] {
   const root: NoteTreeNode = { name: "", path: "", type: "dir", children: [] };
 
   for (const path of paths) {
@@ -77,6 +85,7 @@ export function buildNoteTree(paths: string[]): NoteTreeNode[] {
           name: part,
           path: builtPath,
           type: isFile ? "file" : "dir",
+          updatedAt: isFile ? updatedAtMap?.get(path) ?? undefined : undefined,
           children: isFile ? undefined : [],
         };
         current.children!.push(child);
@@ -86,6 +95,7 @@ export function buildNoteTree(paths: string[]): NoteTreeNode[] {
           name: part,
           path: builtPath,
           type: "file",
+          updatedAt: updatedAtMap?.get(path) ?? undefined,
         };
         current.children!.push(child);
       }

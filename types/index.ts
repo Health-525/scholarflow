@@ -59,5 +59,6 @@ export interface NoteTreeNode {
   name: string;
   path: string;
   type: "file" | "dir";
+  updatedAt?: number;
   children?: NoteTreeNode[];
 }

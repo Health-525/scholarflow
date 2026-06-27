@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, FileText, PanelLeftOpen, Trash2, XCircle } from "lucide-react";
+import { ChevronLeft, FileText, PanelLeftOpen, PenLine, Trash2, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { NoteEditor } from "@/components/notes/NoteEditor";
@@ -118,6 +118,28 @@ export function Workspace(props: WorkspaceProps) {
             <span className="text-xs text-muted-foreground">保存中…</span>
           ) : null}
         </div>
+        {viewMode === "view" && (
+          <div className="flex items-center gap-0.5 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => onViewModeChange("edit")}
+              aria-label="编辑"
+            >
+              <PenLine className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setShowDeleteConfirm(true)}
+              aria-label="删除笔记"
+              disabled={isLoading}
+              className="hover:text-destructive disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </header>
 
       {/* Undo toast */}
