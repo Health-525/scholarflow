@@ -14,6 +14,7 @@ import {
   defaultWechatStyleConfig,
   FONT_FAMILY_OPTIONS,
   FONT_SIZE_OPTIONS,
+  getWechatThemeVariables,
   HEADING_LEVEL_OPTIONS,
   HEADING_STYLE_OPTIONS,
   PREVIEW_WIDTH_OPTIONS,
@@ -253,26 +254,48 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
               <div className="flex-1 space-y-5 overflow-y-auto p-4 md:p-5">
                 <SettingsSection title="主题">
                   <div className="grid grid-cols-3 gap-2">
-                    {WECHAT_THEMES.map((theme) => (
-                      <button
-                        key={theme.id}
-                        type="button"
-                        onClick={() => updateConfig("theme", theme.id)}
-                        className={cn(
-                          "rounded-lg border px-2 py-1.5 text-left text-xs transition-colors",
-                          config.theme === theme.id
-                            ? "border-primary bg-primary/5 text-foreground"
-                            : "border-border bg-background text-muted-foreground hover:bg-muted"
-                        )}
-                      >
-                        <span className="block font-medium text-foreground">{theme.name}</span>
-                        {theme.description && (
-                          <span className="block mt-0.5 truncate text-[10px] leading-tight opacity-70">
-                            {theme.description}
-                          </span>
-                        )}
-                      </button>
-                    ))}
+                    {WECHAT_THEMES.map((theme) => {
+                      const active = config.theme === theme.id;
+                      return (
+                        <button
+                          key={theme.id}
+                          type="button"
+                          onClick={() => updateConfig("theme", theme.id)}
+                          className={cn(
+                            "relative rounded-lg border p-2 text-left text-xs transition-colors",
+                            active
+                              ? "border-primary bg-primary/5 text-foreground ring-1 ring-primary/20"
+                              : "border-border bg-background text-muted-foreground hover:bg-muted"
+                          )}
+                        >
+                          {active && (
+                            <span className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                              <svg
+                                className="h-2.5 w-2.5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            </span>
+                          )}
+                          <span
+                            className="mb-1.5 block h-6 w-full rounded border border-border"
+                            style={{ background: getWechatThemeVariables(theme.id)["--md-bg-color"] }}
+                          />
+                          <span className="block font-medium text-foreground">{theme.name}</span>
+                          {theme.description && (
+                            <span className="block mt-0.5 truncate text-[10px] leading-tight opacity-70">
+                              {theme.description}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </SettingsSection>
 
