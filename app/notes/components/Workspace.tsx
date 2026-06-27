@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, Eye, FileText, PanelLeftOpen, PenLine, Trash2, XCircle } from "lucide-react";
+import { ChevronLeft, FileText, PanelLeftOpen, Trash2, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { NoteEditor } from "@/components/notes/NoteEditor";
@@ -86,7 +86,7 @@ export function Workspace(props: WorkspaceProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <header className="flex items-center justify-between px-5 py-3 border-b border-border/40 shrink-0">
+      <header className="flex items-center justify-between px-5 py-2.5 border-b border-border/20 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           {onOpenSidebar && (
             <Button
@@ -117,26 +117,6 @@ export function Workspace(props: WorkspaceProps) {
           ) : saving ? (
             <span className="text-xs text-muted-foreground">保存中…</span>
           ) : null}
-        </div>
-        <div className="flex items-center gap-0.5 shrink-0">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => onViewModeChange(viewMode === "edit" ? "view" : "edit")}
-            aria-label={viewMode === "edit" ? "预览" : "编辑"}
-          >
-            {viewMode === "edit" ? <Eye className="w-4 h-4" /> : <PenLine className="w-4 h-4" />}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => setShowDeleteConfirm(true)}
-            aria-label="删除笔记"
-            disabled={isLoading}
-            className="hover:text-destructive disabled:opacity-50"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
         </div>
       </header>
 
@@ -170,7 +150,7 @@ export function Workspace(props: WorkspaceProps) {
           </div>
         )}
         {!isLoading && !error && (
-          <div className="max-w-3xl mx-auto px-6 md:px-10 pt-8 pb-16">
+          <div className="max-w-3xl mx-auto px-8 md:px-12 pt-6 pb-16">
             {viewMode === "edit" ? (
               <>
                 <Input
@@ -181,14 +161,17 @@ export function Workspace(props: WorkspaceProps) {
                   onBlur={handleTitleBlur}
                   onKeyDown={handleTitleKeyDown}
                   placeholder="无标题笔记"
-                  className="border-0 bg-transparent px-0 text-3xl md:text-4xl font-semibold placeholder:text-muted-foreground/30 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none tracking-tight font-display"
+                  className="border-0 bg-transparent px-0 text-3xl md:text-4xl font-medium text-foreground/90 placeholder:text-muted-foreground/25 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none tracking-tight font-display"
                 />
-                <div className="mt-4">
+                <div className="mt-6">
                   <NoteEditor
                     key={editorKey}
                     content={content}
                     onSave={onSave}
                     onChange={onPreviewChange}
+                    viewMode={viewMode}
+                    onViewModeChange={onViewModeChange}
+                    onDelete={() => setShowDeleteConfirm(true)}
                     className="text-base leading-relaxed"
                   />
                 </div>

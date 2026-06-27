@@ -1,11 +1,9 @@
-import fs from "fs";
-
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
-import { readNoteAsset, resolveNoteAssetsDir, saveNoteAsset } from "@/lib/notes/assets";
+import { readNoteAsset, saveNoteAsset } from "@/lib/notes/assets";
 import { getServerDB } from "@/lib/server-db";
 
 const assetQuerySchema = z.object({
@@ -40,8 +38,7 @@ export async function GET(request: Request) {
       return forbiddenResponse({ error: "unauthorized account access" });
     }
 
-    const prefix = `${account.schoolId}:${account.userId}`;
-    const asset = readNoteAsset(prefix, assetName);
+    const asset = readNoteAsset(account.schoolId, account.userId, assetName);
     if (!asset) {
       return NextResponse.json({ error: "asset not found" }, { status: 404 });
     }
@@ -98,10 +95,9 @@ export async function POST(request: Request) {
       return forbiddenResponse({ error: "unauthorized account access" });
     }
 
-    const prefix = `${account.schoolId}:${account.userId}`;
     const originalName = (file as File).name || "image";
     const buffer = Buffer.from(await file.arrayBuffer());
-    const assetName = saveNoteAsset(prefix, originalName, buffer);
+    const assetName = saveNoteAsset(account.schoolId, account.userId, originalName, buffer);
 
     const url = `/api/notes/assets?path=${encodeURIComponent(assetName)}&schoolId=${encodeURIComponent(account.schoolId)}&userId=${encodeURIComponent(account.userId)}`;
 
@@ -112,14 +108,3 @@ export async function POST(request: Request) {
   }
 }
 
-/**
- * 列出某账号下所有图片资源文件名（调试用，暂不对外）。
- */
-export function listNoteAssetNames(prefix: string): string[] {
-  const dir = resolveNoteAssetsDir(prefix);
-  try {
-    return fs.readdirSync(dir);
-  } catch {
-    return [];
-  }
-}

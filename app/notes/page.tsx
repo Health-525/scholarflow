@@ -167,12 +167,10 @@ export default function NotesPage() {
   const sidebarHeader = (
     <div className="flex items-center justify-between px-1">
       <div className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">
-          <FileText className="w-3.5 h-3.5 text-primary" />
-        </div>
+        <FileText className="w-4 h-4 text-muted-foreground/70" />
         <div>
-          <h2 className="text-sm font-semibold text-foreground">笔记</h2>
-          <p className="text-xs text-muted-foreground">随手记 · 自动保存</p>
+          <h2 className="text-sm font-medium text-foreground">笔记</h2>
+          <p className="text-xs text-muted-foreground/70">随手记 · 自动保存</p>
         </div>
       </div>
       <div className="flex items-center gap-0.5">
@@ -208,10 +206,10 @@ export default function NotesPage() {
             key={note.path}
             type="button"
             onClick={() => handleSelect(note.path)}
-            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+            className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
               selectedPath === note.path
-                ? "bg-primary/10 text-primary font-medium"
-                : "text-foreground hover:bg-muted/60"
+                ? "bg-primary/5 text-primary font-medium"
+                : "text-foreground/80 hover:bg-muted/50"
             }`}
           >
             <span className="block truncate">{note.title}</span>
@@ -225,8 +223,8 @@ export default function NotesPage() {
     <div className="relative flex flex-col md:flex-row h-full w-full -mx-4 md:-mx-6 lg:-mx-8 -mb-20 md:mb-0 overflow-hidden">
       {/* Desktop note list */}
       {sidebarOpen && (
-        <aside className="hidden md:flex w-72 shrink-0 flex-col h-full border-r border-border/60 bg-background">
-          <div className="px-5 py-4 border-b border-border/60">
+        <aside className="hidden md:flex w-72 shrink-0 flex-col h-full border-r border-border/30 bg-background/50">
+          <div className="px-5 py-4 border-b border-border/20">
             {sidebarHeader}
           </div>
           <div className="flex-1 overflow-y-auto p-2">
@@ -243,7 +241,7 @@ export default function NotesPage() {
           </div>
         ) : (
           <div className="h-full flex flex-col bg-background">
-            <div className="px-4 py-4 border-b border-border/60">
+            <div className="px-4 py-4 border-b border-border/20">
               {sidebarHeader}
             </div>
             <div className="flex-1 overflow-y-auto p-2">

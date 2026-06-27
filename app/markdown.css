@@ -137,7 +137,8 @@
   text-decoration: line-through;
 }
 
-.markdown-image {
+.markdown-image,
+.ProseMirror img {
   max-width: 100%;
   margin: 12px 0;
   border-radius: var(--radius-md);
