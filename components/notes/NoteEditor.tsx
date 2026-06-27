@@ -9,6 +9,7 @@ import StarterKit from "@tiptap/starter-kit";
 import {
   AlertCircle,
   Bold,
+  ChevronLeft,
   Code,
   Eye,
   FileDown,
@@ -36,7 +37,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { exportMarkdown, exportWechatHtml, parseMarkdownFile } from "@/lib/notes/export-import";
+import {
+  exportMarkdown,
+  exportWechatHtml,
+  parseMarkdownFile,
+  WECHAT_THEMES,
+} from "@/lib/notes/export-import";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 
@@ -97,9 +103,11 @@ function ExportImportMenu({
   onImportClick,
 }: {
   onExportMarkdown: () => void;
-  onExportWechat: () => void;
+  onExportWechat: (themeId: string) => void;
   onImportClick: () => void;
 }) {
+  const [themePanelOpen, setThemePanelOpen] = useState(false);
+
   return (
     <Popover>
       <PopoverTrigger
@@ -110,28 +118,58 @@ function ExportImportMenu({
       >
         <MoreHorizontal className="w-4 h-4" />
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-44 p-1">
-        <button
-          type="button"
-          onClick={onExportMarkdown}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md text-foreground/80 hover:bg-muted/70"
-        >
-          <FileDown className="w-4 h-4" /> 导出 Markdown
-        </button>
-        <button
-          type="button"
-          onClick={onExportWechat}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md text-foreground/80 hover:bg-muted/70"
-        >
-          <FileDown className="w-4 h-4" /> 导出公众号
-        </button>
-        <button
-          type="button"
-          onClick={onImportClick}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md text-foreground/80 hover:bg-muted/70"
-        >
-          <FileUp className="w-4 h-4" /> 导入 Markdown
-        </button>
+      <PopoverContent align="end" className="w-52 p-1.5">
+        {!themePanelOpen ? (
+          <div className="space-y-0.5">
+            <button
+              type="button"
+              onClick={onExportMarkdown}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md text-foreground/80 hover:bg-muted/70"
+            >
+              <FileDown className="w-4 h-4" /> 导出 Markdown
+            </button>
+            <button
+              type="button"
+              onClick={() => setThemePanelOpen(true)}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md text-foreground/80 hover:bg-muted/70"
+            >
+              <FileDown className="w-4 h-4" /> 导出公众号文章
+            </button>
+            <button
+              type="button"
+              onClick={onImportClick}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md text-foreground/80 hover:bg-muted/70"
+            >
+              <FileUp className="w-4 h-4" /> 导入 Markdown
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-0.5">
+            <button
+              type="button"
+              onClick={() => setThemePanelOpen(false)}
+              className="w-full flex items-center gap-1 px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted/70 rounded-md"
+            >
+              <ChevronLeft className="w-3 h-3" /> 返回
+            </button>
+            {WECHAT_THEMES.map((theme) => (
+              <button
+                key={theme.id}
+                type="button"
+                onClick={() => {
+                  onExportWechat(theme.id);
+                  setThemePanelOpen(false);
+                }}
+                className="w-full text-left px-2.5 py-1.5 text-sm rounded-md text-foreground/80 hover:bg-muted/70"
+              >
+                <span className="block">{theme.name}</span>
+                {theme.description && (
+                  <span className="block text-xs text-muted-foreground/60">{theme.description}</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );
@@ -279,7 +317,7 @@ function DesktopToolbar({
   onViewModeChange?: (mode: "edit" | "view") => void;
   onDelete?: () => void;
   onExportMarkdown: () => void;
-  onExportWechat: () => void;
+  onExportWechat: (themeId: string) => void;
   onImportClick: () => void;
 }) {
   return (
@@ -313,7 +351,7 @@ function MobileToolbar({
   onViewModeChange?: (mode: "edit" | "view") => void;
   onDelete?: () => void;
   onExportMarkdown: () => void;
-  onExportWechat: () => void;
+  onExportWechat: (themeId: string) => void;
   onImportClick: () => void;
 }) {
   return (
@@ -476,10 +514,13 @@ export function NoteEditor({
     exportMarkdown(documentTitle || "笔记", getMarkdown(editor));
   }, [editor, documentTitle, getMarkdown]);
 
-  const handleExportWechat = useCallback(async () => {
-    if (!editor) return;
-    await exportWechatHtml(documentTitle || "笔记", getMarkdown(editor));
-  }, [editor, documentTitle, getMarkdown]);
+  const handleExportWechat = useCallback(
+    async (themeId: string) => {
+      if (!editor) return;
+      await exportWechatHtml(documentTitle || "笔记", getMarkdown(editor), themeId);
+    },
+    [editor, documentTitle, getMarkdown]
+  );
 
   const handleImportClick = useCallback(() => {
     importInputRef.current?.click();

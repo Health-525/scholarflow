@@ -1,5 +1,9 @@
 import { renderMarkdown } from "@/lib/markdown/processor";
 
+import { getWechatThemeCss } from "./wechat-themes";
+
+export { WECHAT_THEMES, type WechatTheme } from "./wechat-themes";
+
 function sanitizeFilename(name: string): string {
   return name.replace(/[\\/:*?"<>|]/g, "-").trim() || "笔记";
 }
@@ -23,9 +27,9 @@ export function exportMarkdown(title: string, content: string) {
 /**
  * 将笔记导出为适合复制到微信公众号后台的 HTML。
  * - 图片会尝试内联为 base64，避免本地 URL 失效
- * - 样式使用内敛风格，兼容公众号编辑器
+ * - 支持多种主题（默认、浅蓝、暗夜、暖橙）
  */
-export async function exportWechatHtml(title: string, content: string) {
+export async function exportWechatHtml(title: string, content: string, themeId: string = "default") {
   let html = await renderMarkdown(content);
   html = await inlineImages(html);
 
@@ -36,32 +40,15 @@ export async function exportWechatHtml(title: string, content: string) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)}</title>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-      font-size: 16px;
-      line-height: 1.75;
-      color: #333;
-      max-width: 680px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-    h1 { font-size: 22px; font-weight: 600; margin: 24px 0 16px; line-height: 1.4; }
-    h2 { font-size: 19px; font-weight: 600; margin: 22px 0 14px; line-height: 1.4; }
-    h3 { font-size: 17px; font-weight: 600; margin: 20px 0 12px; line-height: 1.4; }
-    p { margin: 14px 0; }
-    img { max-width: 100%; height: auto; display: block; margin: 16px 0; border-radius: 4px; }
-    ul, ol { margin: 14px 0; padding-left: 1.6em; }
-    li { margin: 6px 0; }
-    blockquote { margin: 14px 0; padding: 8px 16px; color: #555; border-left: 3px solid #ddd; background: #f8f8f8; }
-    code { font-family: Menlo, Monaco, Consolas, monospace; font-size: 0.9em; background: #f2f2f2; padding: 2px 5px; border-radius: 3px; }
-    pre { background: #f7f7f7; padding: 12px; border-radius: 4px; overflow-x: auto; }
-    pre code { background: transparent; padding: 0; }
-    a { color: #576b95; text-decoration: none; }
-    hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
+${getWechatThemeCss(themeId)}
   </style>
 </head>
 <body>
+  <div class="wrapper">
+    <article class="article">
 ${html}
+    </article>
+  </div>
 </body>
 </html>`;
 
