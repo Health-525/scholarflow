@@ -182,18 +182,26 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
                   title={c.desc}
                   onClick={() => updateConfig("primaryColor", c.value)}
                   className={cn(
-                    "w-5 h-5 rounded-full border-2 transition-all duration-150",
+                    "w-5 h-5 rounded-full border-2 transition-all duration-200",
                     config.primaryColor === c.value
-                      ? "ring-2 ring-primary ring-offset-1 ring-offset-background scale-110 border-primary"
-                      : "border-transparent hover:scale-105"
+                      ? "ring-2 ring-primary ring-offset-1 ring-offset-background scale-110 border-primary shadow-sm"
+                      : "border-transparent hover:scale-110 hover:shadow-sm"
                   )}
                   style={{ background: c.value }}
                 />
               ))}
             </div>
 
+            {/* Divider */}
+            <div className="hidden sm:block w-px h-4 bg-border shrink-0" />
+
             {/* Custom color picker */}
-            <div className="w-5 h-5 rounded-full border border-border p-px shrink-0">
+            <div className={cn(
+              "w-5 h-5 rounded-full border-2 p-px shrink-0 transition-all duration-200",
+              !COLOR_OPTIONS.some((c) => c.value === config.primaryColor)
+                ? "border-primary ring-2 ring-primary ring-offset-1 ring-offset-background scale-110 shadow-sm"
+                : "border-border hover:scale-110"
+            )}>
               <input
                 type="color"
                 value={config.primaryColor}
@@ -205,31 +213,33 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
 
             <div className="flex-1" />
 
-            <div className="flex items-center gap-0.5 shrink-0">
+            <div className="flex items-center gap-1 shrink-0">
               {/* Preview width toggle */}
-              <button type="button" title="移动端宽度"
+              <button type="button"
+                title={previewWidth === "mobile" ? "切换到桌面端宽度" : "切换到移动端宽度"}
                 onClick={() => {
                   const w = previewWidth === "mobile" ? "desktop" : "mobile" as const;
                   setPreviewWidth(w);
                   updateConfig("previewWidth", w);
                 }}
-                className={cn("h-7 w-7 rounded-md inline-flex items-center justify-center transition-colors", previewWidth === "mobile" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted")}>
+                className={cn("h-7 w-7 rounded-lg inline-flex items-center justify-center transition-all duration-200", previewWidth === "mobile" ? "bg-primary/10 text-primary shadow-sm shadow-primary/10" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
                 {previewWidth === "mobile" ? <Smartphone className="w-3.5 h-3.5" /> : <Monitor className="w-3.5 h-3.5" />}
               </button>
 
               {/* Advanced settings toggle */}
-              <button type="button" title="高级设置"
+              <button type="button"
+                title={showAdvanced ? "关闭高级设置" : "高级设置"}
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className={cn("h-7 w-7 rounded-md inline-flex items-center justify-center transition-colors", showAdvanced ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted")}>
+                className={cn("h-7 w-7 rounded-lg inline-flex items-center justify-center transition-all duration-200", showAdvanced ? "bg-primary/10 text-primary shadow-sm shadow-primary/10" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
                 <Settings2 className="w-3.5 h-3.5" />
               </button>
 
-              <button type="button" title="重置" onClick={handleReset}
-                className="h-7 w-7 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors">
+              <button type="button" title="恢复默认样式" onClick={handleReset}
+                className="h-7 w-7 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
 
-              <Dialog.Close render={<Button size="icon" variant="ghost" className="h-7 w-7" />}>
+              <Dialog.Close render={<Button size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-muted" />}>
                 <X className="w-3.5 h-3.5" />
               </Dialog.Close>
             </div>
@@ -238,23 +248,29 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
           {/* Body */}
           <div className="flex-1 flex min-h-0 overflow-hidden relative">
             {/* Preview */}
-            <div className="flex-1 flex justify-center overflow-auto bg-muted/50 p-3 md:p-6">
+            <div className="flex-1 flex justify-center overflow-auto bg-gradient-to-b from-muted/30 via-muted/50 to-muted/30 p-3 md:p-6">
               <div className={cn(
-                "h-fit min-h-full bg-card rounded-xl overflow-hidden shadow-lg shadow-black/5 border border-border transition-all",
+                "h-fit min-h-full bg-card rounded-xl overflow-hidden shadow-xl shadow-black/[0.06] border border-border/60 transition-all duration-300",
                 previewWidth === "mobile" ? "w-full max-w-[414px]" : "w-full max-w-[720px]"
               )}>
                 {previewError ? (
-                  <div className="flex flex-col items-center justify-center min-h-[400px] gap-2 text-destructive">
+                  <div className="flex flex-col items-center justify-center min-h-[400px] gap-3 text-destructive/80">
+                    <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                      <X className="w-5 h-5 text-destructive" />
+                    </div>
                     <span className="text-xs">{previewError}</span>
-                    <Button variant="secondary" size="sm" onClick={() => { void updatePreview(); }}>重试</Button>
+                    <Button variant="secondary" size="sm" className="rounded-lg" onClick={() => { void updatePreview(); }}>重试</Button>
                   </div>
                 ) : srcDoc ? (
                   <iframe title="公众号预览" srcDoc={srcDoc} className="w-full border-0"
                     sandbox="allow-same-origin" style={{ height: "calc(100vh - 140px)", minHeight: "600px" }} />
                 ) : (
-                  <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-                    <div className="w-8 h-8 rounded-full border-2 border-border border-t-primary animate-spin" />
-                    <span className="text-xs text-notes-tertiary">渲染预览中…</span>
+                  <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+                    <div className="relative">
+                      <div className="w-10 h-10 rounded-full border-2 border-muted-foreground/15 border-t-primary animate-spin" />
+                      <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary/30 animate-spin" style={{ animationDuration: "2s" }} />
+                    </div>
+                    <span className="text-xs text-muted-foreground/50">渲染预览中…</span>
                   </div>
                 )}
               </div>
@@ -274,19 +290,25 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
           </div>
 
           {/* Bottom bar */}
-          <div className="flex items-center gap-2 shrink-0 border-t border-border pt-3 px-4 pb-2.5">
-            <span className="text-xs text-muted-foreground/60">
-              {COLOR_OPTIONS.find((c) => c.value === config.primaryColor)?.label || config.primaryColor}
-              {" · "}
+          <div className="flex items-center gap-2 shrink-0 border-t border-border px-4 py-2.5">
+            {/* Color chip + label */}
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full border border-border/50 shadow-sm shrink-0" style={{ background: config.primaryColor }} />
+              <span className="text-xs text-muted-foreground">
+                {COLOR_OPTIONS.find((c) => c.value === config.primaryColor)?.label || config.primaryColor}
+              </span>
+            </div>
+            <span className="text-muted-foreground/30">·</span>
+            <span className="text-xs text-muted-foreground">
               {FONT_FAMILY_OPTIONS.find((f) => f.value === config.fontFamily)?.label || "默认字体"}
             </span>
             <span className="text-[11px] text-muted-foreground/40 mr-auto">
-              {stats.chars} 字 · 约 {stats.readingMinutes} 分钟阅读
+              {stats.chars} 字 · 约 {stats.readingMinutes} 分钟
             </span>
-            <Button type="button" size="sm" className={cn("gap-1.5 rounded-lg px-4 h-9 transition-all", copied ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-primary text-primary-foreground hover:bg-notes-primary-hover")} onClick={handleCopyHtml}>
+            <Button type="button" size="sm" className={cn("gap-1.5 rounded-lg px-4 h-9 transition-all duration-200", copied ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm shadow-emerald-500/25" : "bg-primary text-primary-foreground hover:bg-notes-primary-hover shadow-sm shadow-primary/20")} onClick={handleCopyHtml}>
               {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />} {copied ? "已复制" : "复制 HTML"}
             </Button>
-            <Button type="button" size="sm" className="gap-1.5 rounded-lg transition-all duration-150" onClick={handleExport} disabled={exporting}>
+            <Button type="button" size="sm" variant="secondary" className="gap-1.5 rounded-lg transition-all duration-200" onClick={handleExport} disabled={exporting}>
               <Download className="w-3.5 h-3.5" /> {exporting ? "生成中…" : "导出"}
             </Button>
           </div>
