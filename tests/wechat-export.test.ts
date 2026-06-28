@@ -208,6 +208,63 @@ describe("ScholarFlow theme HTML export", () => {
     expect(html).toContain(".wechat-output h3 { color: var(--md-primary-color); }");
   });
 
+  it("heading override: HTML elements carry inline styles for border-bottom", async () => {
+    const config: WechatStyleConfig = {
+      ...defaultWechatStyleConfig(),
+      primaryColor: "#ff0000",
+      headingStyles: { h2: "border-bottom" },
+    };
+    const html = await renderWechatPreviewHtml({
+      title: "测试",
+      content: "## 二级标题",
+      config,
+    });
+    // The h2 element should have inline border-bottom style
+    expect(html).toMatch(/<h2[^>]*style="[^"]*border-bottom:\s*2px solid #ff0000/);
+    expect(html).toMatch(/<h2[^>]*style="[^"]*padding-bottom:\s*0\.3em/);
+  });
+
+  it("heading override: HTML elements carry inline styles for color-only", async () => {
+    const config: WechatStyleConfig = {
+      ...defaultWechatStyleConfig(),
+      primaryColor: "#009874",
+      headingStyles: { h1: "color-only" },
+    };
+    const html = await renderWechatPreviewHtml({
+      title: "测试",
+      content: "# 一级标题",
+      config,
+    });
+    expect(html).toMatch(/<h1[^>]*style="[^"]*color:\s*#009874/);
+  });
+
+  it("heading override: HTML elements carry inline styles for border-left", async () => {
+    const config: WechatStyleConfig = {
+      ...defaultWechatStyleConfig(),
+      primaryColor: "#0000ff",
+      headingStyles: { h3: "border-left" },
+    };
+    const html = await renderWechatPreviewHtml({
+      title: "测试",
+      content: "### 三级标题",
+      config,
+    });
+    expect(html).toMatch(/<h3[^>]*style="[^"]*border-left:\s*4px solid #0000ff/);
+    expect(html).toMatch(/<h3[^>]*style="[^"]*padding-left:\s*12px/);
+  });
+
+  it("heading override: no extra inline styles when headingStyles is empty", async () => {
+    const config = defaultWechatStyleConfig();
+    const html = await renderWechatPreviewHtml({
+      title: "测试",
+      content: "## 二级标题",
+      config,
+    });
+    // The h2 element should NOT have inline border or custom color styles
+    expect(html).not.toMatch(/<h2[^>]*border-bottom/);
+    expect(html).not.toMatch(/<h2[^>]*border-left/);
+  });
+
   it("heading override: empty headingStyles produces no heading-specific overrides", () => {
     const config = defaultWechatStyleConfig();
     const css = generateWechatCss(config);

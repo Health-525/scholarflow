@@ -63,6 +63,44 @@ function wrapHeadings(html: string): string {
   return doc.body.innerHTML;
 }
 
+function applyHeadingInlineStyles(html: string, config: WechatStyleConfig): string {
+  if (typeof window === "undefined") return html;
+  const headingStyles = config.headingStyles;
+  const hasStyles = Object.values(headingStyles).some((s) => s && s !== "default");
+  if (!hasStyles) return html;
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const headings = Array.from(doc.querySelectorAll("h1, h2, h3, h4, h5, h6"));
+
+  for (const h of headings) {
+    const level = h.tagName.toLowerCase() as keyof typeof headingStyles;
+    const style = headingStyles[level];
+    if (!style || style === "default") continue;
+
+    const primary = config.primaryColor;
+    let inlineStyle = "";
+
+    switch (style) {
+      case "color-only":
+        inlineStyle = `color: ${primary}`;
+        break;
+      case "border-bottom":
+        inlineStyle = `padding-bottom: 0.3em; border-bottom: 2px solid ${primary}`;
+        break;
+      case "border-left":
+        inlineStyle = `padding-left: 12px; border-left: 4px solid ${primary}`;
+        break;
+    }
+
+    if (inlineStyle) {
+      h.setAttribute("style", inlineStyle);
+    }
+  }
+
+  return doc.body.innerHTML;
+}
+
 function postProcessCodeBlocks(
   html: string,
   options: { macCodeBlock: boolean; showLineNumber: boolean }
@@ -194,6 +232,7 @@ async function buildArticleHtml(content: string, config: WechatStyleConfig): Pro
     macCodeBlock: config.macCodeBlock,
     showLineNumber: config.showLineNumber,
   });
+  html = applyHeadingInlineStyles(html, config);
   return html;
 }
 
