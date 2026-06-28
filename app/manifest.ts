@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "ScholarFlow - 本地优先的校园学习工作台",
     short_name: "ScholarFlow",
     description:
-      "整合教务数据、图书馆流程、作业、笔记与学习报告的本地优先校园学习工作台。",
+      "整合教务数据、AI 学习助手、作业、笔记与学习报告的本地优先校园学习工作台。",
     start_url: "/",
     display: "standalone",
     orientation: "portrait",

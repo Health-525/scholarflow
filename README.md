@@ -6,7 +6,7 @@
   <h1>ScholarFlow</h1>
   <h3>本地优先的校园学习工作台</h3>
   <p>
-    教务数据 &nbsp;·&nbsp; 图书馆服务 &nbsp;·&nbsp; 学习工具<br/>
+    教务数据 &nbsp;·&nbsp; AI 助手 &nbsp;·&nbsp; 学习工具<br/>
     <strong>一个应用，覆盖你的全部校园学习流程</strong>
   </p>
 
@@ -31,11 +31,11 @@
   <p>
     <a href="https://github.com/Health-525/scholarflow/releases">📥 下载</a>
     &nbsp;·&nbsp;
+    <a href="https://health-525.github.io/scholarflow/">🌐 在线体验</a>
+    &nbsp;·&nbsp;
     <a href="docs/school-adapter-guide.md">📖 学校接入指南</a>
     &nbsp;·&nbsp;
     <a href="https://github.com/Health-525/scholarflow/issues">🐛 问题反馈</a>
-    &nbsp;·&nbsp;
-    <a href="https://github.com/Health-525/scholarflow/issues">💡 功能建议</a>
   </p>
 </div>
 
@@ -57,9 +57,9 @@
 
 ## 什么是 ScholarFlow
 
-> **ScholarFlow 不是另一个课表 App。** 它是一个将教务系统、图书馆服务和个人学习工具深度融合的本地优先工作台。
+> **ScholarFlow 不是另一个课表 App。** 它是一个将教务系统、AI 助手和个人学习工具深度融合的本地优先工作台。
 
-大学生的日常信息流是割裂的——教务系统查课表和成绩，图书馆系统抢座位，再用独立的 App 记笔记、设番茄钟、写日报。数据散落在各处，账号密码交给云端，学习节奏被打断。
+大学生的日常信息流是割裂的——教务系统查课表和成绩，再用独立的 App 记笔记、设番茄钟、写日报。数据散落在各处，账号密码交给云端，学习节奏被打断。
 
 ScholarFlow 把这些全部收束到一个应用里：
 
@@ -118,7 +118,7 @@ ScholarFlow 把这些全部收束到一个应用里：
 | 课表 / 成绩 / 考试同步 | ✅ 完整 | ✅ 支持 | ⚡ 实验性 |
 | 作业 / 目标 / 番茄钟 / 笔记 | ✅ 完整 | ✅ 支持 | ⚡ 实验性 |
 | 本地安全加密存储 | ✅ 系统级 | ⚠️ 部分 | ⚠️ 部分 |
-| AI 学习助手（周报生成） | ✅ 完整 | ✅ 支持 | ⚡ 实验性 |
+| AI 学习助手（聊天与周报） | ✅ 完整 | ✅ 支持 | ⚡ 实验性 |
 | 活动窗口统计 | ✅ 完整 | ❌ 不支持 | ❌ 不支持 |
 | 后台自动刷新 | ✅ 完整 | ❌ 不支持 | ❌ 不支持 |
 | 萌系小咪皮肤 | 默认主题色 | Web 自适应 | 🐱 萌系 UI |
@@ -179,13 +179,13 @@ git clone https://github.com/Health-525/scholarflow.git && cd scholarflow && npm
     </td>
     <td>
       <h4>🤖 AI 学习助手</h4>
-      <p>基于 DeepSeek 的周报生成与学习数据<strong>智能总结</strong></p>
+      <p>DeepSeek-V4 驱动：周报生成、<strong>学习伙伴聊天</strong>与智能总结</p>
     </td>
   </tr>
   <tr>
     <td>
       <h4>📒 笔记</h4>
-      <p>Markdown 编辑器、全文搜索、<strong>自动保存</strong></p>
+      <p>Markdown 编辑、图片上传、标签、搜索、<strong>公众号导出</strong></p>
     </td>
     <td>
       <h4>🍅 番茄钟</h4>
@@ -216,7 +216,7 @@ git clone https://github.com/Health-525/scholarflow.git && cd scholarflow && npm
 
 ScholarFlow 为移动端量身打造了专属的 **「小咪」萌系皮肤**：
 
-- **核心页面适配** — 首页、课表已通过 `React.lazy` 懒加载移动专属 UI
+- **核心页面适配** — 首页、课表、AI 聊天已通过 `React.lazy` 懒加载移动专属 UI
 - **零开销** — 移动组件懒加载，桌面端打包体积不受影响
 - **M3 设计系统** — 粉色 Material-3 主题，支持粉 / 青双配色切换
 - **小咪吉祥物** — 专属 Mascot 组件，带流畅动画效果
@@ -280,7 +280,7 @@ ScholarFlow 为移动端量身打造了专属的 **「小咪」萌系皮肤**：
 │  • 账号密码 AES-256-GCM 加密存储，密钥经 scrypt 派生，不上传  │
 │  • 学习数据默认存储在本地 SQLite（WAL 模式）                  │
 │  • Electron: contextIsolation + nodeIntegration 严格隔离    │
-│  • 内部 API 带 token 校验，图书馆证书显式边界控制             │
+│  • 内部 API 带 token 校验，敏感凭证显式边界控制             │
 │  • 记住密码功能需 Electron safeStorage 才启用                │
 │  • 代码完全开源，可自行审查每一行                              │
 │  • 零追踪 · 零广告 · 零数据采集                              │
@@ -308,17 +308,17 @@ ScholarFlow 为移动端量身打造了专属的 **「小咪」萌系皮肤**：
 
 ## English
 
-ScholarFlow is a **local-first campus study workspace** that deeply integrates academic systems, library services, and personal study tools into a single desktop application.
+ScholarFlow is a **local-first campus study workspace** that deeply integrates academic systems, AI assistant, and personal study tools into a single desktop application.
 
 **Why ScholarFlow:**
 - 🔒 **Data sovereignty** — AES-256-GCM encrypted credentials. Study data in local SQLite. Zero tracking.
-- 🧩 **Complete workflow** — Schedule, grades, assignments, notes, pomodoro, AI assistant, reports.
+- 🧩 **Complete workflow** — Schedule, grades, assignments, notes, pomodoro, AI chat & reports, screen time.
 - 🖥️ **Desktop-native** — Electron with secure storage, background refresh, activity tracking, auto-update.
 - 🔌 **Extensible** — `SchoolAdapter` pattern. NJTech and HEBau already integrated.
 - 📱 **Multi-platform** — Desktop (primary), Web/PWA, Android with a unique cute mobile skin.
 
-**Features:** Dashboard · Schedule · Assignments · Exams · GPA · Notes (Markdown) · Pomodoro · Goals · Daily/Weekly Reports · AI Assistant (DeepSeek-powered weekly report) · Screen Time (second-level activity tracking with 90+ app recognition rules & CSV export) · Settings · Mobile Ximi Skin
+**Features:** Dashboard · Schedule · Assignments · Exams · GPA · Notes (Markdown, WeChat export, image upload, tags, search) · Pomodoro · Goals · Daily/Weekly Reports · AI Assistant (DeepSeek-V4 powered chat & weekly report) · Screen Time (second-level activity tracking with 90+ app recognition rules & CSV export) · Settings · Mobile Ximi Skin
 
 **Platforms:** Electron desktop (full), Web/PWA (complementary), Android/Capacitor (experimental).
 
-**Quick links:** [Downloads](https://github.com/Health-525/scholarflow/releases) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
+**Quick links:** [Downloads](https://github.com/Health-525/scholarflow/releases) · [Landing Page](https://health-525.github.io/scholarflow/) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
