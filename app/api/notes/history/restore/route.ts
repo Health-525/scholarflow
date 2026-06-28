@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getAuthorizedAccount } from "@/lib/auth/account-access";
+import { getAuthorizedPrefix } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getVersion } from "@/lib/notes/history";
 import { writeNote } from "@/lib/notes/store";
@@ -16,13 +16,6 @@ const restoreBodySchema = z.object({
   userId: z.string().optional(),
 });
 
-function getPrefix(schoolId?: string | null, userId?: string | null): string {
-  const db = getServerDB();
-  const account = getAuthorizedAccount({ schoolId, userId }, db);
-  if (!account) throw new Error("unauthorized account access");
-  return `${account.schoolId}:${account.userId}`;
-}
-
 export async function POST(request: Request) {
   if (!isTrustedOrigin(request, { allowInternalToken: true })) {
     return forbiddenResponse();
@@ -33,7 +26,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "invalid input" }, { status: 400 });
     }
     const { path, versionIndex, schoolId, userId } = parse.data;
-    const prefix = getPrefix(schoolId, userId);
+    const prefix = getAuthorizedPrefix(schoolId, userId, getServerDB());
     const version = getVersion(prefix, path, versionIndex);
     if (!version) {
       return NextResponse.json({ error: "version not found" }, { status: 404 });

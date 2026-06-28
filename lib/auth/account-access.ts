@@ -57,4 +57,13 @@ export function getAuthorizedSchoolId(
   return account?.schoolId ?? null;
 }
 
+export function getAuthorizedPrefix(
+  schoolId: string | null | undefined,
+  userId: string | null | undefined,
+  db: ServerDB,
+): string {
+  const account = getAuthorizedAccount({ schoolId, userId }, db);
+  if (!account) throw new Error("unauthorized account access");
+  return `${account.schoolId}:${account.userId}`;
+}
 

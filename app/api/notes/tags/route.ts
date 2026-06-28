@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getAuthorizedAccount } from "@/lib/auth/account-access";
+import { getAuthorizedPrefix } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getTags, listAllTags, setTags } from "@/lib/notes/tags";
 import { getServerDB } from "@/lib/server-db";
@@ -19,13 +19,6 @@ const tagBodySchema = z.object({
   userId: z.string().optional(),
 });
 
-function getPrefix(schoolId?: string | null, userId?: string | null): string {
-  const db = getServerDB();
-  const account = getAuthorizedAccount({ schoolId, userId }, db);
-  if (!account) throw new Error("unauthorized account access");
-  return `${account.schoolId}:${account.userId}`;
-}
-
 export async function GET(request: Request) {
   if (!isTrustedOrigin(request, { allowInternalToken: true })) {
     return forbiddenResponse();
@@ -37,7 +30,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "invalid query" }, { status: 400 });
     }
     const { path, schoolId, userId } = parse.data;
-    const prefix = getPrefix(schoolId, userId);
+    const prefix = getAuthorizedPrefix(schoolId, userId, getServerDB());
 
     if (path) {
       return NextResponse.json({ tags: getTags(prefix, path) });
@@ -62,7 +55,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "invalid input" }, { status: 400 });
     }
     const { path, tags, schoolId, userId } = parse.data;
-    const prefix = getPrefix(schoolId, userId);
+    const prefix = getAuthorizedPrefix(schoolId, userId, getServerDB());
     setTags(prefix, path, tags);
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
