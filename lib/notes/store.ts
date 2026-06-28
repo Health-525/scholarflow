@@ -1,6 +1,10 @@
 import { getServerDB } from "@/lib/server-db";
 import type { NoteTreeNode } from "@/types";
 
+import { saveVersion } from "./history";
+import { indexNote, unindexNote } from "./search";
+import { removeTagsForNote } from "./tags";
+
 const NOTE_KEY_PREFIX = "note";
 
 function noteKey(prefix: string, path: string): string {
@@ -42,7 +46,12 @@ export function getNoteUpdatedAt(prefix: string, path: string): number | null {
  */
 export function writeNote(prefix: string, path: string, content: string): void {
   const db = getServerDB();
+  const oldContent = readNote(prefix, path);
+  if (oldContent !== null && oldContent !== content) {
+    saveVersion(prefix, path, oldContent);
+  }
   db.writeData(noteKey(prefix, path), content);
+  indexNote(noteKey(prefix, path), content);
 }
 
 /**
@@ -50,7 +59,12 @@ export function writeNote(prefix: string, path: string, content: string): void {
  */
 export function deleteNote(prefix: string, path: string): boolean {
   const db = getServerDB();
-  return db.deleteData(noteKey(prefix, path));
+  const result = db.deleteData(noteKey(prefix, path));
+  if (result) {
+    unindexNote(noteKey(prefix, path));
+    removeTagsForNote(prefix, path);
+  }
+  return result;
 }
 
 /**

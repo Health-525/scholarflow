@@ -39,6 +39,30 @@ export async function renderWechatMarkdown(markdown: string): Promise<string> {
   return await sanitizeHtml(String(result));
 }
 
+function wrapHeadings(html: string): string {
+  if (typeof window === "undefined") return html;
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const headings = Array.from(doc.querySelectorAll("h1, h2, h3, h4, h5, h6"));
+
+  for (const h of headings) {
+    const prefix = doc.createElement("span");
+    prefix.className = "prefix";
+    const content = doc.createElement("span");
+    content.className = "content";
+    content.innerHTML = h.innerHTML;
+    const suffix = doc.createElement("span");
+    suffix.className = "suffix";
+    h.innerHTML = "";
+    h.appendChild(prefix);
+    h.appendChild(content);
+    h.appendChild(suffix);
+  }
+
+  return doc.body.innerHTML;
+}
+
 function postProcessCodeBlocks(
   html: string,
   options: { macCodeBlock: boolean; showLineNumber: boolean }
@@ -116,12 +140,7 @@ interface RenderPreviewOptions {
 
 export async function renderWechatPreviewHtml(options: RenderPreviewOptions): Promise<string> {
   const { title, content, config, inlineCodeThemeCss } = options;
-  let bodyHtml = await renderWechatMarkdown(content);
-  bodyHtml = postProcessCodeBlocks(bodyHtml, {
-    macCodeBlock: config.macCodeBlock,
-    showLineNumber: config.showLineNumber,
-  });
-
+  const bodyHtml = await buildArticleHtml(content, config);
   const themeCss = generateWechatCss(config);
   const codeThemeLink = inlineCodeThemeCss
     ? `<style>${inlineCodeThemeCss}</style>`
@@ -166,6 +185,126 @@ ${bodyHtml}
   </div>
 </body>
 </html>`;
+}
+
+async function buildArticleHtml(content: string, config: WechatStyleConfig): Promise<string> {
+  let html = await renderWechatMarkdown(content);
+  html = wrapHeadings(html);
+  html = postProcessCodeBlocks(html, {
+    macCodeBlock: config.macCodeBlock,
+    showLineNumber: config.showLineNumber,
+  });
+  return html;
+}
+
+export function countArticleStats(content: string): { chars: number; words: number; readingMinutes: number } {
+  const text = content.replace(/[#*>`\-\s]+/g, " ").trim();
+  const chars = text.replace(/\s/g, "").length;
+  const words = text ? text.split(/\s+/).length : 0;
+  // Chinese reading speed: ~400 chars/min; English: ~200 words/min
+  const readingMinutes = Math.max(1, Math.ceil(Math.max(chars / 400, words / 200)));
+  return { chars, words, readingMinutes };
+}
+
+/**
+ * 将带 CSS 的 HTML 转为微信兼容的内联样式 HTML。
+ * 微信编辑器会剥离 <style> 标签和 class 属性，
+ * 只有内联 style="" 能保留样式。
+ */
+export async function inlineWechatStyles(html: string): Promise<string> {
+  const TIMEOUT_MS = 8000;
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      cleanup();
+      reject(new Error("样式内联超时"));
+    }, TIMEOUT_MS);
+
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:720px;height:100px;border:0;";
+    iframe.srcdoc = html;
+
+    function cleanup() {
+      clearTimeout(timeoutId);
+      if (iframe.parentNode) document.body.removeChild(iframe);
+    }
+
+    iframe.onload = () => {
+      try {
+        const iframeDoc = iframe.contentDocument;
+        const iframeWin = iframe.contentWindow;
+        if (!iframeDoc || !iframeWin) {
+          cleanup();
+          resolve(html);
+          return;
+        }
+
+        const article = iframeDoc.querySelector(".wechat-output");
+        if (!article) {
+          cleanup();
+          resolve(html);
+          return;
+        }
+
+        const elements = article.querySelectorAll("*");
+        for (const el of elements) {
+          const computed = iframeWin.getComputedStyle(el);
+          const props: string[] = [];
+          const relevant = [
+            "color", "background-color", "font-size", "font-weight", "font-style",
+            "font-family", "text-align", "line-height", "letter-spacing",
+            "padding", "padding-left", "padding-right", "padding-top", "padding-bottom",
+            "margin", "margin-left", "margin-right", "margin-top", "margin-bottom",
+            "border", "border-left", "border-right", "border-top", "border-bottom",
+            "border-radius", "border-color", "border-width", "border-style",
+            "display", "white-space", "word-break", "text-decoration",
+            "box-shadow", "text-shadow", "max-width", "width", "height",
+            "overflow", "overflow-x", "overflow-y",
+            "list-style", "list-style-type", "vertical-align",
+            "border-collapse", "border-spacing", "text-indent",
+            "min-width",
+          ];
+
+          for (const prop of relevant) {
+            const value = computed.getPropertyValue(prop);
+            if (value && value !== "initial" && value !== "normal" && value !== "auto"
+              && value !== "0px" && value !== "rgba(0, 0, 0, 0)"
+              && value !== "transparent" && value !== "none"
+              && !value.startsWith("0s")) {
+              props.push(`${prop}: ${value}`);
+            }
+          }
+          if (props.length > 0) {
+            (el as HTMLElement).setAttribute("style", props.join("; "));
+          }
+        }
+
+        const hasLineNumbers = new Set<Element>();
+        article.querySelectorAll("pre code").forEach((el) => {
+          if (el.querySelector(".wechat-code-wrapper")) hasLineNumbers.add(el);
+        });
+
+        iframeDoc.querySelectorAll("style, link[rel=\"stylesheet\"]").forEach((t) => t.remove());
+        article.querySelectorAll("[class]").forEach((el) => el.removeAttribute("class"));
+        article.querySelectorAll("div").forEach((el) => {
+          const section = iframeDoc.createElement("section");
+          for (const attr of Array.from(el.attributes)) section.setAttribute(attr.name, attr.value);
+          section.innerHTML = el.innerHTML;
+          el.replaceWith(section);
+        });
+        article.querySelectorAll("pre code").forEach((el) => {
+          if (hasLineNumbers.has(el)) return;
+          el.innerHTML = el.innerHTML.replace(/\n/g, "<br>");
+        });
+
+        const result = "<!DOCTYPE html>\n" + iframeDoc.documentElement.outerHTML;
+        cleanup();
+        resolve(result);
+      } catch (err) {
+        cleanup();
+        reject(err);
+      }
+    };
+  });
 }
 
 function escapeHtml(text: string): string {

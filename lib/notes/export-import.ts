@@ -1,4 +1,4 @@
-import { fetchCodeBlockThemeCss, renderWechatPreviewHtml } from "./wechat-renderer";
+import { countArticleStats, fetchCodeBlockThemeCss, inlineWechatStyles, renderWechatPreviewHtml } from "./wechat-renderer";
 import {
   codeBlockThemeUrl,
   defaultWechatStyleConfig,
@@ -37,7 +37,6 @@ export async function exportWechatHtml(
 ) {
   let codeThemeCss = await fetchCodeBlockThemeCss(config.codeBlockTheme);
   if (!codeThemeCss) {
-    // 离线或失败时保留链接，至少给出提示性样式
     codeThemeCss = `/* 代码块主题加载失败，原链接：${codeBlockThemeUrl(config.codeBlockTheme)} */`;
   }
 
@@ -48,9 +47,15 @@ export async function exportWechatHtml(
     inlineCodeThemeCss: codeThemeCss,
   });
   html = await inlineImages(html);
+  // 将 CSS 转为内联样式，确保微信编辑器不丢失样式
+  html = await inlineWechatStyles(html);
 
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   triggerDownload(blob, `${sanitizeFilename(title)}.html`);
+}
+
+export function getWechatExportStats(content: string) {
+  return countArticleStats(content);
 }
 
 async function inlineImages(html: string): Promise<string> {
@@ -76,7 +81,7 @@ async function inlineImages(html: string): Promise<string> {
     })
   );
 
-  return doc.body.innerHTML;
+  return "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
 }
 
 function blobToDataUrl(blob: Blob): Promise<string> {

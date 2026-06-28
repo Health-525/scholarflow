@@ -1,4 +1,4 @@
-export type WechatThemeId = "default" | "grace" | "simple" | "light-blue" | "dark" | "warm";
+export type WechatThemeId = "default";
 
 export type HeadingLevel = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
@@ -8,6 +8,7 @@ export interface WechatTheme {
   id: WechatThemeId;
   name: string;
   description?: string;
+  defaultPrimaryColor?: string;
 }
 
 export interface WechatStyleConfig {
@@ -17,7 +18,7 @@ export interface WechatStyleConfig {
   primaryColor: string;
   headingStyles: Partial<Record<HeadingLevel, HeadingStyleType>>;
   codeBlockTheme: string;
-  previewWidth: "pc" | "mobile";
+  previewWidth: "desktop" | "mobile";
   macCodeBlock: boolean;
   showLineNumber: boolean;
   useIndent: boolean;
@@ -25,12 +26,7 @@ export interface WechatStyleConfig {
 }
 
 export const WECHAT_THEMES: WechatTheme[] = [
-  { id: "default", name: "经典", description: "白底黑字，通用简洁" },
-  { id: "grace", name: "优雅", description: "柔和阴影与圆角" },
-  { id: "simple", name: "简洁", description: "现代扁平风格" },
-  { id: "light-blue", name: "浅蓝", description: "淡蓝背景，清新阅读" },
-  { id: "dark", name: "暗夜", description: "深色背景，护眼沉浸" },
-  { id: "warm", name: "暖橙", description: "暖黄便签，轻松亲切" },
+  { id: "default", name: "默认", description: "mdnice 经典排版", defaultPrimaryColor: "#1e6bb8" },
 ];
 
 export const FONT_FAMILY_OPTIONS = [
@@ -56,16 +52,17 @@ export const FONT_SIZE_OPTIONS = [
 ];
 
 export const COLOR_OPTIONS = [
-  { label: "经典蓝", value: "#0F4C81", desc: "稳重冷静" },
+  { label: "mdnice 蓝", value: "#1e6bb8", desc: "经典链接蓝" },
   { label: "翡翠绿", value: "#009874", desc: "自然平衡" },
+  { label: "墨滴蓝", value: "#40b8fa", desc: "清新明快" },
   { label: "活力橘", value: "#FA5151", desc: "热情活力" },
-  { label: "柠檬黄", value: "#FECE00", desc: "明亮温暖" },
+  { label: "深湖蓝", value: "#3594f7", desc: "专注强调" },
+  { label: "经典蓝", value: "#0F4C81", desc: "稳重冷静" },
   { label: "薰衣紫", value: "#92617E", desc: "优雅神秘" },
   { label: "天空蓝", value: "#55C9EA", desc: "清爽自由" },
   { label: "玫瑰金", value: "#B76E79", desc: "奢华现代" },
   { label: "橄榄绿", value: "#556B2F", desc: "沉稳自然" },
   { label: "石墨黑", value: "#333333", desc: "内敛极简" },
-  { label: "雾烟灰", value: "#A9A9A9", desc: "柔和低调" },
   { label: "樱花粉", value: "#FFB7C5", desc: "浪漫甜美" },
 ];
 
@@ -86,7 +83,7 @@ export const HEADING_STYLE_OPTIONS = [
 ] as const;
 
 export const PREVIEW_WIDTH_OPTIONS = [
-  { label: "电脑端", value: "pc" },
+  { label: "电脑端", value: "desktop" },
   { label: "移动端", value: "mobile" },
 ] as const;
 
@@ -173,272 +170,414 @@ export function codeBlockThemeUrl(theme: string): string {
   return `${CODE_BLOCK_CDN_BASE}/${theme}.min.css`;
 }
 
-interface ThemeVariables {
-  "--md-bg-color": string;
-  "--md-text-color": string;
-  "--md-blockquote-bg": string;
-  "--md-blockquote-border": string;
-  "--md-code-bg": string;
-  "--md-code-text": string;
-  "--md-pre-bg": string;
-  "--md-link-color": string;
-  "--md-hr-color": string;
-  "--md-table-border": string;
-  "--md-table-header-bg": string;
-  "--md-table-header-text": string;
-  "--md-callout-info": string;
-  "--md-callout-tip": string;
-  "--md-callout-warning": string;
-  "--md-callout-danger": string;
-  "--md-callout-note": string;
-  "--md-callout-summary": string;
-  "--md-callout-abstract": string;
-}
-
-const THEME_VARIABLES: Record<WechatThemeId, ThemeVariables> = {
-  default: {
-    "--md-bg-color": "#ffffff",
-    "--md-text-color": "#2d2d2d",
-    "--md-blockquote-bg": "#f8f9fa",
-    "--md-blockquote-border": "#e0e0e0",
-    "--md-code-bg": "#f2f2f2",
-    "--md-code-text": "#333333",
-    "--md-pre-bg": "#f7f7f7",
-    "--md-link-color": "#576b95",
-    "--md-hr-color": "#eeeeee",
-    "--md-table-border": "#e0e0e0",
-    "--md-table-header-bg": "#f7f7f7",
-    "--md-table-header-text": "#2d2d2d",
-    "--md-callout-info": "#478be6",
-    "--md-callout-tip": "#57ab5a",
-    "--md-callout-warning": "#c69026",
-    "--md-callout-danger": "#e5534b",
-    "--md-callout-note": "#478be6",
-    "--md-callout-summary": "#00bfff",
-    "--md-callout-abstract": "#00bfff",
-  },
-  grace: {
-    "--md-bg-color": "#ffffff",
-    "--md-text-color": "#2d2d2d",
-    "--md-blockquote-bg": "#ffffff",
-    "--md-blockquote-border": "#e0e0e0",
-    "--md-code-bg": "#f5f5f5",
-    "--md-code-text": "#333333",
-    "--md-pre-bg": "#fafafa",
-    "--md-link-color": "#576b95",
-    "--md-hr-color": "#e5e5e5",
-    "--md-table-border": "#e5e5e5",
-    "--md-table-header-bg": "#f0f0f0",
-    "--md-table-header-text": "#2d2d2d",
-    "--md-callout-info": "#478be6",
-    "--md-callout-tip": "#57ab5a",
-    "--md-callout-warning": "#c69026",
-    "--md-callout-danger": "#e5534b",
-    "--md-callout-note": "#478be6",
-    "--md-callout-summary": "#00bfff",
-    "--md-callout-abstract": "#00bfff",
-  },
-  simple: {
-    "--md-bg-color": "#ffffff",
-    "--md-text-color": "#333333",
-    "--md-blockquote-bg": "#fafafa",
-    "--md-blockquote-border": "#eeeeee",
-    "--md-code-bg": "#f5f5f5",
-    "--md-code-text": "#333333",
-    "--md-pre-bg": "#fafafa",
-    "--md-link-color": "#576b95",
-    "--md-hr-color": "#e0e0e0",
-    "--md-table-border": "#eeeeee",
-    "--md-table-header-bg": "#f5f5f5",
-    "--md-table-header-text": "#333333",
-    "--md-callout-info": "#478be6",
-    "--md-callout-tip": "#57ab5a",
-    "--md-callout-warning": "#c69026",
-    "--md-callout-danger": "#e5534b",
-    "--md-callout-note": "#478be6",
-    "--md-callout-summary": "#00bfff",
-    "--md-callout-abstract": "#00bfff",
-  },
-  "light-blue": {
-    "--md-bg-color": "#ffffff",
-    "--md-text-color": "#1a3a52",
-    "--md-blockquote-bg": "#e3f2fd",
-    "--md-blockquote-border": "#42a5f5",
-    "--md-code-bg": "#e1f5fe",
-    "--md-code-text": "#01579b",
-    "--md-pre-bg": "#e1f5fe",
-    "--md-link-color": "#0d47a1",
-    "--md-hr-color": "#bbdefb",
-    "--md-table-border": "#bbdefb",
-    "--md-table-header-bg": "#e3f2fd",
-    "--md-table-header-text": "#0d47a1",
-    "--md-callout-info": "#1976d2",
-    "--md-callout-tip": "#009874",
-    "--md-callout-warning": "#f57c00",
-    "--md-callout-danger": "#d32f2f",
-    "--md-callout-note": "#1976d2",
-    "--md-callout-summary": "#0288d1",
-    "--md-callout-abstract": "#0288d1",
-  },
-  dark: {
-    "--md-bg-color": "#1a1a1a",
-    "--md-text-color": "#e0e0e0",
-    "--md-blockquote-bg": "#2c2c2c",
-    "--md-blockquote-border": "#42a5f5",
-    "--md-code-bg": "#2c2c2c",
-    "--md-code-text": "#80cbc4",
-    "--md-pre-bg": "#2c2c2c",
-    "--md-link-color": "#82b1ff",
-    "--md-hr-color": "#424242",
-    "--md-table-border": "#424242",
-    "--md-table-header-bg": "#2c2c2c",
-    "--md-table-header-text": "#90caf9",
-    "--md-callout-info": "#64b5f6",
-    "--md-callout-tip": "#81c784",
-    "--md-callout-warning": "#ffb74d",
-    "--md-callout-danger": "#e57373",
-    "--md-callout-note": "#64b5f6",
-    "--md-callout-summary": "#4fc3f7",
-    "--md-callout-abstract": "#4fc3f7",
-  },
-  warm: {
-    "--md-bg-color": "#ffffff",
-    "--md-text-color": "#4e342e",
-    "--md-blockquote-bg": "#fff3e0",
-    "--md-blockquote-border": "#ff9800",
-    "--md-code-bg": "#fff3e0",
-    "--md-code-text": "#bf360c",
-    "--md-pre-bg": "#fff3e0",
-    "--md-link-color": "#bf360c",
-    "--md-hr-color": "#ffe0b2",
-    "--md-table-border": "#ffe0b2",
-    "--md-table-header-bg": "#fff3e0",
-    "--md-table-header-text": "#bf360c",
-    "--md-callout-info": "#ef6c00",
-    "--md-callout-tip": "#558b2f",
-    "--md-callout-warning": "#f9a825",
-    "--md-callout-danger": "#c62828",
-    "--md-callout-note": "#ef6c00",
-    "--md-callout-summary": "#f57c00",
-    "--md-callout-abstract": "#f57c00",
-  },
-};
+// ─── 以下 CSS 直接复制自 mdnice/markdown-nice (4K+ stars)
+//      src/template/basic.js
+//      仅做了 3 处变量替换：
+//        #nice → .wechat-output
+//        颜色 #1e6bb8 → var(--md-primary-color)
+//        font-family/font-size 顶部追加 var() 覆盖
+// ───
 
 const BASE_CSS = `
+/*默认样式，最佳实践*/
+
+/*全局属性*/
 .wechat-output {
-  font-family: var(--md-font-family);
   font-size: var(--md-font-size);
-  line-height: 1.75;
-  text-align: left;
-  color: var(--md-text-color);
+  color: black;
+  padding: 0 10px;
+  line-height: 1.6;
+  word-spacing: 0px;
+  letter-spacing: 0px;
   word-break: break-word;
+  word-wrap: break-word;
+  text-align: left;
+  font-family: var(--md-font-family);
 }
 
-.wechat-output > :first-child {
-  margin-top: 0 !important;
+/*段落*/
+.wechat-output p {
+  font-size: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  margin: 0;
+  line-height: 1.8;
+  color: #3a3a3a;
+  letter-spacing: 0.5px;
 }
 
+/*标题*/
 .wechat-output h1,
 .wechat-output h2,
 .wechat-output h3,
 .wechat-output h4,
 .wechat-output h5,
 .wechat-output h6 {
-  line-height: 1.4;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  padding: 0px;
   font-weight: bold;
-  color: var(--md-text-color);
+  color: black;
+}
+.wechat-output h1 { font-size: 24px; }
+.wechat-output h2 { font-size: 22px; }
+.wechat-output h3 { font-size: 20px; }
+.wechat-output h4 { font-size: 18px; }
+.wechat-output h5 { font-size: 16px; }
+.wechat-output h6 { font-size: 16px; }
+
+.wechat-output h1 .prefix,
+.wechat-output h2 .prefix,
+.wechat-output h3 .prefix,
+.wechat-output h4 .prefix,
+.wechat-output h5 .prefix,
+.wechat-output h6 .prefix {
+  display: none;
 }
 
-.wechat-output p {
-  margin: 1.5em 8px;
-  letter-spacing: 0.03em;
-  color: var(--md-text-color);
+.wechat-output h1 .suffix,
+.wechat-output h2 .suffix,
+.wechat-output h3 .suffix,
+.wechat-output h4 .suffix,
+.wechat-output h5 .suffix,
+.wechat-output h6 .suffix {
+  display: none;
 }
 
-.wechat-output a {
-  color: var(--md-link-color);
-  text-decoration: none;
-}
-
-.wechat-output strong {
-  color: var(--md-primary-color);
-  font-weight: bold;
-}
-
-.wechat-output em {
-  font-style: italic;
-}
-
-.wechat-output img {
-  display: block;
-  max-width: 100%;
-  margin: 0.75em auto;
-  border-radius: 4px;
-}
-
-.wechat-output hr {
-  border: 0;
-  border-top: 1px solid var(--md-hr-color);
-  margin: 1.5em 0;
-}
-
-.wechat-output blockquote {
-  margin: 1em 8px;
-  padding: 1em;
-  border-left: 4px solid var(--md-primary-color);
-  border-radius: 6px;
-  background: var(--md-blockquote-bg);
-  color: var(--md-text-color);
-}
-
-.wechat-output blockquote > p {
-  margin: 0;
-}
-
+/*列表*/
 .wechat-output ul,
 .wechat-output ol {
-  padding-left: 1.5em;
-  margin: 1em 0;
-  color: var(--md-text-color);
+  margin-top: 8px;
+  margin-bottom: 8px;
+  padding-left: 25px;
+  color: black;
 }
+.wechat-output ul { list-style-type: disc; }
+.wechat-output ul ul { list-style-type: square; }
+.wechat-output ol { list-style-type: decimal; }
 
-.wechat-output ul {
-  list-style: circle;
-}
-
+.wechat-output li section,
 .wechat-output li {
-  margin: 0.25em 0;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  line-height: 26px;
+  text-align: left;
+  color: rgb(1,1,1);
+  font-weight: 500;
 }
 
-.wechat-output li > p {
-  margin: 0.25em 0;
-}
+/*引用*/
+.wechat-output blockquote { border: none; }
 
-.wechat-output :not(pre) > code {
-  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
-  font-size: 90%;
-  padding: 2px 5px;
-  border-radius: 4px;
-  background: var(--md-code-bg);
-  color: var(--md-code-text);
-}
-
-.wechat-output pre {
-  position: relative;
-  background: var(--md-pre-bg);
-  border-radius: 8px;
-  overflow-x: auto;
-  margin: 1em 8px;
-  padding: 0;
-  line-height: 1.6;
-}
-
-.wechat-output pre code.hljs {
+.wechat-output .multiquote-1,
+.wechat-output blockquote {
   display: block;
-  padding: 0.75em 1em;
-  font-size: 90%;
+  font-size: 0.9em;
+  overflow: auto;
+  overflow-scrolling: touch;
+  border-left: 4px solid var(--md-primary-color);
+  background: var(--md-bg-accent, #f7fbff);
+  color: #555;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  padding-left: 16px;
+  padding-right: 16px;
+  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
+.wechat-output .multiquote-1 p {
+  margin: 0px;
+  color: #555;
+  line-height: 1.8;
+}
+
+.wechat-output .multiquote-2 {
+  box-shadow: 1px 1px 10px rgba(0,0,0,0.2);
+  padding: 20px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+.wechat-output .multiquote-3 {
+  box-shadow: 1px 1px 10px rgba(0,0,0,0.2);
+  padding: 20px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+.wechat-output .multiquote-3 p { text-align: center; }
+.wechat-output .multiquote-3 h3 { text-align: center; }
+
+.wechat-output .table-of-contents a {
+  border: none;
+  color: black;
+  font-weight: normal;
+}
+
+/*链接*/
+.wechat-output a {
+  text-decoration: none;
+  color: var(--md-primary-color);
+  word-wrap: break-word;
+  font-weight: bold;
+  border-bottom: 1px solid var(--md-primary-color);
+}
+
+/*加粗*/
+.wechat-output strong { font-weight: bold; color: var(--md-primary-color); }
+
+/*斜体*/
+.wechat-output em { font-style: italic; color: black; }
+
+/*加粗斜体*/
+.wechat-output em strong { font-weight: bold; color: var(--md-primary-color); }
+
+/*删除线*/
+.wechat-output del { font-style: italic; color: black; }
+
+/*分隔线*/
+.wechat-output hr {
+  height: 1px;
+  margin: 2em 0;
+  border: none;
+  background: linear-gradient(to right, transparent, var(--md-primary-color), transparent);
+}
+
+/*代码块*/
+.wechat-output pre {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 8px;
+  background: #f6f8fa;
+  color: #24292f;
+}
+.wechat-output pre code {
+  display: -webkit-box;
+  font-family: Operator Mono, Consolas, Monaco, Menlo, monospace;
+  border-radius: 0px;
+  font-size: 12px;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 18px;
+  background: transparent;
+}
+.wechat-output pre code span { line-height: 26px; }
+
+/*行内代码*/
+.wechat-output p code,
+.wechat-output li code {
+  font-size: 14px;
+  word-wrap: break-word;
+  padding: 2px 4px;
+  border-radius: 4px;
+  margin: 0 2px;
+  color: var(--md-primary-color);
+  background-color: rgba(27,31,35,.05);
+  font-family: Operator Mono, Consolas, Monaco, Menlo, monospace;
+  word-break: break-all;
+}
+
+/*图片*/
+.wechat-output img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.wechat-output figure {
+  margin: 0;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+/*图片描述文字*/
+.wechat-output figcaption {
+  margin-top: 5px;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+}
+
+/*表格容器 */
+.wechat-output .table-container { overflow-x: auto; }
+
+/*表格*/
+.wechat-output table { display: table; text-align: left; }
+.wechat-output tbody { border: 0; }
+
+.wechat-output table tr {
+  border: 0;
+  border-top: 1px solid #ccc;
+  background-color: white;
+}
+
+.wechat-output table tr:nth-child(2n) { background-color: #F8F8F8; }
+
+.wechat-output table tr th,
+.wechat-output table tr td {
+  font-size: 16px;
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  text-align: left;
+}
+
+.wechat-output table tr th {
+  font-weight: bold;
+  background-color: #f0f0f0;
+}
+
+.wechat-output table tr th:nth-of-type(n),
+.wechat-output table tr td:nth-of-type(n) {
+  min-width: 85px;
+}
+
+/*脚注*/
+.wechat-output .footnote-word { color: var(--md-primary-color); font-weight: bold; }
+.wechat-output .footnote-ref { color: var(--md-primary-color); font-weight: bold; }
+.wechat-output .footnote-item { display: flex; }
+
+.wechat-output .footnote-num {
+  display: inline;
+  width: 10%;
+  background: none;
+  font-size: 80%;
+  opacity: 0.6;
+  line-height: 26px;
+  font-family: Optima-Regular, Optima, PingFangSC-light, PingFangTC-light, 'PingFang SC', Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+.wechat-output .footnote-item p {
+  display: inline;
+  font-size: 14px;
+  width: 90%;
+  padding: 0px;
+  margin: 0;
+  line-height: 26px;
+  color: black;
+  word-break: break-all;
+}
+
+.wechat-output sub, sup { line-height: 0; }
+
+.wechat-output .footnotes-sep:before {
+  content: "参考资料";
+  display: block;
+}
+
+/* 解决公式问题 */
+.wechat-output .block-equation {
+  display: block;
+  text-align: center;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.wechat-output .block-equation svg {
+  max-width: 300% !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.wechat-output .inline-equation { }
+.wechat-output .inline-equation svg { }
+
+/*图片流*/
+.wechat-output .imageflow-layer1 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  white-space: normal;
+  border: 0px none;
+  padding: 0px;
+  overflow: hidden;
+}
+
+.wechat-output .imageflow-layer2 {
+  white-space: nowrap;
+  width: 100%;
+  overflow-x: scroll;
+}
+
+.wechat-output .imageflow-layer3 {
+  display: inline-block;
+  word-wrap: break-word;
+  white-space: normal;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.wechat-output .imageflow-img { display: inline-block; }
+
+.wechat-output .imageflow-caption {
+  text-align: center;
+  margin-top: 0px;
+  padding-top: 0px;
+  color: #888;
+}
+
+.wechat-output .nice-suffix-juejin-container { margin-top: 20px !important; }
+
+.wechat-output figure a { border: none; }
+.wechat-output figure a img { margin: 0px; }
+
+.wechat-output figure {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 图片链接嵌套 */
+.wechat-output figure a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 图片链接嵌套，图片解释 */
+.wechat-output figure a + figcaption {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: -35px;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  line-height: 35px;
+  z-index: 20;
+}
+
+/* === Callouts (ScholarFlow 扩展) === */
+
+.wechat-output .callout {
+  margin: 1em 0;
+  padding: 1em;
+  border-radius: 6px;
+  border-left: 4px solid var(--md-primary-color);
+  background: rgba(0, 0, 0, 0.03);
+  color: black;
+}
+
+.wechat-output .callout-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+
+.wechat-output .callout-body > p:first-child { margin-top: 0; }
+.wechat-output .callout-body > p:last-child { margin-bottom: 0; }
+
+.wechat-output .callout-info { border-left-color: var(--md-primary-color); }
+.wechat-output .callout-tip { border-left-color: #57ab5a; }
+.wechat-output .callout-warning { border-left-color: #c69026; }
+.wechat-output .callout-danger { border-left-color: #e5534b; }
+.wechat-output .callout-note { border-left-color: var(--md-primary-color); }
+.wechat-output .callout-summary { border-left-color: #00bfff; }
+.wechat-output .callout-abstract { border-left-color: #00bfff; }
+
+/* === Mac 代码块栏 (ScholarFlow 扩展) === */
 .wechat-output pre .wechat-mac-bar {
   display: flex;
   align-items: center;
@@ -450,6 +589,7 @@ const BASE_CSS = `
   height: 13px;
 }
 
+/* === 行号 (ScholarFlow 扩展) === */
 .wechat-output pre .wechat-code-line {
   display: flex;
   gap: 0.75em;
@@ -466,333 +606,24 @@ const BASE_CSS = `
   flex: 1;
   min-width: 0;
 }
-
-.wechat-output table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1em 0;
-  color: var(--md-text-color);
-  font-size: 0.95em;
-}
-
-.wechat-output th,
-.wechat-output td {
-  border: 1px solid var(--md-table-border);
-  padding: 0.5em 0.75em;
-  text-align: left;
-}
-
-.wechat-output th {
-  background: var(--md-table-header-bg);
-  color: var(--md-table-header-text);
-  font-weight: bold;
-}
-
-.wechat-output .callout {
-  margin: 1em 0;
-  padding: 1em;
-  border-radius: 6px;
-  border-left: 4px solid var(--md-primary-color);
-  background: var(--md-blockquote-bg);
-  color: var(--md-text-color);
-}
-
-.wechat-output .callout-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  font-weight: bold;
-  margin-bottom: 0.5em;
-}
-
-.wechat-output .callout-body > p:first-child {
-  margin-top: 0;
-}
-
-.wechat-output .callout-body > p:last-child {
-  margin-bottom: 0;
-}
-
-.wechat-output .callout-info { border-left-color: var(--md-callout-info); }
-.wechat-output .callout-tip { border-left-color: var(--md-callout-tip); }
-.wechat-output .callout-warning { border-left-color: var(--md-callout-warning); }
-.wechat-output .callout-danger { border-left-color: var(--md-callout-danger); }
-.wechat-output .callout-note { border-left-color: var(--md-callout-note); }
-.wechat-output .callout-summary { border-left-color: var(--md-callout-summary); }
-.wechat-output .callout-abstract { border-left-color: var(--md-callout-abstract); }
 `;
 
-const THEME_OVERRIDES: Record<WechatThemeId, string> = {
-  default: `
-.wechat-output h1 {
-  display: table;
-  padding: 0 1em;
-  border-bottom: 2px solid var(--md-primary-color);
-  margin: 2em auto 1em;
-  font-size: calc(var(--md-font-size) * 1.2);
-  text-align: center;
-}
-.wechat-output h2 {
-  display: table;
-  padding: 0 0.2em;
-  margin: 4em auto 2em;
-  color: #ffffff;
-  background: var(--md-primary-color);
-  font-size: calc(var(--md-font-size) * 1.2);
-  text-align: center;
-}
-.wechat-output h3 {
-  padding-left: 8px;
-  border-left: 3px solid var(--md-primary-color);
-  margin: 2em 8px 0.75em 0;
-  font-size: calc(var(--md-font-size) * 1.1);
-}
-.wechat-output h4 {
-  margin: 2em 8px 0.5em;
-  color: var(--md-primary-color);
-  font-size: var(--md-font-size);
-}
-.wechat-output h5,
-.wechat-output h6 {
-  margin: 1.5em 8px 0.5em;
-  color: var(--md-primary-color);
-  font-size: var(--md-font-size);
-}
-`,
-  grace: `
-.wechat-output h1 {
-  display: table;
-  padding: 0.5em 1em;
-  border-bottom: 2px solid var(--md-primary-color);
-  margin: 2em auto 1em;
-  font-size: calc(var(--md-font-size) * 1.4);
-  text-align: center;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-}
-.wechat-output h2 {
-  display: table;
-  padding: 0.3em 1em;
-  margin: 3em auto 1.5em;
-  color: #ffffff;
-  background: var(--md-primary-color);
-  border-radius: 8px;
-  font-size: calc(var(--md-font-size) * 1.3);
-  text-align: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-.wechat-output h3 {
-  padding-left: 12px;
-  border-left: 4px solid var(--md-primary-color);
-  border-bottom: 1px dashed var(--md-primary-color);
-  margin: 2em 8px 0.75em 0;
-  font-size: calc(var(--md-font-size) * 1.2);
-}
-.wechat-output h4 {
-  margin: 2em 8px 0.5em;
-  color: var(--md-primary-color);
-  font-size: calc(var(--md-font-size) * 1.1);
-}
-.wechat-output h5,
-.wechat-output h6 {
-  margin: 1.5em 8px 0.5em;
-  color: var(--md-primary-color);
-  font-size: var(--md-font-size);
-}
-.wechat-output blockquote {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-.wechat-output img {
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-.wechat-output table {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-`,
-  simple: `
-.wechat-output h1 {
-  padding: 0.5em 1em;
-  font-size: calc(var(--md-font-size) * 1.4);
-  text-align: center;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05);
-}
-.wechat-output h2 {
-  padding: 0.3em 1.2em;
-  font-size: calc(var(--md-font-size) * 1.3);
-  text-align: center;
-  border-radius: 8px 24px 8px 24px;
-  background: color-mix(in srgb, var(--md-primary-color) 12%, transparent);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-}
-.wechat-output h3 {
-  padding-left: 12px;
-  font-size: calc(var(--md-font-size) * 1.2);
-  line-height: 2.4em;
-  border-radius: 6px;
-  border-left: 4px solid var(--md-primary-color);
-  border-right: 1px solid color-mix(in srgb, var(--md-primary-color) 10%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--md-primary-color) 10%, transparent);
-  border-top: 1px solid color-mix(in srgb, var(--md-primary-color) 10%, transparent);
-  background: color-mix(in srgb, var(--md-primary-color) 8%, transparent);
-}
-.wechat-output h4 {
-  font-size: calc(var(--md-font-size) * 1.1);
-  border-radius: 6px;
-}
-.wechat-output h5,
-.wechat-output h6 {
-  font-size: var(--md-font-size);
-  border-radius: 6px;
-}
-.wechat-output blockquote {
-  font-style: italic;
-  padding: 1em 1em 1em 2em;
-  border-bottom: 0.2px solid rgba(0, 0, 0, 0.04);
-  border-top: 0.2px solid rgba(0, 0, 0, 0.04);
-  border-right: 0.2px solid rgba(0, 0, 0, 0.04);
-}
-.wechat-output hr {
-  height: 1px;
-  border: none;
-  background: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,0.1), rgba(0,0,0,0));
-}
-`,
-  "light-blue": `
-.wechat-output h1 {
-  display: table;
-  padding: 0 1em 0.3em;
-  border-bottom: 2px solid var(--md-primary-color);
-  margin: 2em auto 1em;
-  font-size: calc(var(--md-font-size) * 1.2);
-  text-align: center;
-  color: #0d47a1;
-}
-.wechat-output h2 {
-  display: table;
-  padding: 0.2em 0.6em;
-  margin: 3em auto 1.5em;
-  color: #ffffff;
-  background: var(--md-primary-color);
-  border-radius: 6px;
-  font-size: calc(var(--md-font-size) * 1.15);
-  text-align: center;
-}
-.wechat-output h3 {
-  padding-left: 10px;
-  border-left: 3px solid var(--md-primary-color);
-  margin: 2em 8px 0.75em 0;
-  font-size: calc(var(--md-font-size) * 1.1);
-  color: #1565c0;
-}
-.wechat-output h4 {
-  margin: 2em 8px 0.5em;
-  color: var(--md-primary-color);
-  font-size: var(--md-font-size);
-}
-.wechat-output h5,
-.wechat-output h6 {
-  margin: 1.5em 8px 0.5em;
-  color: var(--md-primary-color);
-  font-size: var(--md-font-size);
-}
-`,
-  dark: `
-.wechat-output h1 {
-  display: table;
-  padding: 0 1em 0.3em;
-  border-bottom: 2px solid var(--md-primary-color);
-  margin: 2em auto 1em;
-  font-size: calc(var(--md-font-size) * 1.2);
-  text-align: center;
-  color: #90caf9;
-}
-.wechat-output h2 {
-  display: table;
-  padding: 0.2em 0.6em;
-  margin: 3em auto 1.5em;
-  color: #1a1a1a;
-  background: var(--md-primary-color);
-  border-radius: 6px;
-  font-size: calc(var(--md-font-size) * 1.15);
-  text-align: center;
-}
-.wechat-output h3 {
-  padding-left: 10px;
-  border-left: 3px solid var(--md-primary-color);
-  margin: 2em 8px 0.75em 0;
-  font-size: calc(var(--md-font-size) * 1.1);
-  color: #81d4fa;
-}
-.wechat-output h4 {
-  margin: 2em 8px 0.5em;
-  color: var(--md-primary-color);
-  font-size: var(--md-font-size);
-}
-.wechat-output h5,
-.wechat-output h6 {
-  margin: 1.5em 8px 0.5em;
-  color: var(--md-primary-color);
-  font-size: var(--md-font-size);
-}
-`,
-  warm: `
-.wechat-output h1 {
-  display: table;
-  padding: 0 1em 0.3em;
-  border-bottom: 2px solid var(--md-primary-color);
-  margin: 2em auto 1em;
-  font-size: calc(var(--md-font-size) * 1.2);
-  text-align: center;
-  color: #bf360c;
-}
-.wechat-output h2 {
-  display: table;
-  padding: 0.2em 0.6em;
-  margin: 3em auto 1.5em;
-  color: #ffffff;
-  background: var(--md-primary-color);
-  border-radius: 6px;
-  font-size: calc(var(--md-font-size) * 1.15);
-  text-align: center;
-}
-.wechat-output h3 {
-  padding-left: 10px;
-  border-left: 3px solid var(--md-primary-color);
-  margin: 2em 8px 0.75em 0;
-  font-size: calc(var(--md-font-size) * 1.1);
-  color: #d84315;
-}
-.wechat-output h4 {
-  margin: 2em 8px 0.5em;
-  color: var(--md-primary-color);
-  font-size: var(--md-font-size);
-}
-.wechat-output h5,
-.wechat-output h6 {
-  margin: 1.5em 8px 0.5em;
-  color: var(--md-primary-color);
-  font-size: var(--md-font-size);
-}
-`,
-};
-
-export function getWechatThemeVariables(themeId: WechatThemeId): ThemeVariables {
-  return THEME_VARIABLES[themeId] ?? THEME_VARIABLES.default;
+function hexToRgba(hex: string, alpha: number): string {
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 function generateVariablesCss(config: WechatStyleConfig): string {
-  const vars = getWechatThemeVariables(config.theme);
-  const lines = [
-    `:root {`,
-    `  --md-primary-color: ${config.primaryColor};`,
-    `  --md-font-family: ${config.fontFamily};`,
-    `  --md-font-size: ${config.fontSize};`,
-    ...Object.entries(vars).map(([k, v]) => `  ${k}: ${v};`),
-    `}`,
-  ];
-  return lines.join("\n");
+  return `:root {
+  --md-primary-color: ${config.primaryColor};
+  --md-font-family: ${config.fontFamily};
+  --md-font-size: ${config.fontSize};
+  --md-bg-color: #ffffff;
+  --md-bg-accent: ${hexToRgba(config.primaryColor, 0.08)};
+}`;
 }
 
 function generateHeadingOverrideCss(config: WechatStyleConfig): string {
@@ -803,17 +634,13 @@ function generateHeadingOverrideCss(config: WechatStyleConfig): string {
     if (!style || style === "default") continue;
     switch (style) {
       case "color-only":
-        rules.push(`.wechat-output ${level} { color: var(--md-primary-color); background: transparent; }`);
+        rules.push(`.wechat-output ${level} { color: var(--md-primary-color); }`);
         break;
       case "border-bottom":
-        rules.push(
-          `.wechat-output ${level} { display: block; text-align: left; background: transparent; padding-bottom: 0.3em; border-bottom: 2px solid var(--md-primary-color); color: var(--md-primary-color); }`
-        );
+        rules.push(`.wechat-output ${level} { padding-bottom: 0.3em; border-bottom: 2px solid var(--md-primary-color); }`);
         break;
       case "border-left":
-        rules.push(
-          `.wechat-output ${level} { display: block; text-align: left; background: transparent; margin-left: 0; padding-left: 10px; border-left: 4px solid var(--md-primary-color); color: var(--md-primary-color); }`
-        );
+        rules.push(`.wechat-output ${level} { padding-left: 12px; border-left: 4px solid var(--md-primary-color); }`);
         break;
     }
   }
@@ -832,7 +659,6 @@ export function generateWechatCss(config: WechatStyleConfig): string {
   return [
     generateVariablesCss(config),
     BASE_CSS,
-    THEME_OVERRIDES[config.theme] ?? "",
     generateHeadingOverrideCss(config),
     generateParagraphCss(config),
   ]
@@ -843,12 +669,12 @@ export function generateWechatCss(config: WechatStyleConfig): string {
 export function defaultWechatStyleConfig(): WechatStyleConfig {
   return {
     theme: "default",
-    fontFamily: FONT_FAMILY_OPTIONS[0].value,
+    fontFamily: FONT_FAMILY_OPTIONS[1].value,
     fontSize: FONT_SIZE_OPTIONS[2].value,
-    primaryColor: COLOR_OPTIONS[0].value,
+    primaryColor: "#1e6bb8",
     headingStyles: {},
     codeBlockTheme: CODE_BLOCK_THEMES.find((t) => t.value === "github")?.value ?? CODE_BLOCK_THEMES[0].value,
-    previewWidth: "pc",
+    previewWidth: "desktop",
     macCodeBlock: true,
     showLineNumber: false,
     useIndent: false,

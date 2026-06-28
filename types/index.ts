@@ -60,5 +60,26 @@ export interface NoteTreeNode {
   path: string;
   type: "file" | "dir";
   updatedAt?: number;
+  pinned?: boolean;
+  tags?: string[];
   children?: NoteTreeNode[];
+}
+
+export interface NoteSearchResult {
+  path: string;
+  title: string;
+  snippet: string;
+  updatedAt: number;
+  rank: number;
+}
+
+export interface NoteHistoryEntry {
+  content: string;
+  savedAt: number;
+  versionIndex: number;
+}
+
+export interface TagInfo {
+  tag: string;
+  count: number;
 }

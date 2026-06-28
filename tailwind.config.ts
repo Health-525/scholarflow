@@ -67,8 +67,12 @@ const config: Config = {
         statusInfo: "var(--status-info)",
 
         // ── ScholarFlow paper palette ──
-        accent: "var(--accent)",
-        "accent-foreground": "var(--accent-foreground)",
+        accent: {
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
+          soft: "var(--accent-soft)",
+          softer: "var(--accent-softer)",
+        },
         surface: "var(--surface)",
         "surface-elevated": "var(--surface-elevated)",
         "text-primary": "var(--text-primary)",
@@ -106,6 +110,15 @@ const config: Config = {
         "inverse-surface": "var(--inverse-surface)",
         "inverse-on-surface": "var(--inverse-on-surface)",
         "inverse-primary": "var(--inverse-primary)",
+
+        // ── notes-specific ──
+        "notes-active-bg": "var(--notes-active-bg)",
+        "notes-active-text": "var(--notes-active-text)",
+        "notes-hover-bg": "var(--notes-hover-bg)",
+        "notes-tertiary": "var(--notes-tertiary)",
+        "notes-placeholder": "var(--notes-placeholder)",
+        "notes-pin": "var(--notes-pin)",
+        "notes-primary-hover": "var(--notes-primary-hover)",
 
         sidebar: {
           DEFAULT: "var(--sidebar)",
