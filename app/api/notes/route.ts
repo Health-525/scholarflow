@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getAuthorizedAccount } from "@/lib/auth/account-access";
+import { getAuthorizedPrefix } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { setPinned } from "@/lib/notes/pin";
 // eslint-disable-next-line import/order
@@ -30,15 +30,6 @@ const notesActionBodySchema = z.object({
   userId: z.string().optional(),
 });
 
-function getNotePrefix(schoolId?: string | null, userId?: string | null): string {
-  const db = getServerDB();
-  const account = getAuthorizedAccount({ schoolId, userId }, db);
-  if (!account) {
-    throw new Error("unauthorized account access");
-  }
-  return `${account.schoolId}:${account.userId}`;
-}
-
 /**
  * GET /api/notes?path=<path>&schoolId=<schoolId>&userId=<userId>
  *
@@ -57,7 +48,7 @@ export async function GET(request: Request) {
     }
     const { path, schoolId, userId } = parse.data;
 
-    const prefix = getNotePrefix(schoolId, userId);
+    const prefix = getAuthorizedPrefix(schoolId, userId, getServerDB());
     const content = readNote(prefix, path);
 
     if (content === null) {
@@ -92,7 +83,7 @@ export async function POST(request: Request) {
     }
     const body = parse.data;
     const { action, path, schoolId, userId } = body;
-    const prefix = getNotePrefix(schoolId, userId);
+    const prefix = getAuthorizedPrefix(schoolId, userId, getServerDB());
 
     switch (action) {
       case "save": {
