@@ -54,6 +54,7 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
   const [previewWidth, setPreviewWidth] = useState<"mobile" | "desktop">("desktop");
   const [stats, setStats] = useState({ chars: 0, words: 0, readingMinutes: 1 });
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [previewKey, setPreviewKey] = useState(0);
   const themeSeqRef = useRef(0);
   const isFirstSave = useRef(true);
 
@@ -103,6 +104,7 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
         inlineCodeThemeCss: codeThemeCss,
       });
       setSrcDoc(html);
+      setPreviewKey((k) => k + 1);
     } catch (err) {
       setPreviewError(err instanceof Error ? err.message : "渲染预览失败");
     }
@@ -262,7 +264,7 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
                     <Button variant="secondary" size="sm" className="rounded-lg" onClick={() => { void updatePreview(); }}>重试</Button>
                   </div>
                 ) : srcDoc ? (
-                  <iframe title="公众号预览" srcDoc={srcDoc} className="w-full border-0"
+                  <iframe key={previewKey} title="公众号预览" srcDoc={srcDoc} className="w-full border-0"
                     sandbox="allow-same-origin" style={{ height: "calc(100vh - 140px)", minHeight: "600px" }} />
                 ) : (
                   <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">

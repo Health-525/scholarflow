@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { renderWechatPreviewHtml } from "@/lib/notes/wechat-renderer";
-import { defaultWechatStyleConfig } from "@/lib/notes/wechat-themes";
+import { defaultWechatStyleConfig, generateWechatCss } from "@/lib/notes/wechat-themes";
 import type { WechatStyleConfig } from "@/lib/notes/wechat-themes";
 
 const testConfig: WechatStyleConfig = {
@@ -148,6 +148,75 @@ describe("ScholarFlow theme HTML export", () => {
     const themeSection = html.match(/ScholarFlow[\s\S]*?<\/style>/);
     expect(themeSection).not.toBeNull();
     expect(themeSection![0]).not.toContain("!important");
+  });
+
+  it("heading override: border-bottom added to generated CSS", () => {
+    const config: WechatStyleConfig = {
+      ...defaultWechatStyleConfig(),
+      headingStyles: { h2: "border-bottom" },
+    };
+    const css = generateWechatCss(config);
+    expect(css).toContain(".wechat-output h2");
+    expect(css).toContain("padding-bottom: 0.3em");
+    expect(css).toContain("border-bottom: 2px solid var(--md-primary-color)");
+  });
+
+  it("heading override: color-only added to generated CSS", () => {
+    const config: WechatStyleConfig = {
+      ...defaultWechatStyleConfig(),
+      headingStyles: { h1: "color-only" },
+    };
+    const css = generateWechatCss(config);
+    expect(css).toContain(".wechat-output h1 { color: var(--md-primary-color); }");
+  });
+
+  it("heading override: border-left added to generated CSS", () => {
+    const config: WechatStyleConfig = {
+      ...defaultWechatStyleConfig(),
+      headingStyles: { h3: "border-left" },
+    };
+    const css = generateWechatCss(config);
+    expect(css).toContain(".wechat-output h3");
+    expect(css).toContain("padding-left: 12px");
+    expect(css).toContain("border-left: 4px solid var(--md-primary-color)");
+  });
+
+  it("heading override: default style produces no extra rules", () => {
+    const config: WechatStyleConfig = {
+      ...defaultWechatStyleConfig(),
+      headingStyles: { h2: "default" },
+    };
+    const css = generateWechatCss(config);
+    // The heading override CSS for h2 should NOT include border-bottom (which is the actual override property)
+    const h2OverrideRegex = /\.wechat-output h2 \{ padding-bottom:/;
+    expect(css).not.toMatch(h2OverrideRegex);
+    expect(css).not.toMatch(/\.wechat-output h2 \{ padding-left:/);
+    expect(css).not.toMatch(/\.wechat-output h2 \{ color: var\(--md-primary-color\)/);
+  });
+
+  it("heading override: full preview HTML includes heading override CSS", async () => {
+    const config: WechatStyleConfig = {
+      ...defaultWechatStyleConfig(),
+      headingStyles: { h2: "border-bottom", h3: "color-only" },
+    };
+    const html = await renderWechatPreviewHtml({
+      title: "测试",
+      content: "## 标题\n### 副标题",
+      config,
+    });
+    expect(html).toContain(".wechat-output h2 { padding-bottom: 0.3em; border-bottom: 2px solid var(--md-primary-color); }");
+    expect(html).toContain(".wechat-output h3 { color: var(--md-primary-color); }");
+  });
+
+  it("heading override: empty headingStyles produces no heading-specific overrides", () => {
+    const config = defaultWechatStyleConfig();
+    const css = generateWechatCss(config);
+    // Base grouped heading rules should exist
+    expect(css).toContain(".wechat-output h1,");
+    // But no individual heading-level override rules (with border/padding)
+    expect(css).not.toMatch(/\.wechat-output h2 \{ padding-bottom:/);
+    expect(css).not.toMatch(/\.wechat-output h2 \{ padding-left:/);
+    expect(css).not.toMatch(/\.wechat-output h[1-6] \{ color: var\(--md-primary-color\)/);
   });
 });
 
