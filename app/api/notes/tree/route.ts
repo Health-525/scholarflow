@@ -4,9 +4,12 @@ import { z } from "zod";
 
 import { resolveAccountPrefix } from "@/lib/account-prefix";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+import { listPinned } from "@/lib/notes/pin";
 // eslint-disable-next-line import/order
 import { buildNoteTree, getNoteUpdatedAt, listNotePaths } from "@/lib/notes/store";
+import { getTags } from "@/lib/notes/tags";
 import { getServerDB } from "@/lib/server-db";
+import type { NoteTreeNode } from "@/types";
 
 const notesTreeQuerySchema = z.object({
   schoolId: z.string().optional(),
@@ -36,9 +39,20 @@ export async function GET(request: Request) {
 
     const paths = listNotePaths(prefix);
     const updatedAtMap = new Map(paths.map((p) => [p, getNoteUpdatedAt(prefix, p) ?? 0]));
+    const pinnedPaths = new Set(listPinned(prefix));
+    const tagsMap = new Map(paths.map((p) => [p, getTags(prefix, p)]));
     const tree = buildNoteTree(paths, updatedAtMap);
 
-    return NextResponse.json(tree);
+    function enrichTree(nodes: NoteTreeNode[]): NoteTreeNode[] {
+      return nodes.map((node) => ({
+        ...node,
+        pinned: node.type === "file" ? pinnedPaths.has(node.path) : undefined,
+        tags: node.type === "file" ? tagsMap.get(node.path) : undefined,
+        children: node.children ? enrichTree(node.children) : undefined,
+      }));
+    }
+
+    return NextResponse.json(enrichTree(tree));
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

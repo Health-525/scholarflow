@@ -4,9 +4,10 @@ import { z } from "zod";
 
 import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
-import { getServerDB } from "@/lib/server-db";
+import { setPinned } from "@/lib/notes/pin";
 // eslint-disable-next-line import/order
 import { deleteNote, readNote, renameNote, writeNote } from "@/lib/notes/store";
+import { getServerDB } from "@/lib/server-db";
 
 const notesQuerySchema = z.object({
   path: z.string().min(1).refine((p) => !p.includes("..") && !p.startsWith("/"), {
@@ -17,7 +18,7 @@ const notesQuerySchema = z.object({
 });
 
 const notesActionBodySchema = z.object({
-  action: z.enum(["save", "create", "delete", "rename"]),
+  action: z.enum(["save", "create", "delete", "rename", "pin", "unpin"]),
   path: z.string().min(1).refine((p) => !p.includes("..") && !p.startsWith("/"), {
     message: "invalid path",
   }),
@@ -130,6 +131,16 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: "note not found" }, { status: 404 });
         }
         return NextResponse.json({ ok: true, path: body.newPath });
+      }
+
+      case "pin": {
+        setPinned(prefix, path, true);
+        return NextResponse.json({ ok: true });
+      }
+
+      case "unpin": {
+        setPinned(prefix, path, false);
+        return NextResponse.json({ ok: true });
       }
 
       default:
