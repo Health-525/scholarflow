@@ -152,7 +152,7 @@ export function GlobalSearch() {
                 <button
                   type="button"
                   onClick={() => reset()}
-                  className="min-h-8 min-w-8 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
+                  className="min-h-8 min-w-8 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:rounded"
                   aria-label="关闭搜索"
                 >
                   <X className="w-4 h-4" />

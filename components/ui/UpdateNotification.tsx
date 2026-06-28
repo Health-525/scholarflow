@@ -101,7 +101,7 @@ export function UpdateNotification() {
             <button
               type="button"
               onClick={() => setDismissed(true)}
-              className="p-1 rounded-lg shrink-0 text-muted-foreground"
+              className="p-1 rounded-lg shrink-0 text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:rounded"
               aria-label="关闭更新提示"
             >
               <X className="w-3.5 h-3.5" />
@@ -111,7 +111,7 @@ export function UpdateNotification() {
             <button
               type="button"
               onClick={handleDownload}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium transition-colors bg-primary text-primary-foreground"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium transition-colors bg-primary text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:rounded"
             >
               <Download className="w-3.5 h-3.5" />
               下载更新
@@ -119,7 +119,7 @@ export function UpdateNotification() {
             <button
               type="button"
               onClick={handleManualDownload}
-              className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs text-muted-foreground"
+              className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:rounded"
               title="打开 GitHub 下载页面"
               aria-label="打开 GitHub 下载页面"
             >
@@ -161,7 +161,7 @@ export function UpdateNotification() {
           </div>
           <button
             onClick={handleManualDownload}
-            className="w-full mt-3 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs text-muted-foreground"
+            className="w-full mt-3 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:rounded"
           >
             <ExternalLink className="w-3 h-3" />
             下载太慢？手动下载
@@ -188,7 +188,7 @@ export function UpdateNotification() {
           <button
             type="button"
             onClick={handleInstall}
-            className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium transition-colors bg-statusSuccess text-primary-foreground"
+            className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium transition-colors bg-statusSuccess text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:rounded"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             重启并安装
@@ -214,7 +214,7 @@ export function UpdateNotification() {
             <button
               type="button"
               onClick={() => setDismissed(true)}
-              className="p-1 rounded-lg shrink-0 text-muted-foreground"
+              className="p-1 rounded-lg shrink-0 text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:rounded"
               aria-label="关闭"
             >
               <X className="w-3.5 h-3.5" />
@@ -224,7 +224,7 @@ export function UpdateNotification() {
             <button
               type="button"
               onClick={handleManualDownload}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium transition-colors bg-primary text-primary-foreground"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium transition-colors bg-primary text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:rounded"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               前往下载
@@ -232,7 +232,7 @@ export function UpdateNotification() {
             <button
               type="button"
               onClick={handleDownload}
-              className="px-4 py-2 rounded-xl text-xs text-muted-foreground"
+              className="px-4 py-2 rounded-xl text-xs text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:rounded"
             >
               重试
             </button>

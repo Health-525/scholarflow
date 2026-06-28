@@ -47,7 +47,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           />
           <button
             onClick={() => window.location.reload()}
-            className="mt-3 px-6 py-2.5 bg-secondary text-secondary-foreground rounded-lg font-medium text-sm"
+            className="mt-3 px-6 py-2.5 bg-secondary text-secondary-foreground rounded-lg font-medium text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:rounded"
           >
             刷新页面
           </button>

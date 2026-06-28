@@ -3,7 +3,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 export const cardClasses = cn(
-  "group/card flex flex-col gap-3 overflow-hidden rounded-2xl bg-card border border-[rgba(0,0,0,0.04)] dark:border-white/[0.06] py-3 text-sm text-card-foreground shadow-sm",
+  "group/card flex flex-col gap-3 overflow-hidden rounded-2xl bg-card border border-border dark:border-white/[0.06] py-3 text-sm text-card-foreground shadow-sm",
   "transition-colors duration-200 hover:border-primary/10"
 )
 

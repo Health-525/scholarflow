@@ -200,7 +200,7 @@ export function TimePicker({
               type="time"
               value={manualValue}
               onChange={(e) => handleManualChange(e.target.value)}
-              className="flex h-8 w-full rounded-md border border-input bg-transparent px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+              className="flex h-8 w-full rounded-md border border-input bg-transparent px-2 text-xs focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
             />
           </div>
         </div>
