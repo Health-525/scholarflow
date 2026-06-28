@@ -1,31 +1,23 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import { Copy, Download, Monitor, RotateCcw, Smartphone, X } from "lucide-react";
+import { Copy, Download, Monitor, RotateCcw, Settings2, Smartphone, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { exportWechatHtml } from "@/lib/notes/export-import";
-import { fetchCodeBlockThemeCss, renderWechatPreviewHtml } from "@/lib/notes/wechat-renderer";
+import { countArticleStats, fetchCodeBlockThemeCss, inlineWechatStyles, renderWechatPreviewHtml } from "@/lib/notes/wechat-renderer";
 import {
   COLOR_OPTIONS,
-  CODE_BLOCK_THEMES,
   defaultWechatStyleConfig,
   FONT_FAMILY_OPTIONS,
-  FONT_SIZE_OPTIONS,
-  getWechatThemeVariables,
-  HEADING_LEVEL_OPTIONS,
-  HEADING_STYLE_OPTIONS,
-  PREVIEW_WIDTH_OPTIONS,
-  WECHAT_THEMES,
   type HeadingLevel,
-  type HeadingStyleType,
   type WechatStyleConfig,
 } from "@/lib/notes/wechat-themes";
 import { cn } from "@/lib/utils";
 
-const DEFAULT_HEADING_LEVEL: HeadingLevel = "h2";
+import { WechatAdvancedSettings } from "./WechatAdvancedSettings";
 
 const SETTINGS_STORAGE_KEY = "scholarflow:wechat-export-settings";
 
@@ -40,499 +32,259 @@ function loadStoredConfig(): WechatStyleConfig {
   if (typeof window === "undefined") return defaultWechatStyleConfig();
   try {
     const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<WechatStyleConfig>;
-      return { ...defaultWechatStyleConfig(), ...parsed };
-    }
-  } catch {
-    // ignore
-  }
+    if (raw) return { ...defaultWechatStyleConfig(), ...JSON.parse(raw) as Partial<WechatStyleConfig> };
+  } catch { /* ignore */ }
   return defaultWechatStyleConfig();
 }
 
 function saveStoredConfig(config: WechatStyleConfig) {
   if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(config));
-  } catch {
-    // ignore
-  }
-}
-
-function Switch({
-  checked,
-  onCheckedChange,
-  id,
-  label,
-}: {
-  checked: boolean;
-  onCheckedChange: (checked: boolean) => void;
-  id?: string;
-  label?: string;
-}) {
-  return (
-    <label
-      htmlFor={id}
-      aria-label={label || "切换"}
-      className={cn(
-        "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors",
-        checked ? "bg-primary" : "bg-muted-foreground/30"
-      )}
-    >
-      <input
-        id={id}
-        type="checkbox"
-        className="sr-only"
-        checked={checked}
-        onChange={(e) => onCheckedChange(e.target.checked)}
-      />
-      <span
-        className={cn(
-          "inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform",
-          checked ? "translate-x-[18px]" : "translate-x-1"
-        )}
-      />
-    </label>
-  );
-}
-
-function SettingsSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-2">
-      <h3 className="text-xs font-medium text-muted-foreground">{title}</h3>
-      {children}
-    </div>
-  );
+  try { window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(config)); } catch { /* ignore */ }
 }
 
 export function WechatPreviewDialog({ open, onOpenChange, title, content }: WechatPreviewDialogProps) {
   const [config, setConfig] = useState<WechatStyleConfig>(defaultWechatStyleConfig());
-  const [srcDoc, setSrcDoc] = useState<string>("");
+  const [srcDoc, setSrcDoc] = useState("");
   const [codeThemeCss, setCodeThemeCss] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
-  const [selectedHeadingLevel, setSelectedHeadingLevel] = useState<HeadingLevel>(DEFAULT_HEADING_LEVEL);
-  const debounceRef = useRef<number | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [selectedHeadingLevel, setSelectedHeadingLevel] = useState<HeadingLevel>("h2");
+  const [previewWidth, setPreviewWidth] = useState<"mobile" | "desktop">("desktop");
+  const [stats, setStats] = useState({ chars: 0, words: 0, readingMinutes: 1 });
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const themeSeqRef = useRef(0);
+  const isFirstSave = useRef(true);
 
   useEffect(() => {
     if (!open) return;
-    setConfig(loadStoredConfig());
+    const saved = loadStoredConfig();
+    setConfig(saved);
+    setPreviewWidth(saved.previewWidth);
   }, [open]);
 
   useEffect(() => {
+    if (isFirstSave.current) { isFirstSave.current = false; return; }
     saveStoredConfig(config);
   }, [config]);
 
   useEffect(() => {
+    if (!open) return;
+    const stats = countArticleStats(content);
+    setStats(stats);
+  }, [open, content]);
+
+  // Fetch code theme CSS with sequence counter to prevent stale responses
+  useEffect(() => {
     let cancelled = false;
+    const seq = ++themeSeqRef.current;
+
     fetchCodeBlockThemeCss(config.codeBlockTheme).then((css) => {
-      if (!cancelled) setCodeThemeCss(css);
+      if (!cancelled && seq === themeSeqRef.current) {
+        setCodeThemeCss(css);
+      }
+    }).catch(() => {
+      if (!cancelled && seq === themeSeqRef.current) {
+        setCodeThemeCss(null);
+      }
     });
-    return () => {
-      cancelled = true;
-    };
+
+    return () => { cancelled = true; };
   }, [config.codeBlockTheme]);
 
   const updatePreview = useCallback(async () => {
-    const html = await renderWechatPreviewHtml({
-      title,
-      content,
-      config,
-      inlineCodeThemeCss: codeThemeCss,
-    });
-    setSrcDoc(html);
-  }, [title, content, config, codeThemeCss]);
+    try {
+      setPreviewError(null);
+      const html = await renderWechatPreviewHtml({
+        title,
+        content,
+        config: { ...config, previewWidth },
+        inlineCodeThemeCss: codeThemeCss,
+      });
+      setSrcDoc(html);
+    } catch (err) {
+      setPreviewError(err instanceof Error ? err.message : "渲染预览失败");
+    }
+  }, [title, content, config, codeThemeCss, previewWidth]);
 
   useEffect(() => {
     if (!open) return;
-    if (debounceRef.current) window.clearTimeout(debounceRef.current);
-    debounceRef.current = window.setTimeout(() => {
-      void updatePreview();
-    }, 150);
-    return () => {
-      if (debounceRef.current) window.clearTimeout(debounceRef.current);
-    };
+    const timer = window.setTimeout(() => { void updatePreview(); }, 150);
+    return () => window.clearTimeout(timer);
   }, [open, updatePreview]);
 
   function updateConfig<K extends keyof WechatStyleConfig>(key: K, value: WechatStyleConfig[K]) {
-    setConfig((prev: WechatStyleConfig) => ({ ...prev, [key]: value }));
+    setConfig((prev) => ({ ...prev, [key]: value }));
   }
 
-  const updateHeadingStyle = useCallback((level: HeadingLevel, style: HeadingStyleType) => {
-    setConfig((prev: WechatStyleConfig) => {
+  const updateHeadingStyle = useCallback((level: HeadingLevel, style: import("@/lib/notes/wechat-themes").HeadingStyleType) => {
+    setConfig((prev) => {
       const next = { ...prev.headingStyles };
-      if (style === "default") {
-        delete next[level];
-      } else {
-        next[level] = style;
-      }
+      if (style === "default") delete next[level];
+      else next[level] = style;
       return { ...prev, headingStyles: next };
     });
   }, []);
 
   const handleExport = useCallback(async () => {
     setExporting(true);
-    try {
-      await exportWechatHtml(title, content, config);
-    } finally {
-      setExporting(false);
-    }
+    try { await exportWechatHtml(title, content, config); }
+    catch { toast.error("导出失败"); }
+    finally { setExporting(false); }
   }, [title, content, config]);
 
   const handleCopyHtml = useCallback(async () => {
-    const html = await renderWechatPreviewHtml({
-      title,
-      content,
-      config,
-      inlineCodeThemeCss: codeThemeCss ?? undefined,
-    });
     try {
-      await navigator.clipboard.writeText(html);
-      toast.success("已复制 HTML 到剪贴板");
+      const html = await renderWechatPreviewHtml({
+        title, content,
+        config: { ...config, previewWidth },
+        inlineCodeThemeCss: codeThemeCss ?? undefined,
+      });
+      const inlined = await inlineWechatStyles(html);
+      await navigator.clipboard.writeText(inlined);
+      toast.success("已复制微信兼容 HTML 到剪贴板");
     } catch {
-      toast.error("复制失败，请手动导出");
+      toast.error("复制失败，请重试");
     }
-  }, [title, content, config, codeThemeCss]);
+  }, [title, content, config, codeThemeCss, previewWidth]);
 
   const handleReset = useCallback(() => {
     setConfig(defaultWechatStyleConfig());
-    setSelectedHeadingLevel(DEFAULT_HEADING_LEVEL);
     toast.info("已恢复默认样式");
   }, []);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40 dark:bg-black/60 backdrop-blur-sm data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
-        <Dialog.Popup
-          className={cn(
-            "fixed inset-3 z-50 flex flex-col overflow-hidden rounded-2xl bg-card shadow-xl ring-1 ring-border outline-none",
-            "md:left-1/2 md:top-1/2 md:h-[calc(100vh-4rem)] md:max-h-[900px] md:w-[calc(100vw-4rem)] md:max-w-6xl md:-translate-x-1/2 md:-translate-y-1/2",
-            "data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0 data-[closed]:zoom-out-95 data-[open]:zoom-in-95"
-          )}
-        >
-          <div className="flex items-center justify-between border-b border-border px-4 py-3 md:px-5">
-            <Dialog.Title className="text-base font-semibold font-display text-foreground">
-              公众号文章预览
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
+        <Dialog.Popup className={cn(
+          "fixed inset-0 z-50 flex flex-col bg-background outline-none",
+          "md:inset-4 md:rounded-2xl md:shadow-xl md:ring-1 md:ring-border"
+        )}>
+          {/* Header */}
+          <div className="flex items-center gap-3 shrink-0 border-b border-border px-4 py-2.5">
+            <Dialog.Title className="text-sm font-semibold text-foreground shrink-0">
+              公众号预览
             </Dialog.Title>
-            <div className="flex items-center gap-1">
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8"
-                onClick={handleReset}
-                title="重置样式"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </Button>
-              <Dialog.Close render={<Button size="icon" variant="ghost" className="h-8 w-8" />}>
-                <X className="w-4 h-4" />
+            <span className="hidden sm:inline text-[11px] text-notes-tertiary tabular-nums">
+              {stats.chars} 字 · 约 {stats.readingMinutes} 分钟
+            </span>
+
+            {/* Color dots — desktop */}
+            <div className="hidden sm:flex items-center gap-0.5 shrink-0">
+              {COLOR_OPTIONS.map((c) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  title={c.desc}
+                  onClick={() => updateConfig("primaryColor", c.value)}
+                  className={cn(
+                    "w-5 h-5 rounded-full border-2 transition-all duration-150",
+                    config.primaryColor === c.value
+                      ? "ring-2 ring-primary ring-offset-1 ring-offset-background scale-110 border-primary"
+                      : "border-transparent hover:scale-105"
+                  )}
+                  style={{ background: c.value }}
+                />
+              ))}
+            </div>
+
+            {/* Custom color picker */}
+            <div className="w-5 h-5 rounded-full border border-border p-px shrink-0">
+              <input
+                type="color"
+                value={config.primaryColor}
+                onChange={(e) => updateConfig("primaryColor", e.target.value)}
+                className="w-full h-full rounded-full cursor-pointer border-0 p-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0"
+                title="自定义颜色"
+              />
+            </div>
+
+            <div className="flex-1" />
+
+            <div className="flex items-center gap-0.5 shrink-0">
+              {/* Preview width toggle */}
+              <button type="button" title="移动端宽度"
+                onClick={() => {
+                  const w = previewWidth === "mobile" ? "desktop" : "mobile" as const;
+                  setPreviewWidth(w);
+                  updateConfig("previewWidth", w);
+                }}
+                className={cn("h-7 w-7 rounded-md inline-flex items-center justify-center transition-colors", previewWidth === "mobile" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted")}>
+                {previewWidth === "mobile" ? <Smartphone className="w-3.5 h-3.5" /> : <Monitor className="w-3.5 h-3.5" />}
+              </button>
+
+              {/* Advanced settings toggle */}
+              <button type="button" title="高级设置"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className={cn("h-7 w-7 rounded-md inline-flex items-center justify-center transition-colors", showAdvanced ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted")}>
+                <Settings2 className="w-3.5 h-3.5" />
+              </button>
+
+              <button type="button" title="重置" onClick={handleReset}
+                className="h-7 w-7 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors">
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+
+              <Dialog.Close render={<Button size="icon" variant="ghost" className="h-7 w-7" />}>
+                <X className="w-3.5 h-3.5" />
               </Dialog.Close>
             </div>
           </div>
 
-          <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
+          {/* Body */}
+          <div className="flex-1 flex min-h-0 overflow-hidden relative">
             {/* Preview */}
-            <div className="relative flex min-h-[40vh] flex-1 flex-col items-center overflow-auto bg-muted">
-              <div
-                className={cn(
-                  "h-full min-h-full bg-card shadow-sm transition-all",
-                  config.previewWidth === "mobile" ? "w-full max-w-[414px]" : "w-full"
+            <div className="flex-1 flex justify-center overflow-auto bg-muted/50 p-3 md:p-6">
+              <div className={cn(
+                "h-fit min-h-full bg-card rounded-xl overflow-hidden shadow-lg shadow-black/5 border border-border transition-all",
+                previewWidth === "mobile" ? "w-full max-w-[414px]" : "w-full max-w-[720px]"
+              )}>
+                {previewError ? (
+                  <div className="flex flex-col items-center justify-center min-h-[400px] gap-2 text-destructive">
+                    <span className="text-xs">{previewError}</span>
+                    <Button variant="secondary" size="sm" onClick={() => { void updatePreview(); }}>重试</Button>
+                  </div>
+                ) : srcDoc ? (
+                  <iframe title="公众号预览" srcDoc={srcDoc} className="w-full border-0"
+                    sandbox="allow-same-origin" style={{ height: "calc(100vh - 140px)", minHeight: "600px" }} />
+                ) : (
+                  <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+                    <div className="w-8 h-8 rounded-full border-2 border-border border-t-primary animate-spin" />
+                    <span className="text-xs text-notes-tertiary">渲染预览中…</span>
+                  </div>
                 )}
-              >
-                <iframe
-                  title="公众号预览"
-                  srcDoc={srcDoc}
-                  className="h-full min-h-full w-full border-0"
-                  sandbox="allow-same-origin"
-                />
               </div>
             </div>
 
-            {/* Settings */}
-            <div className="flex w-full shrink-0 flex-col border-t border-border bg-card md:w-80 md:border-t-0 md:border-l">
-              <div className="flex-1 space-y-5 overflow-y-auto p-4 md:p-5">
-                <SettingsSection title="主题">
-                  <div className="grid grid-cols-3 gap-2">
-                    {WECHAT_THEMES.map((theme) => {
-                      const active = config.theme === theme.id;
-                      return (
-                        <button
-                          key={theme.id}
-                          type="button"
-                          onClick={() => updateConfig("theme", theme.id)}
-                          className={cn(
-                            "relative rounded-lg border p-2 text-left text-xs transition-colors",
-                            active
-                              ? "border-primary bg-primary/5 text-foreground ring-1 ring-primary/20"
-                              : "border-border bg-background text-muted-foreground hover:bg-muted"
-                          )}
-                        >
-                          {active && (
-                            <span className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                              <svg
-                                className="h-2.5 w-2.5"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <polyline points="20 6 9 17 4 12" />
-                              </svg>
-                            </span>
-                          )}
-                          <span
-                            className="mb-1.5 block h-6 w-full rounded border border-border"
-                            style={{ background: getWechatThemeVariables(theme.id)["--md-bg-color"] }}
-                          />
-                          <span className="block font-medium text-foreground">{theme.name}</span>
-                          {theme.description && (
-                            <span className="block mt-0.5 truncate text-[10px] leading-tight opacity-70">
-                              {theme.description}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </SettingsSection>
+            {/* Advanced settings panel */}
+            {showAdvanced && (
+              <WechatAdvancedSettings
+                config={config}
+                updateConfig={updateConfig}
+                updateHeadingStyle={updateHeadingStyle}
+                selectedHeadingLevel={selectedHeadingLevel}
+                onHeadingLevelChange={setSelectedHeadingLevel}
+                onClose={() => setShowAdvanced(false)}
+              />
+            )}
+          </div>
 
-                <SettingsSection title="字体">
-                  <div className="grid grid-cols-3 gap-2">
-                    {FONT_FAMILY_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.label}
-                        type="button"
-                        onClick={() => updateConfig("fontFamily", opt.value)}
-                        className={cn(
-                          "rounded-lg border px-2 py-1.5 text-xs transition-colors",
-                          config.fontFamily === opt.value
-                            ? "border-primary bg-primary/5 text-foreground"
-                            : "border-border bg-background text-muted-foreground hover:bg-muted"
-                        )}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </SettingsSection>
-
-                <SettingsSection title="字号">
-                  <div className="grid grid-cols-5 gap-1.5">
-                    {FONT_SIZE_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => updateConfig("fontSize", opt.value)}
-                        title={opt.desc}
-                        className={cn(
-                          "rounded-md border px-1 py-1.5 text-xs transition-colors",
-                          config.fontSize === opt.value
-                            ? "border-primary bg-primary/5 text-foreground"
-                            : "border-border bg-background text-muted-foreground hover:bg-muted"
-                        )}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </SettingsSection>
-
-                <SettingsSection title="主题色">
-                  <div className="grid grid-cols-4 gap-2">
-                    {COLOR_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => updateConfig("primaryColor", opt.value)}
-                        className={cn(
-                          "flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-xs transition-colors",
-                          config.primaryColor === opt.value
-                            ? "border-primary bg-primary/5"
-                            : "border-border bg-background hover:bg-muted"
-                        )}
-                      >
-                        <span
-                          className="h-4 w-4 rounded-full border border-black/5 shrink-0"
-                          style={{ background: opt.value }}
-                        />
-                        <span className="truncate">{opt.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-2 pt-1">
-                    <span className="text-xs text-muted-foreground">自定义</span>
-                    <input
-                      type="color"
-                      value={config.primaryColor}
-                      onChange={(e) => updateConfig("primaryColor", e.target.value)}
-                      className="h-8 w-12 cursor-pointer rounded border border-border bg-transparent p-0.5"
-                    />
-                    <code className="text-xs text-muted-foreground">{config.primaryColor}</code>
-                  </div>
-                </SettingsSection>
-
-                <SettingsSection title="标题样式">
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={selectedHeadingLevel}
-                      onChange={(e) => setSelectedHeadingLevel(e.target.value as HeadingLevel)}
-                      className="h-9 rounded-md border border-input bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-ring"
-                    >
-                      {HEADING_LEVEL_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="text-xs text-muted-foreground">样式</span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {HEADING_STYLE_OPTIONS.map((opt) => {
-                      const active =
-                        (config.headingStyles[selectedHeadingLevel] ?? "default") === opt.value;
-                      return (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => updateHeadingStyle(selectedHeadingLevel, opt.value)}
-                          className={cn(
-                            "flex flex-col items-center justify-center gap-1 rounded-lg border px-1 py-2 text-[10px] transition-colors",
-                            active
-                              ? "border-primary bg-primary/5 text-foreground"
-                              : "border-border bg-background text-muted-foreground hover:bg-muted"
-                          )}
-                        >
-                          <span
-                            className={cn(
-                              "flex h-6 w-8 items-center justify-center rounded text-sm font-bold",
-                              opt.value === "color-only" && "text-[var(--preview-primary)]",
-                              opt.value === "border-bottom" && "border-b-2 text-foreground",
-                              opt.value === "border-left" && "border-l-2 pl-1 text-foreground"
-                            )}
-                            style={
-                              opt.value === "color-only"
-                                ? { color: config.primaryColor }
-                                : opt.value === "border-bottom" || opt.value === "border-left"
-                                  ? {
-                                      borderColor: config.primaryColor,
-                                      color: "inherit",
-                                    }
-                                  : undefined
-                            }
-                          >
-                            H
-                          </span>
-                          <span className="truncate">{opt.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="text-[10px] text-muted-foreground">先选标题级别，再点样式图标；可分别设置 H1-H6。</p>
-                </SettingsSection>
-
-                <SettingsSection title="代码块高亮">
-                  <select
-                    value={config.codeBlockTheme}
-                    onChange={(e) => updateConfig("codeBlockTheme", e.target.value)}
-                    className="h-9 w-full rounded-md border border-input bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    {CODE_BLOCK_THEMES.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </SettingsSection>
-
-                <SettingsSection title="预览宽度">
-                  <div className="flex rounded-lg border border-input p-1">
-                    {PREVIEW_WIDTH_OPTIONS.map((opt) => {
-                      const active = config.previewWidth === opt.value;
-                      const Icon = opt.value === "mobile" ? Smartphone : Monitor;
-                      return (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => updateConfig("previewWidth", opt.value)}
-                          className={cn(
-                            "flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-xs transition-colors",
-                            active
-                              ? "bg-primary text-primary-foreground"
-                              : "text-muted-foreground hover:bg-muted"
-                          )}
-                        >
-                          <Icon className="h-3.5 w-3.5" />
-                          {opt.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </SettingsSection>
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Mac 风格代码块</span>
-                    <Switch
-                      id="mac-code-block"
-                      label="Mac 风格代码块"
-                      checked={config.macCodeBlock}
-                      onCheckedChange={(v) => updateConfig("macCodeBlock", v)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">显示代码行号</span>
-                    <Switch
-                      id="show-line-number"
-                      label="显示代码行号"
-                      checked={config.showLineNumber}
-                      onCheckedChange={(v) => updateConfig("showLineNumber", v)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">段落首行缩进</span>
-                    <Switch
-                      id="use-indent"
-                      label="段落首行缩进"
-                      checked={config.useIndent}
-                      onCheckedChange={(v) => updateConfig("useIndent", v)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">段落两端对齐</span>
-                    <Switch
-                      id="use-justify"
-                      label="段落两端对齐"
-                      checked={config.useJustify}
-                      onCheckedChange={(v) => updateConfig("useJustify", v)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-border p-4 space-y-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full gap-2"
-                  onClick={handleCopyHtml}
-                >
-                  <Copy className="w-4 h-4" />
-                  复制 HTML
-                </Button>
-                <Button
-                  type="button"
-                  className="w-full gap-2"
-                  onClick={handleExport}
-                  disabled={exporting}
-                >
-                  <Download className="w-4 h-4" />
-                  {exporting ? "生成中…" : "导出 HTML"}
-                </Button>
-              </div>
-            </div>
+          {/* Bottom bar */}
+          <div className="flex items-center gap-2 shrink-0 border-t border-border pt-3 px-4 pb-2.5">
+            <span className="text-xs text-muted-foreground/60">
+              {COLOR_OPTIONS.find((c) => c.value === config.primaryColor)?.label || config.primaryColor}
+              {" · "}
+              {FONT_FAMILY_OPTIONS.find((f) => f.value === config.fontFamily)?.label || "默认字体"}
+            </span>
+            <span className="text-[11px] text-muted-foreground/40 mr-auto">
+              {stats.chars} 字 · 约 {stats.readingMinutes} 分钟阅读
+            </span>
+            <Button type="button" size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-notes-primary-hover rounded-lg px-4 h-9" onClick={handleCopyHtml}>
+              <Copy className="w-3.5 h-3.5" /> 复制 HTML
+            </Button>
+            <Button type="button" size="sm" className="gap-1.5 rounded-lg transition-all duration-150" onClick={handleExport} disabled={exporting}>
+              <Download className="w-3.5 h-3.5" /> {exporting ? "生成中…" : "导出"}
+            </Button>
           </div>
         </Dialog.Popup>
       </Dialog.Portal>

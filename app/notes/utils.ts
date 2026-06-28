@@ -6,6 +6,7 @@ export interface NoteListItem {
   title: string;
   category: string;
   updatedAt: number;
+  pinned?: boolean;
 }
 
 export interface DeletedNote {
@@ -25,6 +26,7 @@ export function flattenTree(nodes: NoteTreeNode[]): NoteListItem[] {
           title: parsed.title,
           category: parentCategory,
           updatedAt: node.updatedAt ?? 0,
+          pinned: node.pinned,
         });
       }
       if (node.children && node.children.length > 0) {

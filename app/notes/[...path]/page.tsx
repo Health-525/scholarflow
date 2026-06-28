@@ -1,6 +1,6 @@
 "use client";
 
-import { PenLine } from "lucide-react";
+import { FileText, PenLine } from "lucide-react";
 import Link from "next/link";
 import { use } from "react";
 
@@ -54,7 +54,21 @@ export default function NotesPathPage({ params }: PageProps) {
 
       {error && <ErrorFallback message={error.message} onRetry={reload} />}
 
-      {!isLoading && !error && (
+      {!isLoading && !error && !content && (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <FileText className="w-12 h-12 text-muted-foreground/40 mb-3" />
+          <p className="text-sm text-muted-foreground mb-3">这篇笔记还没有内容</p>
+          <Link
+            href={`/notes?path=${encodeURIComponent(notePath)}`}
+            className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+          >
+            <PenLine className="w-3 h-3" />
+            去编辑
+          </Link>
+        </div>
+      )}
+
+      {!isLoading && !error && content && (
         <div className="rounded-2xl border border-border bg-card px-5 py-5 animate-fade-up">
           {isMd ? (
             <MarkdownRenderer content={content} />

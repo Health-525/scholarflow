@@ -4,42 +4,16 @@ import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Markdown } from "@tiptap/markdown";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
-import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
-import {
-  AlertCircle,
-  Bold,
-  Code,
-  Eye,
-  FileDown,
-  FileUp,
-  Heading1,
-  Heading2,
-  Heading3,
-  ImageIcon,
-  Italic,
-  List,
-  ListOrdered,
-  MoreHorizontal,
-  PenLine,
-  Quote,
-  Redo,
-  Strikethrough,
-  Trash2,
-  Undo,
-} from "lucide-react";
+import { AlertCircle, Type } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { exportMarkdown, parseMarkdownFile } from "@/lib/notes/export-import";
+import { countArticleStats } from "@/lib/notes/wechat-renderer";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 
+import { BubbleToolbar, DesktopToolbar, MobileToolbar } from "./EditorToolbars";
 import { WechatPreviewDialog } from "./WechatPreviewDialog";
 
 interface NoteEditorProps {
@@ -52,287 +26,9 @@ interface NoteEditorProps {
   onViewModeChange?: (mode: "edit" | "view") => void;
   onDelete?: () => void;
   onImportMarkdown?: (title: string, content: string) => void;
+  pinned?: boolean;
+  onTogglePin?: () => void;
   className?: string;
-}
-
-function ToolbarButton({
-  active,
-  onClick,
-  icon: Icon,
-  label,
-}: {
-  active?: boolean;
-  onClick: () => void;
-  icon: React.ElementType;
-  label: string;
-}) {
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon-sm"
-      aria-label={label}
-      title={label}
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        "h-8 w-8 rounded-md text-muted-foreground/70 hover:bg-muted/70 hover:text-foreground transition-colors",
-        active && "bg-muted text-foreground"
-      )}
-    >
-      <Icon className="w-4 h-4" />
-    </Button>
-  );
-}
-
-function ToolbarGroup({ children }: { children: React.ReactNode }) {
-  return <div className="flex items-center gap-0.5">{children}</div>;
-}
-
-function ToolbarDivider() {
-  return <div className="w-px h-5 bg-border mx-1" />;
-}
-
-function ExportImportMenu({
-  onExportMarkdown,
-  onExportWechat,
-  onImportClick,
-}: {
-  onExportMarkdown: () => void;
-  onExportWechat: () => void;
-  onImportClick: () => void;
-}) {
-  return (
-    <Popover>
-      <PopoverTrigger
-        type="button"
-        aria-label="更多"
-        title="更多"
-        className="h-8 w-8 rounded-md text-muted-foreground/70 hover:bg-muted/70 hover:text-foreground transition-colors inline-flex items-center justify-center"
-      >
-        <MoreHorizontal className="w-4 h-4" />
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-52 p-1.5">
-        <div className="space-y-0.5">
-          <button
-            type="button"
-            onClick={onExportMarkdown}
-            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md text-foreground/80 hover:bg-muted/70"
-          >
-            <FileDown className="w-4 h-4" /> 导出 Markdown
-          </button>
-          <button
-            type="button"
-            onClick={onExportWechat}
-            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md text-foreground/80 hover:bg-muted/70"
-          >
-            <FileDown className="w-4 h-4" /> 导出公众号文章
-          </button>
-          <button
-            type="button"
-            onClick={onImportClick}
-            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md text-foreground/80 hover:bg-muted/70"
-          >
-            <FileUp className="w-4 h-4" /> 导入 Markdown
-          </button>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function ViewDeleteGroup({
-  viewMode,
-  onViewModeChange,
-  onDelete,
-}: {
-  viewMode?: "edit" | "view";
-  onViewModeChange?: (mode: "edit" | "view") => void;
-  onDelete?: () => void;
-}) {
-  if (!onViewModeChange && !onDelete) return null;
-  return (
-    <ToolbarGroup>
-      {onViewModeChange && (
-        <ToolbarButton
-          label={viewMode === "view" ? "编辑" : "预览"}
-          icon={viewMode === "view" ? PenLine : Eye}
-          onClick={() => onViewModeChange(viewMode === "view" ? "edit" : "view")}
-        />
-      )}
-      {onDelete && (
-        <ToolbarButton
-          label="删除笔记"
-          icon={Trash2}
-          onClick={onDelete}
-        />
-      )}
-    </ToolbarGroup>
-  );
-}
-
-function CommonToolbar({ editor, onInsertImage }: { editor: Editor; onInsertImage: () => void }) {
-  return (
-    <>
-      <ToolbarGroup>
-        <ToolbarButton
-          label="粗体"
-          icon={Bold}
-          active={editor.isActive("bold")}
-          onClick={() => editor.chain().focus().toggleBold().run()}
-        />
-        <ToolbarButton
-          label="斜体"
-          icon={Italic}
-          active={editor.isActive("italic")}
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-        />
-        <ToolbarButton
-          label="删除线"
-          icon={Strikethrough}
-          active={editor.isActive("strike")}
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-        />
-      </ToolbarGroup>
-      <ToolbarDivider />
-      <ToolbarGroup>
-        <ToolbarButton
-          label="一级标题"
-          icon={Heading1}
-          active={editor.isActive("heading", { level: 1 })}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        />
-        <ToolbarButton
-          label="二级标题"
-          icon={Heading2}
-          active={editor.isActive("heading", { level: 2 })}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        />
-        <ToolbarButton
-          label="三级标题"
-          icon={Heading3}
-          active={editor.isActive("heading", { level: 3 })}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        />
-      </ToolbarGroup>
-      <ToolbarDivider />
-      <ToolbarGroup>
-        <ToolbarButton
-          label="无序列表"
-          icon={List}
-          active={editor.isActive("bulletList")}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-        />
-        <ToolbarButton
-          label="有序列表"
-          icon={ListOrdered}
-          active={editor.isActive("orderedList")}
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        />
-      </ToolbarGroup>
-      <ToolbarDivider />
-      <ToolbarGroup>
-        <ToolbarButton label="插入图片" icon={ImageIcon} onClick={onInsertImage} />
-        <ToolbarButton
-          label="引用"
-          icon={Quote}
-          active={editor.isActive("blockquote")}
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        />
-        <ToolbarButton
-          label="代码块"
-          icon={Code}
-          active={editor.isActive("codeBlock")}
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-        />
-      </ToolbarGroup>
-      <ToolbarDivider />
-      <ToolbarGroup>
-        <ToolbarButton label="撤销" icon={Undo} onClick={() => editor.chain().focus().undo().run()} />
-        <ToolbarButton label="重做" icon={Redo} onClick={() => editor.chain().focus().redo().run()} />
-      </ToolbarGroup>
-    </>
-  );
-}
-
-function BubbleToolbar({ editor, onInsertImage }: { editor: Editor; onInsertImage: () => void }) {
-  return (
-    <BubbleMenu
-      editor={editor}
-      options={{ placement: "top" }}
-      className="hidden md:flex items-center gap-0.5 px-1.5 py-1.5 rounded-lg bg-card border border-border shadow-md"
-    >
-      <CommonToolbar editor={editor} onInsertImage={onInsertImage} />
-    </BubbleMenu>
-  );
-}
-
-function DesktopToolbar({
-  editor,
-  onInsertImage,
-  viewMode,
-  onViewModeChange,
-  onDelete,
-  onExportMarkdown,
-  onExportWechat,
-  onImportClick,
-}: {
-  editor: Editor;
-  onInsertImage: () => void;
-  viewMode?: "edit" | "view";
-  onViewModeChange?: (mode: "edit" | "view") => void;
-  onDelete?: () => void;
-  onExportMarkdown: () => void;
-  onExportWechat: () => void;
-  onImportClick: () => void;
-}) {
-  return (
-    <div className="hidden md:flex flex-wrap items-center gap-0.5 px-1 py-1.5 mb-4 bg-card/60 backdrop-blur-sm sticky top-0 z-10">
-      <CommonToolbar editor={editor} onInsertImage={onInsertImage} />
-      <ToolbarDivider />
-      <ViewDeleteGroup viewMode={viewMode} onViewModeChange={onViewModeChange} onDelete={onDelete} />
-      <ToolbarDivider />
-      <ExportImportMenu
-        onExportMarkdown={onExportMarkdown}
-        onExportWechat={onExportWechat}
-        onImportClick={onImportClick}
-      />
-    </div>
-  );
-}
-
-function MobileToolbar({
-  editor,
-  onInsertImage,
-  viewMode,
-  onViewModeChange,
-  onDelete,
-  onExportMarkdown,
-  onExportWechat,
-  onImportClick,
-}: {
-  editor: Editor;
-  onInsertImage: () => void;
-  viewMode?: "edit" | "view";
-  onViewModeChange?: (mode: "edit" | "view") => void;
-  onDelete?: () => void;
-  onExportMarkdown: () => void;
-  onExportWechat: () => void;
-  onImportClick: () => void;
-}) {
-  return (
-    <div className="flex md:hidden flex-nowrap items-center gap-0.5 py-2 mb-2 border-b border-border/30 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:w-0">
-      <CommonToolbar editor={editor} onInsertImage={onInsertImage} />
-      <ToolbarDivider />
-      <ViewDeleteGroup viewMode={viewMode} onViewModeChange={onViewModeChange} onDelete={onDelete} />
-      <ToolbarDivider />
-      <ExportImportMenu
-        onExportMarkdown={onExportMarkdown}
-        onExportWechat={onExportWechat}
-        onImportClick={onImportClick}
-      />
-    </div>
-  );
 }
 
 async function uploadImage(file: File, auth: { schoolId: string; userId: string }): Promise<string> {
@@ -340,11 +36,7 @@ async function uploadImage(file: File, auth: { schoolId: string; userId: string 
   formData.append("file", file);
   formData.append("schoolId", auth.schoolId);
   formData.append("userId", auth.userId);
-
-  const res = await fetch("/api/notes/assets", {
-    method: "POST",
-    body: formData,
-  });
+  const res = await fetch("/api/notes/assets", { method: "POST", body: formData });
   if (!res.ok) {
     let detail = `上传失败 (${res.status})`;
     try {
@@ -370,16 +62,9 @@ function hasImageInDataTransfer(items?: DataTransferItemList | null): boolean {
 }
 
 export function NoteEditor({
-  content,
-  documentTitle = "",
-  onSave,
-  onCancel,
-  onChange,
-  viewMode,
-  onViewModeChange,
-  onDelete,
-  onImportMarkdown,
-  className = "",
+  content, documentTitle = "", onSave, onCancel, onChange,
+  viewMode, onViewModeChange, onDelete, onImportMarkdown,
+  pinned, onTogglePin, className = "",
 }: NoteEditorProps) {
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -399,48 +84,33 @@ export function NoteEditor({
   const schoolId = useAuthStore((s) => s.schoolId);
   const userId = useAuthStore((s) => s.userId);
 
-  useEffect(() => {
-    onSaveRef.current = onSave;
-  }, [onSave]);
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-  useEffect(() => {
-    dirtyRef.current = dirty;
-  }, [dirty]);
+  useEffect(() => { onSaveRef.current = onSave; }, [onSave]);
+  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+  useEffect(() => { dirtyRef.current = dirty; }, [dirty]);
 
   const getMarkdown = useCallback((editorInstance: Editor) => {
-    try {
-      return editorInstance.getMarkdown();
-    } catch {
-      return editorInstance.getText();
-    }
+    try { return editorInstance.getMarkdown(); }
+    catch { return editorInstance.getText(); }
   }, []);
 
-  const triggerSave = useCallback(
-    async (editorInstance: Editor) => {
-      if (savingRef.current) return;
-      savingRef.current = true;
-      setSaving(true);
-      try {
-        const markdown = getMarkdown(editorInstance);
-        lastSavedContentRef.current = markdown;
-        await onSaveRef.current(markdown);
-        setDirty(false);
-      } finally {
-        savingRef.current = false;
-        setSaving(false);
-      }
-    },
-    [getMarkdown]
-  );
+  const triggerSave = useCallback(async (editorInstance: Editor) => {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
+    try {
+      const markdown = getMarkdown(editorInstance);
+      lastSavedContentRef.current = markdown;
+      await onSaveRef.current(markdown);
+      setDirty(false);
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
+  }, [getMarkdown]);
 
-  const flushSave = useCallback(
-    (editorInstance: Editor) => {
-      return onSaveRef.current(getMarkdown(editorInstance));
-    },
-    [getMarkdown]
-  );
+  const flushSave = useCallback((editorInstance: Editor) => {
+    return onSaveRef.current(getMarkdown(editorInstance));
+  }, [getMarkdown]);
 
   const handleInsertImage = useCallback(() => {
     fileInputRef.current?.click();
@@ -448,24 +118,28 @@ export function NoteEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        heading: { levels: [1, 2, 3] },
-      }),
-      Image.configure({
-        allowBase64: false,
-      }),
+      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+      Image.configure({ allowBase64: false }),
       Markdown,
-      Placeholder.configure({
-        placeholder: "写点什么…",
-      }),
+      Placeholder.configure({ placeholder: "开始写点什么吧…" }),
     ],
     content,
     contentType: "markdown",
     editorProps: {
       attributes: {
         class: cn(
-          "prose prose-sm sm:prose-base dark:prose-invert max-w-none",
-          "focus:outline-none min-h-[260px] px-1 py-1"
+          "prose prose-sm sm:prose-base max-w-none",
+          "prose-headings:font-semibold prose-headings:text-foreground prose-headings:tracking-tight",
+          "prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg",
+          "prose-p:text-foreground/85 prose-p:leading-relaxed",
+          "prose-a:text-primary prose-a:no-underline hover:prose-a:underline",
+          "prose-code:text-[13px] prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded",
+          "prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-pre:rounded-xl",
+          "prose-blockquote:border-l-[3px] prose-blockquote:border-primary prose-blockquote:bg-accent-softer prose-blockquote:rounded-r-lg prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:not-italic",
+          "prose-img:rounded-xl",
+          "prose-hr:border-border",
+          "prose-strong:text-foreground",
+          "focus:outline-none min-h-[400px] px-1 py-1",
         ),
       },
     },
@@ -481,32 +155,21 @@ export function NoteEditor({
     exportMarkdown(documentTitle || "笔记", getMarkdown(editor));
   }, [editor, documentTitle, getMarkdown]);
 
-  const handleExportWechat = useCallback(() => {
-    if (!editor) return;
-    setPreviewOpen(true);
-  }, [editor]);
+  const handleExportWechat = useCallback(() => setPreviewOpen(true), []);
+  const handleImportClick = useCallback(() => importInputRef.current?.click(), []);
 
-  const handleImportClick = useCallback(() => {
-    importInputRef.current?.click();
-  }, []);
+  const handleImportFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !onImportMarkdown) return;
+    try {
+      const { title, content: md } = await parseMarkdownFile(file);
+      onImportMarkdown(title, md);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "导入失败");
+    } finally { e.target.value = ""; }
+  }, [onImportMarkdown]);
 
-  const handleImportFile = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file || !onImportMarkdown) return;
-      try {
-        const { title, content: md } = await parseMarkdownFile(file);
-        onImportMarkdown(title, md);
-      } catch (err) {
-        setUploadError(err instanceof Error ? err.message : "导入失败");
-      } finally {
-        e.target.value = "";
-      }
-    },
-    [onImportMarkdown]
-  );
-
-  // 外部 content 变化时（切换笔记）同步到编辑器
+  // Sync external content change
   useEffect(() => {
     if (!editor) return;
     if (content === lastSavedContentRef.current) return;
@@ -519,54 +182,38 @@ export function NoteEditor({
   useEffect(() => {
     if (!editor || !dirty || saving) return;
     if (autoSaveTimer.current) window.clearTimeout(autoSaveTimer.current);
-    autoSaveTimer.current = window.setTimeout(() => {
-      triggerSave(editor);
-    }, 1500);
-    return () => {
-      if (autoSaveTimer.current) window.clearTimeout(autoSaveTimer.current);
-    };
+    autoSaveTimer.current = window.setTimeout(() => { triggerSave(editor); }, 1500);
+    return () => { if (autoSaveTimer.current) window.clearTimeout(autoSaveTimer.current); };
   }, [dirty, saving, triggerSave, editor]);
 
-  // 卸载或切换笔记前，如果有未保存的改动则强制落盘
+  // Flush on unmount
   useEffect(() => {
-    return () => {
-      if (dirtyRef.current && editor) {
-        flushSave(editor).catch(() => {});
-      }
-    };
+    return () => { if (dirtyRef.current && editor) { flushSave(editor).catch(() => {}); } };
   }, [editor, flushSave]);
 
   const insertImageUrl = useCallback((editorInstance: Editor, url: string) => {
     editorInstance.chain().focus().setImage({ src: url }).run();
   }, []);
 
-  const handleImageFile = useCallback(
-    async (file: File) => {
-      if (!editor) return;
-      if (!isImageFile(file)) return;
-      setUploadError(null);
-      try {
-        const url = await uploadImage(file, { schoolId: schoolId || "", userId: userId || "" });
-        insertImageUrl(editor, url);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "图片上传失败";
-        setUploadError(message);
-        // eslint-disable-next-line no-console
-        console.error("图片上传失败", err);
-      }
-    },
-    [editor, schoolId, userId, insertImageUrl]
-  );
+  const handleImageFile = useCallback(async (file: File) => {
+    if (!editor || !isImageFile(file)) return;
+    setUploadError(null);
+    try {
+      const url = await uploadImage(file, { schoolId: schoolId || "", userId: userId || "" });
+      insertImageUrl(editor, url);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "图片上传失败";
+      setUploadError(message);
+    }
+  }, [editor, schoolId, userId, insertImageUrl]);
 
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) handleImageFile(file);
-      e.target.value = "";
-    },
-    [handleImageFile]
-  );
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleImageFile(file);
+    e.target.value = "";
+  }, [handleImageFile]);
 
+  // Keyboard shortcuts & paste
   useEffect(() => {
     if (!editor) return;
     const element = editor.view.dom;
@@ -588,24 +235,20 @@ export function NoteEditor({
       for (const item of Array.from(items)) {
         if (item.kind === "file" && item.type.startsWith("image/")) {
           const file = item.getAsFile();
-          if (file) {
-            e.preventDefault();
-            handleImageFile(file);
-            break;
-          }
+          if (file) { e.preventDefault(); handleImageFile(file); break; }
         }
       }
     };
 
     element.addEventListener("keydown", handleKeyDown);
     element.addEventListener("paste", handlePaste);
-
     return () => {
       element.removeEventListener("keydown", handleKeyDown);
       element.removeEventListener("paste", handlePaste);
     };
   }, [editor, onCancel, triggerSave, handleImageFile]);
 
+  // Drag & drop
   const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     if (!hasImageInDataTransfer(e.dataTransfer.items)) return;
     dragCounter.current += 1;
@@ -619,91 +262,76 @@ export function NoteEditor({
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    if (hasImageInDataTransfer(e.dataTransfer.items)) {
-      e.preventDefault();
-    }
+    if (hasImageInDataTransfer(e.dataTransfer.items)) e.preventDefault();
   }, []);
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      dragCounter.current = 0;
-      setIsDragging(false);
-      const file = e.dataTransfer.files?.[0];
-      if (file && isImageFile(file)) {
-        e.preventDefault();
-        handleImageFile(file);
-      }
-    },
-    [handleImageFile]
-  );
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    dragCounter.current = 0;
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && isImageFile(file)) { e.preventDefault(); handleImageFile(file); }
+  }, [handleImageFile]);
+
+  const [contentStats, setContentStats] = useState({ chars: 0, readingMinutes: 1 });
+
+  // Update stats when editor content changes (via dirty flag)
+  useEffect(() => {
+    if (!editor) return;
+    setContentStats(countArticleStats(getMarkdown(editor)));
+  }, [dirty, editor, getMarkdown]);
 
   if (!editor) return null;
 
+  const toolbarProps = {
+    editor,
+    onInsertImage: handleInsertImage,
+    viewMode, onViewModeChange, onDelete,
+    onExportMarkdown: handleExportMarkdown,
+    onExportWechat: handleExportWechat,
+    onImportClick: handleImportClick,
+    pinned, onTogglePin,
+  };
+
   return (
     <div className={className}>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/png,image/jpeg,image/jpg,image/gif,image/webp,image/svg+xml,image/bmp"
-        className="hidden"
-        onChange={handleFileSelect}
-        aria-label="插入图片"
-      />
-      <input
-        ref={importInputRef}
-        type="file"
-        accept=".md,text/markdown,text/plain"
-        className="hidden"
-        onChange={handleImportFile}
-        aria-label="导入 Markdown"
-      />
+      <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp,image/svg+xml,image/bmp"
+        className="hidden" onChange={handleFileSelect} aria-label="插入图片" />
+      <input ref={importInputRef} type="file" accept=".md,text/markdown,text/plain"
+        className="hidden" onChange={handleImportFile} aria-label="导入 Markdown" />
+
       <BubbleToolbar editor={editor} onInsertImage={handleInsertImage} />
-      <DesktopToolbar
-        editor={editor}
-        onInsertImage={handleInsertImage}
-        viewMode={viewMode}
-        onViewModeChange={onViewModeChange}
-        onDelete={onDelete}
-        onExportMarkdown={handleExportMarkdown}
-        onExportWechat={handleExportWechat}
-        onImportClick={handleImportClick}
-      />
-      <MobileToolbar
-        editor={editor}
-        onInsertImage={handleInsertImage}
-        viewMode={viewMode}
-        onViewModeChange={onViewModeChange}
-        onDelete={onDelete}
-        onExportMarkdown={handleExportMarkdown}
-        onExportWechat={handleExportWechat}
-        onImportClick={handleImportClick}
-      />
+      <DesktopToolbar {...toolbarProps} />
+      <MobileToolbar {...toolbarProps} />
+
       {uploadError && (
-        <div className="flex items-center gap-1.5 text-xs text-destructive mb-2">
-          <AlertCircle className="w-3.5 h-3.5" />
-          <span>{uploadError}</span>
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2 mb-2">
+          <div className="flex items-center gap-1.5 text-xs text-destructive">
+            <AlertCircle className="w-3.5 h-3.5" />
+            <span>{uploadError}</span>
+          </div>
         </div>
       )}
-      <div
-        className="relative"
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
+
+      <div className="relative" onDragEnter={handleDragEnter} onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver} onDrop={handleDrop}>
         <EditorContent editor={editor} />
         {isDragging && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 backdrop-blur-sm">
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl border-2 border-dashed border-primary/40 bg-sidebar-accent/95 backdrop-blur-sm">
             <span className="text-sm font-medium text-primary">松开以上传图片</span>
           </div>
         )}
       </div>
-      <WechatPreviewDialog
-        open={previewOpen}
-        onOpenChange={setPreviewOpen}
-        title={documentTitle || "笔记"}
-        content={editor ? getMarkdown(editor) : content}
-      />
+
+      <div className="flex items-center justify-between mt-3 text-[11px] text-notes-tertiary select-none border-t border-border pt-2.5">
+        <span className="flex items-center gap-1">
+          <Type className="w-3 h-3" />
+          {contentStats.chars} 字 · 约 {contentStats.readingMinutes} 分钟阅读
+        </span>
+        {saving && <span className="text-notes-tertiary">保存中…</span>}
+      </div>
+
+      <WechatPreviewDialog open={previewOpen} onOpenChange={setPreviewOpen}
+        title={documentTitle || "笔记"} content={editor ? getMarkdown(editor) : content} />
     </div>
   );
 }

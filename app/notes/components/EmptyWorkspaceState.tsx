@@ -8,11 +8,15 @@ interface EmptyWorkspaceStateProps {
 
 export function EmptyWorkspaceState({ onCreate }: EmptyWorkspaceStateProps) {
   return (
-    <div className="h-full flex flex-col items-center justify-center p-8 text-center">
-      <FileText className="w-8 h-8 text-muted-foreground/30 mb-4" />
-      <p className="text-sm text-muted-foreground/80 mb-5">选一篇笔记，或者新建一张白纸</p>
+    <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-background to-muted/30">
+      <FileText className="w-8 h-8 text-notes-placeholder mb-5 animate-breathe" />
+      <p className="text-sm text-notes-tertiary mb-6">选一篇笔记，或者新建一张白纸</p>
       {onCreate && (
-        <Button onClick={onCreate} variant="secondary" className="gap-1.5 bg-muted/60 hover:bg-muted">
+        <Button
+          onClick={onCreate}
+          variant="secondary"
+          className="gap-1.5 bg-primary text-primary-foreground hover:bg-notes-primary-hover border-0 shadow-sm hover:shadow-md transition-shadow duration-200"
+        >
           <Plus className="w-4 h-4" /> 新建笔记
         </Button>
       )}

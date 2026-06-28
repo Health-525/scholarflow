@@ -170,3 +170,118 @@ function getAuthBody(): { schoolId: string; userId: string } {
     userId: userId || "",
   };
 }
+
+// ── 搜索 ──
+
+export function useNoteSearch() {
+  const [results, setResults] = useState<import("@/types").NoteSearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const search = useCallback(async (q: string) => {
+    if (!q.trim()) { setResults([]); return; }
+    setIsSearching(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/notes/search?${getAuthParams()}&q=${encodeURIComponent(q)}`);
+      if (!res.ok) throw new Error("搜索失败");
+      const data = await res.json();
+      setResults(data.results || []);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  return { results, isSearching, error, search, clear: () => setResults([]) };
+}
+
+// ── 标签 ──
+
+export function useNoteTags(path: string | null) {
+  const [tags, setTagsState] = useState<string[]>([]);
+  const [allTags, setAllTags] = useState<import("@/types").TagInfo[]>([]);
+
+  const loadTags = useCallback(async () => {
+    if (!path) { setTagsState([]); return; }
+    try {
+      const res = await fetch(`/api/notes/tags?${getAuthParams()}&path=${encodeURIComponent(path)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setTagsState(data.tags || []);
+      }
+    } catch { /* ignore */ }
+  }, [path]);
+
+  const loadAllTags = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/notes/tags?${getAuthParams()}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAllTags(data.tags || []);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const saveTags = useCallback(async (newTags: string[]) => {
+    if (!path) return;
+    const auth = getAuthBody();
+    await fetch("/api/notes/tags", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path, tags: newTags, ...auth }),
+    });
+    setTagsState(newTags);
+    loadAllTags();
+  }, [path, loadAllTags]);
+
+  useEffect(() => { loadTags(); }, [loadTags]);
+
+  return { tags, allTags, loadAllTags, saveTags };
+}
+
+// ── 历史 ──
+
+export function useNoteHistory(path: string | null) {
+  const [history, setHistory] = useState<import("@/types").NoteHistoryEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!path) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/notes/history?${getAuthParams()}&path=${encodeURIComponent(path)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setHistory(data.history || []);
+      }
+    } catch { /* ignore */ } finally { setIsLoading(false); }
+  }, [path]);
+
+  const restore = useCallback(async (versionIndex: number) => {
+    const auth = getAuthBody();
+    const res = await fetch("/api/notes/history/restore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path, versionIndex, ...auth }),
+    });
+    if (!res.ok) throw new Error("恢复失败");
+  }, [path]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return { history, isLoading, load, restore };
+}
+
+// ── 固定 ──
+
+export async function togglePin(path: string, pinned: boolean): Promise<void> {
+  const auth = getAuthBody();
+  const res = await fetch("/api/notes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: pinned ? "pin" : "unpin", path, ...auth }),
+  });
+  if (!res.ok) throw new Error("操作失败");
+}
