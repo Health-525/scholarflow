@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import { Copy, Download, Monitor, RotateCcw, Settings2, Smartphone, X } from "lucide-react";
+import { Check, Copy, Download, Monitor, RotateCcw, Settings2, Smartphone, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { WechatAdvancedSettings } from "./WechatAdvancedSettings";
 
 const SETTINGS_STORAGE_KEY = "scholarflow:wechat-export-settings";
+const COPY_FEEDBACK_DURATION = 1500;
 
 interface WechatPreviewDialogProps {
   open: boolean;
@@ -47,6 +48,7 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
   const [srcDoc, setSrcDoc] = useState("");
   const [codeThemeCss, setCodeThemeCss] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedHeadingLevel, setSelectedHeadingLevel] = useState<HeadingLevel>("h2");
   const [previewWidth, setPreviewWidth] = useState<"mobile" | "desktop">("desktop");
@@ -142,6 +144,8 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
       const inlined = await inlineWechatStyles(html);
       await navigator.clipboard.writeText(inlined);
       toast.success("已复制微信兼容 HTML 到剪贴板");
+      setCopied(true);
+      setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION);
     } catch {
       toast.error("复制失败，请重试");
     }
@@ -279,8 +283,8 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
             <span className="text-[11px] text-muted-foreground/40 mr-auto">
               {stats.chars} 字 · 约 {stats.readingMinutes} 分钟阅读
             </span>
-            <Button type="button" size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-notes-primary-hover rounded-lg px-4 h-9" onClick={handleCopyHtml}>
-              <Copy className="w-3.5 h-3.5" /> 复制 HTML
+            <Button type="button" size="sm" className={cn("gap-1.5 rounded-lg px-4 h-9 transition-all", copied ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-primary text-primary-foreground hover:bg-notes-primary-hover")} onClick={handleCopyHtml}>
+              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />} {copied ? "已复制" : "复制 HTML"}
             </Button>
             <Button type="button" size="sm" className="gap-1.5 rounded-lg transition-all duration-150" onClick={handleExport} disabled={exporting}>
               <Download className="w-3.5 h-3.5" /> {exporting ? "生成中…" : "导出"}

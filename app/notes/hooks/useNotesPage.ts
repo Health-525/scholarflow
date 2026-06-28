@@ -240,7 +240,7 @@ export function useNotesPage() {
   return {
     // state
     tree, treeLoading, treeError, reloadTree,
-    selectedPath, sidebarOpen, setSidebarOpen,
+    selectedPath, setSelectedPath, sidebarOpen, setSidebarOpen,
     // actions
     handleCreate, handleSelect,
     // derived

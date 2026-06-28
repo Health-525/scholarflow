@@ -63,13 +63,13 @@ function ActionGroup({ viewMode, onViewModeChange, onDelete, pinned, onTogglePin
   return (
     <ToolbarGroup>
       {onTogglePin && (
-        <ToolbarButton label={pinned ? "取消固定" : "固定"} icon={Pin} active={pinned} onClick={onTogglePin} />
+        <ToolbarButton label={pinned ? "取消固定" : "固定"} icon={Pin} active={pinned} variant="gold" onClick={onTogglePin} />
       )}
       {onViewModeChange && (
         <ToolbarButton label={viewMode === "view" ? "编辑" : "预览"} icon={viewMode === "view" ? PenLine : Eye}
           onClick={() => onViewModeChange(viewMode === "view" ? "edit" : "view")} />
       )}
-      {onDelete && <ToolbarButton label="删除笔记" icon={Trash2} onClick={onDelete} />}
+      {onDelete && <ToolbarButton label="删除笔记" icon={Trash2} variant="danger" onClick={onDelete} />}
     </ToolbarGroup>
   );
 }

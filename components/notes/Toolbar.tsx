@@ -8,9 +8,10 @@ interface ToolbarButtonProps {
   icon: React.ElementType;
   label: string;
   shortcut?: string;
+  variant?: "default" | "danger" | "gold";
 }
 
-export function ToolbarButton({ active, onClick, icon: Icon, label, shortcut }: ToolbarButtonProps) {
+export function ToolbarButton({ active, onClick, icon: Icon, label, shortcut, variant = "default" }: ToolbarButtonProps) {
   const title = shortcut ? `${label} (${shortcut})` : label;
   return (
     <button
@@ -20,8 +21,16 @@ export function ToolbarButton({ active, onClick, icon: Icon, label, shortcut }: 
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "h-8 w-8 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent hover:text-primary transition-all duration-150",
-        active && "bg-notes-active-bg text-primary shadow-[0_0_0_1px_rgba(51,112,255,0.15)]"
+        "h-8 w-8 rounded-lg inline-flex items-center justify-center transition-all duration-150",
+        variant === "danger" && "text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
+        variant === "gold" && cn(
+          "text-muted-foreground hover:text-notes-pin hover:bg-notes-pin/10",
+          active && "text-notes-pin bg-notes-pin/10 shadow-[0_0_0_1px_rgba(245,166,35,0.2)]"
+        ),
+        variant === "default" && cn(
+          "text-muted-foreground hover:bg-sidebar-accent hover:text-primary",
+          active && "bg-notes-active-bg text-primary shadow-[0_0_0_1px_rgba(51,112,255,0.15)]"
+        ),
       )}
     >
       <Icon className="w-4 h-4" />

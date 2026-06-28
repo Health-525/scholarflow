@@ -196,7 +196,8 @@ export function Sidebar({
               variant="ghost"
               size="icon-sm"
               onClick={() => setShowSearch(!showSearch)}
-              aria-label="搜索"
+              aria-label="搜索笔记"
+              title="搜索笔记 (/)"
             >
               <Search className="w-4 h-4" />
             </Button>
@@ -205,6 +206,7 @@ export function Sidebar({
               size="icon-sm"
               onClick={onCreate}
               aria-label="新建笔记"
+              title="新建笔记 (Ctrl+N)"
             >
               <Plus className="w-4 h-4" />
             </Button>
@@ -213,6 +215,7 @@ export function Sidebar({
               size="icon-sm"
               onClick={onClose}
               aria-label="收起侧边栏"
+              title="收起侧边栏 (Ctrl+\)"
             >
               <PanelLeftClose className="w-4 h-4" />
             </Button>
@@ -223,9 +226,11 @@ export function Sidebar({
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40" />
             <input
               ref={searchInputRef}
+              data-notes-search=""
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Escape") { setSearchQuery(""); clear(); } }}
               placeholder="搜索笔记…"
               className="w-full h-8 pl-7 pr-6 text-xs bg-white rounded-md border border-border transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-notes-tertiary"
             />

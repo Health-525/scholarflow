@@ -43,7 +43,7 @@ export function WechatAdvancedSettings({
 }: WechatAdvancedSettingsProps) {
   return (
     <div className="absolute md:relative inset-y-0 right-0 w-full max-w-[280px] md:w-72 shrink-0 border-l border-border bg-card overflow-y-auto px-3 py-4 sm:px-4 space-y-3 z-10 shadow-lg md:shadow-none">
-      <button type="button" onClick={onClose}
+      <button type="button" onClick={onClose} title="关闭高级设置"
         className="absolute top-3 right-3 h-7 w-7 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors">
         <X className="w-3.5 h-3.5" />
       </button>
@@ -86,7 +86,7 @@ export function WechatAdvancedSettings({
             const active = (config.headingStyles[selectedHeadingLevel] ?? "default") === opt.value;
             const previewColor = opt.value === "color-only" ? config.primaryColor : undefined;
             return (
-              <button key={opt.value} type="button"
+              <button key={opt.value} type="button" title={`${opt.label}标题`}
                 onClick={() => updateHeadingStyle(selectedHeadingLevel, opt.value)}
                 className={cn("flex flex-col items-center gap-1 rounded-md border px-1 py-2 text-[10px] transition-all duration-150", active ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50")}>
                 <span className={cn("text-base font-black", opt.value === "border-bottom" && "border-b-2", opt.value === "border-left" && "border-l-2 pl-1")}

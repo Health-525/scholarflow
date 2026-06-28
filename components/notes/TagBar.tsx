@@ -3,6 +3,8 @@
 import { X } from "lucide-react";
 import { useState, useCallback } from "react";
 
+import { cn } from "@/lib/utils";
+
 interface TagBarProps {
   tags: string[];
   allTags: { tag: string; count: number }[];
@@ -12,6 +14,7 @@ interface TagBarProps {
 export function TagBar({ tags, allTags, onTagsChange }: TagBarProps) {
   const [input, setInput] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   const addTag = useCallback(
     (tag: string) => {
@@ -20,6 +23,7 @@ export function TagBar({ tags, allTags, onTagsChange }: TagBarProps) {
       onTagsChange([...tags, trimmed]);
       setInput("");
       setShowSuggestions(false);
+      setActiveIndex(-1);
     },
     [tags, onTagsChange]
   );
@@ -32,13 +36,36 @@ export function TagBar({ tags, allTags, onTagsChange }: TagBarProps) {
   );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setShowSuggestions(true);
+      setActiveIndex((prev) => Math.min(prev + 1, suggestions.length - 1));
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setShowSuggestions(true);
+      setActiveIndex((prev) => Math.max(prev - 1, -1));
+      return;
+    }
     if (e.key === "Enter") {
       e.preventDefault();
-      addTag(input);
+      if (activeIndex >= 0 && activeIndex < suggestions.length) {
+        addTag(suggestions[activeIndex].tag);
+      } else {
+        addTag(input);
+      }
+      return;
     }
     if (e.key === "Backspace" && !input && tags.length > 0) {
       removeTag(tags[tags.length - 1]);
     }
+    if (e.key === "Escape") {
+      setShowSuggestions(false);
+      setActiveIndex(-1);
+    }
+    // Reset active index on text input
+    setActiveIndex(-1);
   };
 
   const suggestions = allTags
@@ -88,13 +115,16 @@ export function TagBar({ tags, allTags, onTagsChange }: TagBarProps) {
             <div className="absolute left-0 top-full mt-1 z-30 bg-white border border-[#E5E6EB] rounded-lg shadow-lg p-1 min-w-[140px] animate-fade-up">
               <div className="px-2 py-1 text-[11px] text-[#8F959E]">建议标签</div>
               <div className="divide-y divide-[#E5E6EB]/30">
-              {suggestions.map((s) => (
+              {suggestions.map((s, i) => (
                 <button
                   key={s.tag}
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => addTag(s.tag)}
-                  className="w-full flex items-center justify-between px-2 py-1 text-xs rounded hover:bg-[#F0F5FF] text-[#1F2329]"
+                  className={cn(
+                    "w-full flex items-center justify-between px-2 py-1 text-xs rounded text-[#1F2329]",
+                    i === activeIndex ? "bg-[#F0F5FF] text-primary" : "hover:bg-[#F0F5FF]"
+                  )}
                 >
                   <span>{s.tag}</span>
                   <span className="text-[#8F959E]">{s.count}</span>

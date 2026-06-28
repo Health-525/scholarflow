@@ -74,7 +74,7 @@ function PreviewActions({
 }) {
   return (
     <div className="flex items-center gap-0.5 shrink-0">
-      <Button variant="ghost" size="icon-sm" onClick={onEdit} aria-label="编辑">
+      <Button variant="ghost" size="icon-sm" onClick={onEdit} aria-label="编辑" title="编辑 (Ctrl+E)">
         <PenLine className="w-4 h-4" />
       </Button>
       <Button
@@ -82,6 +82,7 @@ function PreviewActions({
         size="icon-sm"
         onClick={onDelete}
         aria-label="删除笔记"
+        title="删除笔记"
         className="hover:text-destructive"
       >
         <Trash2 className="w-4 h-4" />
@@ -153,6 +154,7 @@ export function Workspace(props: WorkspaceProps) {
               size="icon"
               onClick={onBack}
               aria-label="返回列表"
+              title="返回列表 (Escape)"
               className="h-9 w-9 rounded-lg hover:bg-sidebar-accent"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -208,7 +210,7 @@ export function Workspace(props: WorkspaceProps) {
               <div className="sticky top-0 z-30 mb-6 animate-fade-up">
                 <div className="flex items-center gap-2 px-3 py-2 text-sm bg-sidebar-accent text-primary rounded-lg shadow-sm">
                   <span className="flex-1 truncate">已删除「{parseNotePath(deletedBuffer.path).title}」</span>
-                  <Button variant="secondary" size="sm" onClick={onUndoDelete} className="gap-1 bg-primary text-primary-foreground hover:bg-notes-primary-hover">
+                  <Button variant="secondary" size="sm" onClick={onUndoDelete} title="撤销删除 (Ctrl+Z)" className="gap-1 bg-primary text-primary-foreground hover:bg-notes-primary-hover">
                     <Trash2 size={12} /> 撤销
                   </Button>
                 </div>

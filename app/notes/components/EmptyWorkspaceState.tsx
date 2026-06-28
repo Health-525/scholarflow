@@ -15,7 +15,8 @@ export function EmptyWorkspaceState({ onCreate }: EmptyWorkspaceStateProps) {
         <Button
           onClick={onCreate}
           variant="secondary"
-          className="gap-1.5 bg-primary text-primary-foreground hover:bg-notes-primary-hover border-0 shadow-sm hover:shadow-md transition-shadow duration-200"
+          title="新建笔记 (Ctrl+N)"
+          className="gap-1.5 bg-primary text-primary-foreground hover:bg-notes-primary-hover border-0 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
         >
           <Plus className="w-4 h-4" /> 新建笔记
         </Button>

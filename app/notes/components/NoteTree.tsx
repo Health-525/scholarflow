@@ -137,6 +137,7 @@ function NoteTreeItem({
           type="button"
           onClick={toggleDir}
           onKeyDown={handleKeyDown}
+          title={`${expanded ? "折叠" : "展开"} ${node.name}`}
           className={cn(
             "w-full group flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors",
             isAncestorOfSelected
@@ -177,6 +178,7 @@ function NoteTreeItem({
       type="button"
       onClick={() => onSelect(node.path)}
       onKeyDown={handleKeyDown}
+      title={node.name}
       className={cn(
         "w-full flex items-center gap-2.5 px-2 py-1.5 text-sm rounded transition-colors text-left border-l-[3px]",
         isSelected

@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText, PanelLeftOpen, Plus } from "lucide-react";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
@@ -13,12 +14,46 @@ import { useNotesPage } from "./hooks/useNotesPage";
 export default function NotesPage() {
   const {
     tree, treeLoading, treeError, reloadTree,
-    selectedPath, sidebarOpen, setSidebarOpen,
+    selectedPath, setSelectedPath, sidebarOpen, setSidebarOpen,
     handleCreate, handleSelect,
     workspaceProps,
   } = useNotesPage();
 
   const isMobile = useIsMobile();
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      // Don't trigger shortcuts when typing in inputs
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
+
+      if ((e.ctrlKey || e.metaKey) && e.key === "n") {
+        e.preventDefault();
+        handleCreate();
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "\\") {
+        e.preventDefault();
+        setSidebarOpen((prev) => !prev);
+        return;
+      }
+      if (e.key === "/") {
+        e.preventDefault();
+        // Focus the search input in the sidebar
+        const input = document.querySelector<HTMLInputElement>('[data-notes-search]');
+        input?.focus();
+        return;
+      }
+      if (e.key === "Escape" && selectedPath) {
+        e.preventDefault();
+        setSelectedPath(null);
+        return;
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleCreate, setSidebarOpen, selectedPath, setSelectedPath]);
 
   const sidebar = (
     <Sidebar
