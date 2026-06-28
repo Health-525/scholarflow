@@ -94,27 +94,31 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
     return () => { cancelled = true; };
   }, [config.codeBlockTheme]);
 
-  const updatePreview = useCallback(async () => {
-    try {
-      setPreviewError(null);
-      const html = await renderWechatPreviewHtml({
-        title,
-        content,
-        config: { ...config, previewWidth },
-        inlineCodeThemeCss: codeThemeCss,
-      });
-      setSrcDoc(html);
-      setPreviewKey((k) => k + 1);
-    } catch (err) {
-      setPreviewError(err instanceof Error ? err.message : "渲染预览失败");
-    }
-  }, [title, content, config, codeThemeCss, previewWidth]);
-
   useEffect(() => {
     if (!open) return;
-    const timer = window.setTimeout(() => { void updatePreview(); }, 150);
-    return () => window.clearTimeout(timer);
-  }, [open, updatePreview]);
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      try {
+        setPreviewError(null);
+        const html = await renderWechatPreviewHtml({
+          title,
+          content,
+          config: { ...config, previewWidth },
+          inlineCodeThemeCss: codeThemeCss,
+        });
+        if (cancelled) return;
+        setSrcDoc(html);
+        setPreviewKey((k) => k + 1);
+      } catch (err) {
+        if (cancelled) return;
+        setPreviewError(err instanceof Error ? err.message : "渲染预览失败");
+      }
+    }, 150);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [open, title, content, config, codeThemeCss, previewWidth]);
 
   function updateConfig<K extends keyof WechatStyleConfig>(key: K, value: WechatStyleConfig[K]) {
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -261,7 +265,7 @@ export function WechatPreviewDialog({ open, onOpenChange, title, content }: Wech
                       <X className="w-5 h-5 text-destructive" />
                     </div>
                     <span className="text-xs">{previewError}</span>
-                    <Button variant="secondary" size="sm" className="rounded-lg" onClick={() => { void updatePreview(); }}>重试</Button>
+                    <Button variant="secondary" size="sm" className="rounded-lg" onClick={() => setPreviewKey((k) => k + 1)}>重试</Button>
                   </div>
                 ) : srcDoc ? (
                   <iframe key={previewKey} title="公众号预览" srcDoc={srcDoc} className="w-full border-0"
