@@ -130,7 +130,7 @@ function DesktopChat() {
                       setInput(prompt);
                       inputRef.current?.focus();
                     }}
-                    className="flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium hover:bg-secondary transition-colors"
+                    className="flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium hover:bg-[#F0F5FF] hover:text-[#3370FF] transition-colors"
                   >
                     <Icon className="w-4 h-4 shrink-0 text-primary" />
                     {label}

@@ -217,7 +217,7 @@ export default function SettingsPage() {
   const isSynced = !!studentInfo?.studentId || !!schoolId;
 
   return (
-    <div className="pb-20 md:pb-0 max-w-2xl mx-auto">
+    <div className="pb-20 md:pb-0 max-w-2xl mx-auto px-4">
       <PageHeader
         icon={<User className="w-5 h-5 text-primary" />}
         title="设置"
@@ -253,7 +253,7 @@ export default function SettingsPage() {
                 onClick={() => changeSkin(opt.value)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                   skin === opt.value
-                    ? "bg-card text-primary shadow-sm"
+                    ? "bg-white text-[#3370FF] shadow-sm"
                     : "text-muted-foreground"
                 }`}
                 aria-pressed={skin === opt.value}

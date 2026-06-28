@@ -27,7 +27,7 @@ export function DataRefreshSection({
         variant="outline"
         onClick={onRefresh}
         disabled={isPending}
-        className="w-full justify-start gap-3 px-3 py-2.5 h-auto text-left text-sm font-normal"
+        className="w-full justify-start gap-3 px-3 py-2.5 h-auto text-left text-sm font-normal rounded-lg transition-colors duration-150"
       >
         <RefreshCw
           className={cn(

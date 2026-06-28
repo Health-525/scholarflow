@@ -45,16 +45,16 @@ function StatCard({
   const content = (
     <div className="flex items-center gap-3">
       <div
-        className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+        className="flex size-10 shrink-0 items-center justify-center rounded-xl shadow-sm"
         style={{ backgroundColor: style.bg, color: style.color }}
       >
-        <Icon className="size-5" />
+        <Icon className="w-5 h-5" />
       </div>
       <div>
-        <div className="text-2xl font-bold tabular-nums leading-none text-foreground">
+        <div className="text-3xl font-bold tabular-nums leading-none text-foreground">
           {value}
         </div>
-        <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
+        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mt-0.5">{label}</div>
       </div>
     </div>
   );
@@ -66,7 +66,7 @@ function StatCard({
         onClick={onClick}
         className={cn(
           cardClasses,
-          "p-3 text-left cursor-pointer transition-colors hover:bg-muted/50",
+          "p-3 text-left cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:bg-muted/50",
           active
             ? "ring-1 ring-primary/40 bg-primary/5"
             : "hover:border-primary/30"
@@ -78,7 +78,7 @@ function StatCard({
   }
 
   return (
-    <Card hover={false} className={cn("p-3", active && "ring-2 ring-primary/40 bg-primary/5")}>
+    <Card hover={false} className={cn("p-3", active && "ring-1 ring-primary/40 bg-primary/5")}>
       {content}
     </Card>
   );

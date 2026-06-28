@@ -73,7 +73,7 @@ export const ScheduleCard = memo(function ScheduleCard() {
               if (items.length === 0) {
                 return (
                   <div className="py-4 flex items-center justify-center gap-2">
-                    <Check className="size-5 text-statusSuccess" />
+                    <Check className="size-5 text-statusSuccess/70" />
                     <p className="text-sm text-muted-foreground">
                       今天没有课，好好休息
                     </p>
@@ -91,7 +91,7 @@ export const ScheduleCard = memo(function ScheduleCard() {
               return (
                 <div className="space-y-2">
                   {nextCourse ? (
-                    <div className="rounded-xl p-3 bg-primary/5 dark:bg-primary/10 border border-primary/10 dark:border-white/5">
+                    <div className="rounded-xl p-3 bg-primary/10 dark:bg-primary/15 border border-primary/20 dark:border-white/10">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 min-w-0">
                           <Badge variant="default" className="text-xs">
@@ -116,7 +116,7 @@ export const ScheduleCard = memo(function ScheduleCard() {
                     </div>
                   ) : (
                     <div className="py-4 flex items-center justify-center gap-2">
-                      <Check className="size-5 text-statusSuccess" />
+                      <Check className="size-5 text-statusSuccess/70" />
                       <p className="text-sm text-muted-foreground">
                         今日课程已结束
                       </p>
@@ -136,7 +136,7 @@ export const ScheduleCard = memo(function ScheduleCard() {
                           }}
                         >
                           <span
-                            className="w-[3px] h-8 rounded-full shrink-0"
+                            className="w-1 h-8 rounded-full shrink-0"
                             style={{ backgroundColor: colors.accent }}
                           />
                           <span

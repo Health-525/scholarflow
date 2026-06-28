@@ -103,7 +103,7 @@ export function TimelineBar({ segments, dateStr }: TimelineBarProps) {
         {Array.from({ length: 24 }).map((_, h) => (
           <span
             key={h}
-            className="absolute text-xs text-muted-foreground tabular-nums -translate-x-1/2"
+            className="absolute text-[11px] font-medium tabular-nums text-muted-foreground -translate-x-1/2"
             style={{ left: `${(h / 24) * 100}%` }}
           >
             {h}
@@ -126,10 +126,16 @@ export function TimelineBar({ segments, dateStr }: TimelineBarProps) {
 
         {/* 当前时间线 */}
         {mounted && now >= start && now <= end && (
-          <div
-            className="absolute top-0 bottom-0 w-px bg-destructive z-20"
-            style={{ left: `${((now - start) / (end - start)) * 100}%` }}
-          />
+          <>
+            <div
+              className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-[#3370FF]/20 via-[#E5E6EB] to-transparent z-20"
+              style={{ left: `${((now - start) / (end - start)) * 100}%` }}
+            />
+            <div
+              className="absolute top-0 size-2 rounded-full bg-[#3370FF] ring-4 ring-[#3370FF]/20 z-30 -translate-x-1/2"
+              style={{ left: `${((now - start) / (end - start)) * 100}%` }}
+            />
+          </>
         )}
 
         {/* 片段块 */}
@@ -139,7 +145,7 @@ export function TimelineBar({ segments, dateStr }: TimelineBarProps) {
             <div
               key={`${item.segment.beginAt}-${item.segment.endAt ?? item.segment.beginAt}-${item.segment.app}-${item.segment.type}`}
               className={cn(
-                "absolute rounded-sm cursor-pointer transition-opacity hover:opacity-100",
+                "absolute rounded-sm cursor-pointer transition-all duration-200 hover:brightness-110",
                 item.segment.type === "app" ? "opacity-90" : "opacity-50"
               )}
               style={{

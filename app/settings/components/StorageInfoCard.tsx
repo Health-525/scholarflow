@@ -13,7 +13,7 @@ import { InfoRow } from "./InfoRow";
 
 export function StorageInfoCard() {
   return (
-    <Card className="mb-4 hover:translate-y-0 hover:shadow-sm">
+    <Card className="mb-4 hover:shadow-sm transition-shadow duration-200 overflow-hidden">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Database className="w-4 h-4 text-primary" />

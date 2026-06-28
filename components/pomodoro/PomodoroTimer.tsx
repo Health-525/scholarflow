@@ -87,7 +87,7 @@ function SettingRow({
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-2">
         {icon}
-        <label htmlFor={htmlFor} className="text-xs text-muted-foreground">
+        <label htmlFor={htmlFor} className="text-[11px] font-semibold text-[#8F959E] uppercase tracking-wider">
           {label}
         </label>
       </div>
@@ -105,7 +105,7 @@ function SettingRow({
             const n = parseInt(raw, 10);
             if (!isNaN(n)) onChange(Math.max(min, Math.min(max, n)));
           }}
-          className="w-16 h-8 text-center text-sm tabular-nums"
+          className="w-16 h-8 text-center text-sm tabular-nums focus:border-[#3370FF] focus:ring-1 focus:ring-[#3370FF]/20"
         />
         <span className="text-xs text-muted-foreground">分钟</span>
       </div>
@@ -265,7 +265,7 @@ function PomodoroTimerInner({
     <div className="pb-24 md:pb-0">
       {/* Timer circle */}
       <div
-        className={`flex flex-col items-center mb-6 ${
+        className={`bg-card rounded-3xl p-8 shadow-sm border border-border flex flex-col items-center mb-6 ${
           !prefersReducedMotion ? "animate-fade-up" : ""
         }`}
       >
@@ -314,7 +314,7 @@ function PomodoroTimerInner({
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span
-              className={`text-5xl font-bold tabular-nums font-display ${phaseColorClass(state.phase, isDark)} ${
+              className={`text-7xl md:text-8xl font-black tabular-nums tracking-tighter select-none ${phaseColorClass(state.phase, isDark)} ${
                 state.isRunning && !prefersReducedMotion ? "animate-breathe" : ""
               }`}
             >
@@ -349,7 +349,7 @@ function PomodoroTimerInner({
         </Button>
         <Button
           size="icon-lg"
-          className={`w-14 h-14 rounded-2xl ${phaseBgClass(state.phase, isDark)}`}
+          className={`w-14 h-14 rounded-2xl active:scale-95 transition-transform duration-150 ${phaseBgClass(state.phase, isDark)}`}
           onClick={togglePause}
           aria-label={
             state.phase === "idle" || !state.isRunning ? "开始" : "暂停"
@@ -377,15 +377,15 @@ function PomodoroTimerInner({
         {Array.from({ length: state.settings.longBreakInterval }).map((_, i) => (
           <div
             key={i}
-            className={`w-3 h-3 rounded-full transition-all ${
+            className={`w-3 h-3 rounded-full transition-all duration-200 ${
               i < state.completedFocus % state.settings.longBreakInterval
-                ? "bg-primary"
+                ? "bg-[#3370FF] shadow-[0_0_6px_rgba(51,112,255,0.3)]"
                 : i ===
                       state.completedFocus %
                         state.settings.longBreakInterval &&
                     state.phase === "focus"
-                  ? "bg-primary/20"
-                  : "bg-border"
+                  ? "bg-[#3370FF]/30 ring-2 ring-[#3370FF] ring-offset-2 ring-offset-background"
+                  : "bg-[#E5E6EB] dark:bg-[#3A3A3D]"
             }`}
           />
         ))}
@@ -420,7 +420,7 @@ function PomodoroTimerInner({
               <SettingRow
                 label="短休息"
                 htmlFor="pomodoro-break-minutes"
-                icon={<Coffee className="w-3.5 h-3.5 text-green-600" />}
+                icon={<Coffee className="w-3.5 h-3.5 text-statusSuccess" />}
                 value={state.settings.breakMinutes}
                 onChange={(v) => updateSettings("breakMinutes", v)}
                 min={1}
@@ -429,7 +429,7 @@ function PomodoroTimerInner({
               <SettingRow
                 label="长休息"
                 htmlFor="pomodoro-long-break-minutes"
-                icon={<Hourglass className="w-3.5 h-3.5 text-green-600" />}
+                icon={<Hourglass className="w-3.5 h-3.5 text-statusSuccess" />}
                 value={state.settings.longBreakMinutes}
                 onChange={(v) => updateSettings("longBreakMinutes", v)}
                 min={5}
@@ -479,7 +479,7 @@ function PomodoroTimerInner({
                 专注时长
               </div>
             </div>
-            <div className="rounded-xl p-3 text-center bg-secondary border border-border">
+            <div className="rounded-xl p-3 text-center bg-primary/5 border border-primary/10">
               <div
                 className={`text-xl font-bold tabular-nums font-display text-foreground ${
                   !prefersReducedMotion ? "animate-count" : ""

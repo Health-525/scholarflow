@@ -71,14 +71,14 @@ const StatMiniCard = memo(function StatMiniCard({
   colorClass: string;
 }) {
   return (
-    <div className={cn(cardClasses, "p-4 flex flex-row items-center gap-3")}>
+    <div className={cn(cardClasses, "p-4 flex flex-row items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200")}>
       <Icon className="size-5 shrink-0 text-muted-foreground" />
       <div className="min-w-0">
         <div className="text-xs text-muted-foreground font-medium">
           {label}
         </div>
         <div
-          className={`text-2xl font-semibold tabular-nums leading-none mt-0.5 ${colorClass}`}
+          className={`text-3xl font-bold tabular-nums leading-none mt-0.5 ${colorClass}`}
         >
           <AnimatedNumber value={value} />
         </div>

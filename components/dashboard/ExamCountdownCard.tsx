@@ -138,8 +138,8 @@ export const ExamCountdownCard = memo(function ExamCountdownCard() {
             <div className="space-y-1">
               <div
                 className={cn(
-                  "text-3xl font-bold tabular-nums leading-none",
-                  urgent ? "text-destructive" : "text-foreground"
+                  "text-4xl font-black tabular-nums leading-none",
+                  urgent ? "text-destructive animate-pulse" : "text-foreground"
                 )}
               >
                 {countdown}

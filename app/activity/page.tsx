@@ -259,7 +259,7 @@ export default function ActivityPage() {
 
   if (!state.isElectron) {
     return (
-      <div className="max-w-3xl mx-auto pb-24 md:pb-0">
+      <div className="max-w-3xl mx-auto px-4 pb-24 md:pb-0">
         <PageHeader
           icon={<Monitor className="size-5 text-primary" />}
           title="屏幕时间"
@@ -278,7 +278,7 @@ export default function ActivityPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto pb-24 md:pb-0">
+    <div className="max-w-3xl mx-auto px-4 pb-24 md:pb-0">
       <PageHeader
         icon={<Monitor className="size-5 text-primary" />}
         title="屏幕时间"
@@ -288,14 +288,14 @@ export default function ActivityPage() {
       <DateNavigator date={date} onChange={setDate} />
 
       {/* 核心指标 */}
-      <Card className="mb-4">
+      <Card className="mb-6 hover:shadow-sm transition-shadow duration-200">
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
                 {isToday ? "今日屏幕时间" : "当日屏幕时间"}
               </div>
-              <div className="text-3xl font-bold tabular-nums text-foreground">
+              <div className="text-2xl font-bold tabular-nums">
                 {formatDuration(totalMinutes)}
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
@@ -332,16 +332,16 @@ export default function ActivityPage() {
       </Card>
 
       {/* 时间轴 */}
-      <section className="mb-4">
+      <section className="mb-6">
         <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">24 小时时间轴</h3>
+          <h3 className="text-sm font-medium text-foreground/70">24 小时时间轴</h3>
         </div>
         <Card>
           <CardContent className="p-4">
             {hasData ? (
               <TimelineBar segments={state.segments} dateStr={date} />
             ) : (
-              <div className="h-16 flex items-center justify-center text-xs text-muted-foreground rounded-lg bg-muted/40">
+              <div className="h-20 flex items-center justify-center text-xs text-muted-foreground rounded-lg bg-muted/60 border border-dashed border-border">
                 今天还没有记录，开始使用电脑后会自动追踪
               </div>
             )}
@@ -351,9 +351,9 @@ export default function ActivityPage() {
 
       {/* 分类占比 */}
       {state.categoryBreakdown.length > 0 && (
-        <section className="mb-4">
+        <section className="mb-6">
           <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">分类占比</h3>
+            <h3 className="text-sm font-medium text-foreground/70">分类占比</h3>
           </div>
           <Card>
             <CardContent className="p-4">
@@ -376,7 +376,7 @@ export default function ActivityPage() {
                   const cls = CATEGORY_CLASS[c.category];
                   const pct = Math.min(100, Math.round((c.minutes / Math.max(activeMinutes, 1)) * 100));
                   return (
-                    <div key={c.category} className="flex items-center gap-3 text-xs">
+                    <div key={c.category} className="flex items-center gap-3 text-xs hover:bg-muted/30 rounded-md px-2 py-1 -mx-2 transition-colors duration-150 cursor-pointer">
                       <div className={cn("flex size-7 items-center justify-center rounded-lg", cls.bg)}>
                         <Icon className={cn("size-3.5", cls.text)} />
                       </div>
@@ -395,23 +395,35 @@ export default function ActivityPage() {
 
       {/* 应用排行 */}
       {state.appBreakdown.length > 0 && (
-        <section className="mb-4">
+        <section className="mb-6">
           <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">应用排行</h3>
+            <h3 className="text-sm font-medium text-foreground/70">应用排行</h3>
             <span className="text-xs text-muted-foreground">{state.appBreakdown.length} 个应用</span>
           </div>
           <Card>
             <CardContent className="p-4">
               <div className="space-y-3">
-                {displayedApps.map((b) => {
+                {displayedApps.map((b, idx) => {
                   const pct = Math.min(100, Math.round((b.seconds / Math.max(totalAppSeconds, 1)) * 100));
                   const category = b.category || "other";
                   const cls = CATEGORY_CLASS[category];
                   const isUncategorized = category === "other";
+                  const rank = idx + 1;
+                  const rankBadgeCls =
+                    rank === 1
+                      ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                      : rank === 2
+                        ? "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                        : rank === 3
+                          ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                          : "text-muted-foreground";
                   return (
                     <div key={b.app} className="space-y-1.5">
                       <div className="flex items-center gap-3 text-xs">
-                        <span className="font-medium text-foreground truncate shrink-0 max-w-32" title={b.app}>
+                        <span className={cn("w-5 text-center text-[11px] font-medium tabular-nums shrink-0 rounded px-0.5", rank <= 3 && rankBadgeCls)}>
+                          {rank}
+                        </span>
+                        <span className="font-medium text-foreground/80 truncate shrink-0 max-w-32" title={b.app}>
                           {b.app}
                         </span>
                         {isUncategorized ? (
@@ -442,11 +454,11 @@ export default function ActivityPage() {
                           </Badge>
                         )}
                         <div className="flex-1" />
-                        <span className="tabular-nums text-muted-foreground">{formatAppDuration(b.seconds)}</span>
+                        <span className="text-xs text-muted-foreground tabular-nums">{formatAppDuration(b.seconds)}</span>
                         <span className="w-10 text-right tabular-nums text-muted-foreground">{pct}%</span>
                       </div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
-                        <div className={cn("h-full rounded-full", cls.bar)} style={{ width: `${pct}%` }} />
+                      <div className="h-2.5 overflow-hidden rounded-full bg-secondary">
+                        <div className="bg-gradient-to-r from-[#3370FF] to-[#3370FF]/70 h-full rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
                   );
@@ -469,9 +481,9 @@ export default function ActivityPage() {
 
       {/* 近 7 天趋势 */}
       {trendDays.length > 0 && (
-        <section className="mb-4">
+        <section className="mb-6">
           <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">近 7 天趋势</h3>
+            <h3 className="text-sm font-medium text-foreground/70">近 7 天趋势</h3>
           </div>
           <Card>
             <CardContent className="p-4">
@@ -479,16 +491,24 @@ export default function ActivityPage() {
                 {trendDays.map((day) => {
                   const max = Math.max(1, ...trendDays.map((d) => d.totalMinutes));
                   const h = Math.round((day.totalMinutes / max) * 100);
+                  const isMax = day.totalMinutes >= max;
+                  const isTodayBar = day.date === todayStr();
                   return (
                     <div key={day.date} className="flex-1 h-full flex flex-col justify-end items-center gap-1">
                       <div className="w-full flex-1 flex items-end justify-center overflow-hidden">
                         <div
-                          className="w-full max-w-10 rounded-t-sm bg-primary"
+                          className={cn(
+                            "w-full max-w-10 rounded-t-md hover:opacity-80 transition-opacity cursor-pointer",
+                            isMax
+                              ? "bg-gradient-to-t from-[#3370FF] to-[#3370FF]/60"
+                              : "bg-[#E5E6EB] dark:bg-muted",
+                            isTodayBar && "ring-1 ring-[#3370FF]/30"
+                          )}
                           style={{ height: `${Math.max(h, 4)}%` }}
                           title={`${day.date}：${formatDuration(day.totalMinutes)}`}
                         />
                       </div>
-                      <span className="text-xs text-muted-foreground">{day.date.slice(5)}</span>
+                      <span className="text-[10px] text-muted-foreground">{day.date.slice(5)}</span>
                     </div>
                   );
                 })}
@@ -499,7 +519,7 @@ export default function ActivityPage() {
       )}
 
       {/* 追踪设置 */}
-      <section className="mb-4">
+      <section className="mb-6">
         <Card>
           <CardContent className="p-4 space-y-4">
             <div className="flex flex-wrap items-center gap-2">
@@ -638,12 +658,12 @@ export default function ActivityPage() {
       </section>
 
       {/* 操作区 */}
-      <div className="flex gap-3 mb-8">
+      <div className="flex gap-3 mb-8 border-t border-[#E5E6EB] pt-4 mt-6">
         <Button variant="outline" className="flex-1 h-9 gap-2" onClick={() => downloadActivityCSV().catch(() => {})}>
           <Download className="size-4" />
           导出 CSV
         </Button>
-        <Button variant="ghost" className="h-9 gap-2 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setClearDialogOpen(true)}>
+        <Button variant="ghost" className="h-9 gap-2 text-[11px] text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors duration-150" onClick={() => setClearDialogOpen(true)}>
           <Trash2 className="size-4" />
           清除数据
         </Button>

@@ -29,7 +29,7 @@ export function CuteTopBar() {
       <Link
         href="/settings"
         aria-label="设置"
-        className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-variant active:scale-95 transition"
+        className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-variant active:scale-95 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:rounded"
       >
         <Settings className="h-5 w-5" />
       </Link>

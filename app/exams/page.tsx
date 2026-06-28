@@ -285,7 +285,7 @@ export default function ExamsPage() {
   // ── 渲染 ─────────────────────────────────────────────────
 
   return (
-    <div className="max-w-2xl mx-auto min-h-screen bg-background text-foreground pb-24 md:pb-8">
+    <div className="max-w-2xl mx-auto px-4 min-h-screen bg-background text-foreground pb-24 md:pb-8">
       <PageHeader
         icon={<Clock className="size-5 text-primary" />}
         title="考试"
@@ -329,17 +329,17 @@ export default function ExamsPage() {
         {/* 筛选状态 */}
         {!loading && filter !== "all" && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 text-sm">
-            <span className="text-muted-foreground">当前筛选：</span>
-            <Badge variant="secondary" className="gap-1">
+            <span className="text-muted-foreground text-xs">当前筛选：</span>
+            <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium bg-[#3370FF] text-white shadow-sm transition-all duration-200">
               {filter === "upcoming" ? "待考" : "已完成"}
               <button
                 onClick={() => setFilter("all")}
-                className="ml-1 hover:text-foreground transition-colors"
+                className="ml-0.5 hover:text-white/70 transition-colors"
                 aria-label="清除筛选"
               >
                 <X size={12} />
               </button>
-            </Badge>
+            </span>
             <span className="text-muted-foreground text-xs ml-auto">
               {filter === "upcoming" ? upcoming.length : completed.length} 场考试
             </span>
@@ -351,7 +351,7 @@ export default function ExamsPage() {
           <Card hover={false}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold">待考</CardTitle>
+                <CardTitle className="text-sm font-semibold text-foreground/80 mb-3">待考</CardTitle>
                 <Badge variant="secondary" className="text-xs">
                   {upcoming.length} 场
                 </Badge>
@@ -380,7 +380,7 @@ export default function ExamsPage() {
                 onClick={() => setShowCompleted((v) => !v)}
                 className="flex w-full items-center justify-between text-left"
               >
-                <CardTitle className="text-sm font-semibold text-muted-foreground">
+                <CardTitle className="text-sm font-semibold text-foreground/80 mb-3">
                   已完成
                 </CardTitle>
                 <Badge variant="secondary" className="text-xs">

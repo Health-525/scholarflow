@@ -77,13 +77,13 @@ export const RecentDailyCard = memo(function RecentDailyCard() {
           recent.length === 0 ? (
             <p className="text-sm text-muted-foreground py-3">暂无日报</p>
           ) : (
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-border/50">
               {recent.map((entry) => {
                 const date = entry.name.replace(".md", "");
                 const { main, sub } = formatDateLabel(date);
                 const recency = recencyLabel(date);
                 return (
-                  <Link key={entry.path} href={`/reports/daily?date=${encodeURIComponent(date)}`} className="flex items-center justify-between gap-3 py-2.5 group transition-colors">
+                  <Link key={entry.path} href={`/reports/daily?date=${encodeURIComponent(date)}`} className="flex items-center justify-between gap-3 py-2.5 group transition-colors hover:bg-muted/30 rounded-lg px-2 -mx-2">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className="w-1 h-1 rounded-full shrink-0 bg-border group-hover:bg-primary transition-colors" />
                       <span className="text-sm text-foreground group-hover:text-primary transition-colors">{main}</span>

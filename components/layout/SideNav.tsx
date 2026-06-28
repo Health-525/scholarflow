@@ -23,10 +23,10 @@ function NavItem({ item }: { item: NavItemConfig }) {
       className={[
         "group flex items-center gap-2.5 px-3 py-1.5 min-h-8 rounded-lg text-[13px] font-medium transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1",
         active
-          ? "bg-white/70 text-foreground shadow-sm"
+          ? "bg-white/70 dark:bg-white/[0.08] text-foreground shadow-sm"
           : wip
-            ? "text-muted-foreground/50 hover:bg-white/40 hover:text-muted-foreground"
-            : "text-foreground/80 hover:bg-white/50 hover:text-foreground",
+            ? "text-muted-foreground/50 hover:bg-white/40 dark:hover:bg-white/[0.05] hover:text-muted-foreground"
+            : "text-foreground/80 hover:bg-white/50 dark:hover:bg-white/[0.05] hover:text-foreground",
       ].join(" ")}
     >
       <Icon

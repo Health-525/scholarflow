@@ -38,7 +38,7 @@ export function UserProfileCard({
   onLogout,
 }: UserProfileCardProps) {
   return (
-    <Card className="mb-4">
+    <Card className="mb-4 hover:shadow-sm transition-shadow duration-200 overflow-hidden">
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">

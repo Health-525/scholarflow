@@ -24,7 +24,7 @@ export function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`relative flex min-w-0 flex-col items-center justify-center gap-1 transition-colors duration-150 ${
+              className={`relative flex min-w-0 flex-col items-center justify-center gap-1 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:rounded ${
                 active ? "text-primary" : "text-muted-foreground/75 active:text-muted-foreground"
               }`}
               aria-label={label}
@@ -44,7 +44,7 @@ export function BottomNav() {
         {/* 更多 — 统一到 /more 页面 */}
         <Link
           href="/more"
-          className={`relative flex min-w-0 flex-col items-center justify-center gap-1 transition-colors duration-150 ${
+          className={`relative flex min-w-0 flex-col items-center justify-center gap-1 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:rounded ${
             pathname === "/more" ? "text-primary" : "text-muted-foreground/75 active:text-muted-foreground"
           }`}
           aria-label="更多功能"

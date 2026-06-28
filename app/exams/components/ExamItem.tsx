@@ -34,8 +34,8 @@ function formatCountdown(dateStr: string): { text: string; urgency: Urgency } {
 }
 
 const urgencyColor: Record<Urgency, string> = {
-  today: "text-destructive",
-  soon: "text-amber-600 dark:text-amber-400",
+  today: "text-[#F54A45]",
+  soon: "text-amber-500",
   normal: "text-muted-foreground",
   past: "text-muted-foreground",
 };
@@ -78,14 +78,22 @@ export function ExamItem({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   return (
-    <div className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:bg-muted/40">
+    <div
+      className={cn(
+        "group flex items-center gap-3 rounded-xl border bg-card p-3",
+        "hover:shadow-sm transition-shadow duration-200 hover:bg-muted/40",
+        cd.urgency === "today"
+          ? "border-[#F54A45]/30 animate-pulse"
+          : "border-border"
+      )}
+    >
       <Button
         type="button"
         variant="ghost"
         size="icon"
         onClick={() => (isCompleted ? onUncomplete(exam.id) : onComplete(exam.id))}
         className={cn(
-          "shrink-0 text-muted-foreground/60 hover:text-primary hover:bg-transparent",
+          "shrink-0 rounded-lg transition-all duration-150 text-muted-foreground/60 hover:text-primary hover:bg-transparent",
           isCompleted && "text-primary"
         )}
         aria-label={isCompleted ? `取消「${exam.subject}」的完成状态` : `标记「${exam.subject}」已完成`}
@@ -103,16 +111,16 @@ export function ExamItem({
 
       <div className="min-w-0 flex-1">
         <div
-          className={`text-sm font-medium truncate ${
+          className={`text-sm font-semibold truncate ${
             isCompleted ? "text-muted-foreground line-through" : "text-foreground"
           }`}
         >
           {exam.subject}
         </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-          <span>{exam.date}</span>
-          {exam.time && <span>{exam.time}</span>}
-          {exam.location && <span>{exam.location}</span>}
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+          <span className="bg-muted/50 rounded-lg px-2 py-1 text-xs font-medium">{exam.date}</span>
+          {exam.time && <span className="bg-muted/50 rounded-lg px-2 py-1 text-xs font-medium">{exam.time}</span>}
+          {exam.location && <span className="bg-muted/50 rounded-lg px-2 py-1 text-xs font-medium">{exam.location}</span>}
           {exam.source === "jwgl" && <Badge variant="secondary">教务</Badge>}
           {isCompleted && exam.completedAt && (
             <span>
@@ -141,7 +149,7 @@ export function ExamItem({
           variant="ghost"
           size="icon"
           onClick={() => isCompleted ? onUncomplete(exam.id) : setShowDeleteConfirm(true)}
-          className="min-w-11 min-h-11 text-muted-foreground/50 hover:text-primary"
+          className="min-w-11 min-h-11 rounded-lg transition-all duration-150 text-muted-foreground/50 hover:text-primary"
           aria-label={isCompleted ? "撤销完成" : `删除「${exam.subject}」`}
           title={isCompleted ? "撤销完成" : "删除"}
         >

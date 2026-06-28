@@ -96,7 +96,7 @@ export const AssignmentsCard = memo(function AssignmentsCard() {
                 <p className="text-sm text-muted-foreground">暂无待办作业</p>
               </div>
             ) : (
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {pending.map((a) => {
                 const urgency = classifyUrgency(a.deadline, new Date());
                 const cfg = URGENCY_CONFIG[urgency];

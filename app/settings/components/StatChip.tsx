@@ -5,7 +5,7 @@ interface StatChipProps {
 
 export function StatChip({ value, label }: StatChipProps) {
   return (
-    <div className="rounded-lg p-2.5 text-center bg-secondary/50">
+    <div className="rounded-lg p-2.5 text-center bg-secondary/50 hover:shadow-sm transition-shadow duration-150">
       <div className="text-base font-semibold tabular-nums text-foreground">
         {value}
       </div>
