@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, ChevronLeft, PenLine, Pin, Trash2, XCircle } from "lucide-react";
+import { AlertCircle, ChevronLeft, FolderOpen, PenLine, Pin, Trash2, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { NoteEditor } from "@/components/notes/NoteEditor";
@@ -93,7 +93,7 @@ function PreviewActions({
 export function Workspace(props: WorkspaceProps) {
   const {
     title,
-    category: _category,
+    category,
     content,
     previewContent,
     onPreviewChange,
@@ -217,6 +217,12 @@ export function Workspace(props: WorkspaceProps) {
 
             {viewMode === "edit" ? (
               <>
+                {category && (
+                  <div className="text-xs text-notes-tertiary mb-1 flex items-center gap-1.5">
+                    <FolderOpen className="w-3 h-3" />
+                    <span>{category}</span>
+                  </div>
+                )}
                 <div className="border-l-[3px] border-l-transparent focus-within:border-l-primary pl-3 -ml-3 transition-colors duration-200">
                   <input
                     ref={titleInputRef}
@@ -252,6 +258,12 @@ export function Workspace(props: WorkspaceProps) {
               </>
             ) : (
               <>
+                {category && (
+                  <div className="text-xs text-notes-tertiary mb-3 flex items-center gap-1.5">
+                    <FolderOpen className="w-3 h-3" />
+                    <span>{category}</span>
+                  </div>
+                )}
                 <div className="flex items-start justify-between gap-4">
                   <h1 className="text-3xl md:text-4xl font-semibold tracking-tight break-words text-foreground">
                     {title}

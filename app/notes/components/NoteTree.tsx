@@ -127,6 +127,8 @@ function NoteTreeItem({
     [isDir, expanded, toggleDir, onSelect, node.path]
   );
 
+  const isAncestorOfSelected = isDir && selectedPath && selectedPath.startsWith(node.path + "/");
+
   if (isDir) {
     return (
       <div>
@@ -136,7 +138,10 @@ function NoteTreeItem({
           onClick={toggleDir}
           onKeyDown={handleKeyDown}
           className={cn(
-            "w-full group flex items-center gap-1 px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-sidebar-accent rounded transition-colors"
+            "w-full group flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors",
+            isAncestorOfSelected
+              ? "text-primary bg-notes-active-bg/50"
+              : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
           )}
         >
           <ChevronRight
