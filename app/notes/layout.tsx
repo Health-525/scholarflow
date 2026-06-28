@@ -48,6 +48,22 @@ export default function NotesLayout({ children }: { children: React.ReactNode })
         "--shadow-md": "0 4px 12px rgba(0,0,0,0.08)",
       } as React.CSSProperties}
     >
+      <style>{`
+        .search-snippet mark {
+          background: rgba(51, 112, 255, 0.15);
+          color: #3370FF;
+          font-weight: 600;
+          border-radius: 2px;
+          padding: 0 1px;
+        }
+        @keyframes slide-down {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-down {
+          animation: slide-down 0.2s ease-out;
+        }
+      `}</style>
       {children}
     </div>
   );

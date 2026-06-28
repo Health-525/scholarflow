@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircle, FileText, PanelLeftClose, Plus, Search, X } from "lucide-react";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ListSkeleton } from "@/components/ui/skeleton";
@@ -65,19 +65,19 @@ export function Sidebar({
     if (showSearch) searchInputRef.current?.focus();
   }, [showSearch]);
 
-  const pinnedNodes: NoteTreeNode[] = [];
-  const normalNodes: NoteTreeNode[] = [];
-
-  function splitPinned(nodes: NoteTreeNode[]) {
-    for (const node of nodes) {
-      if (node.type === "file" && node.pinned) {
-        pinnedNodes.push(node);
-      } else {
-        normalNodes.push(node);
+  const { pinnedNodes, normalNodes } = useMemo(() => {
+    const pinned: NoteTreeNode[] = [];
+    const normal: NoteTreeNode[] = [];
+    function split(nodes: NoteTreeNode[]) {
+      for (const node of nodes) {
+        if (node.type === "file" && node.pinned) pinned.push(node);
+        else if (node.type === "dir") normal.push(node);
+        else normal.push(node);
       }
     }
-  }
-  splitPinned(tree);
+    split(tree);
+    return { pinnedNodes: pinned, normalNodes: normal };
+  }, [tree]);
 
   const renderContent = () => {
     if (isLoading) {
@@ -139,7 +139,7 @@ export function Sidebar({
             >
               <span className="block leading-snug truncate">{r.title}</span>
               <span
-                className="block text-xs text-muted-foreground/50 mt-0.5 line-clamp-1"
+                className="search-snippet block text-xs text-muted-foreground/50 mt-0.5 line-clamp-1"
                 dangerouslySetInnerHTML={{ __html: r.snippet }}
               />
             </button>
@@ -219,7 +219,7 @@ export function Sidebar({
           </div>
         </div>
         {showSearch && (
-          <div className="mt-2 relative">
+          <div className="mt-2 relative animate-slide-down">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40" />
             <input
               ref={searchInputRef}
@@ -227,7 +227,7 @@ export function Sidebar({
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="搜索笔记…"
-              className="w-full h-8 pl-7 pr-6 text-xs bg-sidebar rounded-md border border-border transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-notes-tertiary"
+              className="w-full h-8 pl-7 pr-6 text-xs bg-white rounded-md border border-border transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-notes-tertiary"
             />
             {searchQuery && (
               <button

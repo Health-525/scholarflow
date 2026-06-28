@@ -22,6 +22,15 @@ function saveCollapsed(set: Set<string>) {
   try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...set])); } catch { /* ignore */ }
 }
 
+function countFiles(nodes: NoteTreeNode[]): number {
+  let count = 0;
+  for (const node of nodes) {
+    if (node.type === "file") count += 1;
+    if (node.children) count += countFiles(node.children);
+  }
+  return count;
+}
+
 interface NoteTreeProps {
   nodes: NoteTreeNode[];
   selectedPath: string | null;
@@ -29,7 +38,21 @@ interface NoteTreeProps {
   level?: number;
 }
 
+function expandAncestors(path: string) {
+  const s = loadCollapsed();
+  const parts = path.split("/");
+  let changed = false;
+  for (let i = parts.length - 1; i > 0; i--) {
+    const dirPath = parts.slice(0, i).join("/");
+    if (s.delete(dirPath)) changed = true;
+  }
+  if (changed) saveCollapsed(s);
+}
+
 export function NoteTree({ nodes, selectedPath, onSelect, level = 0 }: NoteTreeProps) {
+  useEffect(() => {
+    if (selectedPath) expandAncestors(selectedPath);
+  }, [selectedPath]);
   return (
     <div className={cn(level === 0 ? "" : "ml-3")}>
       {nodes.map((node) => (
@@ -125,9 +148,9 @@ function NoteTreeItem({
             <Folder className="w-3.5 h-3.5 shrink-0" />
           )}
           <span className="truncate">{node.name}</span>
-          {node.children && (
+          {node.children && node.children.length > 0 && (
             <span className="ml-auto bg-border text-notes-tertiary rounded-full px-1.5 py-0 text-[10px] leading-none shrink-0">
-              {node.children.length}
+              {countFiles(node.children)}
             </span>
           )}
         </button>

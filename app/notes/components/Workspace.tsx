@@ -204,7 +204,7 @@ export function Workspace(props: WorkspaceProps) {
             className="max-w-3xl mx-auto px-6 md:px-12 pt-8 md:pt-10 pb-20 animate-fade-up"
           >
             {/* Undo toast */}
-            {deletedBuffer && Date.now() < deletedBuffer.expiresAt && (
+            {deletedBuffer && (
               <div className="sticky top-0 z-30 mb-6 animate-fade-up">
                 <div className="flex items-center gap-2 px-3 py-2 text-sm bg-sidebar-accent text-primary rounded-lg shadow-sm">
                   <span className="flex-1 truncate">已删除「{parseNotePath(deletedBuffer.path).title}」</span>

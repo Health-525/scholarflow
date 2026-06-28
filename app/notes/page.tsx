@@ -5,6 +5,7 @@ import { FileText, PanelLeftOpen, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { cn } from "@/lib/utils";
 
 import { Sidebar, EmptyWorkspaceState, Workspace } from "./components";
 import { useNotesPage } from "./hooks/useNotesPage";
@@ -68,11 +69,12 @@ export default function NotesPage() {
   return (
     <ErrorBoundary>
     <div className="flex h-full w-full -mx-4 md:-mx-6 lg:-mx-8 -mb-20 md:mb-0 overflow-hidden">
-      {sidebarOpen && (
-        <div className="w-72 shrink-0 h-full transition-all duration-300 ease-out overflow-hidden">
-          {sidebar}
-        </div>
-      )}
+      <div className={cn(
+        "shrink-0 h-full transition-[width] duration-300 ease-out overflow-hidden",
+        sidebarOpen ? "w-72" : "w-0 border-r-0"
+      )}>
+        {sidebar}
+      </div>
       <main key={selectedPath || "empty"} className="relative flex-1 min-w-0 h-full bg-background overflow-hidden border-l border-border">
         {!sidebarOpen && (
           <Button
