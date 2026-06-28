@@ -109,8 +109,8 @@ function useActivitySettings() {
     try {
       const s = await api.getActivitySettings();
       setSettings(s);
-    } catch (e) {
-      console.error("[ActivitySettings] load failed:", e);
+    } catch {
+      // Activity settings load failed silently
     } finally {
       setLoading(false);
     }
@@ -126,8 +126,8 @@ function useActivitySettings() {
     try {
       const s = await api.updateActivitySettings(patch);
       setSettings(s);
-    } catch (e) {
-      console.error("[ActivitySettings] update failed:", e);
+    } catch {
+      // Activity settings update failed silently
     }
   }
 
@@ -137,8 +137,8 @@ function useActivitySettings() {
     try {
       const s = await api.toggleActivityPaused();
       setSettings(s);
-    } catch (e) {
-      console.error("[ActivitySettings] toggle failed:", e);
+    } catch {
+      // Activity settings toggle failed silently
     }
   }
 
@@ -161,7 +161,7 @@ function useActivityTrend() {
     api
       .queryActivityRange(fmt(start), fmt(end))
       .then(setDays)
-      .catch((e) => console.error("[ActivityTrend] load failed:", e));
+      .catch(() => { /* Activity trend load failed silently */ });
   }, []);
 
   return days;
