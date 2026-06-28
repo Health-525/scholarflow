@@ -84,3 +84,13 @@ gcm-diagnose.log
 # Playwright artifacts
 playwright-report/
 test-results/
+
+# Temp scratch files
+logo-base64.txt
+mdnice-*
+
+# Dev debug pages
+app/test-preview/
+
+# AI planning docs (not user-facing)
+docs/superpowers/
