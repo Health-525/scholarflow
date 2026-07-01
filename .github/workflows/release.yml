@@ -36,7 +36,7 @@ jobs:
           cache: "npm"
 
       - name: Cache Next.js build cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .next/cache
           key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
@@ -51,7 +51,7 @@ jobs:
           "version=$v" >> $env:GITHUB_OUTPUT
 
       - name: Cache native module rebuilds
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             node_modules/better-sqlite3/build
