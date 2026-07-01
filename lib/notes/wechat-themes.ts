@@ -666,12 +666,19 @@ export function generateWechatCss(config: WechatStyleConfig): string {
     .join("\n\n");
 }
 
+function getThemePrimaryColor(): string {
+  if (typeof document === "undefined") return "#2a4494";
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
+  if (!raw) return "#2a4494";
+  return raw;
+}
+
 export function defaultWechatStyleConfig(): WechatStyleConfig {
   return {
     theme: "default",
     fontFamily: FONT_FAMILY_OPTIONS[1].value,
     fontSize: FONT_SIZE_OPTIONS[2].value,
-    primaryColor: "#1e6bb8",
+    primaryColor: getThemePrimaryColor(),
     headingStyles: {},
     codeBlockTheme: CODE_BLOCK_THEMES.find((t) => t.value === "github")?.value ?? CODE_BLOCK_THEMES[0].value,
     previewWidth: "desktop",

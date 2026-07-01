@@ -17,6 +17,7 @@ import { buildNotePath } from "@/lib/note-utils";
 import { flattenTree, type DeletedNote } from "../utils";
 
 export interface WorkspaceProps {
+  path: string | null;
   title: string;
   category: string;
   content: string;
@@ -43,6 +44,7 @@ export interface WorkspaceProps {
   onTagsChange: (tags: string[]) => Promise<void>;
   pinned: boolean;
   onTogglePin: () => Promise<void>;
+  onRestoreVersion: (content: string) => void;
 }
 
 export function useNotesPage() {
@@ -208,7 +210,14 @@ export function useNotesPage() {
 
   const handleBack = useCallback(() => setSelectedPath(null), []);
 
+  const handleRestoreVersion = useCallback((restoredContent: string) => {
+    setPreviewContent(restoredContent);
+    setViewMode("view");
+    reloadContent();
+  }, [reloadContent]);
+
   const workspaceProps: WorkspaceProps = {
+    path: selectedPath,
     title: selectedNote?.title || "",
     category: selectedNote?.category || "",
     content: contentLoading ? "" : content,
@@ -235,6 +244,7 @@ export function useNotesPage() {
     onTagsChange: saveTags,
     pinned,
     onTogglePin: handleTogglePin,
+    onRestoreVersion: handleRestoreVersion,
   };
 
   return {

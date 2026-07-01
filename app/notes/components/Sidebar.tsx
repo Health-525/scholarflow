@@ -142,6 +142,19 @@ export function Sidebar({
                 className="search-snippet block text-xs text-muted-foreground/50 mt-0.5 line-clamp-1"
                 dangerouslySetInnerHTML={{ __html: r.snippet }}
               />
+              <span className="flex items-center gap-1.5 mt-1.5">
+                <span className="text-xs text-muted-foreground/60 tabular-nums">
+                  {new Date(r.updatedAt).toLocaleDateString("zh-CN", { month: "short", day: "numeric" })}
+                </span>
+                {r.tags && r.tags.slice(0, 2).map((tag) => (
+                  <span key={tag} className="inline-block px-1.5 py-0.5 text-xs rounded bg-primary/10 text-primary">
+                    {tag}
+                  </span>
+                ))}
+                {r.tags && r.tags.length > 2 && (
+                  <span className="text-xs text-muted-foreground/60">+{r.tags.length - 2}</span>
+                )}
+              </span>
             </button>
           ))}
         </div>

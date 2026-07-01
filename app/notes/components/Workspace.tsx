@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, ChevronLeft, FolderOpen, PenLine, Pin, Trash2, Undo2, XCircle } from "lucide-react";
+import { AlertCircle, ChevronLeft, FolderOpen, History, PenLine, Pin, Trash2, Undo2, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { NoteEditor } from "@/components/notes/NoteEditor";
@@ -12,7 +12,10 @@ import { parseNotePath } from "@/lib/note-utils";
 
 import type { DeletedNote } from "../utils";
 
+import { HistoryPanel } from "./HistoryPanel";
+
 export interface WorkspaceProps {
+  path: string | null;
   title: string;
   category: string;
   content: string;
@@ -39,6 +42,7 @@ export interface WorkspaceProps {
   onTagsChange: (tags: string[]) => Promise<void>;
   pinned: boolean;
   onTogglePin: () => Promise<void>;
+  onRestoreVersion: (content: string) => void;
 }
 
 function SaveStatus({ saving, saveError }: { saving: boolean; saveError: string | null }) {
@@ -68,12 +72,17 @@ function SaveStatus({ saving, saveError }: { saving: boolean; saveError: string 
 function PreviewActions({
   onEdit,
   onDelete,
+  onHistory,
 }: {
   onEdit: () => void;
   onDelete: () => void;
+  onHistory: () => void;
 }) {
   return (
     <div className="flex items-center gap-0.5 shrink-0">
+      <Button variant="ghost" size="icon-sm" onClick={onHistory} aria-label="历史版本" title="历史版本">
+        <History className="w-4 h-4" />
+      </Button>
       <Button variant="ghost" size="icon-sm" onClick={onEdit} aria-label="编辑" title="编辑 (Ctrl+E)">
         <PenLine className="w-4 h-4" />
       </Button>
@@ -93,6 +102,7 @@ function PreviewActions({
 
 export function Workspace(props: WorkspaceProps) {
   const {
+    path,
     title,
     category,
     content,
@@ -119,9 +129,11 @@ export function Workspace(props: WorkspaceProps) {
     onTagsChange,
     pinned,
     onTogglePin,
+    onRestoreVersion,
   } = props;
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState(title);
 
   useEffect(() => {
@@ -162,9 +174,20 @@ export function Workspace(props: WorkspaceProps) {
           )}
           <span className="text-sm font-medium text-foreground truncate">{title}</span>
         </div>
-        {viewMode === "view" && (
-          <PreviewActions onEdit={() => onViewModeChange("edit")} onDelete={() => setShowDeleteConfirm(true)} />
-        )}
+        <div className="flex items-center gap-0.5 shrink-0">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setHistoryOpen(true)}
+            aria-label="历史版本"
+            title="历史版本"
+          >
+            <History className="w-4 h-4" />
+          </Button>
+          {viewMode === "view" && (
+            <PreviewActions onEdit={() => onViewModeChange("edit")} onDelete={() => setShowDeleteConfirm(true)} onHistory={() => setHistoryOpen(true)} />
+          )}
+        </div>
       </header>
 
       {/* Loading skeleton */}
@@ -235,7 +258,17 @@ export function Workspace(props: WorkspaceProps) {
                   placeholder="无标题笔记"
                   className="w-full h-auto py-2 bg-transparent border-0 px-0 text-2xl md:text-3xl font-semibold text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none tracking-tight rounded-none"
                 />
-                <div className="flex items-center justify-end mt-1 mb-4">
+                <div className="flex items-center justify-end mt-1 mb-4 gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => setHistoryOpen(true)}
+                    aria-label="历史版本"
+                    title="历史版本"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <History className="w-4 h-4" />
+                  </Button>
                   <SaveStatus saving={saving} saveError={saveError} />
                 </div>
                 <NoteEditor
@@ -269,7 +302,7 @@ export function Workspace(props: WorkspaceProps) {
                     {title}
                   </h1>
                   <div className="hidden md:block pt-1">
-                    <PreviewActions onEdit={() => onViewModeChange("edit")} onDelete={() => setShowDeleteConfirm(true)} />
+                    <PreviewActions onEdit={() => onViewModeChange("edit")} onDelete={() => setShowDeleteConfirm(true)} onHistory={() => setHistoryOpen(true)} />
                   </div>
                 </div>
                 {pinned && (
@@ -286,6 +319,13 @@ export function Workspace(props: WorkspaceProps) {
           </div>
         </div>
       )}
+
+      <HistoryPanel
+        path={path}
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        onRestore={onRestoreVersion}
+      />
 
       <ConfirmDialog
         open={showDeleteConfirm}

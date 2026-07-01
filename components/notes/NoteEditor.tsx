@@ -286,7 +286,7 @@ export function NoteEditor({
       <input ref={importInputRef} type="file" accept=".md,text/markdown,text/plain"
         className="hidden" onChange={handleImportFile} aria-label="导入 Markdown" />
 
-      <BubbleToolbar editor={editor} onInsertImage={handleInsertImage} />
+      <BubbleToolbar editor={editor} />
       <DesktopToolbar {...toolbarProps} />
       <MobileToolbar {...toolbarProps} />
 

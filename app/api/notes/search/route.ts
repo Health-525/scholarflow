@@ -5,6 +5,7 @@ import { getAuthorizedPrefix } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { searchNotes } from "@/lib/notes/search";
 import { getNoteUpdatedAt } from "@/lib/notes/store";
+import { getTags } from "@/lib/notes/tags";
 import { getServerDB } from "@/lib/server-db";
 import type { NoteSearchResult } from "@/types";
 
@@ -42,6 +43,7 @@ export async function GET(request: Request) {
         snippet: r.snippet,
         updatedAt: getNoteUpdatedAt(prefix, relativePath) ?? r.rank,
         rank: r.rank,
+        tags: getTags(prefix, relativePath),
       };
     });
 

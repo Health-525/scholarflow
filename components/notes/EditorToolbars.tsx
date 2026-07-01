@@ -11,7 +11,7 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 
-import { CommonToolbar } from "./EditorToolbar";
+import { BubbleToolbarButtons, CommonToolbar } from "./EditorToolbar";
 import { ToolbarButton, ToolbarGroup, ToolbarDivider } from "./Toolbar";
 
 interface SharedProps {
@@ -74,10 +74,10 @@ function ActionGroup({ viewMode, onViewModeChange, onDelete, pinned, onTogglePin
   );
 }
 
-export function BubbleToolbar({ editor, onInsertImage }: { editor: Editor; onInsertImage: () => void }) {
+export function BubbleToolbar({ editor }: { editor: Editor }) {
   return (
     <BubbleMenu editor={editor} className="hidden md:flex items-center gap-0.5 bg-background border border-border shadow-lg rounded-xl px-1 py-1">
-      <CommonToolbar editor={editor} onInsertImage={onInsertImage} />
+      <BubbleToolbarButtons editor={editor} />
     </BubbleMenu>
   );
 }

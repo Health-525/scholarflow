@@ -71,6 +71,7 @@ export interface NoteSearchResult {
   snippet: string;
   updatedAt: number;
   rank: number;
+  tags?: string[];
 }
 
 export interface NoteHistoryEntry {

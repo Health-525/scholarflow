@@ -180,15 +180,29 @@ function NoteTreeItem({
       onKeyDown={handleKeyDown}
       title={node.name}
       className={cn(
-        "w-full flex items-center gap-2.5 px-2 py-1.5 text-sm rounded-md transition-colors text-left border-l-4",
+        "w-full flex flex-col gap-1 px-2 py-1.5 text-sm rounded-md transition-colors text-left border-l-4",
         isSelected
           ? "bg-notes-active-bg text-primary font-medium border-l-primary"
           : "text-foreground/70 hover:bg-sidebar-accent hover:text-foreground border-l-transparent"
       )}
     >
-      <FileText className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-      <span className="truncate flex-1">{node.name.replace(/\.md$/i, "")}</span>
-      {node.pinned && <Pin className="w-3 h-3 shrink-0 text-amber-500/70" />}
+      <span className="flex items-center gap-2.5 w-full">
+        <FileText className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+        <span className="truncate flex-1">{node.name.replace(/\.md$/i, "")}</span>
+        {node.pinned && <Pin className="w-3 h-3 shrink-0 text-amber-500/70" />}
+      </span>
+      {node.tags && node.tags.length > 0 && (
+        <span className="flex items-center gap-1 ml-6">
+          {node.tags.slice(0, 3).map((tag) => (
+            <span key={tag} className="inline-block px-1.5 py-0.5 text-xs rounded bg-primary/10 text-primary truncate max-w-20">
+              {tag}
+            </span>
+          ))}
+          {node.tags.length > 3 && (
+            <span className="text-xs text-muted-foreground/60">+{node.tags.length - 3}</span>
+          )}
+        </span>
+      )}
     </button>
   );
 }
