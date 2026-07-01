@@ -55,18 +55,12 @@ interface AuthState {
   isAuthenticated: boolean;
   /** 用户 ID (学号) */
   userId: string | null;
-  /** 用户名（兼容旧代码） */
-  username: string | null;
-  /** 旧 token 字段（兼容旧代码，现在为空） */
-  token: string | null;
   /** persist 已完成 rehydrate */
   _hasHydrated: boolean;
   /** 设置认证信息 */
   setAuth: (schoolId: string, userId: string) => void;
-  /** 清除认证信息（兼容旧代码的 clearToken） */
+  /** 清除认证信息 */
   clearAuth: () => void;
-  /** 清除 token（别名 clearAuth） */
-  clearToken: () => void;
   /** 内部使用：标记 rehydrate 完成 */
   setHasHydrated: (value: boolean) => void;
 }
@@ -77,20 +71,14 @@ export const useAuthStore = create<AuthState>()(
       schoolId: null,
       isAuthenticated: false,
       userId: null,
-      username: null,
-      token: null,
       _hasHydrated: false,
 
       setAuth: (schoolId: string, userId: string) => {
-        set({ schoolId, userId, username: userId, isAuthenticated: true });
+        set({ schoolId, userId, isAuthenticated: true });
       },
 
       clearAuth: () => {
-        set({ schoolId: null, userId: null, username: null, isAuthenticated: false, token: null });
-      },
-
-      clearToken: () => {
-        set({ schoolId: null, userId: null, username: null, isAuthenticated: false, token: null });
+        set({ schoolId: null, userId: null, isAuthenticated: false });
       },
 
       setHasHydrated: (value: boolean) => {
@@ -103,7 +91,6 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         schoolId: state.schoolId,
         userId: state.userId,
-        username: state.username,
         isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {

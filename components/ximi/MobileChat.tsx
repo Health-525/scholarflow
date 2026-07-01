@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { CatAvatar } from "@/components/ximi/CatAvatar";
 import { Mascot } from "@/components/ximi/Mascot";
 import { useChat } from "@/hooks/useChat";
 
@@ -48,15 +49,6 @@ const QUICK_ACTIONS: {
     tint: "bg-surface-container-highest text-on-surface-variant border-outline-variant/50",
   },
 ];
-
-/** 小咪头像 — 玻璃边框圆形,放在助手气泡左侧 */
-function CatAvatar() {
-  return (
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center self-end overflow-hidden rounded-full border-2 border-white bg-surface-container shadow-sm">
-      <Mascot size="xs" eager className="!drop-shadow-none" />
-    </span>
-  );
-}
 
 /**
  * 移动端萌系 AI 助手 — 高保真还原「小咪」mockup_3:
@@ -176,7 +168,7 @@ export function MobileChat() {
         {isEmpty ? (
           /* 空状态:问候气泡 + 快捷动作网格 */
           <div className="flex max-w-[88%] gap-2">
-            <CatAvatar />
+            <CatAvatar variant="mobile" />
             <div className="min-w-0 rounded-2xl rounded-bl-sm border-[1.5px] border-white/50 bg-surface-container-lowest p-4 text-on-surface shadow-ximi">
               <p className="text-base leading-relaxed">{GREETING}</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
@@ -210,7 +202,7 @@ export function MobileChat() {
                 </div>
               ) : (
                 <div key={msg.id} className="flex max-w-[88%] gap-2">
-                  <CatAvatar />
+                  <CatAvatar variant="mobile" />
                   <div className="min-w-0 rounded-2xl rounded-bl-sm border-[1.5px] border-white/50 bg-surface-container-lowest px-4 py-3 text-on-surface shadow-ximi">
                     <p className="whitespace-pre-wrap break-words text-base leading-relaxed">
                       {msg.content}
@@ -223,7 +215,7 @@ export function MobileChat() {
             {/* 流式回复 */}
             {loading && streamingContent && (
               <div className="flex max-w-[88%] gap-2">
-                <CatAvatar />
+                <CatAvatar variant="mobile" />
                 <div className="min-w-0 rounded-2xl rounded-bl-sm border-[1.5px] border-white/50 bg-surface-container-lowest px-4 py-3 text-on-surface shadow-ximi">
                   <p className="whitespace-pre-wrap break-words text-base leading-relaxed">
                     {streamingContent}
@@ -236,7 +228,7 @@ export function MobileChat() {
             {/* 三点输入指示(暂无内容) */}
             {loading && !streamingContent && (
               <div className="flex max-w-[88%] gap-2">
-                <CatAvatar />
+                <CatAvatar variant="mobile" />
                 <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm border-[1.5px] border-white/50 bg-surface-container-lowest px-4 py-3.5 shadow-ximi">
                   <span className="h-2 w-2 animate-bounce rounded-full bg-primary/40" />
                   <span className="h-2 w-2 animate-bounce rounded-full bg-primary/60 delay-200" />

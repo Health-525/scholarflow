@@ -164,7 +164,7 @@ export function Sidebar({
       <div className="space-y-2">
         {pinnedNodes.length > 0 && (
           <div>
-            <div className="px-2 py-1 text-[11px] font-medium text-notes-tertiary uppercase tracking-wider">
+            <div className="px-2 py-1 text-xs font-medium text-muted-foreground/60">
               已固定
             </div>
             <NoteTree
@@ -232,7 +232,7 @@ export function Sidebar({
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Escape") { setSearchQuery(""); clear(); } }}
               placeholder="搜索笔记…"
-              className="w-full h-8 pl-7 pr-6 text-xs bg-white rounded-md border border-border transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-notes-tertiary"
+              className="w-full h-8 pl-7 pr-6 text-xs bg-background rounded-md border border-border transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-muted-foreground/50"
             />
             {searchQuery && (
               <button

@@ -226,7 +226,11 @@ export function useAssignmentsQuery() {
   /** 优先读 React Query 缓存；若缓存未加载，回退到本地持久化数据，避免空缓存覆盖。 */
   const getCurrentAssignments = async (): Promise<Assignment[]> => {
     const cached = queryClient.getQueryData<Assignment[]>(assignmentsKey);
-    if (cached !== undefined) return cached;
+    // cached === undefined → 缓存未初始化，回退到磁盘
+    // cached === null     → 非标准但防御性处理，同样回退到磁盘
+    // cached === []       → 有效空数组（作业确实为空），直接返回，不调用磁盘
+    // cached 为非空数组   → 直接返回缓存
+    if (cached !== undefined && cached !== null) return cached;
     const local = await tryLocalApi("assignments");
     return parseLocalAssignments(local) ?? [];
   };

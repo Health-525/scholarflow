@@ -105,7 +105,7 @@ function SettingRow({
             const n = parseInt(raw, 10);
             if (!isNaN(n)) onChange(Math.max(min, Math.min(max, n)));
           }}
-          className="w-16 h-8 text-center text-sm tabular-nums focus:border-[#3370FF] focus:ring-1 focus:ring-[#3370FF]/20"
+          className="w-16 h-8 text-center text-sm tabular-nums"
         />
         <span className="text-xs text-muted-foreground">分钟</span>
       </div>
@@ -379,13 +379,13 @@ function PomodoroTimerInner({
             key={i}
             className={`w-3 h-3 rounded-full transition-all duration-200 ${
               i < state.completedFocus % state.settings.longBreakInterval
-                ? "bg-[#3370FF] shadow-[0_0_6px_rgba(51,112,255,0.3)]"
+                ? "bg-primary shadow-[0_0_6px_rgba(51,112,255,0.3)]"
                 : i ===
                       state.completedFocus %
                         state.settings.longBreakInterval &&
                     state.phase === "focus"
-                  ? "bg-[#3370FF]/30 ring-2 ring-[#3370FF] ring-offset-2 ring-offset-background"
-                  : "bg-[#E5E6EB] dark:bg-[#3A3A3D]"
+                  ? "bg-primary/30 ring-2 ring-primary ring-offset-2 ring-offset-background"
+                  : "bg-muted"
             }`}
           />
         ))}

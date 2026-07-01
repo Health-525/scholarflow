@@ -4,10 +4,10 @@ export function getCurrentAuth() {
   if (typeof window === "undefined") {
     return { schoolId: null as string | null, userId: null as string | null };
   }
-  const { schoolId, userId, username } = useAuthStore.getState();
+  const { schoolId, userId } = useAuthStore.getState();
   return {
     schoolId,
-    userId: userId || username || null,
+    userId: userId || null,
   };
 }
 

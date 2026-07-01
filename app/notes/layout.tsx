@@ -1,66 +1,33 @@
 export default function NotesLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className="notes-flybook h-full"
-      style={{
-        // ── shadcn/ui tokens (scoped to /notes) ──
-        "--primary": "#3370FF",
-        "--primary-foreground": "#FFFFFF",
-        "--primary-rgb": "51, 112, 255",
-        "--background": "#FFFFFF",
-        "--foreground": "#1F2329",
-        "--card": "#FFFFFF",
-        "--card-foreground": "#1F2329",
-        "--muted": "#F5F6F7",
-        "--muted-foreground": "#646A73",
-        "--border": "#E5E6EB",
-        "--input": "#E5E6EB",
-        "--ring": "#3370FF",
-        "--radius": "0.5rem",
-        "--secondary": "#F5F6F7",
-        "--secondary-foreground": "#1F2329",
-        "--destructive": "#F54A45",
-        "--destructive-foreground": "#FFFFFF",
-        "--accent": "#3370FF",
-        "--accent-foreground": "#FFFFFF",
-        "--accent-soft": "rgba(51, 112, 255, 0.1)",
-        "--accent-softer": "rgba(51, 112, 255, 0.06)",
-        // ── sidebar overrides ──
-        "--sidebar": "#F5F6F7",
-        "--sidebar-foreground": "#1F2329",
-        "--sidebar-primary": "#3370FF",
-        "--sidebar-primary-foreground": "#FFFFFF",
-        "--sidebar-accent": "#F0F5FF",
-        "--sidebar-accent-foreground": "#1F2329",
-        "--sidebar-border": "#E5E6EB",
-        "--sidebar-ring": "#3370FF",
-        // ── notes-specific ──
-        "--notes-active-bg": "#E8F0FE",
-        "--notes-active-text": "#3370FF",
-        "--notes-hover-bg": "var(--sidebar-accent)",
-        "--notes-tertiary": "#8F959E",
-        "--notes-placeholder": "#C9CDD4",
-        "--notes-pin": "#F5A623",
-        "--notes-primary-hover": "#2860DF",
-        // ── shadows ──
-        "--shadow-xs": "0 1px 2px rgba(0,0,0,0.04)",
-        "--shadow-sm": "0 2px 8px rgba(0,0,0,0.06)",
-        "--shadow-md": "0 4px 12px rgba(0,0,0,0.08)",
-      } as React.CSSProperties}
-    >
+    <div className="notes-flybook h-full">
       <style>{`
-        .search-snippet mark {
-          background: rgba(51, 112, 255, 0.15);
-          color: #3370FF;
+        /* ── 笔记模块作用域变量（跟随全局主题，不再硬编码飞书蓝） ── */
+        .notes-flybook {
+          /* notes-specific 语义色，直接复用全局 token，自动跟随亮/暗主题 */
+          --notes-active-bg: var(--sidebar-accent);
+          --notes-active-text: var(--primary);
+          --notes-hover-bg: var(--sidebar-accent);
+          --notes-tertiary: var(--muted-foreground);
+          --notes-placeholder: color-mix(in srgb, var(--muted-foreground) 50%, transparent);
+          --notes-pin: #F5A623;
+          --notes-primary-hover: color-mix(in srgb, var(--primary) 85%, black);
+        }
+
+        /* 搜索结果高亮 — 跟随主题色 */
+        .notes-flybook .search-snippet mark {
+          background: color-mix(in srgb, var(--primary) 15%, transparent);
+          color: var(--primary);
           font-weight: 600;
           border-radius: 2px;
           padding: 0 1px;
         }
+
         @keyframes slide-down {
           from { opacity: 0; transform: translateY(-6px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .animate-slide-down {
+        .notes-flybook .animate-slide-down {
           animation: slide-down 0.2s ease-out;
         }
       `}</style>

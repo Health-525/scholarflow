@@ -1,8 +1,7 @@
 "use client";
 
-import { Clock, Plus, Timer } from "lucide-react";
+import { ChevronRight, Clock, Plus, Timer } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 import { ExamCountdownCard } from "@/components/dashboard/ExamCountdownCard";
 import { JwcNewsCard } from "@/components/dashboard/JwcNewsCard";
@@ -11,6 +10,8 @@ import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
 import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
 import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
 import { Mascot } from "@/components/ximi/Mascot";
+import { useGreeting } from "@/hooks/useGreeting";
+import { useIsClient } from "@/hooks/useIsClient";
 import { useAssignmentsQuery } from "@/hooks/useQueries";
 import { classifyUrgency } from "@/lib/assignment-utils";
 import { useDashboardSummary } from "@/lib/dashboard/use-dashboard-summary";
@@ -27,23 +28,11 @@ function chipClass(s: string) {
   return CHIP[h % CHIP.length];
 }
 
-function useGreetingText() {
-  const [g, setG] = useState("你好");
-  useEffect(() => {
-    const h = new Date().getHours();
-    setG(
-      h < 6 ? "夜深了" : h < 9 ? "早安" : h < 12 ? "上午好" :
-      h < 14 ? "中午好" : h < 18 ? "下午好" : h < 22 ? "晚上好" : "夜深了",
-    );
-  }, []);
-  return g;
-}
-
 function TodayTasks() {
   const { assignments, isLoading, error, reload } = useAssignmentsQuery();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
-  const pending = assignments.filter((a) => !a.done).slice(0, 4);
+  const isClient = useIsClient();
+  const allPending = assignments.filter((a) => !a.done);
+  const pending = allPending.slice(0, 4);
 
   return (
     <section className="relative w-full overflow-hidden rounded-3xl bg-surface-container-lowest p-5 shadow-sm">
@@ -60,22 +49,22 @@ function TodayTasks() {
       </div>
 
       <div className="relative z-10 flex flex-col gap-3">
-        {(!mounted || isLoading) && [1, 2].map((i) => <div key={i} className="skeleton h-16 rounded-3xl" />)}
+        {(!isClient || isLoading) && [1, 2].map((i) => <div key={i} className="skeleton h-16 rounded-3xl" />)}
 
-        {mounted && error && !isLoading && (
+        {isClient && error && !isLoading && (
           <button onClick={reload} className="rounded-3xl bg-surface px-4 py-5 text-sm text-on-surface-variant">
             加载失败,点击重试
           </button>
         )}
 
-        {mounted && !isLoading && !error && pending.length === 0 && (
+        {isClient && !isLoading && !error && pending.length === 0 && (
           <div className="flex flex-col items-center gap-2 py-6">
             <Mascot size="md" />
             <p className="text-sm text-on-surface-variant">今天没有作业啦，和小咪一起放松吧~</p>
           </div>
         )}
 
-        {mounted && !isLoading && !error && pending.map((a) => {
+        {isClient && !isLoading && !error && pending.map((a) => {
           const urgency = classifyUrgency(a.deadline, new Date());
           const diff = Math.ceil((new Date(a.deadline).getTime() - Date.now()) / 86400000);
           const danger = urgency === "overdue" || urgency === "urgent";
@@ -102,6 +91,16 @@ function TodayTasks() {
             </div>
           );
         })}
+
+        {isClient && !isLoading && !error && allPending.length > 4 && (
+          <Link
+            href="/assignments"
+            className="mt-1 flex items-center justify-center gap-1 rounded-2xl px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+          >
+            还有 {allPending.length - 4} 项待办
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        )}
       </div>
     </section>
   );
@@ -112,7 +111,7 @@ function TodayTasks() {
  * 下方复用既有看板卡片(主题自动萌化)。仅移动端显示,桌面保持原版。
  */
 export function MobileHome() {
-  const greeting = useGreetingText();
+  const { text: greeting } = useGreeting();
   const { data: dashboardData, loading: dashboardLoading } =
     useDashboardSummary();
 
@@ -120,7 +119,6 @@ export function MobileHome() {
     <div className="mx-auto flex max-w-md flex-col gap-7 pb-4 pt-4 md:hidden">
       {/* Hero：小咪 */}
       <section className="relative flex flex-col items-center">
-        <div className="absolute left-1/2 top-12 -z-10 h-40 w-40 -translate-x-1/2 rounded-full bg-primary-container/25 blur-2xl" />
         <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-surface-container-lowest shadow-sm">
           <Mascot size="lg" eager className="!drop-shadow-none" />
         </div>

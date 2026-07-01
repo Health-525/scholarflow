@@ -155,7 +155,7 @@ function NoteTreeItem({
           )}
           <span className="truncate">{node.name}</span>
           {node.children && node.children.length > 0 && (
-            <span className="ml-auto bg-border text-notes-tertiary rounded-full px-1.5 py-0 text-[10px] leading-none shrink-0">
+            <span className="ml-auto bg-border text-muted-foreground/60 rounded-full px-1.5 py-0 text-xs leading-none shrink-0 scale-90 inline-block">
               {countFiles(node.children)}
             </span>
           )}

@@ -63,7 +63,9 @@
 .animate-fade-up { animation: fadeSlideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-fade-in { animation: fadeIn 0.3s ease both; }
 .animate-breathe { animation: breathe 2.2s ease-in-out infinite; transform-origin: left center; }
-.animate-pulse { animation: pulseGlow 2s ease-in-out infinite; }
+/* NOTE: .animate-pulse intentionally NOT overridden here — Tailwind's built-in animate-pulse (opacity) is kept intact.
+   Use .animate-pulse-glow for the box-shadow pulse effect instead. */
+.animate-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
 .animate-count { animation: countUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-confetti { animation: confettiFall 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
 .animate-pulse-subtle { animation: pulseSubtle 2s ease-in-out infinite; }

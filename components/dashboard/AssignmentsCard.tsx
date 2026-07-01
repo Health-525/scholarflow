@@ -2,11 +2,12 @@
 
 import { ClipboardList } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect, memo } from "react";
+import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
+import { useIsClient } from "@/hooks/useIsClient";
 import { useAssignmentsQuery } from "@/hooks/useQueries";
 import { classifyUrgency } from "@/lib/assignment-utils";
 
@@ -44,11 +45,7 @@ const URGENCY_CONFIG = {
 export const AssignmentsCard = memo(function AssignmentsCard() {
   const { assignments, isLoading, error, reload } = useAssignmentsQuery();
   const pending = assignments.filter((a) => !a.done).slice(0, 5);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const isClient = useIsClient();
 
   return (
     <Card className="h-full flex flex-col">
@@ -61,7 +58,7 @@ export const AssignmentsCard = memo(function AssignmentsCard() {
             <h2 className="text-sm font-semibold font-display text-foreground">
               待办作业
             </h2>
-            {mounted && !isLoading && pending.length > 0 && (
+            {isClient && !isLoading && pending.length > 0 && (
               <Badge variant="secondary" className="text-xs h-4 px-1 bg-statusWarning/10 text-statusWarning hover:bg-statusWarning/10">
                 {pending.length}
               </Badge>

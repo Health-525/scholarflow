@@ -48,7 +48,8 @@ export default function SettingsPage() {
   const router = useRouter();
   const isMobile = useIsMobile();
   const { theme, setTheme } = useThemeStore();
-  const { schoolId, userId, username, clearToken } = useAuthStore((s) => s);
+  const { schoolId, userId, clearAuth: clearToken } = useAuthStore((s) => s);
+  const username = userId; // userId 即学号，原 username 字段已移除
   const { data: scheduleData } = useScheduleQuery();
   const { assignments } = useAssignmentsQuery();
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
@@ -239,7 +240,7 @@ export default function SettingsPage() {
 
       <AiConfigSection />
 
-      {isMobile && (
+      {isMobile ? (
         <SettingsSection icon={<Palette className="w-4 h-4" />} title="配色">
           <div className="mb-2">
             <span className="text-xs text-muted-foreground/70">
@@ -253,7 +254,7 @@ export default function SettingsPage() {
                 onClick={() => changeSkin(opt.value)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                   skin === opt.value
-                    ? "bg-white text-[#3370FF] shadow-sm"
+                    ? "bg-white text-primary shadow-sm"
                     : "text-muted-foreground"
                 }`}
                 aria-pressed={skin === opt.value}
@@ -266,6 +267,12 @@ export default function SettingsPage() {
               </button>
             ))}
           </div>
+        </SettingsSection>
+      ) : (
+        <SettingsSection icon={<Palette className="w-4 h-4" />} title="配色">
+          <p className="text-xs text-muted-foreground">
+            皮肤选项仅在移动端生效，请在手机端 ScholarFlow 中切换配色。
+          </p>
         </SettingsSection>
       )}
 

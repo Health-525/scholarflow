@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, RefreshCw, X } from "lucide-react";
+import { Clock, RefreshCw } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -42,10 +42,8 @@ export default function ExamsPage() {
   const [showCompleted, setShowCompleted] = useState(false);
   const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("all");
   const autoImportedRef = useRef(false);
-  const pendingDeleteRef = useRef<{
-    exam: Exam;
-    timer: ReturnType<typeof setTimeout>;
-  } | null>(null);
+  const rollbackMap = useRef<Map<string, Exam[]>>(new Map());
+  const pendingDeleteMap = useRef<Map<string, { exam: Exam; timer: ReturnType<typeof setTimeout> }>>(new Map());
 
   const { data: scheduleData } = useScheduleQuery();
   const schedule = scheduleData?.schedule;
@@ -59,8 +57,6 @@ export default function ExamsPage() {
   }, [schedule]);
 
   // ── 数据加载 ─────────────────────────────────────────────
-
-  const rollbackRef = useRef<Exam[] | null>(null);
 
   const refresh = useCallback(async () => {
     const data = await fetchExams(schoolId, userId);
@@ -96,12 +92,13 @@ export default function ExamsPage() {
 
   // 卸载时落盘待删除缓冲
   useEffect(() => {
+    const pendingMap = pendingDeleteMap.current;
     return () => {
-      if (pendingDeleteRef.current) {
-        clearTimeout(pendingDeleteRef.current.timer);
-        deleteExam(pendingDeleteRef.current.exam.id, schoolId, userId);
-        pendingDeleteRef.current = null;
-      }
+      pendingMap.forEach(({ exam, timer }) => {
+        clearTimeout(timer);
+        deleteExam(exam.id, schoolId, userId).catch(() => {});
+      });
+      pendingMap.clear();
     };
   }, [schoolId, userId]);
 
@@ -114,8 +111,9 @@ export default function ExamsPage() {
       source: "manual",
       status: "upcoming",
     };
+    let snapshot: Exam[] | null = null;
     setExams((prev) => {
-      rollbackRef.current = prev;
+      snapshot = prev;
       return [...prev, optimistic].sort((a, b) =>
         a.date.localeCompare(b.date)
       );
@@ -127,16 +125,17 @@ export default function ExamsPage() {
       );
       showToast("success", "已添加考试");
     } catch (err) {
-      setExams(rollbackRef.current ?? []);
+      if (snapshot) setExams(snapshot);
       showToast("error", err instanceof Error ? err.message : "添加考试失败");
     } finally {
-      rollbackRef.current = null;
+      snapshot = null;
     }
   };
 
   const handleComplete = async (id: string) => {
+    let snapshot: Exam[] | null = null;
     setExams((prev) => {
-      rollbackRef.current = prev;
+      snapshot = prev;
       return prev.map((e) =>
         e.id === id
           ? { ...e, status: "completed" as const, completedAt: Date.now() }
@@ -146,16 +145,17 @@ export default function ExamsPage() {
     try {
       await patchExam(id, "completed", schoolId, userId);
     } catch (err) {
-      if (rollbackRef.current) setExams(rollbackRef.current);
+      if (snapshot) setExams(snapshot);
       showToast("error", err instanceof Error ? err.message : "标记完成失败");
     } finally {
-      rollbackRef.current = null;
+      snapshot = null;
     }
   };
 
   const handleUncomplete = async (id: string) => {
+    let snapshot: Exam[] | null = null;
     setExams((prev) => {
-      rollbackRef.current = prev;
+      snapshot = prev;
       return prev.map((e) =>
         e.id === id
           ? { ...e, status: "upcoming" as const, completedAt: undefined }
@@ -165,10 +165,10 @@ export default function ExamsPage() {
     try {
       await patchExam(id, "upcoming", schoolId, userId);
     } catch (err) {
-      if (rollbackRef.current) setExams(rollbackRef.current);
+      if (snapshot) setExams(snapshot);
       showToast("error", err instanceof Error ? err.message : "撤销完成失败");
     } finally {
-      rollbackRef.current = null;
+      snapshot = null;
     }
   };
 
@@ -177,32 +177,40 @@ export default function ExamsPage() {
     if (!target) return;
 
     if (target.source === "manual") {
+      const opId = crypto.randomUUID();
+
+      // 先获取当前 exams 快照再做乐观更新
+      let currentExams: Exam[] = [];
       setExams((prev) => {
-        rollbackRef.current = prev;
+        currentExams = prev;
         return prev.filter((e) => e.id !== id);
       });
+      rollbackMap.current.set(opId, currentExams);
 
-      if (pendingDeleteRef.current) {
-        clearTimeout(pendingDeleteRef.current.timer);
-        deleteExam(
-          pendingDeleteRef.current.exam.id,
-          schoolId,
-          userId
-        ).catch(() => {});
+      // 立即 flush 所有现存 pending deletes
+      if (pendingDeleteMap.current.size > 0) {
+        const flushEntries = Array.from(pendingDeleteMap.current.entries());
+        pendingDeleteMap.current.clear();
+        for (const [, { exam, timer }] of flushEntries) {
+          clearTimeout(timer);
+          await deleteExam(exam.id, schoolId, userId).catch(() => {
+            showToast("error", `删除「${exam.subject}」失败，请稍后重试`);
+          });
+        }
       }
 
       const timer = setTimeout(() => {
         deleteExam(target.id, schoolId, userId).catch((err) => {
-          if (rollbackRef.current) setExams(rollbackRef.current);
           showToast(
             "error",
-            err instanceof Error ? err.message : "删除考试失败"
+            err instanceof Error ? err.message : `删除「${target.subject}」失败，请稍后重试`
           );
         });
-        pendingDeleteRef.current = null;
+        pendingDeleteMap.current.delete(opId);
+        rollbackMap.current.delete(opId);
       }, 5000);
 
-      pendingDeleteRef.current = { exam: target, timer };
+      pendingDeleteMap.current.set(opId, { exam: target, timer });
 
       showToast(
         "success",
@@ -211,14 +219,21 @@ export default function ExamsPage() {
         {
           label: "撤销",
           onClick: () => {
-            if (pendingDeleteRef.current?.exam.id === target.id) {
-              clearTimeout(pendingDeleteRef.current.timer);
-              pendingDeleteRef.current = null;
-              setExams((prev) =>
-                [...prev, target].sort((a, b) =>
-                  a.date.localeCompare(b.date)
-                )
-              );
+            if (pendingDeleteMap.current.has(opId)) {
+              const entry = pendingDeleteMap.current.get(opId)!;
+              clearTimeout(entry.timer);
+              pendingDeleteMap.current.delete(opId);
+              const rollback = rollbackMap.current.get(opId);
+              if (rollback) {
+                setExams(rollback);
+              } else {
+                setExams((prev) =>
+                  [...prev, target].sort((a, b) =>
+                    a.date.localeCompare(b.date)
+                  )
+                );
+              }
+              rollbackMap.current.delete(opId);
             }
           },
         }
@@ -226,9 +241,10 @@ export default function ExamsPage() {
       return;
     }
 
-    // 教务考试：标记 deleted
+    // 教务考试：标记 deleted，使用局部 snapshot
+    let snapshot: Exam[] | null = null;
     setExams((prev) => {
-      rollbackRef.current = prev;
+      snapshot = prev;
       return prev.map((e) =>
         e.id === id ? { ...e, status: "deleted" as const } : e
       );
@@ -236,10 +252,10 @@ export default function ExamsPage() {
     try {
       await deleteExam(id, schoolId, userId);
     } catch (err) {
-      if (rollbackRef.current) setExams(rollbackRef.current);
+      if (snapshot) setExams(snapshot);
       showToast("error", err instanceof Error ? err.message : "删除考试失败");
     } finally {
-      rollbackRef.current = null;
+      snapshot = null;
     }
   };
 
@@ -324,26 +340,6 @@ export default function ExamsPage() {
 
         {!loading && visible.length > 0 && (
           <ExamStats exams={exams} filter={filter} onFilter={setFilter} />
-        )}
-
-        {/* 筛选状态 */}
-        {!loading && filter !== "all" && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 text-sm">
-            <span className="text-muted-foreground text-xs">当前筛选：</span>
-            <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium bg-[#3370FF] text-white shadow-sm transition-all duration-200">
-              {filter === "upcoming" ? "待考" : "已完成"}
-              <button
-                onClick={() => setFilter("all")}
-                className="ml-0.5 hover:text-white/70 transition-colors"
-                aria-label="清除筛选"
-              >
-                <X size={12} />
-              </button>
-            </span>
-            <span className="text-muted-foreground text-xs ml-auto">
-              {filter === "upcoming" ? upcoming.length : completed.length} 场考试
-            </span>
-          </div>
         )}
 
         {/* 待考列表 */}

@@ -13,7 +13,7 @@ import {
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Mascot } from "@/components/ximi/Mascot";
+import { CatAvatar } from "@/components/ximi/CatAvatar";
 import { MobileChat } from "@/components/ximi/MobileChat";
 import { useChat } from "@/hooks/useChat";
 
@@ -29,14 +29,6 @@ const QUICK_ACTIONS: {
   { label: "检查课后作业", prompt: "帮我检查课后作业", icon: ClipboardCheck },
   { label: "帮我写论文大纲", prompt: "帮我写一份论文大纲", icon: Lightbulb },
 ];
-
-function CatAvatar() {
-  return (
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center self-end overflow-hidden rounded-full border-2 border-border bg-secondary">
-      <Mascot size="xs" eager className="!drop-shadow-none" />
-    </span>
-  );
-}
 
 function DesktopChat() {
   const {
@@ -130,7 +122,7 @@ function DesktopChat() {
                       setInput(prompt);
                       inputRef.current?.focus();
                     }}
-                    className="flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium hover:bg-[#F0F5FF] hover:text-[#3370FF] transition-colors"
+                    className="flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium hover:bg-primary/10 hover:text-primary transition-colors"
                   >
                     <Icon className="w-4 h-4 shrink-0 text-primary" />
                     {label}

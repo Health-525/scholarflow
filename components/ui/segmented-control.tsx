@@ -51,7 +51,7 @@ export function SegmentedControl({
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 py-2.5 h-auto rounded-lg text-xs font-medium transition-colors duration-200",
               selected
-                ? "bg-[#3370FF] text-white hover:bg-[#3370FF]/90 hover:text-white"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
                 : "text-muted-foreground hover:bg-transparent hover:text-foreground",
             )}
           >

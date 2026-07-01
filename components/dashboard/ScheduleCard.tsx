@@ -2,12 +2,13 @@
 
 import { CalendarDays, Check, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect, memo } from "react";
+import { useState, memo } from "react";
 
 import { CountdownTimer } from "@/components/schedule/CountdownTimer";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
+import { useIsClient } from "@/hooks/useIsClient";
 import { useScheduleQuery } from "@/hooks/useQueries";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
 import { courseColor } from "@/lib/schedule/course-color";
@@ -18,12 +19,8 @@ export const ScheduleCard = memo(function ScheduleCard() {
   const { data, isLoading, error, refetch } = useScheduleQuery();
   const schedule = data?.schedule;
   const adjustments = data?.adjustments ?? [];
-  const [mounted, setMounted] = useState(false);
+  const isClient = useIsClient();
   const [expanded, setExpanded] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <Card className="h-full flex flex-col">
@@ -56,7 +53,7 @@ export const ScheduleCard = memo(function ScheduleCard() {
             <ErrorFallback message={error.message} onRetry={() => refetch()} />
           )}
 
-          {mounted &&
+          {isClient &&
             schedule &&
             !isLoading &&
             !error &&

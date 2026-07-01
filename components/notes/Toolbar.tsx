@@ -25,11 +25,11 @@ export function ToolbarButton({ active, onClick, icon: Icon, label, shortcut, va
         variant === "danger" && "text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
         variant === "gold" && cn(
           "text-muted-foreground hover:text-notes-pin hover:bg-notes-pin/10",
-          active && "text-notes-pin bg-notes-pin/10 shadow-[0_0_0_1px_rgba(245,166,35,0.2)]"
+          active && "text-notes-pin bg-notes-pin/10 ring-1 ring-notes-pin/20"
         ),
         variant === "default" && cn(
           "text-muted-foreground hover:bg-sidebar-accent hover:text-primary",
-          active && "bg-notes-active-bg text-primary shadow-[0_0_0_1px_rgba(51,112,255,0.15)]"
+          active && "bg-notes-active-bg text-primary ring-1 ring-primary/15"
         ),
       )}
     >

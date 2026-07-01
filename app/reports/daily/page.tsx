@@ -13,18 +13,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorFallback } from "@/components/ui/ErrorFallback";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { showToast } from "@/components/ui/ToastContainer";
 import { useDailyReport, useDailyReports } from "@/hooks/useReports";
 import { getAuthParams } from "@/lib/api/auth-params";
-import { parseISODate } from "@/lib/date-utils";
-
-function getTodayStr(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
+import { parseISODate, todayISO } from "@/lib/date-utils";
 
 function addDays(dateStr: string, days: number): string {
   const [y, m, d] = dateStr.split("-").map(Number);
@@ -47,6 +43,11 @@ function formatWeekday(dateStr: string): string {
   const date = new Date(y, m - 1, d);
   return date.toLocaleDateString("zh-CN", { weekday: "long" });
 }
+
+type ConfirmStateType =
+  | { type: "discard-edit"; pendingDate: string }
+  | { type: "overwrite-generate" }
+  | null;
 
 async function loadPomodoroSessions(): Promise<unknown> {
   if (typeof window === "undefined") return [];
@@ -76,7 +77,7 @@ export default function DailyReportsPage() {
 
   const initialDate = useMemo(() => {
     const fromUrl = searchParams?.get("date");
-    return fromUrl && parseISODate(fromUrl) ? fromUrl : getTodayStr();
+    return fromUrl && parseISODate(fromUrl) ? fromUrl : todayISO();
   }, [searchParams]);
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
@@ -84,6 +85,7 @@ export default function DailyReportsPage() {
   const [isDirty, setIsDirty] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [confirmState, setConfirmState] = useState<ConfirmStateType>(null);
 
   const { entries, isLoading: listLoading, error: listError, reload: reloadList } = useDailyReports();
   const { content, isLoading: contentLoading, error: contentError, reload: reloadContent } = useDailyReport(selectedDate);
@@ -93,36 +95,28 @@ export default function DailyReportsPage() {
   }, [entries]);
 
   const hasReport = datesWithReport.has(selectedDate);
-  const todayStr = useMemo(() => getTodayStr(), []);
+  const todayStr = useMemo(() => todayISO(), []);
   const isToday = selectedDate === todayStr;
 
-  const confirmIfDirty = (action: () => void) => {
-    if (isDirty) {
-      // eslint-disable-next-line no-alert
-      const ok = window.confirm("当前日报有未保存的修改，确定要放弃吗？");
-      if (!ok) return;
-    }
-    action();
-  };
-
   const handleSelectDate = (date: string) => {
-    confirmIfDirty(() => {
-      setSelectedDate(date);
-      setIsEditing(false);
-      setIsDirty(false);
-      if (typeof window !== "undefined") {
-        const url = new URL(window.location.href);
-        url.searchParams.set("date", date);
-        window.history.replaceState(null, "", url.toString());
-      }
-    });
+    if (isDirty) {
+      setConfirmState({ type: "discard-edit", pendingDate: date });
+      return;
+    }
+    setSelectedDate(date);
+    setIsEditing(false);
+    setIsDirty(false);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("date", date);
+      window.history.replaceState(null, "", url.toString());
+    }
   };
 
   const handleGenerate = async () => {
     if (isDirty) {
-      // eslint-disable-next-line no-alert
-      const ok = window.confirm("当前日报有未保存的修改，生成日报会覆盖它，是否继续？");
-      if (!ok) return;
+      setConfirmState({ type: "overwrite-generate" });
+      return;
     }
     setGenerating(true);
     try {
@@ -159,6 +153,25 @@ export default function DailyReportsPage() {
     reloadContent();
     setIsEditing(false);
     setIsDirty(false);
+  };
+
+  const handleConfirmDialogConfirm = async () => {
+    if (!confirmState) return;
+    if (confirmState.type === "discard-edit") {
+      const newDate = confirmState.pendingDate;
+      setConfirmState(null);
+      setSelectedDate(newDate);
+      setIsEditing(false);
+      setIsDirty(false);
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        url.searchParams.set("date", newDate);
+        window.history.replaceState(null, "", url.toString());
+      }
+    } else if (confirmState.type === "overwrite-generate") {
+      setConfirmState(null);
+      await handleGenerate();
+    }
   };
 
   const selectedDateObj = useMemo(() => {
@@ -329,6 +342,25 @@ export default function DailyReportsPage() {
           <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
+      <ConfirmDialog
+        open={confirmState !== null}
+        onOpenChange={(open) => { if (!open) setConfirmState(null); }}
+        title={
+          confirmState?.type === "discard-edit"
+            ? "放弃未保存的修改？"
+            : "覆盖未保存的内容？"
+        }
+        description={
+          confirmState?.type === "discard-edit"
+            ? "当前日报有未保存的修改，确定要切换日期吗？"
+            : "当前日报有未保存的修改，生成日报会覆盖它，是否继续？"
+        }
+        confirmText={
+          confirmState?.type === "discard-edit" ? "放弃修改" : "生成并覆盖"
+        }
+        danger={true}
+        onConfirm={handleConfirmDialogConfirm}
+      />
     </div>
   );
 }

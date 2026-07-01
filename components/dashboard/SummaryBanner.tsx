@@ -24,10 +24,20 @@ function AnimatedNumber({
       : Number.isInteger(value)
         ? 0
         : 2;
+  // 尊重系统无障碍动画设置：减少动态时直接显示最终值
+  const prefersReduced =
+    typeof window !== "undefined"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false;
 
   useEffect(() => {
     if (isNaN(numValue)) {
       setDisplay(0);
+      return;
+    }
+    if (prefersReduced) {
+      setDisplay(numValue);
+      prevRef.current = numValue;
       return;
     }
     const start = prevRef.current;
@@ -49,7 +59,7 @@ function AnimatedNumber({
       else prevRef.current = numValue;
     };
     requestAnimationFrame(animate);
-  }, [numValue, duration, decimals]);
+  }, [numValue, duration, decimals, prefersReduced]);
 
   if (typeof value === "string" && isNaN(numValue)) return <span>{value}</span>;
   return (
@@ -71,7 +81,7 @@ const StatMiniCard = memo(function StatMiniCard({
   colorClass: string;
 }) {
   return (
-    <div className={cn(cardClasses, "p-4 flex flex-row items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200")}>
+    <div className={cn(cardClasses, "p-4 flex flex-row items-center gap-3 transition-colors duration-200")}>
       <Icon className="size-5 shrink-0 text-muted-foreground" />
       <div className="min-w-0">
         <div className="text-xs text-muted-foreground font-medium">
@@ -101,7 +111,7 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
             key={i}
             className={cn(
               cardClasses,
-              "p-4 flex flex-row items-center gap-3 hover:translate-y-0 hover:shadow-sm",
+              "p-4 flex flex-row items-center gap-3",
             )}
           >
             <div className="skeleton size-5 shrink-0 rounded" />
@@ -137,7 +147,7 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
             key={i}
             className={cn(
               cardClasses,
-              "p-4 flex flex-row items-center gap-3 hover:translate-y-0 hover:shadow-sm",
+              "p-4 flex flex-row items-center gap-3",
             )}
           >
             <item.icon className="size-5 shrink-0 text-muted-foreground" />

@@ -128,11 +128,11 @@ export function TimelineBar({ segments, dateStr }: TimelineBarProps) {
         {mounted && now >= start && now <= end && (
           <>
             <div
-              className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-[#3370FF]/20 via-[#E5E6EB] to-transparent z-20"
+              className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-primary/20 via-border to-transparent z-20"
               style={{ left: `${((now - start) / (end - start)) * 100}%` }}
             />
             <div
-              className="absolute top-0 size-2 rounded-full bg-[#3370FF] ring-4 ring-[#3370FF]/20 z-30 -translate-x-1/2"
+              className="absolute top-0 size-2 rounded-full bg-primary ring-4 ring-primary/20 z-30 -translate-x-1/2"
               style={{ left: `${((now - start) / (end - start)) * 100}%` }}
             />
           </>

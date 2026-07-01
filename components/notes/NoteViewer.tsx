@@ -61,7 +61,7 @@ export function NoteViewer({ content, isMarkdown }: NoteViewerProps) {
 
   if (!isMarkdown) {
     return (
-      <pre className="text-xs leading-relaxed whitespace-pre-wrap break-words text-[#646A73] font-mono bg-muted/30 rounded-xl p-4">
+      <pre className="text-xs leading-relaxed whitespace-pre-wrap break-words text-muted-foreground font-mono bg-muted/30 rounded-xl p-4">
         {content}
       </pre>
     );
@@ -79,7 +79,7 @@ export function NoteViewer({ content, isMarkdown }: NoteViewerProps) {
           </div>
         )}
         <div
-          className="markdown-body prose prose-slate max-w-none leading-relaxed text-[#1F2329] [&_pre]:rounded-xl [&_pre]:bg-[#F5F6F7] [&_pre]:border [&_pre]:border-[#E5E6EB] [&_code]:text-[13px] [&_blockquote]:border-l-[3px] [&_blockquote]:border-[#3370FF] [&_blockquote]:bg-[#F0F5FF]/50 [&_blockquote]:rounded-r-lg [&_blockquote]:py-1 [&_blockquote]:px-4"
+          className="markdown-body prose prose-slate max-w-none leading-relaxed text-foreground [&_pre]:rounded-xl [&_pre]:bg-muted [&_pre]:border [&_pre]:border-border [&_code]:text-sm [&_blockquote]:border-l-[3px] [&_blockquote]:border-primary [&_blockquote]:bg-primary/5 [&_blockquote]:rounded-r-lg [&_blockquote]:py-1 [&_blockquote]:px-4"
           dangerouslySetInnerHTML={{ __html: html }}
           style={{ display: rendering ? "none" : "block" }}
         />
@@ -91,7 +91,7 @@ export function NoteViewer({ content, isMarkdown }: NoteViewerProps) {
             <h4 className="text-xs font-medium text-muted-foreground/60 mb-2 uppercase tracking-wider">
               目录
             </h4>
-            <ul className="space-y-0.5 border-l border-[#E5E6EB]">
+            <ul className="space-y-0.5 border-l border-border">
               {toc.map((item) => (
                 <li key={item.id}>
                   <a

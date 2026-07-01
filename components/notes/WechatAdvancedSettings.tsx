@@ -160,7 +160,7 @@ function Card({ children }: { children: React.ReactNode }) {
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <h3 className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wider">{children}</h3>;
+  return <h3 className="text-xs font-medium text-muted-foreground/60">{children}</h3>;
 }
 
 function Divider() {

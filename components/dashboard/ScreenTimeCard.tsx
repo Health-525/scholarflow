@@ -2,48 +2,21 @@
 
 import { Monitor } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState, memo } from "react";
+import { memo } from "react";
 
+import { CATEGORY_CLASS } from "@/components/activity/category-config";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { useIsClient } from "@/hooks/useIsClient";
 import { useScreenTime } from "@/lib/activity-tracker-v3";
-import type { Category } from "@/lib/activity-tracker-v3";
+import { formatDurationShort, formatSeconds } from "@/lib/format-duration";
 import { cn } from "@/lib/utils";
-
-const CATEGORY_CLASS: Record<Category, { text: string; bg: string; bar: string; label: string }> = {
-  coding: { text: "text-statusSuccess", bg: "bg-statusSuccess/10", bar: "bg-statusSuccess", label: "开发" },
-  browsing: { text: "text-statusInfo", bg: "bg-statusInfo/10", bar: "bg-statusInfo", label: "浏览" },
-  study: { text: "text-primary", bg: "bg-primary/10", bar: "bg-primary", label: "学习" },
-  entertainment: { text: "text-statusWarning", bg: "bg-statusWarning/10", bar: "bg-statusWarning", label: "娱乐" },
-  communication: { text: "text-statusInfo", bg: "bg-statusInfo/10", bar: "bg-statusInfo", label: "通讯" },
-  system: { text: "text-muted-foreground", bg: "bg-muted", bar: "bg-muted-foreground", label: "系统" },
-  other: { text: "text-muted-foreground", bg: "bg-muted", bar: "bg-muted-foreground", label: "其他" },
-};
-
-function formatDuration(totalMinutes: number): string {
-  const h = Math.floor(totalMinutes / 60);
-  const m = totalMinutes % 60;
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
-}
-
-function formatSeconds(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  return `${m}:${String(s).padStart(2, "0")}`;
-}
 
 export const ScreenTimeCard = memo(function ScreenTimeCard() {
   const state = useScreenTime();
-  const [mounted, setMounted] = useState(false);
+  const isClient = useIsClient();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const hasCurrent = mounted && state.isElectron && state.currentApp;
+  const hasCurrent = isClient && state.isElectron && state.currentApp;
   const totalMinutes = state.totalMinutes;
 
   return (
@@ -59,7 +32,7 @@ export const ScreenTimeCard = memo(function ScreenTimeCard() {
 
           <div className="flex items-baseline gap-1.5">
             <span className="text-3xl font-bold tabular-nums text-foreground leading-none">
-              {formatDuration(totalMinutes)}
+              {formatDurationShort(totalMinutes)}
             </span>
             {state.idleMinutes > 0 && (
               <span className="text-xs text-muted-foreground">
@@ -119,7 +92,7 @@ export const ScreenTimeCard = memo(function ScreenTimeCard() {
             </div>
           )}
 
-          {mounted && !state.isElectron && (
+          {isClient && !state.isElectron && (
             <p className="mt-3 text-xs text-muted-foreground">桌面版可用</p>
           )}
         </CardContent>

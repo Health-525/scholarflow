@@ -4,6 +4,7 @@ import { Target, Plus, Check, Trash2, Flame } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -221,21 +222,14 @@ export default function DailyGoalsPage() {
 
   return (
     <div className="max-w-3xl mx-auto py-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-primary/10 shadow-sm">
-          <Target className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-xl font-bold font-display text-foreground">
-            每日目标
-          </h1>
-          <p className="text-xs text-muted-foreground">小步前进，积少成多</p>
-        </div>
-      </div>
+      <PageHeader
+        icon={<Target className="size-5 text-primary" />}
+        title="每日目标"
+        description="小步前进，积少成多"
+      />
 
       {/* 近 7 天 */}
-      <Card className="mb-4 hover:shadow-sm hover:translate-y-0">
+      <Card className="mb-4">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">近 7 天</CardTitle>
@@ -251,12 +245,12 @@ export default function DailyGoalsPage() {
                   <div
                     className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200 ${
                       isToday
-                        ? "ring-[3px] ring-[#3370FF] ring-offset-2 ring-offset-background bg-[#F0F5FF] text-[#3370FF]"
+                        ? "ring-[3px] ring-primary ring-offset-2 ring-offset-background bg-primary/10 text-primary"
                         : d.full
                           ? "bg-green-500 text-primary-foreground shadow-sm"
                           : d.hasData
-                            ? "bg-[#E5E6EB] text-muted-foreground"
-                            : "bg-[#E5E6EB] text-muted-foreground/50"
+                            ? "bg-muted text-muted-foreground"
+                            : "bg-muted text-muted-foreground/50"
                     }`}
                   >
                     {d.full ? <Check size={16} /> : d.date.getDate()}
@@ -273,7 +267,7 @@ export default function DailyGoalsPage() {
 
       {/* 统计卡片 */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <Card className="hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:border-border/80">
           <CardContent className="flex items-center gap-5 py-5">
             <ProgressRing percent={loaded ? pct : 0} />
             <div>
@@ -291,7 +285,7 @@ export default function DailyGoalsPage() {
                     全部完成
                   </span>
                 ) : (
-                  <span className="bg-[#F0F5FF] text-[#3370FF] rounded-full px-2 py-0.5 text-[11px] font-medium">
+                  <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[11px] font-medium">
                     继续加油
                   </span>
                 )}
@@ -303,7 +297,7 @@ export default function DailyGoalsPage() {
         <Card className="hover:shadow-sm hover:translate-y-0">
           <CardContent className="flex items-center gap-5 py-5">
             <div className="w-20 h-20 rounded-full flex items-center justify-center bg-orange-500/10 text-orange-500">
-              <Flame className={`w-8 h-8 ${streak > 0 ? "animate-pulse" : ""}`} />
+              <Flame className={`w-8 h-8 transition-opacity duration-300 ${streak > 0 ? "opacity-100" : "opacity-60"}`} />
             </div>
             <div>
               <div className="text-xs font-semibold text-muted-foreground mb-0.5">
@@ -340,7 +334,7 @@ export default function DailyGoalsPage() {
       )}
 
       {/* 添加目标 */}
-      <Card className="mb-4 hover:shadow-sm hover:translate-y-0">
+      <Card className="mb-4">
         <CardContent className="py-4">
           <label
             htmlFor="new-goal"
@@ -355,7 +349,7 @@ export default function DailyGoalsPage() {
               onChange={(e) => setNewGoal(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && add()}
               placeholder="例如：背 20 个单词"
-              className="h-11 text-sm focus:border-[#3370FF] focus:ring-1 focus:ring-[#3370FF]/20"
+              className="h-11 text-sm"
             />
             <Button
               onClick={add}
@@ -371,7 +365,7 @@ export default function DailyGoalsPage() {
       {/* 目标列表 */}
       <div className="mb-6">
         {!loaded ? (
-          <Card className="p-4 hover:shadow-sm hover:translate-y-0">
+          <Card className="p-4">
             <ListSkeleton count={4} />
           </Card>
         ) : goals.length > 0 ? (
@@ -397,7 +391,7 @@ export default function DailyGoalsPage() {
                     className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-all duration-200 ${
                       g.done
                         ? "bg-green-600 dark:bg-green-500 border-2 border-green-600 dark:border-green-500 scale-100"
-                        : "border-2 border-border hover:border-[#3370FF]/50 hover:bg-[#F0F5FF]/50"
+                        : "border-2 border-border hover:border-primary/50 hover:bg-primary/10"
                     }`}
                   >
                     {g.done && (
@@ -430,7 +424,7 @@ export default function DailyGoalsPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="py-14 hover:shadow-sm hover:translate-y-0">
+          <Card className="py-14">
             <CardContent className="text-center">
               <div className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-primary/10 animate-breathe">
                 <Target className="w-6 h-6 text-primary" />

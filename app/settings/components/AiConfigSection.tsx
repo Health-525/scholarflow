@@ -72,7 +72,7 @@ export function AiConfigSection() {
             href="https://platform.deepseek.com/api_keys"
             target="_blank"
             rel="noreferrer"
-            className="text-[#3370FF] hover:underline transition-colors"
+            className="text-primary hover:underline transition-colors"
           >
             DeepSeek 开放平台
           </a>{" "}
@@ -90,7 +90,7 @@ export function AiConfigSection() {
               placeholder={configured ? "已保存，输入新 key 可覆盖" : "sk-..."}
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              className="pr-10 focus:border-[#3370FF] focus:ring-1 focus:ring-[#3370FF]/20 transition-all duration-200"
+              className="pr-10 transition-all duration-200"
             />
             <button
               type="button"

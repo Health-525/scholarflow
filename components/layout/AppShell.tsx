@@ -1,5 +1,6 @@
 "use client";
 
+import { WifiOff } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
@@ -58,9 +59,7 @@ export function AppShell({ children, isOnline }: AppShellProps) {
             )}
             style={{ backgroundColor: semanticBg("warning"), color: semanticColor("warning"), borderBottomColor: semanticBorder("warning") }}
           >
-            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636a9 9 0 010 12.728M5.636 18.364a9 9 0 010-12.728M12 12h.01" />
-            </svg>
+            <WifiOff className="w-3.5 h-3.5 shrink-0" />
             网络连接已断开，离线数据仍可浏览
           </div>
         )}

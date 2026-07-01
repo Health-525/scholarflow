@@ -21,7 +21,7 @@ function NavItem({ item }: { item: NavItemConfig }) {
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={[
-        "group flex items-center gap-2.5 px-3 py-1.5 min-h-8 rounded-lg text-[13px] font-medium transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1",
+        "group flex items-center gap-2.5 px-3 py-1.5 min-h-8 rounded-lg text-sm font-medium transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1",
         active
           ? "bg-white/70 dark:bg-white/[0.08] text-foreground shadow-sm"
           : wip
@@ -42,7 +42,7 @@ function NavItem({ item }: { item: NavItemConfig }) {
       />
       <span className="flex-1">{label}</span>
       {wip && (
-        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground/60 shrink-0">
+        <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground/60 shrink-0 scale-90 inline-block">
           开发中
         </span>
       )}
@@ -92,7 +92,7 @@ export function SideNav() {
       >
         {SIDE_NAV_GROUPS.map((group) => (
           <div key={group.label} className="mb-5">
-            <p className="px-3 py-1 text-[11px] font-medium uppercase tracking-widest text-muted-foreground/55">
+            <p className="px-3 py-1 text-xs font-medium text-muted-foreground/55">
               {group.label}
             </p>
             <div className="space-y-0.5">
