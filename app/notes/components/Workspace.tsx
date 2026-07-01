@@ -175,17 +175,18 @@ export function Workspace(props: WorkspaceProps) {
           <span className="text-sm font-medium text-foreground truncate">{title}</span>
         </div>
         <div className="flex items-center gap-0.5 shrink-0">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => setHistoryOpen(true)}
-            aria-label="历史版本"
-            title="历史版本"
-          >
-            <History className="w-4 h-4" />
-          </Button>
-          {viewMode === "view" && (
+          {viewMode === "view" ? (
             <PreviewActions onEdit={() => onViewModeChange("edit")} onDelete={() => setShowDeleteConfirm(true)} onHistory={() => setHistoryOpen(true)} />
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setHistoryOpen(true)}
+              aria-label="历史版本"
+              title="历史版本"
+            >
+              <History className="w-4 h-4" />
+            </Button>
           )}
         </div>
       </header>

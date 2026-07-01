@@ -71,7 +71,7 @@ export default function NotesPathPage({ params }: PageProps) {
       {!isLoading && !error && content && (
         <div className="rounded-xl border border-border bg-card px-5 py-5">
           {isMd ? (
-            <MarkdownRenderer content={content} />
+            <MarkdownRenderer content={content} className="note-prose" />
           ) : (
             <pre className="text-sm leading-relaxed overflow-x-auto whitespace-pre-wrap break-words font-mono text-muted-foreground">
               {content}
