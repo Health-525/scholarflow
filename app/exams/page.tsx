@@ -15,7 +15,6 @@ import {
   fetchExams,
   addExam,
   patchExam,
-  deleteExam,
   importExamsFromJwgl,
 } from "@/lib/exams-api";
 import { useAuthStore } from "@/store/auth";
@@ -24,6 +23,7 @@ import type { Exam } from "@/types/exam";
 import { ExamItem } from "./components/ExamItem";
 import { ExamStats } from "./components/ExamStats";
 import { QuickAddForm } from "./components/QuickAddForm";
+import { useExamDelete } from "./useExamDelete";
 
 function todayLabel(): string {
   return new Date().toLocaleDateString("zh-CN", {
@@ -42,8 +42,6 @@ export default function ExamsPage() {
   const [showCompleted, setShowCompleted] = useState(false);
   const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("all");
   const autoImportedRef = useRef(false);
-  const rollbackMap = useRef<Map<string, Exam[]>>(new Map());
-  const pendingDeleteMap = useRef<Map<string, { exam: Exam; timer: ReturnType<typeof setTimeout> }>>(new Map());
 
   const { data: scheduleData } = useScheduleQuery();
   const schedule = scheduleData?.schedule;
@@ -90,17 +88,7 @@ export default function ExamsPage() {
       .finally(() => setLoading(false));
   }, [refresh, schoolId, userId]);
 
-  // 卸载时落盘待删除缓冲
-  useEffect(() => {
-    const pendingMap = pendingDeleteMap.current;
-    return () => {
-      pendingMap.forEach(({ exam, timer }) => {
-        clearTimeout(timer);
-        deleteExam(exam.id, schoolId, userId).catch(() => {});
-      });
-      pendingMap.clear();
-    };
-  }, [schoolId, userId]);
+  const { handleDelete } = useExamDelete(exams, setExams, schoolId, userId);
 
   // ── 操作 ─────────────────────────────────────────────────
 
@@ -167,93 +155,6 @@ export default function ExamsPage() {
     } catch (err) {
       if (snapshot) setExams(snapshot);
       showToast("error", err instanceof Error ? err.message : "撤销完成失败");
-    } finally {
-      snapshot = null;
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    const target = exams.find((e) => e.id === id);
-    if (!target) return;
-
-    if (target.source === "manual") {
-      const opId = crypto.randomUUID();
-
-      // 先获取当前 exams 快照再做乐观更新
-      let currentExams: Exam[] = [];
-      setExams((prev) => {
-        currentExams = prev;
-        return prev.filter((e) => e.id !== id);
-      });
-      rollbackMap.current.set(opId, currentExams);
-
-      // 立即 flush 所有现存 pending deletes
-      if (pendingDeleteMap.current.size > 0) {
-        const flushEntries = Array.from(pendingDeleteMap.current.entries());
-        pendingDeleteMap.current.clear();
-        for (const [, { exam, timer }] of flushEntries) {
-          clearTimeout(timer);
-          await deleteExam(exam.id, schoolId, userId).catch(() => {
-            showToast("error", `删除「${exam.subject}」失败，请稍后重试`);
-          });
-        }
-      }
-
-      const timer = setTimeout(() => {
-        deleteExam(target.id, schoolId, userId).catch((err) => {
-          showToast(
-            "error",
-            err instanceof Error ? err.message : `删除「${target.subject}」失败，请稍后重试`
-          );
-        });
-        pendingDeleteMap.current.delete(opId);
-        rollbackMap.current.delete(opId);
-      }, 5000);
-
-      pendingDeleteMap.current.set(opId, { exam: target, timer });
-
-      showToast(
-        "success",
-        `已删除「${target.subject}」`,
-        5000,
-        {
-          label: "撤销",
-          onClick: () => {
-            if (pendingDeleteMap.current.has(opId)) {
-              const entry = pendingDeleteMap.current.get(opId)!;
-              clearTimeout(entry.timer);
-              pendingDeleteMap.current.delete(opId);
-              const rollback = rollbackMap.current.get(opId);
-              if (rollback) {
-                setExams(rollback);
-              } else {
-                setExams((prev) =>
-                  [...prev, target].sort((a, b) =>
-                    a.date.localeCompare(b.date)
-                  )
-                );
-              }
-              rollbackMap.current.delete(opId);
-            }
-          },
-        }
-      );
-      return;
-    }
-
-    // 教务考试：标记 deleted，使用局部 snapshot
-    let snapshot: Exam[] | null = null;
-    setExams((prev) => {
-      snapshot = prev;
-      return prev.map((e) =>
-        e.id === id ? { ...e, status: "deleted" as const } : e
-      );
-    });
-    try {
-      await deleteExam(id, schoolId, userId);
-    } catch (err) {
-      if (snapshot) setExams(snapshot);
-      showToast("error", err instanceof Error ? err.message : "删除考试失败");
     } finally {
       snapshot = null;
     }

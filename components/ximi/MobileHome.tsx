@@ -28,7 +28,7 @@ function chipClass(s: string) {
   return CHIP[h % CHIP.length];
 }
 
-function TodayTasks() {
+export function TodayTasks() {
   const { assignments, isLoading, error, reload } = useAssignmentsQuery();
   const isClient = useIsClient();
   const allPending = assignments.filter((a) => !a.done);

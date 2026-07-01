@@ -44,10 +44,7 @@ function formatWeekday(dateStr: string): string {
   return date.toLocaleDateString("zh-CN", { weekday: "long" });
 }
 
-type ConfirmStateType =
-  | { type: "discard-edit"; pendingDate: string }
-  | { type: "overwrite-generate" }
-  | null;
+import { useConfirmDialogState } from "./useConfirmDialogState";
 
 async function loadPomodoroSessions(): Promise<unknown> {
   if (typeof window === "undefined") return [];
@@ -85,7 +82,7 @@ export default function DailyReportsPage() {
   const [isDirty, setIsDirty] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [confirmState, setConfirmState] = useState<ConfirmStateType>(null);
+  const { confirmState, requestSelectDate, requestGenerate, closeConfirm } = useConfirmDialogState();
 
   const { entries, isLoading: listLoading, error: listError, reload: reloadList } = useDailyReports();
   const { content, isLoading: contentLoading, error: contentError, reload: reloadContent } = useDailyReport(selectedDate);
@@ -98,11 +95,7 @@ export default function DailyReportsPage() {
   const todayStr = useMemo(() => todayISO(), []);
   const isToday = selectedDate === todayStr;
 
-  const handleSelectDate = (date: string) => {
-    if (isDirty) {
-      setConfirmState({ type: "discard-edit", pendingDate: date });
-      return;
-    }
+  const applyDateChange = (date: string) => {
     setSelectedDate(date);
     setIsEditing(false);
     setIsDirty(false);
@@ -113,11 +106,11 @@ export default function DailyReportsPage() {
     }
   };
 
-  const handleGenerate = async () => {
-    if (isDirty) {
-      setConfirmState({ type: "overwrite-generate" });
-      return;
-    }
+  const handleSelectDate = (date: string) => {
+    requestSelectDate(date, isDirty, applyDateChange);
+  };
+
+  const runGenerate = async () => {
     setGenerating(true);
     try {
       const [pomodoroSessions, activityLog] = await Promise.all([
@@ -158,19 +151,11 @@ export default function DailyReportsPage() {
   const handleConfirmDialogConfirm = async () => {
     if (!confirmState) return;
     if (confirmState.type === "discard-edit") {
-      const newDate = confirmState.pendingDate;
-      setConfirmState(null);
-      setSelectedDate(newDate);
-      setIsEditing(false);
-      setIsDirty(false);
-      if (typeof window !== "undefined") {
-        const url = new URL(window.location.href);
-        url.searchParams.set("date", newDate);
-        window.history.replaceState(null, "", url.toString());
-      }
+      closeConfirm();
+      applyDateChange(confirmState.pendingDate);
     } else if (confirmState.type === "overwrite-generate") {
-      setConfirmState(null);
-      await handleGenerate();
+      closeConfirm();
+      await runGenerate();
     }
   };
 
@@ -245,7 +230,7 @@ export default function DailyReportsPage() {
               {!isEditing && (
                 <Button
                   size="sm"
-                  onClick={handleGenerate}
+                  onClick={() => requestGenerate(isDirty, runGenerate)}
                   disabled={generating}
                   className="gap-1.5 h-8 px-3 text-xs font-medium"
                 >
@@ -344,7 +329,7 @@ export default function DailyReportsPage() {
       </div>
       <ConfirmDialog
         open={confirmState !== null}
-        onOpenChange={(open) => { if (!open) setConfirmState(null); }}
+        onOpenChange={(open) => { if (!open) closeConfirm(); }}
         title={
           confirmState?.type === "discard-edit"
             ? "放弃未保存的修改？"
