@@ -115,9 +115,9 @@ export function Sidebar({
         );
       }
       return (
-        <div className="animate-fade-up space-y-0.5">
+        <div className="space-y-0.5">
           {isTyping && (
-            <div className="px-3 py-1.5 text-[10px] text-notes-tertiary">
+            <div className="px-3 py-1.5 text-xs text-muted-foreground">
               搜索中…
             </div>
           )}
@@ -222,7 +222,7 @@ export function Sidebar({
           </div>
         </div>
         {showSearch && (
-          <div className="mt-2 relative animate-slide-down">
+          <div className="mt-2 relative">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40" />
             <input
               ref={searchInputRef}
@@ -232,7 +232,7 @@ export function Sidebar({
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Escape") { setSearchQuery(""); clear(); } }}
               placeholder="搜索笔记…"
-              className="w-full h-8 pl-7 pr-6 text-xs bg-background rounded-md border border-border transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-muted-foreground/50"
+              className="w-full h-8 pl-7 pr-6 text-xs bg-background rounded-md border border-border focus:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring placeholder:text-muted-foreground/50"
             />
             {searchQuery && (
               <button

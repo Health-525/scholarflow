@@ -10,7 +10,7 @@ export default function NotesLayout({ children }: { children: React.ReactNode })
           --notes-hover-bg: var(--sidebar-accent);
           --notes-tertiary: var(--muted-foreground);
           --notes-placeholder: color-mix(in srgb, var(--muted-foreground) 50%, transparent);
-          --notes-pin: #F5A623;
+          --notes-pin: var(--status-warning);
           --notes-primary-hover: color-mix(in srgb, var(--primary) 85%, black);
         }
 
@@ -21,14 +21,6 @@ export default function NotesLayout({ children }: { children: React.ReactNode })
           font-weight: 600;
           border-radius: 2px;
           padding: 0 1px;
-        }
-
-        @keyframes slide-down {
-          from { opacity: 0; transform: translateY(-6px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .notes-flybook .animate-slide-down {
-          animation: slide-down 0.2s ease-out;
         }
       `}</style>
       {children}

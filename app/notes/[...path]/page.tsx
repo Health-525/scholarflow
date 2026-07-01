@@ -69,7 +69,7 @@ export default function NotesPathPage({ params }: PageProps) {
       )}
 
       {!isLoading && !error && content && (
-        <div className="rounded-2xl border border-border bg-card px-5 py-5 animate-fade-up">
+        <div className="rounded-xl border border-border bg-card px-5 py-5">
           {isMd ? (
             <MarkdownRenderer content={content} />
           ) : (

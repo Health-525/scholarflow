@@ -98,6 +98,17 @@
 }
 .markdown-body hr { margin: 1.8em 0; border: none; border-top: 1px solid var(--border); }
 
+/* ── Notes editor & preview shared prose overrides ── */
+.note-prose blockquote {
+  margin-left: 0;
+  border-left: 4px solid var(--accent);
+  background: var(--accent-softer);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding: 0.5em 1em;
+  color: var(--text-secondary);
+  font-style: normal;
+}
+
 /* Callout component */
 .callout {
   margin-bottom: 1em;

@@ -77,12 +77,12 @@ export function TagBar({ tags, allTags, onTagsChange }: TagBarProps) {
     .slice(0, 5);
 
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-1.5 flex-wrap min-h-[28px]">
+    <div className="space-y-1">
+      <div className="flex items-center gap-2 flex-wrap min-h-7">
         {tags.map((tag) => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs rounded-full bg-primary/10 text-primary transition-all duration-150"
+            className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs rounded-full bg-primary/10 text-primary"
           >
             {tag}
             <button
@@ -94,7 +94,7 @@ export function TagBar({ tags, allTags, onTagsChange }: TagBarProps) {
             </button>
           </span>
         ))}
-        <div className="relative">
+        <div className="relative flex-1 min-w-20">
           <input
             type="text"
             value={input}
@@ -105,14 +105,11 @@ export function TagBar({ tags, allTags, onTagsChange }: TagBarProps) {
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
             onKeyDown={handleKeyDown}
-            placeholder={tags.length === 0 ? "添加标签…" : ""}
-            className="min-w-[60px] max-w-[120px] h-6 text-xs bg-transparent border-0 border-b border-transparent focus:border-primary focus:outline-none placeholder:text-muted-foreground/50 transition-all duration-200"
+            placeholder="输入标签后按回车添加"
+            className="w-full h-6 text-xs bg-transparent border-0 border-b border-transparent focus:border-primary focus:outline-none placeholder:text-muted-foreground/50"
           />
-          {tags.length === 0 && !input && (
-              <span className="text-xs text-muted-foreground/50">输入标签后按回车添加</span>
-            )}
           {showSuggestions && input && suggestions.length > 0 && (
-            <div className="absolute left-0 top-full mt-1 z-30 bg-card border border-border rounded-lg shadow-lg p-1 min-w-[140px] animate-fade-up">
+            <div className="absolute left-0 top-full mt-1 z-30 bg-card border border-border rounded-lg shadow-sm p-1 min-w-36">
               <div className="px-2 py-1 text-xs text-muted-foreground/60">建议标签</div>
               <div className="divide-y divide-border/30">
               {suggestions.map((s, i) => (

@@ -127,20 +127,7 @@ export function NoteEditor({
     contentType: "markdown",
     editorProps: {
       attributes: {
-        class: cn(
-          "prose prose-sm sm:prose-base max-w-none",
-          "prose-headings:font-semibold prose-headings:text-foreground prose-headings:tracking-tight",
-          "prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg",
-          "prose-p:text-foreground/85 prose-p:leading-relaxed",
-          "prose-a:text-primary prose-a:no-underline hover:prose-a:underline",
-          "prose-code:text-[13px] prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded",
-          "prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-pre:rounded-xl",
-          "prose-blockquote:border-l-[3px] prose-blockquote:border-primary prose-blockquote:bg-accent-softer prose-blockquote:rounded-r-lg prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:not-italic",
-          "prose-img:rounded-xl",
-          "prose-hr:border-border",
-          "prose-strong:text-foreground",
-          "focus:outline-none min-h-[400px] px-1 py-1",
-        ),
+        class: cn("markdown-body note-prose focus:outline-none min-h-[400px] px-1 py-1"),
       },
     },
     onUpdate: ({ editor: editorInstance }) => {
@@ -316,18 +303,18 @@ export function NoteEditor({
         onDragOver={handleDragOver} onDrop={handleDrop}>
         <EditorContent editor={editor} />
         {isDragging && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl border-2 border-dashed border-primary/40 bg-sidebar-accent/95 backdrop-blur-sm">
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl border-2 border-dashed border-primary/40 bg-sidebar-accent/95">
             <span className="text-sm font-medium text-primary">松开以上传图片</span>
           </div>
         )}
       </div>
 
-      <div className="flex items-center justify-between mt-3 text-[11px] text-notes-tertiary select-none border-t border-border pt-2.5">
+      <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground select-none border-t border-border pt-2.5">
         <span className="flex items-center gap-1">
           <Type className="w-3 h-3" />
           {contentStats.chars} 字 · 约 {contentStats.readingMinutes} 分钟阅读
         </span>
-        {saving && <span className="text-notes-tertiary">保存中…</span>}
+        {saving && <span className="text-muted-foreground">保存中…</span>}
       </div>
 
       <WechatPreviewDialog open={previewOpen} onOpenChange={setPreviewOpen}

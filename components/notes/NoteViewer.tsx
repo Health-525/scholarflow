@@ -79,7 +79,7 @@ export function NoteViewer({ content, isMarkdown }: NoteViewerProps) {
           </div>
         )}
         <div
-          className="markdown-body prose prose-slate max-w-none leading-relaxed text-foreground [&_pre]:rounded-xl [&_pre]:bg-muted [&_pre]:border [&_pre]:border-border [&_code]:text-sm [&_blockquote]:border-l-[3px] [&_blockquote]:border-primary [&_blockquote]:bg-primary/5 [&_blockquote]:rounded-r-lg [&_blockquote]:py-1 [&_blockquote]:px-4"
+          className="markdown-body note-prose"
           dangerouslySetInnerHTML={{ __html: html }}
           style={{ display: rendering ? "none" : "block" }}
         />
@@ -88,7 +88,7 @@ export function NoteViewer({ content, isMarkdown }: NoteViewerProps) {
       {toc.length > 3 && (
         <nav className="hidden xl:block w-48 shrink-0">
           <div className="sticky top-20">
-            <h4 className="text-xs font-medium text-muted-foreground/60 mb-2 uppercase tracking-wider">
+            <h4 className="text-xs font-medium text-muted-foreground mb-2">
               目录
             </h4>
             <ul className="space-y-0.5 border-l border-border">
@@ -96,7 +96,7 @@ export function NoteViewer({ content, isMarkdown }: NoteViewerProps) {
                 <li key={item.id}>
                   <a
                     href={`#${item.id}`}
-                    className="block text-xs py-0.5 text-muted-foreground/70 hover:text-primary hover:border-l-[3px] hover:border-l-primary hover:bg-muted/30 rounded-r-lg transition-all duration-150 truncate"
+                    className="block text-xs py-0.5 text-muted-foreground hover:text-primary hover:border-l-4 hover:border-l-primary hover:bg-muted/30 rounded-r-md transition-colors truncate"
                     style={{
                       paddingLeft: `${(item.level - 1) * 12 + 8}px`,
                     }}

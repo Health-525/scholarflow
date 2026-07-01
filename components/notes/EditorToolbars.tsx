@@ -34,22 +34,22 @@ function ExportImportMenu({ onExportMarkdown, onExportWechat, onImportClick }: P
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className="h-8 w-8 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent hover:text-primary transition-colors"
+      <PopoverTrigger className="h-8 w-8 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent hover:text-primary"
         aria-label="更多" title="更多">
         <MoreHorizontal className="w-4 h-4" />
       </PopoverTrigger>
       <PopoverContent align="end" className="w-52 p-1.5">
         <div className="space-y-0.5">
           <button type="button" onClick={handle(onExportMarkdown)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-xl text-foreground/80 hover:bg-sidebar-accent hover:text-primary">
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md text-foreground/80 hover:bg-sidebar-accent hover:text-primary">
             <FileDown className="w-4 h-4" /> 导出 Markdown
           </button>
           <button type="button" onClick={handle(onExportWechat)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-xl text-foreground/80 hover:bg-sidebar-accent hover:text-primary">
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md text-foreground/80 hover:bg-sidebar-accent hover:text-primary">
             <FileDown className="w-4 h-4" /> 导出公众号文章
           </button>
           <button type="button" onClick={handle(onImportClick)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-xl text-foreground/80 hover:bg-sidebar-accent hover:text-primary">
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md text-foreground/80 hover:bg-sidebar-accent hover:text-primary">
             <FileUp className="w-4 h-4" /> 导入 Markdown
           </button>
         </div>
@@ -85,7 +85,7 @@ export function BubbleToolbar({ editor, onInsertImage }: { editor: Editor; onIns
 export function DesktopToolbar(props: SharedProps) {
   const { editor, onInsertImage, viewMode, onViewModeChange, onDelete, onExportMarkdown, onExportWechat, onImportClick, pinned, onTogglePin } = props;
   return (
-    <div className="hidden md:flex flex-wrap items-center gap-0.5 px-1 py-1.5 mb-4 bg-background sticky top-0 z-10 border-b border-border shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+    <div className="hidden md:flex flex-wrap items-center gap-0.5 px-1 py-1.5 mb-4 bg-background sticky top-0 z-10 border-b border-border shadow-xs">
       <CommonToolbar editor={editor} onInsertImage={onInsertImage} />
       <ToolbarDivider />
       <ActionGroup viewMode={viewMode} onViewModeChange={onViewModeChange} onDelete={onDelete} pinned={pinned} onTogglePin={onTogglePin} />

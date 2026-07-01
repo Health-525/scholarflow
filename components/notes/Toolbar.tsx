@@ -21,11 +21,11 @@ export function ToolbarButton({ active, onClick, icon: Icon, label, shortcut, va
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "h-8 w-8 rounded-lg inline-flex items-center justify-center transition-all duration-150",
+        "h-8 w-8 rounded-lg inline-flex items-center justify-center transition-colors",
         variant === "danger" && "text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
         variant === "gold" && cn(
-          "text-muted-foreground hover:text-notes-pin hover:bg-notes-pin/10",
-          active && "text-notes-pin bg-notes-pin/10 ring-1 ring-notes-pin/20"
+          "text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10",
+          active && "text-amber-500 bg-amber-500/10 ring-1 ring-amber-500/20"
         ),
         variant === "default" && cn(
           "text-muted-foreground hover:bg-sidebar-accent hover:text-primary",

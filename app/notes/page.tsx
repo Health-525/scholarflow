@@ -72,8 +72,8 @@ export default function NotesPage() {
   if (isMobile) {
     return (
       <ErrorBoundary>
-      <div className="h-full w-full -mx-4 -mb-20 overflow-hidden">
-        <div className="animate-fade-up h-full" key={selectedPath ? "ws" : "sb"}>
+      <div className="h-full w-full overflow-hidden">
+        <div className="h-full" key={selectedPath ? "ws" : "sb"}>
         {selectedPath ? (
           <div className="h-full bg-background">
             <Workspace {...workspaceProps} />
@@ -103,7 +103,7 @@ export default function NotesPage() {
   // Desktop: two-column layout
   return (
     <ErrorBoundary>
-    <div className="flex h-full w-full -mx-4 md:-mx-6 lg:-mx-8 -mb-20 md:mb-0 overflow-hidden">
+    <div className="flex h-full w-full overflow-hidden">
       <div className={cn(
         "shrink-0 h-full transition-[width] duration-300 ease-out overflow-hidden",
         sidebarOpen ? "w-72" : "w-0 border-r-0"
@@ -117,7 +117,7 @@ export default function NotesPage() {
             size="icon-sm"
             onClick={() => setSidebarOpen(true)}
             aria-label="展开侧边栏"
-            className="absolute top-3 left-3 z-20 h-9 w-9 text-notes-tertiary hover:text-primary hover:bg-sidebar-accent animate-fade-in shadow-sm rounded-xl"
+            className="absolute top-3 left-3 z-20 h-9 w-9 text-muted-foreground hover:text-primary hover:bg-sidebar-accent shadow-sm rounded-lg"
           >
             <PanelLeftOpen className="w-4 h-4" />
           </Button>

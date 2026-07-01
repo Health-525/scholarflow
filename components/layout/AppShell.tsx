@@ -1,6 +1,7 @@
 "use client";
 
 import { WifiOff } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
@@ -29,8 +30,10 @@ function ShortcutActivator() {
 }
 
 export function AppShell({ children, isOnline }: AppShellProps) {
+  const pathname = usePathname();
   const online = isOnline ?? true;
   const [showDragBar, setShowDragBar] = useState(false);
+  const isNotes = pathname.startsWith("/notes");
 
   useEffect(() => {
     setShowDragBar(isElectron());
@@ -63,7 +66,10 @@ export function AppShell({ children, isOnline }: AppShellProps) {
             网络连接已断开，离线数据仍可浏览
           </div>
         )}
-        <main className="relative flex-1 overflow-y-auto pb-20 md:pb-0 px-4 md:px-6 lg:px-8">
+        <main className={cn(
+          "relative flex-1 overflow-y-auto",
+          isNotes ? "pb-0 md:pb-0" : "pb-20 md:pb-0 px-4 md:px-6 lg:px-8"
+        )}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>
