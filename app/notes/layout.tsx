@@ -10,7 +10,6 @@ export default function NotesLayout({ children }: { children: React.ReactNode })
           --notes-hover-bg: var(--sidebar-accent);
           --notes-tertiary: var(--muted-foreground);
           --notes-placeholder: color-mix(in srgb, var(--muted-foreground) 50%, transparent);
-          --notes-pin: var(--status-warning);
           --notes-primary-hover: color-mix(in srgb, var(--primary) 85%, black);
         }
 

@@ -15,6 +15,29 @@ export function getTags(prefix: string, path: string): string[] {
   return [];
 }
 
+export function getTagsForPaths(prefix: string, paths: string[]): Map<string, string[]> {
+  const result = new Map<string, string[]>();
+  if (paths.length === 0) return result;
+  const db = getServerDB();
+  const placeholders = paths.map(() => "?").join(",");
+  const keys = paths.map((p) => tagKey(prefix, p));
+  const rows = db
+    .getRawDB()
+    .prepare(`SELECT key, content FROM data_store WHERE key IN (${placeholders})`)
+    .all(...keys) as { key: string; content: string }[];
+  const prefixLen = tagKey(prefix, "").length;
+  for (const row of rows) {
+    const path = row.key.slice(prefixLen);
+    try {
+      const parsed = JSON.parse(row.content) as string[];
+      result.set(path, Array.isArray(parsed) ? parsed : []);
+    } catch {
+      result.set(path, []);
+    }
+  }
+  return result;
+}
+
 export function setTags(prefix: string, path: string, tags: string[]): void {
   const db = getServerDB();
   const normalized = [...new Set(tags.map((t) => t.trim()).filter(Boolean))];

@@ -10,40 +10,9 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { parseNotePath } from "@/lib/note-utils";
 
-import type { DeletedNote } from "../utils";
+import type { WorkspaceProps } from "../hooks/useNotesPage";
 
 import { HistoryPanel } from "./HistoryPanel";
-
-export interface WorkspaceProps {
-  path: string | null;
-  title: string;
-  category: string;
-  content: string;
-  previewContent: string;
-  onPreviewChange: (v: string) => void;
-  isLoading: boolean;
-  error: Error | null;
-  reload: () => void;
-  editorKey: string;
-  viewMode: "edit" | "view";
-  onViewModeChange: (m: "edit" | "view") => void;
-  saving: boolean;
-  saveError: string | null;
-  onSave: (content: string) => Promise<void>;
-  onDelete: () => Promise<void>;
-  onRename?: (newTitle: string) => Promise<void>;
-  onImportMarkdown?: (title: string, content: string) => void;
-  deletedBuffer: DeletedNote | null;
-  onUndoDelete: () => Promise<void>;
-  onBack?: () => void;
-  titleInputRef?: React.RefObject<HTMLInputElement | null>;
-  tags: string[];
-  allTags: { tag: string; count: number }[];
-  onTagsChange: (tags: string[]) => Promise<void>;
-  pinned: boolean;
-  onTogglePin: () => Promise<void>;
-  onRestoreVersion: (content: string) => void;
-}
 
 function SaveStatus({ saving, saveError }: { saving: boolean; saveError: string | null }) {
   if (saveError) {
@@ -143,7 +112,7 @@ export function Workspace(props: WorkspaceProps) {
   const handleTitleBlur = async () => {
     if (!onRename || editingTitle.trim() === title.trim()) return;
     try {
-      await onRename(editingTitle);
+      await onRename(editingTitle.trim());
     } catch {
       setEditingTitle(title);
     }
@@ -257,7 +226,7 @@ export function Workspace(props: WorkspaceProps) {
                   onBlur={handleTitleBlur}
                   onKeyDown={handleTitleKeyDown}
                   placeholder="无标题笔记"
-                  className="w-full h-auto py-2 bg-transparent border-0 px-0 text-2xl md:text-3xl font-semibold text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none tracking-tight rounded-none"
+                  className="w-full h-auto py-2 bg-transparent border-0 px-0 text-2xl md:text-3xl font-semibold text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:ring-offset-0 shadow-none tracking-tight rounded-none"
                 />
                 <div className="flex items-center justify-end mt-1 mb-4 gap-2">
                   <Button
@@ -308,7 +277,7 @@ export function Workspace(props: WorkspaceProps) {
                 </div>
                 {pinned && (
                   <div className="flex items-center gap-1.5 mt-3 mb-1">
-                    <Pin className="w-3.5 h-3.5 text-amber-500" />
+                    <Pin className="w-3.5 h-3.5 text-status-warning" />
                     <span className="text-xs text-muted-foreground">已固定</span>
                   </div>
                 )}

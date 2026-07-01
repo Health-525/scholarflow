@@ -35,6 +35,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
+    if (message === "unauthorized account access") {
+      return NextResponse.json({ error: message }, { status: 403 });
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import { History, RotateCcw, X } from "lucide-react";
+import { AlertCircle, History, RotateCcw, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -31,7 +31,7 @@ function contentSnippet(content: string): string {
 }
 
 export function HistoryPanel({ path, open, onOpenChange, onRestore }: HistoryPanelProps) {
-  const { history, isLoading, load, restore } = useNoteHistory(path);
+  const { history, isLoading, error, load, restore } = useNoteHistory(path);
   const [restoringIndex, setRestoringIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -62,12 +62,19 @@ export function HistoryPanel({ path, open, onOpenChange, onRestore }: HistoryPan
               <History className="w-4 h-4 text-muted-foreground" />
               <Dialog.Title className="text-sm font-semibold text-foreground">历史版本</Dialog.Title>
             </div>
-            <Dialog.Close render={<Button variant="ghost" size="icon-sm" className="h-8 w-8 rounded-lg hover:bg-muted" />}>
+            <Dialog.Close render={<Button variant="ghost" size="icon-sm" className="h-8 w-8 rounded-lg hover:bg-muted" aria-label="关闭" />}>
               <X className="w-4 h-4" />
             </Dialog.Close>
           </div>
 
           <div className="flex-1 overflow-y-auto p-3">
+            {error && (
+              <div className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive mb-3">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                加载失败，请重试
+              </div>
+            )}
+
             {isLoading && (
               <div className="space-y-3">
                 <div className="h-16 bg-muted rounded-lg animate-pulse" />

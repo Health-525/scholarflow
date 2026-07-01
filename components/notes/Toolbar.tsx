@@ -24,8 +24,8 @@ export function ToolbarButton({ active, onClick, icon: Icon, label, shortcut, va
         "h-8 w-8 rounded-lg inline-flex items-center justify-center transition-colors",
         variant === "danger" && "text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
         variant === "gold" && cn(
-          "text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10",
-          active && "text-amber-500 bg-amber-500/10 ring-1 ring-amber-500/20"
+          "text-muted-foreground hover:text-status-warning hover:bg-status-warning/10",
+          active && "text-status-warning bg-status-warning/10 ring-1 ring-status-warning/20"
         ),
         variant === "default" && cn(
           "text-muted-foreground hover:bg-sidebar-accent hover:text-primary",

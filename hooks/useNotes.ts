@@ -246,17 +246,25 @@ export function useNoteTags(path: string | null) {
 export function useNoteHistory(path: string | null) {
   const [history, setHistory] = useState<import("@/types").NoteHistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   const load = useCallback(async () => {
     if (!path) return;
     setIsLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/notes/history?${getAuthParams()}&path=${encodeURIComponent(path)}`);
       if (res.ok) {
         const data = await res.json();
         setHistory(data.history || []);
+      } else {
+        setError(new Error("加载历史版本失败"));
       }
-    } catch { /* ignore */ } finally { setIsLoading(false); }
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("加载历史版本失败"));
+    } finally {
+      setIsLoading(false);
+    }
   }, [path]);
 
   const restore = useCallback(async (versionIndex: number) => {
@@ -271,7 +279,7 @@ export function useNoteHistory(path: string | null) {
 
   useEffect(() => { load(); }, [load]);
 
-  return { history, isLoading, load, restore };
+  return { history, isLoading, error, load, restore };
 }
 
 // ── 固定 ──

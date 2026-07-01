@@ -250,6 +250,7 @@ export function Sidebar({
             {searchQuery && (
               <button
                 type="button"
+                aria-label="清空搜索"
                 onClick={() => {
                   setSearchQuery("");
                   clear();

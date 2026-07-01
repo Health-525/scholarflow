@@ -189,7 +189,7 @@ function NoteTreeItem({
       <span className="flex items-center gap-2.5 w-full">
         <FileText className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
         <span className="truncate flex-1">{node.name.replace(/\.md$/i, "")}</span>
-        {node.pinned && <Pin className="w-3 h-3 shrink-0 text-amber-500/70" />}
+        {node.pinned && <Pin className="w-3 h-3 shrink-0 text-status-warning/70" />}
       </span>
       {node.tags && node.tags.length > 0 && (
         <span className="flex items-center gap-1 ml-6">

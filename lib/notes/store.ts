@@ -41,6 +41,23 @@ export function getNoteUpdatedAt(prefix: string, path: string): number | null {
   return db.getUpdatedAt(noteKey(prefix, path));
 }
 
+export function getNoteUpdatedAtForPaths(prefix: string, paths: string[]): Map<string, number> {
+  const result = new Map<string, number>();
+  if (paths.length === 0) return result;
+  const db = getServerDB();
+  const placeholders = paths.map(() => "?").join(",");
+  const keys = paths.map((p) => noteKey(prefix, p));
+  const rows = db
+    .getRawDB()
+    .prepare(`SELECT key, updated_at FROM data_store WHERE key IN (${placeholders})`)
+    .all(...keys) as { key: string; updated_at: number }[];
+  const prefixLen = noteKey(prefix, "").length;
+  for (const row of rows) {
+    result.set(row.key.slice(prefixLen), row.updated_at);
+  }
+  return result;
+}
+
 /**
  * 保存笔记（新建或更新）
  */

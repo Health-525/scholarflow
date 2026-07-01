@@ -29,11 +29,21 @@ export interface FtsSearchRow {
   rank: number;
 }
 
+function escapeSnippet(snippet: string): string {
+  // 先转义原始 HTML，再把 FTS 高亮标记还原为安全标签
+  return snippet
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/&lt;mark&gt;/g, "<mark>")
+    .replace(/&lt;\/mark&gt;/g, "</mark>");
+}
+
 export function searchNotes(prefix: string, query: string, limit = 20): FtsSearchRow[] {
   ensureFtsTable();
   const db = getServerDB().getRawDB();
   const pattern = `note:${prefix}:%`;
-  return db.prepare(`
+  const rows = db.prepare(`
     SELECT f.key,
            snippet(${FTS_TABLE}, 1, '<mark>', '</mark>', '...', 40) AS snippet,
            rank
@@ -43,4 +53,9 @@ export function searchNotes(prefix: string, query: string, limit = 20): FtsSearc
     ORDER BY rank
     LIMIT ?
   `).all(query, pattern, limit) as FtsSearchRow[];
+
+  return rows.map((row) => ({
+    ...row,
+    snippet: escapeSnippet(row.snippet),
+  }));
 }

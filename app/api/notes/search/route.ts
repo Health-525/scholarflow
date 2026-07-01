@@ -4,8 +4,8 @@ import { z } from "zod";
 import { getAuthorizedPrefix } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { searchNotes } from "@/lib/notes/search";
-import { getNoteUpdatedAt } from "@/lib/notes/store";
-import { getTags } from "@/lib/notes/tags";
+import { getNoteUpdatedAtForPaths } from "@/lib/notes/store";
+import { getTagsForPaths } from "@/lib/notes/tags";
 import { getServerDB } from "@/lib/server-db";
 import type { NoteSearchResult } from "@/types";
 
@@ -33,17 +33,21 @@ export async function GET(request: Request) {
     const results = searchNotes(prefix, q);
 
     const keyPrefix = `note:${prefix}:`;
-    const items: NoteSearchResult[] = results.map((r) => {
-      const relativePath = r.key.startsWith(keyPrefix)
-        ? r.key.slice(keyPrefix.length)
-        : r.key;
+    const relativePaths = results.map((r) =>
+      r.key.startsWith(keyPrefix) ? r.key.slice(keyPrefix.length) : r.key
+    );
+    const updatedAtMap = getNoteUpdatedAtForPaths(prefix, relativePaths);
+    const tagsMap = getTagsForPaths(prefix, relativePaths);
+
+    const items: NoteSearchResult[] = results.map((r, i) => {
+      const relativePath = relativePaths[i];
       return {
         path: relativePath,
         title: relativePath.replace(/\.md$/i, "").replace(/[-_]/g, " "),
         snippet: r.snippet,
-        updatedAt: getNoteUpdatedAt(prefix, relativePath) ?? r.rank,
+        updatedAt: updatedAtMap.get(relativePath) ?? r.rank,
         rank: r.rank,
-        tags: getTags(prefix, relativePath),
+        tags: tagsMap.get(relativePath) ?? [],
       };
     });
 
