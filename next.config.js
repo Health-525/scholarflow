@@ -22,6 +22,7 @@ const nextConfig = {
       "sonner",
       "react-day-picker",
     ],
+    reactCompiler: true,
   },
 };
 
