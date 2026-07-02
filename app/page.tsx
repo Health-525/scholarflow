@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock } from "lucide-react";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, memo, Suspense, useEffect, useState } from "react";
 
 import { AssignmentsCard } from "@/components/dashboard/AssignmentsCard";
 import { ExamCountdownCard } from "@/components/dashboard/ExamCountdownCard";
@@ -23,7 +23,7 @@ const MobileHome = lazy(() =>
   import("@/components/ximi/MobileHome").then((m) => ({ default: m.MobileHome }))
 );
 
-function useCurrentTime() {
+const CurrentTime = memo(function CurrentTime() {
   const [time, setTime] = useState("");
 
   useEffect(() => {
@@ -41,13 +41,19 @@ function useCurrentTime() {
     return () => clearInterval(timer);
   }, []);
 
-  return time;
-}
+  return (
+    <div className="hidden sm:flex items-center gap-2 rounded-xl bg-muted/60 px-3 py-2">
+      <Clock className="size-4 text-primary" />
+      <span className="text-lg font-semibold tabular-nums text-foreground">
+        {time}
+      </span>
+    </div>
+  );
+});
 
 export default function DashboardPage() {
   const isMobile = useIsMobile();
   const { text: greeting, date: dateStr } = useGreeting();
-  const currentTime = useCurrentTime();
   const { data: dashboardData, loading: dashboardLoading } =
     useDashboardSummary();
   const { data: scheduleData } = useScheduleQuery();
@@ -90,12 +96,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 rounded-xl bg-muted/60 px-3 py-2">
-              <Clock className="size-4 text-primary" />
-              <span className="text-lg font-semibold tabular-nums text-foreground">
-                {currentTime}
-              </span>
-            </div>
+            <CurrentTime />
             <RefreshButton />
           </div>
         </div>
