@@ -157,6 +157,7 @@ export class ServerDB {
   private prepareStatements(): void {
     this.stmts = {
       get: this.db.prepare("SELECT content, updated_at FROM data_store WHERE key = ?"),
+      exists: this.db.prepare("SELECT 1 FROM data_store WHERE key = ?"),
       upsert: this.db.prepare(
         "INSERT INTO data_store (key, content, updated_at) VALUES (@key, @content, @ts) " +
           "ON CONFLICT(key) DO UPDATE SET content = @content, updated_at = @ts"
@@ -381,13 +382,15 @@ export class ServerDB {
 
     const timetableDataDir = path.join(this.storePath, "..", "..", "timetable", "data");
 
-    if (!this.readData(`assignments:${prefix}`)) {
+    const assignmentsKey = `assignments:${prefix}`;
+    const exists = (this.stmts.exists.get(assignmentsKey) as { 1: number } | undefined) !== undefined;
+    if (!exists) {
       const assignmentsPath = path.join(timetableDataDir, "assignments.json");
       try {
         if (fs.existsSync(assignmentsPath)) {
           const content = fs.readFileSync(assignmentsPath, "utf8");
           const data = JSON.parse(content);
-          this.writeData(`assignments:${prefix}`, data);
+          this.writeData(assignmentsKey, data);
           result.assignments = Array.isArray(data) ? data.length : 0;
         }
       } catch { /* ignore */ }
