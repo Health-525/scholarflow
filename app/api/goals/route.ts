@@ -15,6 +15,7 @@ import { z } from "zod";
 
 import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+import { logger } from "@/lib/logger";
 import { getServerDB } from "@/lib/server-db";
 
 const dailyGoalSchema = z.object({
@@ -97,7 +98,7 @@ export async function GET(request: Request) {
       return forbiddenResponse({ error: "unauthorized account access" });
     }
     // eslint-disable-next-line no-console
-    console.error("[/api/goals GET]", (err as Error)?.message);
+    logger.error("[/api/goals GET]", (err as Error)?.message);
     return NextResponse.json({ error: "internal error" }, { status: 500 });
   }
 }
@@ -133,7 +134,7 @@ export async function POST(request: Request) {
       return forbiddenResponse({ error: "unauthorized account access" });
     }
     // eslint-disable-next-line no-console
-    console.error("[/api/goals POST]", (err as Error)?.message);
+    logger.error("[/api/goals POST]", (err as Error)?.message);
     return NextResponse.json({ error: "internal error" }, { status: 500 });
   }
 }

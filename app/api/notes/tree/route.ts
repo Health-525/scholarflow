@@ -6,8 +6,8 @@ import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { listPinned } from "@/lib/notes/pin";
 // eslint-disable-next-line import/order
-import { buildNoteTree, getNoteUpdatedAt, listNotePaths } from "@/lib/notes/store";
-import { getTags } from "@/lib/notes/tags";
+import { buildNoteTree, getNoteUpdatedAtForPaths, listNotePaths } from "@/lib/notes/store";
+import { getTagsForPaths } from "@/lib/notes/tags";
 import { getServerDB } from "@/lib/server-db";
 import type { NoteTreeNode } from "@/types";
 
@@ -41,9 +41,11 @@ export async function GET(request: Request) {
     const prefix = `${account.schoolId}:${account.userId}`;
 
     const paths = listNotePaths(prefix);
-    const updatedAtMap = new Map(paths.map((p) => [p, getNoteUpdatedAt(prefix, p) ?? 0]));
+    const updatedAtMap = new Map(
+      getNoteUpdatedAtForPaths(prefix, paths).entries().map(([p, v]) => [p, v ?? 0])
+    );
     const pinnedPaths = new Set(listPinned(prefix));
-    const tagsMap = new Map(paths.map((p) => [p, getTags(prefix, p)]));
+    const tagsMap = getTagsForPaths(prefix, paths);
     const tree = buildNoteTree(paths, updatedAtMap);
 
     function enrichTree(nodes: NoteTreeNode[]): NoteTreeNode[] {

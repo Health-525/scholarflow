@@ -125,7 +125,7 @@ async function queryDaySummary(dateStr: string): Promise<ActivityDaySummary | nu
     return await api.queryActivityDay(dateStr);
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.error("[ScreenTime] queryActivityDay failed:", e);
+    logger.error("[ScreenTime] queryActivityDay failed:", e);
     return null;
   }
 }
@@ -137,7 +137,7 @@ async function fetchCurrentState(): Promise<ActivityStateInfo | null> {
     return await api.getActivityState();
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.error("[ScreenTime] getActivityState failed:", e);
+    logger.error("[ScreenTime] getActivityState failed:", e);
     return null;
   }
 }
@@ -446,6 +446,6 @@ export async function clearActivityData(): Promise<void> {
     // 本地状态由订阅自动刷新
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.error("[ScreenTime] clearActivityData failed:", e);
+    logger.error("[ScreenTime] clearActivityData failed:", e);
   }
 }

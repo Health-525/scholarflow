@@ -164,7 +164,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, slug, start, end, theme, ai: usedAI });
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error("[/api/reports/weekly/generate] error:", (err as Error)?.message ?? err);
+    logger.error("[/api/reports/weekly/generate] error:", (err as Error)?.message ?? err);
     return NextResponse.json({ error: "failed to generate weekly report" }, { status: 500 });
   }
 }

@@ -320,7 +320,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, date, ai: usedAI });
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error("[/api/reports/daily/generate] error:", (err as Error)?.message ?? err);
+    logger.error("[/api/reports/daily/generate] error:", (err as Error)?.message ?? err);
     return NextResponse.json({ error: "failed to generate daily report" }, { status: 500 });
   }
 }

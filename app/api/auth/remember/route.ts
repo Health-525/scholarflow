@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getRememberSetting, setRememberSetting } from "@/lib/auto-refresh/state";
+import { logger } from "@/lib/logger";
 import { getServerDB } from "@/lib/server-db";
 
 const rememberBodySchema = z.object({
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error("[/api/auth/remember] unexpected error:", (err as Error)?.message ?? err);
+    logger.error("[/api/auth/remember] unexpected error:", (err as Error)?.message ?? err);
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getAuthorizedAccount, getAuthorizedSchoolId } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+import { logger } from "@/lib/logger";
 import { getServerDB } from "@/lib/server-db";
 
 interface WeeklyReportRecord {
@@ -60,7 +61,7 @@ export async function PUT(
     return NextResponse.json({ ok: true, slug });
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error("[/api/reports/weekly/:slug] error:", (err as Error)?.message ?? err);
+    logger.error("[/api/reports/weekly/:slug] error:", (err as Error)?.message ?? err);
     return NextResponse.json({ error: "failed to update weekly report" }, { status: 500 });
   }
 }

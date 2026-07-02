@@ -9,6 +9,7 @@ import {
   type ActivitySegment,
 } from "@/lib/activity/db";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+import { logger } from "@/lib/logger";
 
 function parseLocalDayBounds(dateStr: string): { startMs: number; endMs: number } {
   const [y, m, d] = dateStr.split("-").map((n) => parseInt(n, 10));
@@ -93,7 +94,7 @@ export async function POST(request: Request) {
     }
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error("[/api/internal/activity] POST error:", (err as Error)?.message ?? err);
+    logger.error("[/api/internal/activity] POST error:", (err as Error)?.message ?? err);
     return NextResponse.json({ error: "internal error" }, { status: 500 });
   }
 }
@@ -153,7 +154,7 @@ export async function GET(request: Request) {
     }
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error("[/api/internal/activity] GET error:", (err as Error)?.message ?? err);
+    logger.error("[/api/internal/activity] GET error:", (err as Error)?.message ?? err);
     return NextResponse.json({ error: "internal error" }, { status: 500 });
   }
 }

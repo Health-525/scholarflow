@@ -21,6 +21,7 @@ import { z } from "zod";
 import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { mergeExams } from "@/lib/exams/merge";
+import { logger } from "@/lib/logger";
 import { getServerDB } from "@/lib/server-db";
 import type { Exam } from "@/types/exam";
 
@@ -96,7 +97,7 @@ export async function GET(request: Request) {
     return NextResponse.json(readExams(prefix));
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error("[/api/exams GET]", (err as Error)?.message);
+    logger.error("[/api/exams GET]", (err as Error)?.message);
     return NextResponse.json({ error: "internal error" }, { status: 500 });
   }
 }
@@ -157,7 +158,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, exam });
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error("[/api/exams POST]", (err as Error)?.message);
+    logger.error("[/api/exams POST]", (err as Error)?.message);
     return NextResponse.json({ error: "internal error" }, { status: 500 });
   }
 }
@@ -202,7 +203,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: true, exam: exams[idx] });
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error("[/api/exams PATCH]", (err as Error)?.message);
+    logger.error("[/api/exams PATCH]", (err as Error)?.message);
     return NextResponse.json({ error: "internal error" }, { status: 500 });
   }
 }
@@ -252,7 +253,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error("[/api/exams DELETE]", (err as Error)?.message);
+    logger.error("[/api/exams DELETE]", (err as Error)?.message);
     return NextResponse.json({ error: "internal error" }, { status: 500 });
   }
 }

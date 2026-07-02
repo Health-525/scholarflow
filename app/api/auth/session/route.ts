@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth/lifecycle";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getRememberSetting } from "@/lib/auto-refresh/state";
+import { logger } from "@/lib/logger";
 import { getServerDB } from "@/lib/server-db";
 
 /**
@@ -74,7 +75,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ authenticated: false, schoolId: null });
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error("[/api/auth/session] unexpected error:", (err as Error)?.message ?? err);
+    logger.error("[/api/auth/session] unexpected error:", (err as Error)?.message ?? err);
     return NextResponse.json({ authenticated: false, schoolId: null });
   }
 }
