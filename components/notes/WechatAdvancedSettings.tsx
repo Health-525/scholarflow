@@ -134,7 +134,7 @@ export function WechatAdvancedSettings({
         {/* Toggles */}
         <Card>
           <SectionLabel>选项</SectionLabel>
-          <div className="space-y-3.5">
+          <div className="space-y-4">
             {([
               ["macCodeBlock", "Mac 风格代码块"],
               ["showLineNumber", "显示行号"],
