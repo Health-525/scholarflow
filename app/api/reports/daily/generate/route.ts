@@ -10,6 +10,7 @@ import {
 import { getAuthorizedAccount, getAuthorizedSchoolId } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import type { GoalsState } from "@/lib/goals-api";
+import { logger } from "@/lib/logger";
 import { buildDailyReportMarkdown } from "@/lib/reports/daily";
 import { generateDailyReportWithAI } from "@/lib/reports/daily-ai";
 import type {
@@ -273,8 +274,7 @@ export async function POST(request: Request) {
         });
         usedAI = true;
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.warn("[/api/reports/daily/generate] AI failed, falling back to template:", (err as Error)?.message ?? err);
+        logger.warn("[/api/reports/daily/generate] AI failed, falling back to template:", (err as Error)?.message ?? err);
         markdown = buildDailyReportMarkdown({
           date,
           now,

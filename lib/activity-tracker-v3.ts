@@ -9,6 +9,8 @@
 
 import { useEffect, useState } from "react";
 
+import { logger } from "./logger";
+
 // ── Types ──
 export type Category = "coding" | "browsing" | "study" | "entertainment" | "communication" | "system" | "other";
 
@@ -423,7 +425,7 @@ export async function downloadActivityCSV(): Promise<void> {
       }
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.warn("[activityTracker] export day failed:", err);
+      logger.warn("[activityTracker] export day failed:", err);
     }
   }
 

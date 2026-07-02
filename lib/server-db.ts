@@ -12,6 +12,7 @@ import path from "path";
 import type Database from "better-sqlite3";
 
 import { getLegacyBaseDirs, discoverLegacyCandidates, ensureMigrated } from "./data-migrate";
+import { logger } from "./logger";
 import { resolveDataDir } from "./server-db/path";
 import { escapeLike, openSqlite } from "./server-db/utils";
 
@@ -42,8 +43,7 @@ export class ServerDB {
   constructor(dbPath?: string) {
     this.storePath = dbPath || this.resolveDbPath();
     fs.mkdirSync(path.dirname(this.storePath), { recursive: true });
-    // eslint-disable-next-line no-console
-    console.log("[ServerDB] store path:", this.storePath); // 绝对路径 (R2.6)
+    logger.log("[ServerDB] store path:", this.storePath); // 绝对路径 (R2.6)
 
     this.db = openSqlite(this.storePath); // R4.5: try/catch 包裹
     // 限制数据库文件权限为仅属主读写，防止同机其他应用读取明文数据
@@ -65,7 +65,7 @@ export class ServerDB {
       ensureMigrated(this.db, this.storePath, candidates);
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.error("[ServerDB] migration skipped:", (e as Error).message);
+      logger.error("[ServerDB] migration skipped:", (e as Error).message);
     }
   }
 
@@ -200,7 +200,7 @@ export class ServerDB {
       return JSON.parse(row.content);
     } catch {
       // eslint-disable-next-line no-console
-      console.error("[ServerDB] JSON parse failed for key:", key);
+      logger.error("[ServerDB] JSON parse failed for key:", key);
       return row.content;
     }
   }
@@ -243,7 +243,7 @@ export class ServerDB {
       };
     } catch {
       // eslint-disable-next-line no-console
-      console.error("[ServerDB] credential_data JSON parse failed for", row.school_id, row.user_id);
+      logger.error("[ServerDB] credential_data JSON parse failed for", row.school_id, row.user_id);
       return { schoolId: row.school_id, userId: row.user_id, username: row.user_id, expiresAt };
     }
   }
@@ -271,7 +271,7 @@ export class ServerDB {
       };
     } catch {
       // eslint-disable-next-line no-console
-      console.error("[ServerDB] findMostRecentCredential JSON parse failed");
+      logger.error("[ServerDB] findMostRecentCredential JSON parse failed");
       return { schoolId: row.school_id, userId: row.user_id, username: row.user_id, expiresAt };
     }
   }
@@ -338,7 +338,7 @@ export class ServerDB {
       return JSON.parse(row.credential_data);
     } catch {
       // eslint-disable-next-line no-console
-      console.error("[ServerDB] getCredentials JSON parse failed for", schoolId, userId);
+      logger.error("[ServerDB] getCredentials JSON parse failed for", schoolId, userId);
       return null;
     }
   }

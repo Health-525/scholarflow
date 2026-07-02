@@ -15,6 +15,8 @@ import path from "path";
 
 import type { Database } from "better-sqlite3";
 
+import { logger } from "./logger";
+
 const LEGACY_FILE_NAME = "scholarflow.json";
 
 // ── 接口 ────────────────────────────────────────────────────
@@ -233,16 +235,14 @@ export function ensureMigrated(
     });
     importAll();
 
-    // eslint-disable-next-line no-console
-    console.log("[data-migrate] migrated from", source.path, "to", targetPath); // (R5.5)
+    logger.log("[data-migrate] migrated from", source.path, "to", targetPath); // (R5.5)
     result.migrated = true;
     result.source = source.path;
     return result;
   } catch (err) {
     // 失败安全:不抛出,记录错误,保留源文件,db 保持空,ServerDB 以空库继续(R5.6)。
     const message = err instanceof Error ? err.message : String(err);
-    // eslint-disable-next-line no-console
-    console.error("[data-migrate] migration failed:", message);
+    logger.error("[data-migrate] migration failed:", message);
     result.error = message;
     return result;
   }

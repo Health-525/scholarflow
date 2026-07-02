@@ -5,6 +5,7 @@
  * 不拼接 SQL。
  */
 
+import { logger } from "../logger";
 import { getServerDB } from "../server-db";
 
 import { normalizeSegments, type RawSegmentRow } from "./normalize-segments";
@@ -249,6 +250,5 @@ export function migrateLegacyActivityData(): void {
   // 服务端无法访问 localStorage；真正的迁移由 Electron 主进程在启动时读取
   // secure-activity-data.enc 后调用 parseLegacyActivityLog + insertSegment 完成。
   // 这里仅作为占位入口，记录日志即可。
-  // eslint-disable-next-line no-console
-  console.log("[activity/db] migrateLegacyActivityData: migration handled by Electron main process");
+  logger.log("[activity/db] migrateLegacyActivityData: migration handled by Electron main process");
 }

@@ -9,6 +9,8 @@
  * Requirements: 9.1, 9.2, 9.5
  */
 
+import { logger } from "./logger";
+
 /**
  * Pure predicate: remember-password is supported only in Electron with
  * encryption available.
@@ -47,8 +49,7 @@ export async function isSecureStorageAvailable(): Promise<boolean> {
     if (typeof api?.secureStorageAvailable !== "function") return false;
     return (await api.secureStorageAvailable()) === true;
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error("[RuntimeEnv] secureStorageAvailable failed:", e);
+    logger.error("[RuntimeEnv] secureStorageAvailable failed:", e);
     return false;
   }
 }

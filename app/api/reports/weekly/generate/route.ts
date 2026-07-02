@@ -7,6 +7,7 @@ import {
 } from "@/lib/assignment-utils";
 import { getAuthorizedAccount, getAuthorizedSchoolId } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
+import { logger } from "@/lib/logger";
 import type { ReportCourseItem } from "@/lib/reports/types";
 import { buildWeeklyReportMarkdown, generateWeeklyTheme, getCurrentWeekRange } from "@/lib/reports/weekly";
 import { extractWeeklyTheme, generateWeeklyReportWithAI } from "@/lib/reports/weekly-ai";
@@ -135,8 +136,7 @@ export async function POST(request: Request) {
         });
         usedAI = true;
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.warn("[/api/reports/weekly/generate] AI failed, falling back to template:", (err as Error)?.message ?? err);
+        logger.warn("[/api/reports/weekly/generate] AI failed, falling back to template:", (err as Error)?.message ?? err);
         markdown = buildWeeklyReportMarkdown({
           weekStart: start,
           weekEnd: end,
