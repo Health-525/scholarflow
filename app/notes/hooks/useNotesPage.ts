@@ -68,7 +68,10 @@ export function useNotesPage() {
     return flattenTree(tree).sort((a, b) => b.updatedAt - a.updatedAt);
   }, [tree]);
 
-  const selectedNote = notes.find((n) => n.path === selectedPath);
+  const selectedNote = useMemo(
+    () => notes.find((n) => n.path === selectedPath),
+    [notes, selectedPath]
+  );
 
   useEffect(() => {
     setSaveError(null);
@@ -216,7 +219,7 @@ export function useNotesPage() {
     reloadContent();
   }, [reloadContent]);
 
-  const workspaceProps: WorkspaceProps = {
+  const workspaceProps: WorkspaceProps = useMemo(() => ({
     path: selectedPath,
     title: selectedNote?.title || "",
     category: selectedNote?.category || "",
@@ -245,7 +248,7 @@ export function useNotesPage() {
     pinned,
     onTogglePin: handleTogglePin,
     onRestoreVersion: handleRestoreVersion,
-  };
+  }), [selectedPath, selectedNote, contentLoading, content, previewContent, contentError, reloadContent, editorKey, viewMode, saving, saveError, handleSave, handleDelete, handleRename, handleImportMarkdown, deletedBuffer, undoDelete, handleBack, tags, allTags, saveTags, pinned, handleTogglePin, handleRestoreVersion]);
 
   return {
     // state

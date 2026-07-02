@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronRight, FileText, Folder, FolderOpen, Pin } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import type { NoteTreeNode } from "@/types";
@@ -84,6 +84,10 @@ function NoteTreeItem({
   const itemRef = useRef<HTMLButtonElement>(null);
   const isDir = node.type === "dir";
   const isSelected = node.path === selectedPath;
+  const fileCount = useMemo(
+    () => (isDir && node.children ? countFiles(node.children) : 0),
+    [isDir, node.children]
+  );
 
   useEffect(() => {
     const s = loadCollapsed();
@@ -154,9 +158,9 @@ function NoteTreeItem({
             <Folder className="w-3.5 h-3.5 shrink-0" />
           )}
           <span className="truncate">{node.name}</span>
-          {node.children && node.children.length > 0 && (
+          {fileCount > 0 && (
             <span className="ml-auto bg-border text-muted-foreground/60 rounded-full px-1.5 py-0 text-xs leading-none shrink-0 scale-90 inline-block">
-              {countFiles(node.children)}
+              {fileCount}
             </span>
           )}
         </button>
@@ -186,7 +190,7 @@ function NoteTreeItem({
           : "text-foreground/70 hover:bg-sidebar-accent hover:text-foreground border-l-transparent"
       )}
     >
-      <span className="flex items-center gap-2.5 w-full">
+      <span className="flex items-center gap-2 w-full">
         <FileText className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
         <span className="truncate flex-1">{node.name.replace(/\.md$/i, "")}</span>
         {node.pinned && <Pin className="w-3 h-3 shrink-0 text-status-warning/70" />}

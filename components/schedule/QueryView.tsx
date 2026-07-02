@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarDays } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -101,47 +101,13 @@ export function QueryView({
             />
           ) : (
             <div className="space-y-2">
-              {result.items.map((item, idx) => {
-                const colors = courseColor(item.title);
-                return (
-                  <Button
-                    key={idx}
-                    variant="secondary"
-                    onClick={() => setSelectedItem(item)}
-                    className="w-full h-auto text-left rounded-xl p-4 transition-colors active:scale-95 hover:border-primary/30 items-start justify-start whitespace-normal"
-                    style={{
-                      backgroundColor: colors.bg,
-                      border: `1px solid ${colors.border}`,
-                    }}
-                    aria-label={`查看 ${item.title} 详情`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div
-                        className="w-1 h-8 rounded-full flex-shrink-0 mt-0.5"
-                        style={{ backgroundColor: colors.accent }}
-                      />
-                      <div>
-                        <div
-                          className="font-semibold text-sm"
-                          style={{ color: colors.accent }}
-                        >
-                          {item.title}
-                        </div>
-                        {item.timeText && (
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {item.timeText}
-                            {item.location && (
-                              <span className="ml-1.5 opacity-70">
-                                · {item.location}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Button>
-                );
-              })}
+              {result.items.map((item, idx) => (
+                <ResultItem
+                  key={idx}
+                  item={item}
+                  onClick={() => setSelectedItem(item)}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -160,5 +126,62 @@ export function QueryView({
     </div>
   );
 }
+
+const ResultItem = memo(function ResultItem({
+  item,
+  onClick,
+}: {
+  item: DayItem;
+  onClick: () => void;
+}) {
+  const colors = courseColor(item.title);
+  const style = useMemo(
+    () => ({ backgroundColor: colors.bg, border: `1px solid ${colors.border}` }),
+    [colors]
+  );
+  const accentStyle = useMemo(
+    () => ({ backgroundColor: colors.accent }),
+    [colors.accent]
+  );
+  const titleStyle = useMemo(
+    () => ({ color: colors.accent }),
+    [colors.accent]
+  );
+
+  return (
+    <Button
+      variant="secondary"
+      onClick={onClick}
+      className="w-full h-auto text-left rounded-xl p-4 transition-colors active:scale-95 hover:border-primary/30 items-start justify-start whitespace-normal"
+      style={style}
+      aria-label={`查看 ${item.title} 详情`}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className="w-1 h-8 rounded-full flex-shrink-0 mt-0.5"
+          style={accentStyle}
+        />
+        <div>
+          <div
+            className="font-semibold text-sm"
+            style={titleStyle}
+          >
+            {item.title}
+          </div>
+          {item.timeText && (
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {item.timeText}
+              {item.location && (
+                <span className="ml-1.5 opacity-70">
+                  · {item.location}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </Button>
+  );
+});
 
 export default QueryView;

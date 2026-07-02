@@ -271,16 +271,6 @@ export function NoteEditor({
 
   if (!editor) return null;
 
-  const toolbarProps = {
-    editor,
-    onInsertImage: handleInsertImage,
-    viewMode, onViewModeChange, onDelete,
-    onExportMarkdown: handleExportMarkdown,
-    onExportWechat: handleExportWechat,
-    onImportClick: handleImportClick,
-    pinned, onTogglePin,
-  };
-
   return (
     <div className={className}>
       <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp,image/svg+xml,image/bmp"
@@ -289,8 +279,30 @@ export function NoteEditor({
         className="hidden" onChange={handleImportFile} aria-label="导入 Markdown" />
 
       <BubbleToolbar editor={editor} />
-      <DesktopToolbar {...toolbarProps} />
-      <MobileToolbar {...toolbarProps} />
+      <DesktopToolbar
+        editor={editor}
+        onInsertImage={handleInsertImage}
+        viewMode={viewMode}
+        onViewModeChange={onViewModeChange}
+        onDelete={onDelete}
+        onExportMarkdown={handleExportMarkdown}
+        onExportWechat={handleExportWechat}
+        onImportClick={handleImportClick}
+        pinned={pinned}
+        onTogglePin={onTogglePin}
+      />
+      <MobileToolbar
+        editor={editor}
+        onInsertImage={handleInsertImage}
+        viewMode={viewMode}
+        onViewModeChange={onViewModeChange}
+        onDelete={onDelete}
+        onExportMarkdown={handleExportMarkdown}
+        onExportWechat={handleExportWechat}
+        onImportClick={handleImportClick}
+        pinned={pinned}
+        onTogglePin={onTogglePin}
+      />
 
       {uploadError && (
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2 mb-2">

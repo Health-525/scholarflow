@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import type {
   AdjustmentDraft,
 } from "@/lib/schedule/adjustments";
 import { getAdjustedItemsForDate } from "@/lib/schedule/adjustments";
-import type { CourseBlock } from "@/lib/schedule/components";
+import type { CourseBlock as CourseBlockType } from "@/lib/schedule/components";
 import { courseColor } from "@/lib/schedule/course-color";
 import { getWeekNumber } from "@/lib/schedule/schedule";
 import type {
@@ -98,7 +98,7 @@ export function WeekGrid({
   const dayData = useMemo(() => {
     return weekInfo.days.map((day) => {
       const { items } = getAdjustedItemsForDate(schedule, day, adjustments);
-      const courses: CourseBlock[] = [];
+      const courses: CourseBlockType[] = [];
       const specials: DayItem[] = [];
       const holidays: DayItem[] = [];
       for (const item of items) {
@@ -384,61 +384,16 @@ export function WeekGrid({
                       </div>
                     )}
                     {/* Course blocks */}
-                    {courses.map((cb) => {
-                      const colors = courseColor(cb.item.title);
-                      const blockTop = (cb.firstPeriod - 1) * ROW_H + 2;
-                      const blockHeight = cb.span * ROW_H - 4;
-                      return (
-                        <Button
-                          key={`${dayIdx}-${cb.firstPeriod}-${cb.item.title}`}
-                          variant="secondary"
-                          draggable
-                          onClick={() => handleCourseClick(cb.item, day)}
-                          onDragStart={(e) =>
-                            handleDragStart(e, cb.item, day)
-                          }
-                          onDragEnd={handleDragEnd}
-                          className={
-                            "absolute left-1 right-1 rounded-lg px-1.5 py-1 text-left transition-colors overflow-hidden items-start justify-start whitespace-normal cursor-grab active:cursor-grabbing hover:border-primary/30 active:scale-95"
-                          }
-                          style={{
-                            top: blockTop,
-                            height: blockHeight,
-                            backgroundColor: colors.bg,
-                            border: "1px solid " + colors.border,
-                          }}
-                          aria-label={
-                            cb.item.title + " " + (cb.item.timeText || "")
-                          }
-                          title={
-                            cb.item.title +
-                            (cb.item.timeText
-                              ? ` · ${cb.item.timeText}`
-                              : "") +
-                            "\n拖拽到目标格子以快速调课"
-                          }
-                        >
-                          <div className="flex flex-col leading-tight w-full pointer-events-none">
-                            <div
-                              className={`text-xs font-semibold ${cb.span >= 2 ? "line-clamp-2" : "line-clamp-1"}`}
-                              style={{ color: colors.accent }}
-                            >
-                              {cb.item.title}
-                            </div>
-                            {cb.item.location && blockHeight > 52 && (
-                              <div className="text-xs text-muted-foreground mt-0.5 truncate">
-                                {cb.item.location}
-                              </div>
-                            )}
-                            {cb.item.timeText && blockHeight >= 36 && (
-                              <div className="text-xs text-muted-foreground/70 mt-0.5 truncate">
-                                {cb.item.timeText}
-                              </div>
-                            )}
-                          </div>
-                        </Button>
-                      );
-                    })}
+                    {courses.map((cb) => (
+                      <CourseBlock
+                        key={`${dayIdx}-${cb.firstPeriod}-${cb.item.title}`}
+                        block={cb}
+                        day={day}
+                        onClick={handleCourseClick}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                      />
+                    ))}
                   </div>
                 );
               })}
@@ -521,5 +476,80 @@ export function WeekGrid({
     </div>
   );
 }
+
+const CourseBlock = memo(function CourseBlock({
+  block,
+  day,
+  onClick,
+  onDragStart,
+  onDragEnd,
+}: {
+  block: CourseBlockType;
+  day: Date;
+  onClick: (item: DayItem, day: Date) => void;
+  onDragStart: (e: React.DragEvent, item: CourseView, day: Date) => void;
+  onDragEnd: () => void;
+}) {
+  const colors = courseColor(block.item.title);
+  const blockTop = (block.firstPeriod - 1) * ROW_H + 2;
+  const blockHeight = block.span * ROW_H - 4;
+
+  const style = useMemo(
+    () => ({
+      top: blockTop,
+      height: blockHeight,
+      backgroundColor: colors.bg,
+      border: "1px solid " + colors.border,
+    }),
+    [blockTop, blockHeight, colors]
+  );
+  const titleStyle = useMemo(() => ({ color: colors.accent }), [colors.accent]);
+
+  const handleClick = useCallback(
+    () => onClick(block.item, day),
+    [onClick, block.item, day]
+  );
+  const handleDragStart = useCallback(
+    (e: React.DragEvent) => onDragStart(e, block.item as CourseView, day),
+    [onDragStart, block.item, day]
+  );
+
+  return (
+    <Button
+      variant="secondary"
+      draggable
+      onClick={handleClick}
+      onDragStart={handleDragStart}
+      onDragEnd={onDragEnd}
+      className="absolute left-1 right-1 rounded-lg px-1.5 py-1 text-left transition-colors overflow-hidden items-start justify-start whitespace-normal cursor-grab active:cursor-grabbing hover:border-primary/30 active:scale-95"
+      style={style}
+      aria-label={block.item.title + " " + (block.item.timeText || "")}
+      title={
+        block.item.title +
+        (block.item.timeText ? ` · ${block.item.timeText}` : "") +
+        "\n拖拽到目标格子以快速调课"
+      }
+    >
+      <div className="flex flex-col leading-tight w-full pointer-events-none">
+        <div
+          className={`text-xs font-semibold ${block.span >= 2 ? "line-clamp-2" : "line-clamp-1"}`}
+          style={titleStyle}
+        >
+          {block.item.title}
+        </div>
+        {block.item.location && blockHeight > 52 && (
+          <div className="text-xs text-muted-foreground mt-0.5 truncate">
+            {block.item.location}
+          </div>
+        )}
+        {block.item.timeText && blockHeight >= 36 && (
+          <div className="text-xs text-muted-foreground/70 mt-0.5 truncate">
+            {block.item.timeText}
+          </div>
+        )}
+      </div>
+    </Button>
+  );
+});
 
 export default WeekGrid;
