@@ -12,7 +12,6 @@ import { UpdateNotification } from "@/components/ui/UpdateNotification";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { NotificationActivator } from "@/hooks/useNotifications";
 import { isElectron } from "@/lib/runtime-env";
-import { semanticBg, semanticBorder, semanticColor } from "@/lib/theme-colors";
 import { cn } from "@/lib/utils";
 
 import { BottomNav } from "./BottomNav";
@@ -57,10 +56,9 @@ export function AppShell({ children, isOnline }: AppShellProps) {
         {!online && (
           <div
             className={cn(
-              "px-4 py-2.5 flex items-center justify-center gap-2 text-xs font-medium border-b animate-fade-in sticky z-10",
+              "px-4 py-2.5 flex items-center justify-center gap-2 text-xs font-medium border-b animate-fade-in sticky z-10 bg-statusWarning/10 text-statusWarning border-statusWarning/20",
               showDragBar ? "top-[36px]" : "top-0"
             )}
-            style={{ backgroundColor: semanticBg("warning"), color: semanticColor("warning"), borderBottomColor: semanticBorder("warning") }}
           >
             <WifiOff className="w-3.5 h-3.5 shrink-0" />
             网络连接已断开，离线数据仍可浏览

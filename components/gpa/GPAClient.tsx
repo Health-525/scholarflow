@@ -87,8 +87,8 @@ export function GPAClient({ grades }: GPAClientProps) {
     [filteredCourses]
   );
 
-  const SCORE_RANGES = getScoreRanges();
-  const GPA_REF = getGPARef();
+  const SCORE_RANGES = useMemo(() => getScoreRanges(), []);
+  const GPA_REF = useMemo(() => getGPARef(), []);
   const numeric = useMemo(
     () => filteredCourses.filter((c) => !isNaN(parseFloat(c.score))),
     [filteredCourses]

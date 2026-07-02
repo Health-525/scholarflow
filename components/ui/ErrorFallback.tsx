@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { semanticBg, semanticBorder } from "@/lib/theme-colors";
 
 interface ErrorFallbackProps {
   message?: string;
@@ -14,8 +13,7 @@ export function ErrorFallback({
 }: ErrorFallbackProps) {
   return (
     <div
-      className="rounded-2xl p-4 flex flex-col items-center gap-3 text-center border"
-      style={{ backgroundColor: semanticBg("error"), borderColor: semanticBorder("error") }}
+      className="rounded-2xl p-4 flex flex-col items-center gap-3 text-center border bg-destructive/10 border-destructive/20"
       role="alert"
     >
       <span className="text-2xl" aria-hidden="true">

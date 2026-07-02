@@ -17,14 +17,6 @@ export function isDarkMode(): boolean {
   );
 }
 
-// ── Status / occupancy colors ──
-export function statusColor(pct: number): string {
-  const dark = isDarkMode();
-  if (pct >= 90) return dark ? "#f85149" : "#ef4444";
-  if (pct >= 70) return dark ? "#d29922" : "#f59e0b";
-  return dark ? "#3fb950" : "#22c55e";
-}
-
 // ── GPA score range colors ──
 export interface ScoreRange {
   label: string;
@@ -144,57 +136,3 @@ export function getGPARef(): GPARefEntry[] {
   });
 }
 
-// ── Generic semantic color helpers ──
-export type SemanticColorType = "success" | "warning" | "error" | "info" | "primary";
-
-export function semanticColor(type: SemanticColorType): string {
-  const dark = isDarkMode();
-  switch (type) {
-    case "success":
-      return dark ? "#4ade80" : "#22c55e";
-    case "warning":
-      return dark ? "#fbbf24" : "#f59e0b";
-    case "error":
-      return dark ? "#f87171" : "#ef4444";
-    case "info":
-      return dark ? "#7c8edb" : "#2a4494";
-    case "primary":
-      return dark ? "#7c8edb" : "#2a4494";
-  }
-}
-
-export function semanticBg(
-  type: "success" | "warning" | "error" | "info" | "primary",
-): string {
-  const dark = isDarkMode();
-  switch (type) {
-    case "success":
-      return dark ? "rgba(74,222,128,0.12)" : "rgba(34,197,94,0.10)";
-    case "warning":
-      return dark ? "rgba(251,191,36,0.12)" : "rgba(245,158,11,0.10)";
-    case "error":
-      return dark ? "rgba(248,113,113,0.12)" : "rgba(239,68,68,0.10)";
-    case "info":
-      return dark ? "rgba(124,142,219,0.12)" : "rgba(42,68,148,0.10)";
-    case "primary":
-      return dark ? "rgba(124,142,219,0.12)" : "rgba(42,68,148,0.10)";
-  }
-}
-
-export function semanticBorder(
-  type: "success" | "warning" | "error" | "info" | "primary",
-): string {
-  const dark = isDarkMode();
-  switch (type) {
-    case "success":
-      return dark ? "rgba(74,222,128,0.20)" : "rgba(34,197,94,0.20)";
-    case "warning":
-      return dark ? "rgba(251,191,36,0.20)" : "rgba(245,158,11,0.20)";
-    case "error":
-      return dark ? "rgba(248,113,113,0.20)" : "rgba(239,68,68,0.20)";
-    case "info":
-      return dark ? "rgba(124,142,219,0.20)" : "rgba(42,68,148,0.20)";
-    case "primary":
-      return dark ? "rgba(124,142,219,0.20)" : "rgba(42,68,148,0.20)";
-  }
-}
