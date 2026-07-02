@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock } from "lucide-react";
-import { lazy, memo, Suspense, useEffect, useState } from "react";
+import { lazy, memo, Suspense, useEffect, useMemo, useState } from "react";
 
 import { AssignmentsCard } from "@/components/dashboard/AssignmentsCard";
 import { ExamCountdownCard } from "@/components/dashboard/ExamCountdownCard";
@@ -58,11 +58,11 @@ export default function DashboardPage() {
     useDashboardSummary();
   const { data: scheduleData } = useScheduleQuery();
 
-  const currentWeek = (() => {
+  const currentWeek = useMemo(() => {
     const week1Monday = scheduleData?.schedule?.meta?.week1_monday;
     if (!week1Monday) return null;
     return getWeekNumber(new Date(), week1Monday);
-  })();
+  }, [scheduleData?.schedule?.meta?.week1_monday]);
 
   if (isMobile) {
     return (
