@@ -39,6 +39,7 @@ export class ServerDB {
   private storePath: string;
   private db: Database.Database;
   private stmts!: Record<string, Database.Statement>;
+  private seededPrefixes = new Set<string>();
 
   constructor(dbPath?: string) {
     this.storePath = dbPath || this.resolveDbPath();
@@ -375,6 +376,9 @@ export class ServerDB {
 
   seedFromTimetable(prefix: string): { assignments: number } {
     const result = { assignments: 0 };
+    if (this.seededPrefixes.has(prefix)) return result;
+    this.seededPrefixes.add(prefix);
+
     const timetableDataDir = path.join(this.storePath, "..", "..", "timetable", "data");
 
     if (!this.readData(`assignments:${prefix}`)) {
