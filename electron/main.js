@@ -1,14 +1,7 @@
 const { app, BrowserWindow, shell, dialog, ipcMain, safeStorage, powerMonitor, session } = require('electron');
 
-const { fork } = require('child_process');
-const net = require('net');
 const path = require('path');
 const fs = require('fs');
-const crypto = require('crypto');
-const { createAutoRefreshScheduler } = require('./auto-refresh');
-const { createActivityTracker } = require('./activity-tracker');
-
-const INTERNAL_TOKEN_HEADER = 'x-scholarflow-internal-token';
 
 // ── 进程级日志（早于控制台，用于排查双击无反应/闪退）─────────────
 const logDir = path.join(app.getPath('userData'), 'logs');
@@ -20,6 +13,21 @@ function logToFile(level, msg) {
   } catch {}
 }
 logToFile('info', 'Main process starting');
+
+// 生产环境不再向 stdout/stderr 输出 info/warn，避免泄露与噪声；文件日志仍保留。
+const isDevMain = !app.isPackaged;
+if (!isDevMain) {
+  console.log = () => {};
+  console.warn = () => {};
+}
+
+const { fork } = require('child_process');
+const net = require('net');
+const crypto = require('crypto');
+const { createAutoRefreshScheduler } = require('./auto-refresh');
+const { createActivityTracker } = require('./activity-tracker');
+
+const INTERNAL_TOKEN_HEADER = 'x-scholarflow-internal-token';
 
 process.on('uncaughtException', (err) => {
   logToFile('fatal', `uncaughtException: ${err.stack || err.message}`);
