@@ -103,10 +103,9 @@ function isPendingHebauMfa(value: unknown): value is PendingHebauMfa {
 
 function cleanupPendingHebauMfa(username?: string): void {
   const db = getServerDB();
-  if (typeof db.listKeys !== "function") return;
+  if (typeof db.listKeysLike !== "function") return;
   const now = Date.now();
-  for (const key of db.listKeys()) {
-    if (!key.startsWith(`${MFA_KEY_PREFIX}:`)) continue;
+  for (const key of db.listKeysLike(`${MFA_KEY_PREFIX}:%`)) {
     const challengeId = key.slice(`${MFA_KEY_PREFIX}:`.length);
     const value = db.readData(key);
     if (!isPendingHebauMfa(value)) {

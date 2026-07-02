@@ -16,11 +16,8 @@ function noteKey(prefix: string, path: string): string {
  */
 export function listNotePaths(prefix: string): string[] {
   const db = getServerDB();
-  const pattern = `${NOTE_KEY_PREFIX}:${prefix}:`;
-  return db
-    .listKeys()
-    .filter((key) => key.startsWith(pattern))
-    .map((key) => key.slice(pattern.length));
+  const pattern = `${NOTE_KEY_PREFIX}:${prefix}:%`;
+  return db.listKeysLike(pattern).map((key) => key.slice(`${NOTE_KEY_PREFIX}:${prefix}:`.length));
 }
 
 /**

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getServerDB } from "@/lib/server-db";
+import { escapeLike } from "@/lib/server-db/utils";
 
 const localSaveBodySchema = z.object({
   file: z.string().min(1).optional(),
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
 
     // Special action: view data history (from SQLite timestamps), scoped to current account
     if (action === "view-history" && !file) {
-      const keys = db.listKeys().filter((key) => key.endsWith(`:${prefix}`));
+      const keys = db.listKeysLike(`%:${escapeLike(prefix)}`);
       const history = keys.map(key => {
         const updatedAt = db.getUpdatedAt(key);
         return `${key} — ${updatedAt ? new Date(updatedAt).toISOString() : "unknown"}`;

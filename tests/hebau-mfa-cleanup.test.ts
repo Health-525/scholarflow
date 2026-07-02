@@ -3,12 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockReadData = vi.fn();
 const mockDeleteData = vi.fn();
 const mockListKeys = vi.fn<() => string[]>(() => []);
+const mockListKeysLike = vi.fn<() => string[]>(() => []);
 
 vi.mock("@/lib/server-db", () => ({
   getServerDB: vi.fn(() => ({
     readData: mockReadData,
     deleteData: mockDeleteData,
     listKeys: mockListKeys,
+    listKeysLike: mockListKeysLike,
   })),
 }));
 
@@ -20,6 +22,8 @@ describe("河北农大 MFA challenge cleanup", () => {
     mockDeleteData.mockReset();
     mockListKeys.mockReset();
     mockListKeys.mockReturnValue([]);
+    mockListKeysLike.mockReset();
+    mockListKeysLike.mockReturnValue([]);
   });
 
   it("账号不匹配时会删除 challenge，避免带 Cookie 的待验证会话继续滞留", async () => {
@@ -46,7 +50,7 @@ describe("河北农大 MFA challenge cleanup", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-23T12:00:00Z"));
 
-    mockListKeys.mockReturnValue(["hebau-mfa:challenge-id"]);
+    mockListKeysLike.mockReturnValue(["hebau-mfa:challenge-id"]);
     mockReadData.mockImplementation((key: string) => {
       if (key !== "hebau-mfa:challenge-id") return null;
       return {

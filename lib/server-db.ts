@@ -163,6 +163,7 @@ export class ServerDB {
       del: this.db.prepare("DELETE FROM data_store WHERE key = ?"),
       delPrefix: this.db.prepare("DELETE FROM data_store WHERE key LIKE ? ESCAPE '\\'"),
       listKeys: this.db.prepare("SELECT key FROM data_store ORDER BY key ASC"),
+      listKeysLike: this.db.prepare("SELECT key FROM data_store WHERE key LIKE ? ESCAPE '\\' ORDER BY key ASC"),
       updatedAt: this.db.prepare("SELECT updated_at FROM data_store WHERE key = ?"),
       cleanOld: this.db.prepare("DELETE FROM data_store WHERE updated_at < ?"),
       credUpsert: this.db.prepare(
@@ -304,6 +305,10 @@ export class ServerDB {
 
   listKeys(): string[] {
     return (this.stmts.listKeys.all() as { key: string }[]).map((r) => r.key);
+  }
+
+  listKeysLike(pattern: string): string[] {
+    return (this.stmts.listKeysLike.all(pattern) as { key: string }[]).map((r) => r.key);
   }
 
   getUpdatedAt(key: string): number | null {
