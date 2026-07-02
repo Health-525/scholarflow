@@ -34,7 +34,8 @@ function todayLabel(): string {
 }
 
 export default function ExamsPage() {
-  const { schoolId, userId } = useAuthStore((s) => s);
+  const schoolId = useAuthStore((s) => s.schoolId);
+  const userId = useAuthStore((s) => s.userId);
 
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);

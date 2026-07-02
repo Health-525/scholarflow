@@ -13,7 +13,8 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 
 export const ExamCountdownCard = memo(function ExamCountdownCard() {
-  const { schoolId, userId } = useAuthStore((s) => s);
+  const schoolId = useAuthStore((s) => s.schoolId);
+  const userId = useAuthStore((s) => s.userId);
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.exams(schoolId, userId),
     queryFn: fetchNextExam,

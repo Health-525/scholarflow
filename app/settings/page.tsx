@@ -48,7 +48,9 @@ export default function SettingsPage() {
   const router = useRouter();
   const isMobile = useIsMobile();
   const { theme, setTheme } = useThemeStore();
-  const { schoolId, userId, clearAuth: clearToken } = useAuthStore((s) => s);
+  const schoolId = useAuthStore((s) => s.schoolId);
+  const userId = useAuthStore((s) => s.userId);
+  const clearToken = useAuthStore((s) => s.clearAuth);
   const username = userId; // userId 即学号，原 username 字段已移除
   const { data: scheduleData } = useScheduleQuery();
   const { assignments } = useAssignmentsQuery();

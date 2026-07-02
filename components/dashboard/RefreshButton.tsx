@@ -20,7 +20,8 @@ import { useAuthStore } from "@/store/auth";
  * Requirements: 2.1, 2.3, 2.4, 2.5, 2.6, 5.6
  */
 export const RefreshButton = memo(function RefreshButton({ className }: { className?: string }) {
-  const { schoolId, userId: username } = useAuthStore((s) => s);
+  const schoolId = useAuthStore((s) => s.schoolId);
+  const username = useAuthStore((s) => s.userId);
   const refreshData = useRefreshData();
   const isPending = refreshData.isPending;
 
