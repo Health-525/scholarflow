@@ -74,6 +74,11 @@ async function asyncPool<T, R>(poolLimit: number, array: T[], iteratorFn: (item:
   return Promise.all(ret);
 }
 
+function isSafeImageUrl(url: URL): boolean {
+  // 仅允许同源图片内联，避免 SSRF/信息泄露；跨域图片保留原 URL。
+  return url.origin === window.location.origin;
+}
+
 async function inlineImages(html: string): Promise<string> {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
@@ -83,15 +88,16 @@ async function inlineImages(html: string): Promise<string> {
     const src = img.getAttribute("src");
     if (!src) return;
     try {
-      const absolute = new URL(src, window.location.href).href;
-      if (absolute.startsWith("data:")) return;
-      const res = await fetch(absolute);
+      const absoluteUrl = new URL(src, window.location.href);
+      if (absoluteUrl.protocol === "data:") return;
+      if (!isSafeImageUrl(absoluteUrl)) return;
+      const res = await fetch(absoluteUrl.href);
       if (!res.ok) return;
       const blob = await res.blob();
       const dataUrl = await blobToDataUrl(blob);
       img.setAttribute("src", dataUrl);
     } catch {
-      // 忽略无法内联的图片，保留原 URL
+      // 忽略无法内联的图片，保留原 URL。
     }
   });
 

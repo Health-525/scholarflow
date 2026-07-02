@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardLoading() {
   return (
-    <div className="max-w-5xl mx-auto py-7 pb-24 md:pb-8 animate-fade-in">
+    <div className="max-w-5xl mx-auto py-7 pb-24 md:pb-8 motion-safe:animate-fade-in">
       {/* Header skeleton */}
       <div className="mb-7">
         <Skeleton className="h-8 w-48 mb-2" />
