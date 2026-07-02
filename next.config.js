@@ -9,12 +9,19 @@ const nextConfig = {
   output: isMobile ? "export" : "standalone",
   images: isMobile ? { unoptimized: true } : undefined,
   outputFileTracingRoot: __dirname,
+  poweredByHeader: false,
   serverExternalPackages: ["jsdom"],
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
   experimental: {
-    optimizePackageImports: ["lucide-react", "date-fns"],
+    optimizePackageImports: [
+      "lucide-react",
+      "date-fns",
+      "@base-ui/react",
+      "sonner",
+      "react-day-picker",
+    ],
   },
 };
 
