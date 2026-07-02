@@ -85,7 +85,7 @@ export function TodayView({
                 <span className="ml-2">· {nextCourse.item.location}</span>
               )}
             </div>
-            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-primary/10 dark:bg-primary/15 border border-primary/20">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/10 dark:bg-primary/15 border border-primary/20">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/10 shrink-0">
                 <Clock className="w-4 h-4 text-primary" />
               </div>

@@ -339,7 +339,7 @@ function CourseList({ courses }: { courses: JwglCourse[] }) {
         return (
           <div
             key={`${c.course}-${c.semester}-${i}`}
-            className={`flex items-center gap-2.5 p-2.5 rounded-xl ${i % 2 !== 0 ? "bg-secondary" : ""}`}
+            className={`flex items-center gap-3 p-3 rounded-xl ${i % 2 !== 0 ? "bg-secondary" : ""}`}
           >
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold tabular-nums"

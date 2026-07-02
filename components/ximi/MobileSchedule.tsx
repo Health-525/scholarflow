@@ -132,7 +132,7 @@ function TodayPane({
           </div>
         </div>
         {nextCourse && (
-          <div className="relative z-10 mt-4 flex items-center gap-3 rounded-2xl bg-primary-container/20 p-3.5">
+          <div className="relative z-10 mt-4 flex items-center gap-3 rounded-2xl bg-primary-container/20 p-3">
             <Timer className="h-5 w-5 shrink-0 text-primary" />
             <div className="text-2xl font-bold tabular-nums text-primary">
               <CountdownTimer targetTime={nextCourse.startTime} label="距离上课" />
@@ -143,18 +143,18 @@ function TodayPane({
 
       {/* 今日课程列表 */}
       {items.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-3xl bg-surface-container-lowest py-8">
+        <div className="flex flex-col items-center gap-2 rounded-2xl bg-surface-container-lowest py-8">
           <Mascot size="md" />
           <p className="text-sm text-on-surface-variant">今天没有课，享受自由时光~</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-3">
           {items.map((item) => (
             <button
               key={item.kind === "course" ? `course-${item.title}-${item.weekday}-${item.periods.join("-")}` : `${item.kind}-${item.title}-${item.timeText}`}
               type="button"
               onClick={() => setSelected(item)}
-              className={`flex items-center gap-3 rounded-3xl border px-4 py-3.5 text-left transition active:scale-95 ${cuteOf(item.title)}`}
+              className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition active:scale-95 ${cuteOf(item.title)}`}
             >
               <span className="h-9 w-1.5 shrink-0 rounded-full bg-current opacity-70" />
               <div className="min-w-0 flex-1">

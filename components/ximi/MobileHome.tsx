@@ -74,7 +74,7 @@ export function TodayTasks() {
           return (
             <div
               key={a.id}
-              className="flex items-start gap-3 rounded-3xl border border-transparent bg-surface p-3.5 transition-colors hover:border-outline-variant/40"
+              className="flex items-start gap-3 rounded-2xl border border-transparent bg-surface p-3 transition-colors hover:border-outline-variant/40"
             >
               <span className="mt-0.5 h-6 w-6 shrink-0 rounded-full border-2 border-outline" />
               <div className="min-w-0 flex-1">

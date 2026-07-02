@@ -105,7 +105,7 @@ export const AssignmentsCard = memo(function AssignmentsCard() {
                 return (
                   <div
                     key={a.id}
-                    className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:bg-muted/30 ${cfg.row}`}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-muted/30 ${cfg.row}`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`}

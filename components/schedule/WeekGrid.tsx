@@ -410,36 +410,15 @@ export function WeekGrid({
                 <div className="flex-1 h-px bg-border" />
               </div>
               {weekInfo.days.map((day, dayIdx) =>
-                dayData[dayIdx].specials.map((item) => {
-                  const colors = courseColor(item.title);
-                  return (
-                    <Button
-                      key={`sp-${dayIdx}-${item.title}-${item.timeText}`}
-                      variant="secondary"
-                      onClick={() => handleCourseClick(item, day)}
-                      className="w-full h-auto rounded-lg px-3 py-2 text-left transition-all active:scale-95 flex items-center gap-2 justify-start whitespace-normal"
-                      style={{
-                        backgroundColor: colors.bg,
-                        border: "1px solid " + colors.border,
-                      }}
-                    >
-                      <span className="text-xs text-muted-foreground tabular-nums w-6">
-                        {WEEKDAY_LABELS[dayIdx]}
-                      </span>
-                      <span
-                        className="text-xs font-semibold"
-                        style={{ color: colors.accent }}
-                      >
-                        {item.title}
-                      </span>
-                      {item.timeText && (
-                        <span className="text-xs text-muted-foreground ml-auto">
-                          {item.timeText}
-                        </span>
-                      )}
-                    </Button>
-                  );
-                }),
+                dayData[dayIdx].specials.map((item) => (
+                  <SpecialItem
+                    key={`sp-${dayIdx}-${item.title}-${item.timeText}`}
+                    item={item}
+                    day={day}
+                    dayLabel={WEEKDAY_LABELS[dayIdx]}
+                    onClick={handleCourseClick}
+                  />
+                )),
               )}
             </div>
           )}
@@ -476,6 +455,56 @@ export function WeekGrid({
     </div>
   );
 }
+
+const SpecialItem = memo(function SpecialItem({
+  item,
+  day,
+  dayLabel,
+  onClick,
+}: {
+  item: DayItem;
+  day: Date;
+  dayLabel: string;
+  onClick: (item: DayItem, day: Date) => void;
+}) {
+  const colors = courseColor(item.title);
+  const style = useMemo(
+    () => ({
+      backgroundColor: colors.bg,
+      border: "1px solid " + colors.border,
+    }),
+    [colors]
+  );
+  const titleStyle = useMemo(
+    () => ({ color: colors.accent }),
+    [colors.accent]
+  );
+  const handleClick = useCallback(
+    () => onClick(item, day),
+    [onClick, item, day]
+  );
+
+  return (
+    <Button
+      variant="secondary"
+      onClick={handleClick}
+      className="w-full h-auto rounded-lg px-3 py-2 text-left transition-colors active:scale-95 flex items-center gap-2 justify-start whitespace-normal motion-safe:transition-transform"
+      style={style}
+    >
+      <span className="text-xs text-muted-foreground tabular-nums w-6">
+        {dayLabel}
+      </span>
+      <span className="text-xs font-semibold" style={titleStyle}>
+        {item.title}
+      </span>
+      {item.timeText && (
+        <span className="text-xs text-muted-foreground ml-auto">
+          {item.timeText}
+        </span>
+      )}
+    </Button>
+  );
+});
 
 const CourseBlock = memo(function CourseBlock({
   block,

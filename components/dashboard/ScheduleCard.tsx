@@ -126,7 +126,7 @@ export const ScheduleCard = memo(function ScheduleCard() {
                       return (
                         <div
                           key={idx}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 border transition-colors hover:bg-muted/30"
+                          className="flex items-center gap-3 rounded-xl px-3 py-2 border transition-colors hover:bg-muted/30"
                           style={{
                             backgroundColor: colors.bg,
                             borderColor: colors.border,
