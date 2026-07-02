@@ -43,7 +43,11 @@ export async function GET(request: Request) {
   const prefix = `${account.schoolId}:${account.userId}`;
 
   // Auto-seed missing data from timetable on first access
-  db.seedFromTimetable(prefix);
+  // 仅对可能依赖课表初始化的数据类型触发，避免无关请求空转
+  const seedableTypes = new Set(["dashboard", "schedule", "assignments", "exams", "grades", "student"]);
+  if (seedableTypes.has(type)) {
+    db.seedFromTimetable(prefix);
+  }
 
   switch (type) {
     case "dashboard":
