@@ -21,7 +21,7 @@ function NavItem({ item }: { item: NavItemConfig }) {
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={[
-        "group flex items-center gap-2.5 px-3 py-1.5 min-h-8 rounded-lg text-sm font-medium transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1",
+        "group flex items-center gap-2 px-3 py-1.5 min-h-8 rounded-lg text-sm font-medium transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1",
         active
           ? "bg-white/70 dark:bg-white/[0.08] text-foreground shadow-sm"
           : wip
@@ -62,7 +62,7 @@ export function SideNav() {
         style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
       >
         <div
-          className="flex items-center gap-2.5"
+          className="flex items-center gap-2"
           style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         >
           <Image
@@ -74,10 +74,10 @@ export function SideNav() {
             style={{ objectFit: "cover" }}
           />
           <div className="flex items-baseline gap-1">
-            <span className="font-display text-base font-semibold text-primary tracking-tight">
+            <span className="font-display text-base font-semibold text-primary">
               Scholar
             </span>
-            <span className="font-display text-base font-semibold text-foreground tracking-tight">
+            <span className="font-display text-base font-semibold text-foreground">
               Flow
             </span>
           </div>

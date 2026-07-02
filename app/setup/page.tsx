@@ -236,7 +236,7 @@ export default function SetupPage() {
                     <GraduationCap className="w-8 h-8 text-primary" strokeWidth={1.5} />
                   </div>
                 </div>
-                <h1 className="text-3xl font-bold font-display text-foreground tracking-tight">
+                <h1 className="text-3xl font-bold font-display text-foreground">
                   ScholarFlow
                 </h1>
                 <p className="text-sm text-muted-foreground">
@@ -310,7 +310,7 @@ export default function SetupPage() {
                     <KeyRound className="w-5 h-5 text-primary" strokeWidth={1.5} />
                   </div>
                 </div>
-                <h1 className="text-2xl font-bold font-display text-foreground tracking-tight">
+                <h1 className="text-2xl font-bold font-display text-foreground ">
                   {selectedSchool?.name || selectedSchoolId}
                 </h1>
                 <p className="text-sm text-muted-foreground">
@@ -360,7 +360,7 @@ export default function SetupPage() {
                 {/* Remember password */}
                 {rememberSupported ? (
                   <div className="space-y-1">
-                    <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={rememberChecked}
@@ -430,7 +430,7 @@ export default function SetupPage() {
                     <ShieldCheck className="w-5 h-5 text-primary" strokeWidth={1.5} />
                   </div>
                 </div>
-                <h1 className="text-2xl font-bold font-display text-foreground tracking-tight">
+                <h1 className="text-2xl font-bold font-display text-foreground ">
                   二次认证
                 </h1>
                 <p className="text-sm text-muted-foreground">
@@ -508,7 +508,7 @@ export default function SetupPage() {
                     <CheckCircle2 className="w-5 h-5 text-statusSuccess" strokeWidth={1.5} />
                   </div>
                 </div>
-                <h1 className="text-2xl font-bold font-display text-foreground tracking-tight">
+                <h1 className="text-2xl font-bold font-display text-foreground ">
                   登录成功
                 </h1>
                 <p className="text-sm text-muted-foreground">

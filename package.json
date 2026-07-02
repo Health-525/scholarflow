@@ -35,6 +35,7 @@
     "test": "node scripts/switch-abi.js node && vitest run",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run lint && npm test",
+    "analyze": "set ANALYZE=true&& next build",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "abi:node": "node scripts/switch-abi.js node",
@@ -160,6 +161,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.2.10",
     "@playwright/test": "^1.60.0",
     "@tailwindcss/typography": "^0.5.20",
     "@testing-library/jest-dom": "^6.9.1",
