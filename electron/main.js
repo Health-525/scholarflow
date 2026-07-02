@@ -516,13 +516,23 @@ function createWindow() {
       if (url.startsWith(`http://localhost:${PORT}`)) {
         return { action: 'allow' };
       }
-      // 外部链接：仅打开已知安全域或用户确认后的链接
+      // 外部链接：白名单内直接打开，否则需要用户确认
       const allowedExternalHosts = process.env.ALLOWED_EXTERNAL_HOSTS
         ? process.env.ALLOWED_EXTERNAL_HOSTS.split(',').map(h => h.trim()).filter(Boolean)
         : [];
-      if (allowedExternalHosts.length > 0 && !allowedExternalHosts.includes(hostname)) {
-        logToFile('warn', `[WindowOpen] blocked external host: ${hostname}`);
-        return { action: 'deny' };
+      if (!allowedExternalHosts.includes(hostname)) {
+        const result = dialog.showMessageBoxSync(mainWindow, {
+          type: 'question',
+          buttons: ['取消', '打开'],
+          defaultId: 0,
+          cancelId: 0,
+          message: `即将打开外部链接：\n${url}`,
+          detail: '请确认该链接安全后再打开。',
+        });
+        if (result !== 1) {
+          logToFile('warn', `[WindowOpen] user denied external host: ${hostname}`);
+          return { action: 'deny' };
+        }
       }
       shell.openExternal(url);
     } catch {

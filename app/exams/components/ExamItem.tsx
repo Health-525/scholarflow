@@ -34,8 +34,8 @@ function formatCountdown(dateStr: string): { text: string; urgency: Urgency } {
 }
 
 const urgencyColor: Record<Urgency, string> = {
-  today: "text-[#F54A45]",
-  soon: "text-amber-500",
+  today: "text-statusError",
+  soon: "text-statusWarning",
   normal: "text-muted-foreground",
   past: "text-muted-foreground",
 };
@@ -80,10 +80,9 @@ export function ExamItem({
   return (
     <div
       className={cn(
-        "group flex items-center gap-3 rounded-xl border bg-card p-3",
-        "hover:shadow-sm transition-shadow duration-200 hover:bg-muted/40",
+        "group flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors duration-200 hover:border-primary/30 hover:bg-muted/40",
         cd.urgency === "today"
-          ? "border-[#F54A45]/30 animate-pulse"
+          ? "border-statusError/30 animate-pulse"
           : "border-border"
       )}
     >

@@ -61,7 +61,7 @@ export default function DashboardPage() {
   if (isMobile) {
     return (
       <ErrorBoundary>
-        <Suspense fallback={<div className="max-w-md mx-auto py-5"><div className="h-80 rounded-3xl border border-border bg-card skeleton" /></div>}>
+        <Suspense fallback={<div className="max-w-md mx-auto py-5"><div className="h-80 rounded-2xl border border-border bg-card skeleton" /></div>}>
           <MobileHome />
         </Suspense>
       </ErrorBoundary>
@@ -71,7 +71,7 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto py-5 pb-24 md:pb-10 space-y-5">
       {/* Header */}
-      <header className="rounded-2xl bg-card border border-border p-5 shadow-sm">
+      <header className="rounded-2xl bg-card border border-border p-5">
         <div className="flex items-center justify-between gap-4">
           <div suppressHydrationWarning>
             <div className="flex items-center gap-2 flex-wrap">

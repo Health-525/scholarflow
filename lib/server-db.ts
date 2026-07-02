@@ -15,6 +15,8 @@ import { getLegacyBaseDirs, discoverLegacyCandidates, ensureMigrated } from "./d
 import { resolveDataDir } from "./server-db/path";
 import { escapeLike, openSqlite } from "./server-db/utils";
 
+const LOCAL_ACCOUNT_PREFIX_TYPES = ["schedule", "grades", "dashboard-summary", "assignments", "exams"];
+
 // ── Schema ──────────────────────────────────────────────────
 
 const CURRENT_VERSION = 2;
@@ -279,10 +281,14 @@ export class ServerDB {
    * 优先查找 schedule/grades/dashboard-summary 等关键 key，避免凭证过期后读到空 default。
    */
   findLocalAccountPrefix(schoolId = "njtech"): string | null {
-    const keys = this.listKeys();
+    const conditions = LOCAL_ACCOUNT_PREFIX_TYPES.map(() => `key LIKE ? ESCAPE '\\'`).join(" OR ");
+    const patterns = LOCAL_ACCOUNT_PREFIX_TYPES.map((type) => `${type}:${escapeLike(schoolId)}:%`);
+    const rows = this.db
+      .prepare(`SELECT key FROM data_store WHERE ${conditions}`)
+      .all(...patterns) as { key: string }[];
     const candidates = new Map<string, number>();
 
-    for (const key of keys) {
+    for (const { key } of rows) {
       const match = key.match(/^(schedule|grades|dashboard-summary|assignments|exams):([^:]+):([^:]+)$/);
       if (!match) continue;
       const [, , kSchool, userId] = match;

@@ -56,6 +56,13 @@ function isImageFile(file: File): boolean {
   return file.type.startsWith("image/");
 }
 
+const EDITOR_EXTENSIONS = [
+  StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+  Image.configure({ allowBase64: false }),
+  Markdown,
+  Placeholder.configure({ placeholder: "开始写点什么吧…" }),
+];
+
 function hasImageInDataTransfer(items?: DataTransferItemList | null): boolean {
   if (!items) return false;
   return Array.from(items).some((item) => item.kind === "file" && item.type.startsWith("image/"));
@@ -117,12 +124,7 @@ export function NoteEditor({
   }, []);
 
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
-      Image.configure({ allowBase64: false }),
-      Markdown,
-      Placeholder.configure({ placeholder: "开始写点什么吧…" }),
-    ],
+    extensions: EDITOR_EXTENSIONS,
     content,
     contentType: "markdown",
     editorProps: {

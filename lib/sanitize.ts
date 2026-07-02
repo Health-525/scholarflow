@@ -41,8 +41,7 @@ async function getServerDOMPurify(): Promise<typeof DOMPurify | null> {
     // next.config.js 已将 jsdom 标记为 serverExternalPackages。
     const { JSDOM } = await import(/* webpackIgnore: true */ "jsdom");
     const window = new JSDOM("").window;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    serverDOMPurify = DOMPurify(window as any);
+    serverDOMPurify = DOMPurify(window as unknown as Window & typeof globalThis);
     // 添加 javascript: URL 拦截 hook
     serverDOMPurify.addHook("afterSanitizeAttributes", (node: Element) => {
       if (node.tagName === "A") {
@@ -65,26 +64,29 @@ async function getServerDOMPurify(): Promise<typeof DOMPurify | null> {
   }
 }
 
+function escapeHtmlToText(html: string): string {
+  return html
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 /**
  * 净化 HTML 字符串，防止 XSS 攻击
  * 白名单模式：只允许安全标签和属性
  */
 export async function sanitizeHtml(html: string): Promise<string> {
   if (typeof window === "undefined") {
-    // Server-side: 使用 jsdom + DOMPurify，失败时回退到正则
+    // Server-side: 必须使用 jsdom + DOMPurify；不可用时不回退到正则，
+    // 因为正则无法可靠防御 XSS（如 SVG payload、编码变形、script src 等）。
     const purify = await getServerDOMPurify();
     if (purify) {
       return purify.sanitize(html, DOMPURIFY_CONFIG) as string;
     }
-    // Fallback: 增强版正则清理（大小写不敏感，处理更多变体）
-    return html
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-      .replace(/<\/script>/gi, "")
-      .replace(/\son\w+\s*=/gi, " data-removed=")
-      .replace(/ON\w+\s*=/gi, " data-removed=")
-      .replace(/javascript:/gi, "blocked:")
-      .replace(/vbscript:/gi, "blocked:")
-      .replace(/data:text\/html/gi, "blocked:");
+    // 安全兜底：将 HTML 转义为纯文本，避免任何标签/事件执行。
+    return escapeHtmlToText(html);
   }
 
   // Client-side: 使用浏览器原生 DOMPurify

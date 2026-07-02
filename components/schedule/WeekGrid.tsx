@@ -399,7 +399,7 @@ export function WeekGrid({
                           }
                           onDragEnd={handleDragEnd}
                           className={
-                            "absolute left-1 right-1 rounded-lg px-1.5 py-1 text-left transition-all overflow-hidden items-start justify-start whitespace-normal cursor-grab active:cursor-grabbing hover:shadow-sm active:scale-95"
+                            "absolute left-1 right-1 rounded-lg px-1.5 py-1 text-left transition-colors overflow-hidden items-start justify-start whitespace-normal cursor-grab active:cursor-grabbing hover:border-primary/30 active:scale-95"
                           }
                           style={{
                             top: blockTop,

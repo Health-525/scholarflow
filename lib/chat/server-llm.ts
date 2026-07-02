@@ -83,6 +83,7 @@ export async function callDeepSeekCompletion(
       "Content-Type": "application/json",
     },
     body: buildRequestBody(opts, false),
+    signal: AbortSignal.timeout(60000),
   });
 
   if (!res.ok) {
@@ -120,6 +121,7 @@ export async function callDeepSeekStream(
       "Content-Type": "application/json",
     },
     body: buildRequestBody(opts, true),
+    signal: AbortSignal.timeout(60000),
   });
 
   if (!res.ok || !res.body) {

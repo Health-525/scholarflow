@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { resolveAccountPrefix } from "@/lib/account-prefix";
+import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { listPinned } from "@/lib/notes/pin";
 // eslint-disable-next-line import/order
@@ -34,8 +34,11 @@ export async function GET(request: Request) {
     }
     const { schoolId, userId } = parse.data;
     const db = getServerDB();
-    const active = db.findActiveCredentials();
-    const prefix = resolveAccountPrefix({ schoolId, userId }, active);
+    const account = getAuthorizedAccount({ schoolId, userId }, db);
+    if (!account) {
+      return forbiddenResponse({ error: "unauthorized account access" });
+    }
+    const prefix = `${account.schoolId}:${account.userId}`;
 
     const paths = listNotePaths(prefix);
     const updatedAtMap = new Map(paths.map((p) => [p, getNoteUpdatedAt(prefix, p) ?? 0]));

@@ -1,4 +1,5 @@
 import { getServerDB } from "@/lib/server-db";
+import { escapeLike } from "@/lib/server-db/utils";
 import type { TagInfo } from "@/types";
 
 const TAG_PREFIX = "note-tag";
@@ -46,14 +47,21 @@ export function setTags(prefix: string, path: string, tags: string[]): void {
 
 export function listAllTags(prefix: string): TagInfo[] {
   const db = getServerDB();
-  const pattern = `${TAG_PREFIX}:${prefix}:`;
+  const pattern = `${TAG_PREFIX}:${escapeLike(prefix)}:%`;
+  const rows = db
+    .getRawDB()
+    .prepare(`SELECT content FROM data_store WHERE key LIKE ? ESCAPE '\\'`)
+    .all(pattern) as { content: string }[];
   const tagCounts = new Map<string, number>();
-  for (const key of db.listKeys()) {
-    if (!key.startsWith(pattern)) continue;
-    const raw = db.readData(key);
-    if (!Array.isArray(raw)) continue;
-    for (const tag of raw as string[]) {
-      tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+  for (const row of rows) {
+    try {
+      const raw = JSON.parse(row.content) as unknown;
+      if (!Array.isArray(raw)) continue;
+      for (const tag of raw as string[]) {
+        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+      }
+    } catch {
+      // ignore malformed content
     }
   }
   return [...tagCounts.entries()]

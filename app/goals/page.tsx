@@ -281,11 +281,11 @@ export default function DailyGoalsPage() {
                 {goals.length === 0 ? (
                   "先添加目标"
                 ) : allDone ? (
-                  <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full px-2 py-0.5 text-[11px] font-medium">
+                  <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full px-2 py-0.5 text-xs font-medium">
                     全部完成
                   </span>
                 ) : (
-                  <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[11px] font-medium">
+                  <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
                     继续加油
                   </span>
                 )}
@@ -294,7 +294,7 @@ export default function DailyGoalsPage() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-sm hover:translate-y-0">
+        <Card>
           <CardContent className="flex items-center gap-5 py-5">
             <div className="w-20 h-20 rounded-full flex items-center justify-center bg-orange-500/10 text-orange-500">
               <Flame className={`w-8 h-8 transition-opacity duration-300 ${streak > 0 ? "opacity-100" : "opacity-60"}`} />
@@ -316,7 +316,7 @@ export default function DailyGoalsPage() {
 
       {/* 全部完成庆祝 */}
       {allDone && (
-        <Card className="mb-5 border-2 border-green-400/30 bg-gradient-to-r from-green-500/10 to-emerald-500/5 dark:from-green-500/15 dark:to-emerald-500/10 animate-fade-up shadow-lg shadow-green-500/5">
+        <Card className="mb-5 border-2 border-green-400/30 bg-gradient-to-r from-green-500/10 to-emerald-500/5 dark:from-green-500/15 dark:to-emerald-500/10 animate-fade-up">
           <CardContent className="py-5 text-center">
             <div className="mb-2">
               <span className="text-4xl animate-breathe">🎉</span>
@@ -348,13 +348,13 @@ export default function DailyGoalsPage() {
               value={newGoal}
               onChange={(e) => setNewGoal(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && add()}
-              placeholder="例如：背 20 个单词"
+              placeholder="输入目标..."
               className="h-11 text-sm"
             />
             <Button
               onClick={add}
               disabled={!newGoal.trim()}
-              className="h-11 w-12 shrink-0 p-0 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200"
+              className="h-11 w-12 shrink-0 p-0 rounded-xl"
             >
               <Plus className="w-5 h-5" />
             </Button>
@@ -369,7 +369,7 @@ export default function DailyGoalsPage() {
             <ListSkeleton count={4} />
           </Card>
         ) : goals.length > 0 ? (
-          <Card className="hover:shadow-sm hover:translate-y-0">
+          <Card>
             <CardContent className="space-y-1 py-3">
               {goals.map((g) => (
                 <div

@@ -20,8 +20,26 @@ const SENSITIVE_KEY_PATTERNS = [
   /password/i,
 ];
 
+/** 允许通过 local-save 写入的业务 key 白名单 */
+const ALLOWED_DATA_KEYS = new Set([
+  "schedule",
+  "assignments",
+  "exams",
+  "goals",
+  "adjustments",
+  "dailyReport",
+  "weeklyReport",
+  "grades",
+  "ai-config",
+  "appOverrides",
+]);
+
 function isSensitiveKey(key: string): boolean {
   return SENSITIVE_KEY_PATTERNS.some((pattern) => pattern.test(key));
+}
+
+function isAllowedDataKey(key: string): boolean {
+  return ALLOWED_DATA_KEYS.has(key);
 }
 
 export async function POST(request: Request) {
@@ -36,21 +54,11 @@ export async function POST(request: Request) {
     }
     const { file, content, action, schoolId, userId } = parse.data;
 
+    if (!file && action !== "view-history") {
+      return NextResponse.json({ error: "missing file/action" }, { status: 400 });
+    }
+
     const db = getServerDB();
-
-    // Special action: view data history (from SQLite timestamps)
-    if (action === "view-history" && !file) {
-      const keys = db.listKeys();
-      const history = keys.map(key => {
-        const updatedAt = db.getUpdatedAt(key);
-        return `${key} — ${updatedAt ? new Date(updatedAt).toISOString() : "unknown"}`;
-      });
-      return NextResponse.json({ ok: true, history: history.join("\n") });
-    }
-
-    if (!file || content === undefined || content === null) {
-      return NextResponse.json({ error: "missing file/content" }, { status: 400 });
-    }
 
     // Prefix key with schoolId:userId for account isolation
     const account = getAuthorizedAccount({ schoolId, userId }, db);
@@ -58,6 +66,23 @@ export async function POST(request: Request) {
       return forbiddenResponse({ error: "unauthorized account access" });
     }
     const prefix = `${account.schoolId}:${account.userId}`;
+
+    // Special action: view data history (from SQLite timestamps), scoped to current account
+    if (action === "view-history" && !file) {
+      const keys = db.listKeys().filter((key) => key.endsWith(`:${prefix}`));
+      const history = keys.map(key => {
+        const updatedAt = db.getUpdatedAt(key);
+        return `${key} — ${updatedAt ? new Date(updatedAt).toISOString() : "unknown"}`;
+      });
+      return NextResponse.json({ ok: true, history: history.join("\n") });
+    }
+
+    if (!file) {
+      return NextResponse.json({ error: "missing file" }, { status: 400 });
+    }
+    if (content === undefined || content === null) {
+      return NextResponse.json({ error: "missing content" }, { status: 400 });
+    }
 
     // Special-case report markdown files to match local-data read keys
     const dailyMatch = file.match(/^日报\/(.+)\.md$/);
@@ -82,6 +107,9 @@ export async function POST(request: Request) {
 
     if (isSensitiveKey(key)) {
       return NextResponse.json({ error: "forbidden key" }, { status: 403 });
+    }
+    if (!isAllowedDataKey(key)) {
+      return NextResponse.json({ error: "disallowed key" }, { status: 403 });
     }
 
     const fullKey = `${key}:${prefix}`;

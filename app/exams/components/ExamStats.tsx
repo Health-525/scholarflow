@@ -54,7 +54,7 @@ function StatCard({
         <div className="text-3xl font-bold tabular-nums leading-none text-foreground">
           {value}
         </div>
-        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mt-0.5">{label}</div>
+        <div className="text-xs font-medium text-muted-foreground mt-0.5">{label}</div>
       </div>
     </div>
   );
@@ -66,7 +66,7 @@ function StatCard({
         onClick={onClick}
         className={cn(
           cardClasses,
-          "p-3 text-left cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:bg-muted/50",
+          "p-3 text-left cursor-pointer transition-colors duration-200 hover:border-primary/30 hover:bg-muted/50",
           active
             ? "ring-1 ring-primary/40 bg-primary/5"
             : "hover:border-primary/30"

@@ -144,11 +144,11 @@ export function AdjustmentDialog({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40 dark:bg-black/60 backdrop-blur-sm data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40 dark:bg-black/60 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
         <Dialog.Popup
           className={
             "fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 " +
-            "rounded-3xl bg-card p-6 shadow-lg ring-1 ring-border outline-none " +
+            "rounded-2xl bg-card p-6 shadow-md ring-1 ring-border outline-none " +
             "data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0 data-[closed]:zoom-out-95 data-[open]:zoom-in-95"
           }
         >

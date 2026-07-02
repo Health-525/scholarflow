@@ -10,12 +10,14 @@ import {
   Trash2,
   type LucideIcon,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { CatAvatar } from "@/components/ximi/CatAvatar";
 import { MobileChat } from "@/components/ximi/MobileChat";
 import { useChat } from "@/hooks/useChat";
+import useIsMobile from "@/hooks/useIsMobile";
 
 const GREETING = "喵~ 我是你的学习伙伴小咪，今天想学点什么呀？🐾";
 
@@ -206,10 +208,22 @@ function DesktopChat() {
 }
 
 export default function ChatPage() {
-  return (
-    <>
-      <MobileChat />
-      <DesktopChat />
-    </>
-  );
+  const isMobile = useIsMobile();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Avoid hydration mismatch and prevent mounting two independent chat
+  // instances (and their model subscriptions) at the same time.
+  if (!mounted) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-80px)] max-w-4xl mx-auto w-full">
+        <div className="flex-1" />
+      </div>
+    );
+  }
+
+  return isMobile ? <MobileChat /> : <DesktopChat />;
 }

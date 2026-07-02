@@ -224,7 +224,7 @@ export default function SetupPage() {
       {/* Background decoration — matching dashboard hero style */}
       <div className="relative w-full max-w-md">
         {/* Card container */}
-        <Card className="rounded-3xl bg-card/80 backdrop-blur-xl shadow-md p-8 space-y-6">
+        <Card className="rounded-2xl bg-card p-8 space-y-6">
 
           {/* ── Step 1: Select School ─────────────────────────── */}
           {step === "select-school" && (
@@ -232,7 +232,7 @@ export default function SetupPage() {
               {/* Brand header */}
               <div className="text-center space-y-3">
                 <div className="relative mx-auto w-16 h-16">
-                  <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-card/75 backdrop-blur-xl shadow-sm">
+                  <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary border border-border">
                     <GraduationCap className="w-8 h-8 text-primary" strokeWidth={1.5} />
                   </div>
                 </div>
@@ -306,8 +306,7 @@ export default function SetupPage() {
               {/* School header */}
               <div className="text-center space-y-2">
                 <div className="relative mx-auto w-12 h-12">
-                  <div className="absolute inset-0 rounded-2xl bg-primary/10 blur-xl" aria-hidden="true" />
-                  <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-card/75 backdrop-blur-xl shadow-sm">
+                  <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary border border-border">
                     <KeyRound className="w-5 h-5 text-primary" strokeWidth={1.5} />
                   </div>
                 </div>
@@ -427,8 +426,7 @@ export default function SetupPage() {
             <>
               <div className="text-center space-y-2">
                 <div className="relative mx-auto w-12 h-12">
-                  <div className="absolute inset-0 rounded-2xl bg-primary/10 blur-xl" aria-hidden="true" />
-                  <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-card/75 backdrop-blur-xl shadow-sm">
+                  <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary border border-border">
                     <ShieldCheck className="w-5 h-5 text-primary" strokeWidth={1.5} />
                   </div>
                 </div>
@@ -506,8 +504,7 @@ export default function SetupPage() {
               {/* Success header */}
               <div className="text-center space-y-2">
                 <div className="relative mx-auto w-12 h-12">
-                  <div className="absolute inset-0 rounded-2xl bg-statusSuccess/10 blur-xl" aria-hidden="true" />
-                  <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-card/75 backdrop-blur-xl shadow-sm">
+                  <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary border border-border">
                     <CheckCircle2 className="w-5 h-5 text-statusSuccess" strokeWidth={1.5} />
                   </div>
                 </div>

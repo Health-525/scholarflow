@@ -14,15 +14,15 @@ export interface MarkdownOptions {
   noteName?: string;
 }
 
-export async function renderMarkdown(markdown: string, _options?: MarkdownOptions): Promise<string> {
-  const result = await unified()
-    .use(remarkParse)
-    .use(remarkGfm)
-    .use(calloutPlugin)
-    .use(wikiLinkPlugin)
-    .use(remarkRehype)
-    .use(rehypeStringify)
-    .process(markdown);
+const markdownProcessor = unified()
+  .use(remarkParse)
+  .use(remarkGfm)
+  .use(calloutPlugin)
+  .use(wikiLinkPlugin)
+  .use(remarkRehype)
+  .use(rehypeStringify);
 
+export async function renderMarkdown(markdown: string, _options?: MarkdownOptions): Promise<string> {
+  const result = await markdownProcessor.process(markdown);
   return await sanitizeHtml(String(result));
 }

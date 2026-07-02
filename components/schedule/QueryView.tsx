@@ -108,7 +108,7 @@ export function QueryView({
                     key={idx}
                     variant="secondary"
                     onClick={() => setSelectedItem(item)}
-                    className="w-full h-auto text-left rounded-xl p-4 transition-all active:scale-95 hover:shadow-sm items-start justify-start whitespace-normal"
+                    className="w-full h-auto text-left rounded-xl p-4 transition-colors active:scale-95 hover:border-primary/30 items-start justify-start whitespace-normal"
                     style={{
                       backgroundColor: colors.bg,
                       border: `1px solid ${colors.border}`,

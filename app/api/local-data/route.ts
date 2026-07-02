@@ -5,6 +5,7 @@ import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { getDashboardSummary } from "@/lib/dashboard/summary";
 import { getServerDB } from "@/lib/server-db";
+import { escapeLike } from "@/lib/server-db/utils";
 
 const localDataQuerySchema = z.object({
   type: z.string().default("dashboard"),
@@ -69,9 +70,13 @@ export async function GET(request: Request) {
 
     case "dailyReports": {
       const reportPrefix = `dailyReport:${prefix}:`;
-      const entries = db
-        .listKeys()
-        .filter((key) => key.startsWith(reportPrefix))
+      const dailyPattern = `dailyReport:${escapeLike(prefix)}:%`;
+      const keys = (db
+        .getRawDB()
+        .prepare(`SELECT key FROM data_store WHERE key LIKE ? ESCAPE '\\'`)
+        .all(dailyPattern) as { key: string }[])
+        .map((row) => row.key);
+      const entries = keys
         .map((key) => {
           const date = key.slice(reportPrefix.length);
           return { name: `${date}.md`, path: `日报/${date}.md`, type: "file" as const };
@@ -82,16 +87,23 @@ export async function GET(request: Request) {
 
     case "weeklyReports": {
       const reportPrefix = `weeklyReport:${prefix}:`;
-      const entries = db
-        .listKeys()
-        .filter((key) => key.startsWith(reportPrefix))
-        .map((key) => {
-          const slug = key.slice(reportPrefix.length);
-          const data = db.readData(key);
-          const meta =
-            data && typeof data === "object"
-              ? (data as { theme?: string; ai?: boolean; generatedAt?: number })
-              : {};
+      const weeklyPattern = `weeklyReport:${escapeLike(prefix)}:%`;
+      const rows = db
+        .getRawDB()
+        .prepare(`SELECT key, content FROM data_store WHERE key LIKE ? ESCAPE '\\'`)
+        .all(weeklyPattern) as { key: string; content: string }[];
+      const entries = rows
+        .map((row) => {
+          const slug = row.key.slice(reportPrefix.length);
+          let meta: { theme?: string; ai?: boolean; generatedAt?: number } = {};
+          try {
+            const parsed = JSON.parse(row.content) as unknown;
+            if (parsed && typeof parsed === "object") {
+              meta = parsed as { theme?: string; ai?: boolean; generatedAt?: number };
+            }
+          } catch {
+            // keep meta empty for malformed content
+          }
           return {
             name: `${slug}.md`,
             path: `周报/${slug}.md`,

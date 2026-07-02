@@ -87,7 +87,7 @@ function SettingRow({
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-2">
         {icon}
-        <label htmlFor={htmlFor} className="text-[11px] font-semibold text-[#8F959E] uppercase tracking-wider">
+        <label htmlFor={htmlFor} className="text-xs font-medium text-muted-foreground">
           {label}
         </label>
       </div>
@@ -265,22 +265,11 @@ function PomodoroTimerInner({
     <div className="pb-24 md:pb-0">
       {/* Timer circle */}
       <div
-        className={`bg-card rounded-3xl p-8 shadow-sm border border-border flex flex-col items-center mb-6 ${
+        className={`bg-card rounded-2xl p-8 shadow-sm border border-border flex flex-col items-center mb-6 ${
           !prefersReducedMotion ? "animate-fade-up" : ""
         }`}
       >
         <div className="relative">
-          {state.isRunning && (
-            <div
-              className={`absolute inset-0 rounded-full opacity-30 ${
-                !prefersReducedMotion ? "animate-breathe" : ""
-              }`}
-              style={{
-                background: `radial-gradient(circle, ${phaseStrokeColor(state.phase, isDark)}20 0%, transparent 70%)`,
-                transform: "scale(1.1)",
-              }}
-            />
-          )}
           <svg
             viewBox="0 0 260 260"
             className="w-[clamp(220px,60vw,260px)] h-[clamp(220px,60vw,260px)]"
@@ -314,7 +303,7 @@ function PomodoroTimerInner({
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span
-              className={`text-7xl md:text-8xl font-black tabular-nums tracking-tighter select-none ${phaseColorClass(state.phase, isDark)} ${
+              className={`text-7xl md:text-8xl font-black tabular-nums select-none ${phaseColorClass(state.phase, isDark)} ${
                 state.isRunning && !prefersReducedMotion ? "animate-breathe" : ""
               }`}
             >
@@ -379,7 +368,7 @@ function PomodoroTimerInner({
             key={i}
             className={`w-3 h-3 rounded-full transition-all duration-200 ${
               i < state.completedFocus % state.settings.longBreakInterval
-                ? "bg-primary shadow-[0_0_6px_rgba(51,112,255,0.3)]"
+                ? "bg-primary shadow-md"
                 : i ===
                       state.completedFocus %
                         state.settings.longBreakInterval &&

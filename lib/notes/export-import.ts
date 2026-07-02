@@ -58,28 +58,42 @@ export function getWechatExportStats(content: string) {
   return countArticleStats(content);
 }
 
+async function asyncPool<T, R>(poolLimit: number, array: T[], iteratorFn: (item: T) => Promise<R>): Promise<R[]> {
+  const ret: Promise<R>[] = [];
+  const executing: Set<Promise<unknown>> = new Set();
+  for (const item of array) {
+    const p = Promise.resolve().then(() => iteratorFn(item));
+    ret.push(p);
+    executing.add(p);
+    const clean = () => executing.delete(p);
+    p.then(clean).catch(clean);
+    if (executing.size >= poolLimit) {
+      await Promise.race(executing);
+    }
+  }
+  return Promise.all(ret);
+}
+
 async function inlineImages(html: string): Promise<string> {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
   const images = Array.from(doc.querySelectorAll("img"));
 
-  await Promise.all(
-    images.map(async (img) => {
-      const src = img.getAttribute("src");
-      if (!src) return;
-      try {
-        const absolute = new URL(src, window.location.href).href;
-        if (absolute.startsWith("data:")) return;
-        const res = await fetch(absolute);
-        if (!res.ok) return;
-        const blob = await res.blob();
-        const dataUrl = await blobToDataUrl(blob);
-        img.setAttribute("src", dataUrl);
-      } catch {
-        // 忽略无法内联的图片，保留原 URL
-      }
-    })
-  );
+  await asyncPool(3, images, async (img) => {
+    const src = img.getAttribute("src");
+    if (!src) return;
+    try {
+      const absolute = new URL(src, window.location.href).href;
+      if (absolute.startsWith("data:")) return;
+      const res = await fetch(absolute);
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const dataUrl = await blobToDataUrl(blob);
+      img.setAttribute("src", dataUrl);
+    } catch {
+      // 忽略无法内联的图片，保留原 URL
+    }
+  });
 
   return "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
 }

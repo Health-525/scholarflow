@@ -25,17 +25,17 @@ const MAC_CODE_SVG = `
 </svg>
 `.trim();
 
-export async function renderWechatMarkdown(markdown: string): Promise<string> {
-  const result = await unified()
-    .use(remarkParse)
-    .use(remarkGfm)
-    .use(calloutPlugin)
-    .use(wikiLinkPlugin)
-    .use(remarkRehype)
-    .use(rehypeHighlight, { detect: true, languages: HIGHLIGHT_LANGUAGES })
-    .use(rehypeStringify)
-    .process(markdown);
+const wechatProcessor = unified()
+  .use(remarkParse)
+  .use(remarkGfm)
+  .use(calloutPlugin)
+  .use(wikiLinkPlugin)
+  .use(remarkRehype)
+  .use(rehypeHighlight, { detect: true, languages: HIGHLIGHT_LANGUAGES })
+  .use(rehypeStringify);
 
+export async function renderWechatMarkdown(markdown: string): Promise<string> {
+  const result = await wechatProcessor.process(markdown);
   return await sanitizeHtml(String(result));
 }
 
