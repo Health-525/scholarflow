@@ -15,12 +15,16 @@ const notoSansSC = Noto_Sans_SC({
   variable: "--font-noto-sans-sc",
   weight: ["400", "500", "600", "700"],
   display: "swap",
+  preload: false,
+  fallback: ["system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "PingFang SC", "Microsoft YaHei", "sans-serif"],
 });
 
 const geistSans = Geist({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
+  preload: false,
+  fallback: ["system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
 });
 
 export const metadata: Metadata = {

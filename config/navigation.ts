@@ -10,7 +10,6 @@ import {
   LayoutDashboard,
   Monitor,
   Newspaper,
-  Percent,
   Settings,
   Target,
   Timer,

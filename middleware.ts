@@ -9,8 +9,8 @@ export function middleware(request: NextRequest) {
   // 桌面端 Electron 需要连接本地 standalone server 与 DeepSeek API。
   // 生产环境保持最小区间；开发环境为 HMR 保留 unsafe-eval。
   const connectSrc = isDev
-    ? "'self' http://localhost:* http://127.0.0.1:* https://api.deepseek.com https://fonts.googleapis.com"
-    : "'self' http://localhost:3456 http://127.0.0.1:3456 https://api.deepseek.com https://fonts.googleapis.com";
+    ? "'self' http://localhost:* http://127.0.0.1:* https://api.deepseek.com"
+    : "'self' http://localhost:3456 http://127.0.0.1:3456 https://api.deepseek.com";
 
   const cspHeader = `
     default-src 'self';
@@ -36,6 +36,15 @@ export function middleware(request: NextRequest) {
     "Content-Security-Policy",
     cspHeader.replace(/\s{2,}/g, " ").trim()
   );
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  if (!isDev) {
+    response.headers.set(
+      "Strict-Transport-Security",
+      "max-age=63072000; includeSubDomains; preload"
+    );
+  }
 
   return response;
 }
