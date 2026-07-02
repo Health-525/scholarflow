@@ -75,11 +75,7 @@ export async function GET(request: Request) {
     case "dailyReports": {
       const reportPrefix = `dailyReport:${prefix}:`;
       const dailyPattern = `dailyReport:${escapeLike(prefix)}:%`;
-      const keys = (db
-        .getRawDB()
-        .prepare(`SELECT key FROM data_store WHERE key LIKE ? ESCAPE '\\'`)
-        .all(dailyPattern) as { key: string }[])
-        .map((row) => row.key);
+      const keys = db.listKeysLike(dailyPattern);
       const entries = keys
         .map((key) => {
           const date = key.slice(reportPrefix.length);
