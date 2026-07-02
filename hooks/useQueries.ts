@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
 
 import { buildAssignment, sortAssignments } from "@/lib/assignment-utils";
 import { readData, writeData } from "@/lib/mobile-data";
@@ -17,6 +18,8 @@ import { parseSchedule } from "@/lib/schedule/schedule";
 import type { RawScheduleData } from "@/lib/schedule/schedule";
 import { useAuthStore } from "@/store/auth";
 import type { Assignment, AssignmentDraft } from "@/types";
+
+const EMPTY_ASSIGNMENTS: Assignment[] = [];
 
 // ============================================================
 // TanStack Query 数据层 v3 — SQLite 本地优先架构
@@ -186,18 +189,30 @@ export function useScheduleAdjustments(schedule: RawScheduleData | null) {
     },
   });
 
-  return {
-    adjustments,
-    isLoading: false,
-    error: null,
-    reload: refetch,
-    add: addMutation.mutateAsync,
-    remove: removeMutation.mutateAsync,
-    clear: clearMutation.mutateAsync,
-    isAdding: addMutation.isPending,
-    isRemoving: removeMutation.isPending,
-    isClearing: clearMutation.isPending,
-  };
+  return useMemo(
+    () => ({
+      adjustments,
+      isLoading: false,
+      error: null,
+      reload: refetch,
+      add: addMutation.mutateAsync,
+      remove: removeMutation.mutateAsync,
+      clear: clearMutation.mutateAsync,
+      isAdding: addMutation.isPending,
+      isRemoving: removeMutation.isPending,
+      isClearing: clearMutation.isPending,
+    }),
+    [
+      adjustments,
+      refetch,
+      addMutation.mutateAsync,
+      addMutation.isPending,
+      removeMutation.mutateAsync,
+      removeMutation.isPending,
+      clearMutation.mutateAsync,
+      clearMutation.isPending,
+    ],
+  );
 }
 
 // ── Assignments Hook ───────────────────────────────────────
@@ -307,20 +322,40 @@ export function useAssignmentsQuery() {
     },
   });
 
-  return {
-    assignments: query.data ?? [],
-    isLoading: query.isLoading,
-    error: query.error as Error | null,
-    reload: () => query.refetch(),
-    add: addMutation.mutateAsync,
-    markDone: markDoneMutation.mutateAsync,
-    reorder: reorderMutation.mutateAsync,
-    update: updateMutation.mutateAsync,
-    delete: deleteMutation.mutateAsync,
-    isAdding: addMutation.isPending,
-    isMarking: markDoneMutation.isPending,
-    isReordering: reorderMutation.isPending,
-  };
+  const reload = useCallback(() => query.refetch(), [query.refetch]);
+
+  return useMemo(
+    () => ({
+      assignments: query.data ?? EMPTY_ASSIGNMENTS,
+      isLoading: query.isLoading,
+      error: query.error as Error | null,
+      reload,
+      add: addMutation.mutateAsync,
+      markDone: markDoneMutation.mutateAsync,
+      reorder: reorderMutation.mutateAsync,
+      update: updateMutation.mutateAsync,
+      delete: deleteMutation.mutateAsync,
+      isAdding: addMutation.isPending,
+      isMarking: markDoneMutation.isPending,
+      isReordering: reorderMutation.isPending,
+    }),
+    [
+      query.data,
+      query.isLoading,
+      query.error,
+      reload,
+      addMutation.mutateAsync,
+      addMutation.isPending,
+      markDoneMutation.mutateAsync,
+      markDoneMutation.isPending,
+      reorderMutation.mutateAsync,
+      reorderMutation.isPending,
+      updateMutation.mutateAsync,
+      updateMutation.isPending,
+      deleteMutation.mutateAsync,
+      deleteMutation.isPending,
+    ],
+  );
 }
 
 /** 可独立测试的缓存读取逻辑：优先读 React Query 缓存；未加载则回退本地持久化数据。 */

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 
 import { getAuthParams } from "@/lib/api/auth-params";
 import type { DirectoryEntry } from "@/types";
@@ -50,7 +50,10 @@ export function useDailyReports(): ReportsState {
     return () => abort.abort();
   }, [load]);
 
-  return { entries, isLoading, error, reload: load };
+  return useMemo(
+    () => ({ entries, isLoading, error, reload: load }),
+    [entries, isLoading, error, load],
+  );
 }
 
 /**
@@ -91,7 +94,10 @@ export function useWeeklyReports(): ReportsState {
     return () => abort.abort();
   }, [load]);
 
-  return { entries, isLoading, error, reload: load };
+  return useMemo(
+    () => ({ entries, isLoading, error, reload: load }),
+    [entries, isLoading, error, load],
+  );
 }
 
 /**
@@ -137,7 +143,10 @@ export function useDailyReport(
     setReloadKey((k) => k + 1);
   }, []);
 
-  return { content, isLoading, error, reload };
+  return useMemo(
+    () => ({ content, isLoading, error, reload }),
+    [content, isLoading, error, reload],
+  );
 }
 
 interface WeeklyReportData {
@@ -203,5 +212,8 @@ export function useReportContent(
     setReloadKey((k) => k + 1);
   }, []);
 
-  return { ...data, isLoading, error, reload };
+  return useMemo(
+    () => ({ ...data, isLoading, error, reload }),
+    [data, isLoading, error, reload],
+  );
 }

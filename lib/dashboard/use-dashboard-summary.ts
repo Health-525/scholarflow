@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 import type { DashboardSummary } from "@/lib/dashboard/summary";
 
@@ -17,5 +18,8 @@ export function useDashboardSummary() {
     retry: 1,
   });
 
-  return { data: data ?? null, loading: isLoading, error: error as Error | null };
+  return useMemo(
+    () => ({ data: data ?? null, loading: isLoading, error: error as Error | null }),
+    [data, isLoading, error],
+  );
 }
