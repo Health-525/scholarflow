@@ -1,9 +1,9 @@
 "use client";
 
 import { AlertCircle, ChevronLeft, FolderOpen, History, PenLine, Pin, Trash2, Undo2, XCircle } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
-import { NoteEditor } from "@/components/notes/NoteEditor";
 import { NoteViewer } from "@/components/notes/NoteViewer";
 import { TagBar } from "@/components/notes/TagBar";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,11 @@ import { parseNotePath } from "@/lib/note-utils";
 import type { WorkspaceProps } from "../hooks/useNotesPage";
 
 import { HistoryPanel } from "./HistoryPanel";
+
+const NoteEditor = dynamic(
+  () => import("@/components/notes/NoteEditor").then((m) => m.NoteEditor),
+  { ssr: false }
+);
 
 function SaveStatus({ saving, saveError }: { saving: boolean; saveError: string | null }) {
   if (saveError) {

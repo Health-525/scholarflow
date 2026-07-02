@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText, PanelLeftOpen, Plus } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -8,8 +9,20 @@ import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
 
-import { Sidebar, EmptyWorkspaceState, Workspace } from "./components";
+import { Sidebar, EmptyWorkspaceState } from "./components";
 import { useNotesPage } from "./hooks/useNotesPage";
+
+const Workspace = dynamic(
+  () => import("./components/Workspace").then((m) => m.Workspace),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-full flex items-center justify-center bg-background">
+        <div className="w-8 h-8 rounded-xl bg-primary/10 motion-safe:animate-breathe" />
+      </div>
+    ),
+  }
+);
 
 export default function NotesPage() {
   const {
