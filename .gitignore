@@ -94,3 +94,7 @@ app/test-preview/
 
 # AI planning docs (not user-facing)
 docs/superpowers/
+
+# Course grabber local config & inspect artifacts (contains credentials)
+scripts/xk.config.json
+scripts/xk-inspect.json
