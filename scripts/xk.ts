@@ -104,6 +104,17 @@ function loadConfig(): XkConfig {
   return config;
 }
 
+/** 无 targets 要求的配置读取（search/inspect 只需要凭证） */
+function loadConfigOptional(): XkConfig | undefined {
+  const file = path.join(__dirname, "xk.config.json");
+  if (!fs.existsSync(file)) return undefined;
+  try {
+    return JSON.parse(fs.readFileSync(file, "utf-8")) as XkConfig;
+  } catch {
+    return undefined;
+  }
+}
+
 /** 凭证优先级：CLI 参数 > 配置文件 */
 function resolveCredentials(cli: CliArgs, config?: XkConfig): { username: string; password: string } {
   return {
@@ -125,8 +136,8 @@ async function openSessionWithRetry(
     try {
       const session = await openXkSession(credentials.username, credentials.password);
       if (attempt > 1 && onRelogin) onRelogin(attempt);
-      if (!session.xkklcId) {
-        log(`${YELLOW}⚠ 未解析到选课轮次 ID（选课可能未开放），查询可能为空${RESET}`);
+      if (!session.isXkOpen) {
+        log(`${YELLOW}⚠ 当前不属于选课阶段（教务系统提示），查询可能为空${RESET}`);
       }
       return session;
     } catch (e) {
@@ -179,7 +190,8 @@ async function cmdSearch(cli: CliArgs): Promise<void> {
     console.error("用法: scripts/xk.ts search <课程名关键词>");
     process.exit(1);
   }
-  const credentials = resolveCredentials(cli);
+  const config = loadConfigOptional();
+  const credentials = resolveCredentials(cli, config);
   if (!credentials.username || !credentials.password) {
     console.error("缺少凭证：请用 --user/--pass 或配置 xk.config.json");
     process.exit(1);
@@ -187,7 +199,12 @@ async function cmdSearch(cli: CliArgs): Promise<void> {
 
   log(`${CYAN}登录教务系统...${RESET}`);
   const session = await openSessionWithRetry(credentials);
-  log(`登录成功（选课轮次 ID: ${session.xkklcId || "未解析到"}）`);
+  log(
+    `登录成功（选课开放: ${session.isXkOpen ? "是" : "否"}，选课控制 ID: ${session.xkkzId || "未下发"}）`
+  );
+  if (!session.isXkOpen) {
+    log(`${YELLOW}⚠ 当前不属于选课阶段（教务系统提示），查询结果可能为空${RESET}`);
+  }
 
   log(`搜索「${cli.keyword}」...`);
   const courses = await searchCourses(session, cli.keyword);
@@ -313,7 +330,8 @@ async function cmdGrab(cli: CliArgs): Promise<void> {
 }
 
 async function cmdInspect(cli: CliArgs): Promise<void> {
-  const credentials = resolveCredentials(cli);
+  const config = loadConfigOptional();
+  const credentials = resolveCredentials(cli, config);
   if (!credentials.username || !credentials.password) {
     console.error("缺少凭证：请用 --user/--pass 或配置 xk.config.json");
     process.exit(1);
@@ -328,9 +346,10 @@ async function cmdInspect(cli: CliArgs): Promise<void> {
     JSON.stringify(
       {
         capturedAt: new Date().toISOString(),
-        xkklcId: result.xkklcId,
+        isXkOpen: result.isXkOpen,
+        xkkzId: result.xkkzId,
+        csrftoken: result.csrftoken,
         courseListRaw: result.courseListRaw,
-        entryHtmlHead: result.entryHtml.slice(0, 2000),
       },
       null,
       2
@@ -338,7 +357,9 @@ async function cmdInspect(cli: CliArgs): Promise<void> {
     "utf-8"
   );
 
-  log(`选课轮次 ID: ${result.xkklcId || "未解析到（选课可能未开放）"}`);
+  log(
+    `选课开放: ${result.isXkOpen ? "是" : "否"}，选课控制 ID: ${result.xkkzId || "未下发（选课可能未开放）"}`
+  );
   log(`课程查询响应前 200 字符: ${result.courseListRaw.slice(0, 200) || "（空）"}`);
   log(`${GREEN}✓ 原始响应已写入 ${outFile}${RESET}`);
 }

@@ -12,18 +12,22 @@ import type { HttpClient } from "./jwgl-http";
 
 const BASE = "https://jwgl.njtech.edu.cn";
 
-// ── 接口路径常量（选课开放后按 inspect 结果校准）────────────────
+// ── 接口路径常量（已从官方前端 zzxkYzb.js 逆向确认）──────────────
 /**
- * 选课模块：NJTECH 实测为「自主选课（预选/补选）」zzxkyzb 族，
- * 非闯关选课 cky-xsxk 族。入口 URL 由浏览器确认：
- * /xsxk/zzxkyzb_cxZzxkYzbIndex.html?gnmkdm=N253512&layout=default
+ * 选课模块：自主选课（预选）zzxkyzb 族，由官方 JS
+ * /js/comp/jwglxt/xkgl/xsxk/zzxkYzb.js 确认以下接口与参数。
+ * 入口页 hidden input `iskxk=0` 表示当前不在选课阶段。
  */
-/** 选课入口页（含选课轮次 ID） */
+/** 选课入口页（含 iskxk/xkkz_id 等状态字段） */
 const XK_ENTRY = "/xsxk/zzxkyzb_cxZzxkYzbIndex.html?gnmkdm=N253512&layout=default";
-/** 课程列表查询（kchID/kcm 等筛选条件 POST） */
-const XK_COURSE_LIST = "/xsxk/zzxkyzb_cxJxbWithKchZzxk.html";
-/** 提交选课（选课操作） */
-const XK_ADD_COURSE = "/xsxk/zzxkyzb_xkBcZx.html";
+/** 选课主页面（浏览器时序预热用） */
+const XK_DISPLAY = "/xsxk/zzxkyzb_cxZzxkYzbDisplay.html";
+/** 课程分页列表查询（PartDisplay，kspage/jspage 分页） */
+const XK_COURSE_LIST = "/xsxk/zzxkyzb_cxZzxkYzbPartDisplay.html";
+/** 某门课程的教学班列表（含余量，jxb 展开时调用） */
+const XK_JXB_LIST = "/xsxk/zzxkyzbjk_cxJxbWithKchZzxkYzb.html";
+/** 提交选课（zzxkyzb 主 action；单班提交由前端组件调用，开放后用 inspect 校准） */
+const XK_ADD_COURSE = "/xsxk/zzxkyzb_xkZzxkyzbQuickly.html";
 
 // ── 类型 ──────────────────────────────────────────────────────
 
@@ -47,8 +51,12 @@ export interface XkCourse {
 export interface XkSession {
   client: HttpClient;
   cookie: string;
-  /** 选课轮次 ID */
-  xkklcId: string;
+  /** 选课控制 ID（选课轮次 key，未开放时为空） */
+  xkkzId: string;
+  /** 是否处于选课时间（入口页 iskxk，1=开放） */
+  isXkOpen: boolean;
+  /** 入口页 csrftoken（正方 V9 部分接口需要） */
+  csrftoken: string;
   username: string;
 }
 
@@ -93,10 +101,10 @@ function pickString(raw: Record<string, unknown>, keys: string[]): string {
 
 /**
  * 解析课程列表 JSON。
- * 兼容三种结构（字段名均为多 key fallback，覆盖 cky/zzxk 两族命名）：
- * - { tmpList: [{ jxb: {...}, kkxx: {...} }] }（正方新版常见嵌套）
- * - { jxbrys: [{ ... }] }（zzxkyzb 族）
- * - { kbList / items: [{ 平铺字段 }] }
+ * zzxkyzb 族 PartDisplay 响应为 HTML 分页渲染接口，
+ * 教学班 JSON（zzxkyzbjk_cxJxbWithKchZzxkYzb）字段（官方 JS 确认）：
+ * jxb_id/do_jxb_id/yxzrs(已选)/jxbrl(容量)/jsxx(教师)/sksj(时间)/jxdd(地点)
+ * 同时保留旧 fallback 字段（tmpList/kbList 平铺）。
  */
 export function parseCourseList(json: unknown): XkCourse[] {
   if (!json || typeof json !== "object") return [];
@@ -128,22 +136,21 @@ export function parseCourseList(json: unknown): XkCourse[] {
     const merged: Record<string, unknown> = { ...kkxx, ...obj, ...jxb };
 
     const capacity = pickNumber(merged, [
+      "jxbrl",
       "jxb_rl",
       "rl",
-      "jxbrl",
       "capacity",
     ]);
     const selected = pickNumber(merged, [
+      "yxzrs",
       "yxjxrs",
       "xkrs",
       "yxbrs",
-      "selectedCount",
       "jxbrs",
     ]);
     const remain = pickNumber(merged, [
       "syrl",
       "jg0xxrs",
-      "jg0mxrs",
       "kxrs",
       "remain",
     ]);
@@ -169,18 +176,22 @@ export function parseCourseList(json: unknown): XkCourse[] {
 }
 
 /**
- * 从选课入口页 HTML 解析选课轮次 ID（xkklcId）
- * zzxkyzb 入口为 Vue SPA，轮次 ID 常见于：
- * - <input id="xkklcId" value="...">（老式 JSP 渲染）
- * - JS 变量 xkklcId = "..." / xkklc_id: "..."（新版）
+ * 从选课入口页 HTML 解析选课状态
+ * 官方字段（zzxkYzb.js + 入口页 hidden input 确认）：
+ * - iskxk: 1=当前处于选课时间，0=未开放
+ * - firstXkkzId: 选课控制 ID（仅开放时下发）
  */
-export function parseXkklcId(html: string): string | null {
-  if (!html) return null;
-  const input = html.match(/id="xkklcId"[^>]*value="([^"]+)"/);
-  if (input) return input[1];
-  const jsVar = html.match(/xkklc_?[iI]d\s*[:=]\s*["']([^"']+)["']/);
-  if (jsVar) return jsVar[1];
-  return null;
+export function parseXkStatus(html: string): {
+  isXkOpen: boolean;
+  xkkzId: string | null;
+} {
+  if (!html) return { isXkOpen: false, xkkzId: null };
+  const iskxk = html.match(/id="iskxk"[^>]*value="([^"]*)"/);
+  const xkkz = html.match(/id="firstXkkzId"[^>]*value="([^"]*)"/);
+  return {
+    isXkOpen: iskxk?.[1] === "1",
+    xkkzId: xkkz && xkkz[1] ? xkkz[1] : null,
+  };
 }
 
 /**
@@ -210,7 +221,8 @@ export function matchTargets(course: XkCourse, targets: XkTarget[]): boolean {
 // ── HTTP 函数 ─────────────────────────────────────────────────
 
 /**
- * 登录并进入选课，返回选课会话（含轮次 ID）
+ * 登录并进入选课，返回选课会话（含选课控制 ID 与开放状态）
+ * 复刻浏览器时序：登录 -> 入口页（取 iskxk/xkkz_id/csrftoken）-> Display 预热
  */
 export async function openXkSession(
   username: string,
@@ -219,44 +231,139 @@ export async function openXkSession(
   // 1. 登录教务系统
   const { cookie } = await loginJwgl(username, password);
 
-  // 2. 进入选课入口页，解析轮次 ID
+  // 2. 进入选课入口页，解析选课状态
   const client = createClientWithCookie(BASE, cookie);
   const entry = await client.req(XK_ENTRY);
-  const xkklcId = parseXkklcId(entry.body);
+  const status = parseXkStatus(entry.body);
+
+  // 3. 提取 csrftoken（正方 V9 选课数据接口可能校验）
+  const csrfMatch = entry.body.match(/id="csrftoken"[^>]*value="([^"]+)"/);
+  const csrftoken = csrfMatch ? csrfMatch[1].split(",")[0] : "";
+
+  // 4. Display 预热（建立服务端选课上下文，浏览器时序）
+  await client.req(`${XK_DISPLAY}?gnmkdm=N253512`, {
+    method: "POST",
+    body: `csrftoken=${encodeURIComponent(csrftoken)}&xkkz_id=${encodeURIComponent(
+      status.xkkzId || ""
+    )}&kklxdm=&xszxzt=&njdm_id=&zyh_id=&kspage=0&jspage=0`,
+  });
 
   return {
     client,
     cookie,
-    xkklcId: xkklcId || "",
+    xkkzId: status.xkkzId || "",
+    isXkOpen: status.isXkOpen,
+    csrftoken,
     username,
   };
 }
 
 /**
- * 查询课程列表
+ * 查询课程分页列表（zzxkyzb_cxZzxkYzbPartDisplay，官方 JS 确认的参数）
+ * 响应为分页课程列表；教学班明细（含余量）需再调 jxb 接口
  * @param keyword - 课程名关键词（可选）
  */
 export async function searchCourses(
   session: XkSession,
   keyword?: string
 ): Promise<XkCourse[]> {
-  // zzxkyzb 模块查询参数（下划线命名族）：
-  // filt_link_mode(筛选范围)、fltKchZzxk/fltKcmc 筛选、rlkb 分页
   const form: Record<string, string> = {
-    xkklc_id: session.xkklcId,
-    filt_link_mode: "",
-    filt_agnwd: "",
-    filt_kch: "",
-    filt_kcmc: keyword || "",
-    filt_skls: "",
-    filt_skxq: "",
-    filt_skjc: "",
-    "rlkb.pagination.itemCount": "100",
-    "rlkb.pagination.pageNo": "1",
+    csrftoken: session.csrftoken,
+    xkkz_id: session.xkkzId,
+    kklxdm: "",
+    njdm_id: "",
+    zyh_id: "",
+    // searchBox 筛选条件（getConditions）
+    kch: "",
+    kcmc: keyword || "",
+    skls: "",
+    skxq: "",
+    skjc: "",
+    // 分页（loadCoursesByPaged）
+    kspage: "0",
+    jspage: "100",
     _: String(Date.now()),
   };
 
-  const resp = await session.client.req(XK_COURSE_LIST, {
+  const resp = await session.client.req(`${XK_COURSE_LIST}?gnmkdm=N253512`, {
+    method: "POST",
+    body: Object.entries(form)
+      .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+      .join("&"),
+  });
+
+  if (isSessionExpired(resp.body)) {
+    throw new Error("SESSION_EXPIRED");
+  }
+
+  // PartDisplay 返回 HTML 分页结构，其中嵌有课程数据；
+  // 尝试 JSON 解析失败时提取 HTML 中的课程行
+  try {
+    return parseCourseList(JSON.parse(resp.body));
+  } catch {
+    return parseCourseRowsFromHtml(resp.body);
+  }
+}
+
+/**
+ * 从 PartDisplay HTML 响应中提取课程行数据
+ * （官方 JS 以 s_html 拼接渲染，数据字段以 hidden input / class 标注）
+ */
+export function parseCourseRowsFromHtml(html: string): XkCourse[] {
+  if (!html || html.length < 50) return [];
+  const courses: XkCourse[] = [];
+
+  // 课程行 pattern：<td class="kch_id" style="display:none">XXX</td>
+  // 课程名在 panel-heading 中，容量/人数在 jxbrs/jxbrl font 标签
+  const blocks = html.split(/<div[^>]*class="[^"]*panel-info[^"]*"/).slice(1);
+  for (const block of blocks) {
+    const nameMatch = block.match(/title="([^"]+)"[^>]*class="[^"]*kcmc/);
+    const kchMatch = block.match(
+      /<td class="kch_id"[^>]*>([^<]+)<\/td>/
+    );
+    const jxbIdMatch = block.match(
+      /btn-xk-([^"']+)"/
+    );
+    const remainMatch = block.match(
+      /class="jxbrs"[^>]*>([^<]*)<\/font>\s*\/\s*<font class="jxbrl"[^>]*>([^<]*)/
+    );
+    if (nameMatch || kchMatch) {
+      const selected = remainMatch ? parseInt(remainMatch[1], 10) || 0 : 0;
+      const capacity = remainMatch ? parseInt(remainMatch[2], 10) || 0 : 0;
+      courses.push({
+        jxbId: jxbIdMatch ? jxbIdMatch[1] : "",
+        courseCode: kchMatch ? kchMatch[1].trim() : "",
+        courseName: nameMatch ? nameMatch[1].trim() : "",
+        teacher: "",
+        credit: "",
+        capacity,
+        selected,
+        remain: Math.max(0, capacity - selected),
+        raw: { htmlBlock: block.slice(0, 2000) },
+      });
+    }
+  }
+  return courses;
+}
+
+/**
+ * 查询某门课程下的教学班列表（含各班余量）
+ * 官方 JS loadJxbxxZzxk 确认：POST zzxkyzbjk_cxJxbWithKchZzxkYzb.html，
+ * 响应 data[i] 字段：jxb_id/do_jxb_id/yxzrs(已选)/jxbrl(容量)/jsxx(教师)/sksj/jxdd
+ */
+export async function fetchJxbList(
+  session: XkSession,
+  course: Pick<XkCourse, "courseCode">
+): Promise<XkCourse[]> {
+  const form: Record<string, string> = {
+    csrftoken: session.csrftoken,
+    xkkz_id: session.xkkzId,
+    kch_id: course.courseCode,
+    cxbj: "0",
+    _: String(Date.now()),
+  };
+
+  const resp = await session.client.req(`${XK_JXB_LIST}?gnmkdm=N253512`, {
     method: "POST",
     body: Object.entries(form)
       .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
@@ -268,7 +375,10 @@ export async function searchCourses(
   }
 
   try {
-    return parseCourseList(JSON.parse(resp.body));
+    const data = JSON.parse(resp.body);
+    // 官方 JS 中响应直接是数组（data[i].xxx 遍历）
+    const list = Array.isArray(data) ? data : (data?.tmpList ?? []);
+    return parseCourseList({ tmpList: list });
   } catch {
     return [];
   }
@@ -276,27 +386,25 @@ export async function searchCourses(
 
 /**
  * 提交选课（选一门教学班）
- * zzxkyzb 族提交参数：jxb_id（教学班）、kch_id（课程）、rwlx（任务类型，1=主修）
+ * 官方 JS 确认 chooseCourseZzxk(jxb_id, do_jxb_id, kch_id, jxbzls)，
+ * 单班提交的 action 未在本 JS 中（由通用组件发起）；
+ * 先按 zzxkyzb 主 action 提交，开放后用 inspect 校准实际 URL。
  */
 export async function submitCourse(
   session: XkSession,
   course: XkCourse
 ): Promise<XkSubmitResult> {
   const form: Record<string, string> = {
-    xkklc_id: session.xkklcId,
+    csrftoken: session.csrftoken,
+    xkkz_id: session.xkkzId,
     jxb_id: course.jxbId,
     kch_id: course.courseCode,
-    rlkz: "",
-    rlz: "",
-    rwhd: "1",
-    ckbj: "1",
-    trnj: "",
-    jxbzb: "",
-    sjsh: "1",
-    btn: "",
+    do_jxb_id: course.jxbId,
+    jxbzls: "",
+    _: String(Date.now()),
   };
 
-  const resp = await session.client.req(XK_ADD_COURSE, {
+  const resp = await session.client.req(`${XK_ADD_COURSE}?gnmkdm=N253512`, {
     method: "POST",
     body: Object.entries(form)
       .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
@@ -332,22 +440,25 @@ export async function inspectXk(
   password: string
 ): Promise<{
   entryHtml: string;
-  xkklcId: string | null;
+  isXkOpen: boolean;
+  xkkzId: string | null;
+  csrftoken: string;
   courseListRaw: string;
 }> {
-  const { cookie } = await loginJwgl(username, password);
-  const client = createClientWithCookie(BASE, cookie);
-  const entry = await client.req(XK_ENTRY);
-  const xkklcId = parseXkklcId(entry.body);
+  const session = await openXkSession(username, password);
 
-  const probe = await client.req(XK_COURSE_LIST, {
+  const probe = await session.client.req(`${XK_COURSE_LIST}?gnmkdm=N253512`, {
     method: "POST",
-    body: `xkklc_id=${encodeURIComponent(xkklcId || "")}&filt_kcmc=&rlkb.pagination.itemCount=10&rlkb.pagination.pageNo=1&_=${Date.now()}`,
+    body: `csrftoken=${encodeURIComponent(session.csrftoken)}&xkkz_id=${encodeURIComponent(
+      session.xkkzId
+    )}&kcmc=&kspage=0&jspage=10&_=${Date.now()}`,
   });
 
   return {
-    entryHtml: entry.body.slice(0, 50000),
-    xkklcId,
+    entryHtml: "",
+    isXkOpen: session.isXkOpen,
+    xkkzId: session.xkkzId || null,
+    csrftoken: session.csrftoken,
     courseListRaw: probe.body.slice(0, 100000),
   };
 }

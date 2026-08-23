@@ -7,7 +7,8 @@ import { describe, it, expect } from "vitest";
 
 import {
   parseCourseList,
-  parseXkklcId,
+  parseXkStatus,
+  parseCourseRowsFromHtml,
   isSessionExpired,
   matchTargets,
   type XkCourse,
@@ -237,38 +238,58 @@ describe("parseCourseList", () => {
   });
 });
 
-// ── parseXkklcId ──────────────────────────────────────────────
+// ── parseXkStatus ─────────────────────────────────────────────
 
-describe("parseXkklcId", () => {
-  it("从 input 标签提取", () => {
-    const html = `<input type="hidden" id="xkklcId" value="abc123">`;
-    expect(parseXkklcId(html)).toBe("abc123");
+describe("parseXkStatus", () => {
+  it("选课未开放（iskxk=0，真实入口页结构）", () => {
+    const html = `<input type="hidden" name="iskxk" id="iskxk" value="0"/>`;
+    expect(parseXkStatus(html)).toEqual({ isXkOpen: false, xkkzId: null });
   });
 
-  it("从 JS 变量提取", () => {
-    const html = `<script>var xkklcId = "xyz789";</script>`;
-    expect(parseXkklcId(html)).toBe("xyz789");
+  it("选课开放时解析 xkkzId（firstXkkzId hidden input）", () => {
+    const html = `<input type="hidden" id="firstXkkzId" value="XKKZ2026001"/><input type="hidden" name="iskxk" id="iskxk" value="1"/>`;
+    expect(parseXkStatus(html)).toEqual({
+      isXkOpen: true,
+      xkkzId: "XKKZ2026001",
+    });
   });
 
-  it("下划线命名 xkklc_id 也能提取", () => {
-    const html = `<script>var xkklc_id = "und321";</script>`;
-    expect(parseXkklcId(html)).toBe("und321");
+  it("开放但 firstXkkzId 为空", () => {
+    const html = `<input type="hidden" id="firstXkkzId" value=""/><input name="iskxk" id="iskxk" value="1"/>`;
+    expect(parseXkStatus(html)).toEqual({ isXkOpen: true, xkkzId: null });
   });
 
-  it("对象字面量形式", () => {
-    const html = `<script>var config = {xkklcId: "obj456"};</script>`;
-    expect(parseXkklcId(html)).toBe("obj456");
+  it("空 HTML 返回未开放", () => {
+    expect(parseXkStatus("")).toEqual({ isXkOpen: false, xkkzId: null });
+  });
+});
+
+// ── parseCourseRowsFromHtml ───────────────────────────────────
+
+describe("parseCourseRowsFromHtml", () => {
+  it("从 PartDisplay HTML 提取课程行与余量", () => {
+    const html = `
+      <div class="panel panel-info">
+        <div class="panel-heading"><span title="高等数学A（上）" class="kcmc">高等数学A（上）</span></div>
+        <td class="kch_id" style="display:none">MATH101</td>
+        <button id="btn-xk-jxb-001" type="button">选课</button>
+        <font class="jxbrs">118</font>/<font class="jxbrl">120</font>
+      </div>`;
+    const courses = parseCourseRowsFromHtml(html);
+    expect(courses).toHaveLength(1);
+    expect(courses[0]).toMatchObject({
+      courseName: "高等数学A（上）",
+      courseCode: "MATH101",
+      jxbId: "jxb-001",
+      capacity: 120,
+      selected: 118,
+      remain: 2,
+    });
   });
 
-  it("无匹配返回 null", () => {
-    expect(parseXkklcId("<html>选课未开放</html>")).toBeNull();
-    expect(parseXkklcId("")).toBeNull();
-  });
-
-  it("input 写法 value 在 id 之前也能匹配 JS 变量", () => {
-    const html = `<script>xkklcId="front999";</script><input value="x" id="xkklcId">`;
-    // input 正则要求 id 在 value 前，此写法应走 JS 分支
-    expect(parseXkklcId(html)).toBe("front999");
+  it("无 panel-info 块返回空数组", () => {
+    expect(parseCourseRowsFromHtml("<html>空页面</html>")).toEqual([]);
+    expect(parseCourseRowsFromHtml("")).toEqual([]);
   });
 });
 
