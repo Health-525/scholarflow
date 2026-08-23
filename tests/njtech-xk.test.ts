@@ -16,6 +16,69 @@ import {
 // ── parseCourseList ───────────────────────────────────────────
 
 describe("parseCourseList", () => {
+  it("解析 zzxkyzb 族结构（jxbrys + 下划线字段名）", () => {
+    const json = {
+      jxbrys: [
+        {
+          jxb_id: "jxb-zz-001",
+          kch_id: "PE102",
+          kcmc: "羽毛球",
+          jsxx: "孙七",
+          xf: "1",
+          jxb_rl: "80",
+          xkrs: "79",
+          syrl: "1",
+        },
+        {
+          jxb_id: "jxb-zz-002",
+          kch_id: "PE103",
+          kcmc: "游泳",
+          jsxx: "周八",
+          xf: "1",
+          jxb_rl: 40,
+          xkrs: 40,
+          syrl: 0,
+        },
+      ],
+    };
+
+    const courses = parseCourseList(json);
+    expect(courses).toHaveLength(2);
+
+    expect(courses[0]).toMatchObject({
+      jxbId: "jxb-zz-001",
+      courseCode: "PE102",
+      courseName: "羽毛球",
+      teacher: "孙七",
+      capacity: 80,
+      selected: 79,
+      remain: 1,
+    });
+
+    expect(courses[1]).toMatchObject({
+      jxbId: "jxb-zz-002",
+      capacity: 40,
+      selected: 40,
+      remain: 0,
+    });
+  });
+
+  it("zzxk 族无 syrl 字段时用容量-已选兜底", () => {
+    const json = {
+      jxbrys: [
+        {
+          jxb_id: "jxb-zz-003",
+          kcmc: "篮球",
+          jxb_rl: "60",
+          xkrs: "55",
+        },
+      ],
+    };
+
+    const courses = parseCourseList(json);
+    expect(courses[0].remain).toBe(5);
+  });
+
   it("解析正方新版嵌套结构（tmpList + jxb/kkxx）", () => {
     const json = {
       tmpList: [
@@ -185,6 +248,11 @@ describe("parseXkklcId", () => {
   it("从 JS 变量提取", () => {
     const html = `<script>var xkklcId = "xyz789";</script>`;
     expect(parseXkklcId(html)).toBe("xyz789");
+  });
+
+  it("下划线命名 xkklc_id 也能提取", () => {
+    const html = `<script>var xkklc_id = "und321";</script>`;
+    expect(parseXkklcId(html)).toBe("und321");
   });
 
   it("对象字面量形式", () => {
