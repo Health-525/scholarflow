@@ -95,6 +95,43 @@ export async function loginJwgl(
 
 // ── 课表抓取 ────────────────────────────────────────────────
 
+/** 学期显示名（如 2026-2027学年第一学期） */
+export function termLabel(year: number, semester: number): string {
+  return `${year}-${year + 1}学年${semester === 3 ? "第一" : "第二"}学期`;
+}
+
+/**
+ * 候选学期列表（新到旧），交界月（7-8 月）优先探测即将开始的秋学期。
+ * 正方不提供当前学期查询接口（无参数请求返回 0 条），按日历日期推断
+ * 在学期交界期（如 8 月下旬新学期课表已生成）必然出错，改为探测制。
+ * xnm = 学年起始年份；第一学期(秋季) xqm=3，第二学期(春季) xqm=12
+ */
+export function candidateXnxqList(): Array<{ year: number; semester: number }> {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1;
+  if (m >= 9) {
+    // 秋学期进行中
+    return [
+      { year: y, semester: 3 },
+      { year: y - 1, semester: 12 },
+    ];
+  }
+  if (m >= 7) {
+    // 暑假：新学期课表通常已生成，先探秋学期
+    return [
+      { year: y, semester: 3 },
+      { year: y - 1, semester: 12 },
+      { year: y - 1, semester: 3 },
+    ];
+  }
+  // 1-6 月：春学期（学年始于上一年）
+  return [
+    { year: y - 1, semester: 12 },
+    { year: y - 1, semester: 3 },
+  ];
+}
+
 export async function fetchSchedule(
   cookie: string,
   xnm?: number,
@@ -102,51 +139,44 @@ export async function fetchSchedule(
 ): Promise<CourseData[]> {
   const client = createClientWithCookie(BASE, cookie);
 
-  const now = new Date();
-  // NJTECH 正方教务系统学年/学期参数：
-  // xnm = 学年起始年份（如 2025-2026 学年 → xnm=2025）
-  // 第一学期(秋季): xqm=3, 9月-1月
-  // 第二学期(春季): xqm=12, 2月-8月
-  const month = now.getMonth(); // 0-based: Jan=0, Jun=5, Sep=8
-  const isFirstSemester = month >= 8 || month <= 1; // Sep-Jan
-  // 第二学期（2-8月）属于上一学年，所以 xnm = 当前年份 - 1
-  // 第一学期（9-1月）属于当前学年，xnm = 当前年份（9月后）或 当前年份-1（1月前）
-  const year = xnm ?? (isFirstSemester
-    ? (month >= 8 ? now.getFullYear() : now.getFullYear() - 1)
-    : now.getFullYear() - 1);
-  const semester = xqm ?? (isFirstSemester ? 3 : 12);
+  // 显式指定学期 -> 单查；否则按候选列表探测，返回第一个有数据的学期
+  const candidates =
+    xnm && xqm ? [{ year: xnm, semester: xqm }] : candidateXnxqList();
 
-  const resp = await client.req("/kbcx/xskbcx_cxXsKb.html?gnmkdm=N253508", {
-    method: "POST",
-    body: `xnm=${year}&xqm=${semester}`,
-  });
+  for (const { year, semester } of candidates) {
+    const resp = await client.req("/kbcx/xskbcx_cxXsKb.html?gnmkdm=N253508", {
+      method: "POST",
+      body: `xnm=${year}&xqm=${semester}`,
+    });
 
-  if (!resp.body || resp.body.length < 10) {
-    return [];
-  }
-
-  try {
-    const data = JSON.parse(resp.body);
-    const kbList = data?.kbList || [];
-
-    if (kbList.length > 0) {
-      return kbList.map((item: Record<string, unknown>) => ({
-        title: (item.kcmc as string) || "",
-        weekday: parseInt(item.xqj as string) || 0,
-        periods: parsePeriods(item.jc as string),
-        weeks: cleanWeekSpec((item.zcd as string) || ""),
-        location: (item.cdmc as string) || (item.xqmc as string) || "",
-        teacher: (item.xm as string) || "",
-        ...item,
-      }));
+    if (!resp.body || resp.body.length < 10) {
+      continue;
     }
 
-    // JWGL 返回空课表（学期末常见）→ 从考试数据反向生成课表
-    const examCourses = await buildScheduleFromExams(cookie, year, semester);
-    return examCourses;
-  } catch {
-    return [];
+    try {
+      const data = JSON.parse(resp.body);
+      const kbList = data?.kbList || [];
+
+      if (kbList.length > 0) {
+        return kbList.map((item: Record<string, unknown>) => ({
+          title: (item.kcmc as string) || "",
+          weekday: parseInt(item.xqj as string) || 0,
+          periods: parsePeriods(item.jc as string),
+          weeks: cleanWeekSpec((item.zcd as string) || ""),
+          location: (item.cdmc as string) || (item.xqmc as string) || "",
+          teacher: (item.xm as string) || "",
+          ...item,
+        }));
+      }
+
+      // JWGL 返回空课表（学期末常见）→ 从考试数据反向生成课表
+      const examCourses = await buildScheduleFromExams(cookie, year, semester);
+      if (examCourses.length > 0) return examCourses;
+    } catch {
+      continue;
+    }
   }
+  return [];
 }
 
 /**
@@ -246,36 +276,37 @@ export async function fetchExams(
 ): Promise<ExamData[]> {
   const client = createClientWithCookie(BASE, cookie);
 
-  const now = new Date();
-  const month = now.getMonth();
-  const isFirstSemester = month >= 8 || month <= 1;
-  const year = xnm ?? (isFirstSemester
-    ? (month >= 8 ? now.getFullYear() : now.getFullYear() - 1)
-    : now.getFullYear() - 1);
-  const semester = xqm ?? (isFirstSemester ? 3 : 12);
+  // 与课表同一套学期策略：显式指定则单查，否则候选探测
+  const candidates =
+    xnm && xqm ? [{ year: xnm, semester: xqm }] : candidateXnxqList();
 
-  const resp = await client.req(
-    "/kwgl/kscx_cxXsksxxIndex.html?doType=query&gnmkdm=N358105",
-    {
-      method: "POST",
-      body: `xnm=${year}&xqm=${semester}&_search=false&nd=${Date.now()}&queryModel.showCount=100&queryModel.currentPage=1`,
+  for (const { year, semester } of candidates) {
+    const resp = await client.req(
+      "/kwgl/kscx_cxXsksxxIndex.html?doType=query&gnmkdm=N358105",
+      {
+        method: "POST",
+        body: `xnm=${year}&xqm=${semester}&_search=false&nd=${Date.now()}&queryModel.showCount=100&queryModel.currentPage=1`,
+      }
+    );
+
+    try {
+      const data = JSON.parse(resp.body);
+      const items = data?.items || [];
+      if (items.length > 0) {
+        return items.map((item: Record<string, unknown>) => ({
+          subject: (item.kcmc as string) || "",
+          date: (item.ksrq as string) || "",
+          time: (item.kssj as string) || "",
+          location: (item.cdmc as string) || "",
+          seatNumber: (item.zwh as string) || "",
+          ...item,
+        }));
+      }
+    } catch {
+      continue;
     }
-  );
-
-  try {
-    const data = JSON.parse(resp.body);
-    const items = data?.items || [];
-    return items.map((item: Record<string, unknown>) => ({
-      subject: (item.kcmc as string) || "",
-      date: (item.ksrq as string) || "",
-      time: (item.kssj as string) || "",
-      location: (item.cdmc as string) || "",
-      seatNumber: (item.zwh as string) || "",
-      ...item,
-    }));
-  } catch {
-    return [];
   }
+  return [];
 }
 
 
