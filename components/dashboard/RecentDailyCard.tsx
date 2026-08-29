@@ -2,7 +2,6 @@
 
 import { FileText } from "lucide-react";
 import Link from "next/link";
-import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,7 +29,7 @@ function recencyLabel(dateStr: string): string {
   } catch { return ""; }
 }
 
-export const RecentDailyCard = memo(function RecentDailyCard() {
+export function RecentDailyCard() {
   const { entries, isLoading, error, reload } = useDailyReports();
   const recent = entries.slice(0, 5);
   const isAuthError = /unauthorized|forbidden|401|403/i.test(
@@ -38,17 +37,17 @@ export const RecentDailyCard = memo(function RecentDailyCard() {
   );
 
   return (
-    <Card className="h-full">
-      <CardContent className="p-4">
+    <Card>
+      <CardContent>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10">
-              <FileText className="size-4 text-primary" />
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">
+              <FileText className="w-3.5 h-3.5 text-primary" />
             </div>
-            <h2 className="text-sm font-semibold text-foreground">最近日报</h2>
+            <h2 className="text-[13px] font-semibold tracking-wide font-display text-foreground">最近日报</h2>
           </div>
-          <Link href="/reports/daily" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
-            查看全部
+          <Link href="/reports/daily" className="text-[11px] tracking-wide transition-colors hover:opacity-70 text-primary">
+            查看全部 →
           </Link>
         </div>
 
@@ -59,13 +58,13 @@ export const RecentDailyCard = memo(function RecentDailyCard() {
         )}
 
         {error && !isLoading && (
-          <div className="rounded-lg border border-border bg-secondary/40 px-3 py-3 text-xs text-muted-foreground">
+          <div className="rounded-xl border border-border bg-secondary/40 px-3 py-3 text-[12px] text-muted-foreground">
             <div className="flex items-center justify-between gap-3">
               <span>{isAuthError ? "日报暂时无法同步" : "日报加载失败"}</span>
               <button
                 type="button"
                 onClick={reload}
-                className="shrink-0 rounded-md px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+                className="shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-primary/10"
               >
                 重试
               </button>
@@ -75,22 +74,22 @@ export const RecentDailyCard = memo(function RecentDailyCard() {
 
         {!isLoading && !error && (
           recent.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-3">暂无日报</p>
+            <p className="text-[13px] text-muted-foreground py-3">暂无日报</p>
           ) : (
-            <div className="divide-y divide-border/50">
+            <div className="divide-y divide-border">
               {recent.map((entry) => {
                 const date = entry.name.replace(".md", "");
                 const { main, sub } = formatDateLabel(date);
                 const recency = recencyLabel(date);
                 return (
-                  <Link key={entry.path} href={`/reports/daily?date=${encodeURIComponent(date)}`} className="flex items-center justify-between gap-3 py-2 group transition-colors hover:bg-muted/30 rounded-lg px-2 -mx-2">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="w-1 h-1 rounded-full shrink-0 bg-border group-hover:bg-primary transition-colors" />
-                      <span className="text-sm text-foreground group-hover:text-primary transition-colors">{main}</span>
-                      <span className="text-xs text-muted-foreground">{sub}</span>
+                  <Link key={entry.path} href={`/reports/daily?date=${encodeURIComponent(date)}`} className="flex items-center justify-between gap-3 py-2.5 group transition-colors">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-1 h-1 rounded-full shrink-0 transition-transform duration-200 group-hover:scale-150 bg-border" />
+                      <span className="text-[12.5px] text-foreground group-hover:text-primary transition-colors">{main}</span>
+                      <span className="text-[11px] text-muted-foreground">{sub}</span>
                     </div>
                     {recency && (
-                      <Badge variant="secondary" className="text-xs h-4 px-1 gap-1">
+                      <Badge variant="secondary" className="text-[10px] h-4 px-1 gap-1">
                         {recency}
                       </Badge>
                     )}
@@ -103,6 +102,6 @@ export const RecentDailyCard = memo(function RecentDailyCard() {
       </CardContent>
     </Card>
   );
-});
+}
 
 export default RecentDailyCard;

@@ -15,6 +15,11 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes breathe {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.018); }
@@ -63,6 +68,7 @@
 .animate-fade-up { animation: fadeSlideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-fade-in { animation: fadeIn 0.3s ease both; }
 .animate-breathe { animation: breathe 2.2s ease-in-out infinite; transform-origin: left center; }
+.animate-page { animation: pageEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
 /* NOTE: .animate-pulse intentionally NOT overridden here — Tailwind's built-in animate-pulse (opacity) is kept intact.
    Use .animate-pulse-glow for the box-shadow pulse effect instead. */
 .animate-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }

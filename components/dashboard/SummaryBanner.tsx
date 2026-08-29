@@ -1,8 +1,9 @@
 "use client";
 
 import { BookOpen, ClipboardList, Calculator } from "lucide-react";
-import { memo, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { cardClasses } from "@/components/ui/card";
 import type { DashboardSummary } from "@/lib/dashboard/summary";
 import { gpaColorClasses } from "@/lib/gpa";
@@ -24,20 +25,10 @@ function AnimatedNumber({
       : Number.isInteger(value)
         ? 0
         : 2;
-  // 尊重系统无障碍动画设置：减少动态时直接显示最终值
-  const prefersReduced =
-    typeof window !== "undefined"
-      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      : false;
 
   useEffect(() => {
     if (isNaN(numValue)) {
       setDisplay(0);
-      return;
-    }
-    if (prefersReduced) {
-      setDisplay(numValue);
-      prevRef.current = numValue;
       return;
     }
     const start = prevRef.current;
@@ -59,7 +50,7 @@ function AnimatedNumber({
       else prevRef.current = numValue;
     };
     requestAnimationFrame(animate);
-  }, [numValue, duration, decimals, prefersReduced]);
+  }, [numValue, duration, decimals]);
 
   if (typeof value === "string" && isNaN(numValue)) return <span>{value}</span>;
   return (
@@ -69,56 +60,72 @@ function AnimatedNumber({
   );
 }
 
-const StatMiniCard = memo(function StatMiniCard({
+function StatMiniCard({
   icon: Icon,
   label,
   value,
   colorClass,
+  iconBgClass,
+  badge,
+  badgeClass,
 }: {
   icon: typeof BookOpen;
   label: string;
   value: number | string;
   colorClass: string;
+  iconBgClass: string;
+  badge?: string;
+  badgeClass?: string;
 }) {
   return (
-    <div className={cn(cardClasses, "p-4 flex flex-row items-center gap-3 transition-colors duration-200")}>
-      <Icon className="size-5 shrink-0 text-muted-foreground" />
-      <div className="min-w-0">
-        <div className="text-xs text-muted-foreground font-medium">
+    <div className={cn(cardClasses, "p-3 hover:-translate-y-1")}>
+      <div
+        className={`absolute -right-3 -top-3 w-20 h-20 rounded-full pointer-events-none opacity-[0.04] dark:opacity-[0.08] group-hover:opacity-[0.08] dark:group-hover:opacity-[0.14] transition-opacity duration-300 ${iconBgClass}`}
+      />
+      <div className="relative">
+        <div
+          className={`w-[44px] h-[44px] rounded-xl flex items-center justify-center mb-3 transition-transform duration-200 group-hover:scale-110 ${iconBgClass}`}
+        >
+          <Icon size={18} className={colorClass} />
+        </div>
+        <div className="text-[11px] text-muted-foreground font-medium">
           {label}
         </div>
         <div
-          className={`text-3xl font-bold tabular-nums leading-none mt-0.5 ${colorClass}`}
+          className={`text-[36px] font-bold tabular-nums leading-none mt-1 ${colorClass}`}
         >
           <AnimatedNumber value={value} />
         </div>
+        {badge && (
+          <Badge variant="outline" className={`text-[10px] h-4 px-1 mt-1 border-transparent ${badgeClass}`}>
+            {badge}
+          </Badge>
+        )}
       </div>
     </div>
   );
-});
+}
 
 interface SummaryBannerProps {
   data: DashboardSummary | null;
   loading?: boolean;
 }
 
-export const SummaryBanner = memo(function SummaryBanner({ data, loading = true }: SummaryBannerProps) {
+export function SummaryBanner({ data, loading = true }: SummaryBannerProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {[1, 2, 3].map((i) => (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
             className={cn(
               cardClasses,
-              "p-4 flex flex-row items-center gap-3",
+              "p-4 hover:translate-y-0 hover:shadow-sm",
             )}
           >
-            <div className="skeleton size-5 shrink-0 rounded" />
-            <div className="space-y-1.5">
-              <div className="skeleton w-12 h-2.5 rounded" />
-              <div className="skeleton w-16 h-6 rounded" />
-            </div>
+            <div className="skeleton w-8 h-8 rounded-xl mb-2" />
+            <div className="skeleton w-12 h-3 rounded mb-1.5" />
+            <div className="skeleton w-16 h-7 rounded" />
           </div>
         ))}
       </div>
@@ -130,14 +137,20 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
       {
         icon: BookOpen,
         label: "今日课程",
+        colorClass: "text-primary",
+        iconBgClass: "bg-primary/10",
       },
       {
         icon: ClipboardList,
         label: "待办作业",
+        colorClass: "text-[var(--status-warning)]",
+        iconBgClass: "bg-[var(--status-warning)]/10",
       },
       {
         icon: Calculator,
         label: "绩点",
+        colorClass: "text-primary",
+        iconBgClass: "bg-primary/10",
       },
     ];
     return (
@@ -147,17 +160,19 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
             key={i}
             className={cn(
               cardClasses,
-              "p-4 flex flex-row items-center gap-3",
+              "p-4 hover:translate-y-0 hover:shadow-sm",
             )}
           >
-            <item.icon className="size-5 shrink-0 text-muted-foreground" />
-            <div className="min-w-0">
-              <div className="text-xs text-muted-foreground font-medium">
-                {item.label}
-              </div>
-              <div className="text-2xl font-semibold tabular-nums text-muted-foreground/70 leading-none mt-0.5">
-                --
-              </div>
+            <div
+              className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 ${item.iconBgClass}`}
+            >
+              <item.icon size={15} className={item.colorClass} />
+            </div>
+            <div className="text-[11px] mb-0.5 text-muted-foreground font-medium">
+              {item.label}
+            </div>
+            <div className="text-[22px] font-bold tabular-nums text-muted-foreground leading-none">
+              --
             </div>
           </div>
         ))}
@@ -174,18 +189,31 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
     label: string;
     value: number | string;
     colorClass: string;
+    iconBgClass: string;
+    badge?: string;
+    badgeClass?: string;
   }[] = [
     {
       icon: BookOpen,
       label: "今日课程",
       value: overview.todayCourses,
-      colorClass: "text-foreground",
+      colorClass: "text-primary",
+      iconBgClass: "bg-primary/10",
     },
     {
       icon: ClipboardList,
       label: "待办作业",
-      value: overview.pendingAssignments > 99 ? "99+" : overview.pendingAssignments,
-      colorClass: urgentAssign ? "text-destructive" : "text-foreground",
+      value: overview.pendingAssignments,
+      colorClass: urgentAssign
+        ? "text-destructive"
+        : "text-[var(--status-warning)]",
+      iconBgClass: urgentAssign
+        ? "bg-destructive/10"
+        : "bg-[var(--status-warning)]/10",
+      badge: urgentAssign ? `${overview.urgentAssignments}紧急` : undefined,
+      badgeClass: urgentAssign
+        ? "bg-destructive/10 text-destructive"
+        : "bg-[var(--status-warning)]/10 text-[var(--status-warning)]",
     },
   ];
 
@@ -196,6 +224,7 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
       label: "绩点",
       value: overview.gpa,
       colorClass: gpaCls.colorClass,
+      iconBgClass: gpaCls.iconBgClass,
     });
   }
 
@@ -206,4 +235,4 @@ export const SummaryBanner = memo(function SummaryBanner({ data, loading = true 
       ))}
     </div>
   );
-});
+}

@@ -2,103 +2,51 @@
 
 import { Monitor } from "lucide-react";
 import Link from "next/link";
-import { memo } from "react";
+import { useEffect, useState } from "react";
 
-import { CATEGORY_CLASS } from "@/components/activity/category-config";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { useIsClient } from "@/hooks/useIsClient";
+import { cardClasses } from "@/components/ui/card";
 import { useScreenTime } from "@/lib/activity-tracker-v3";
-import { formatDurationShort, formatSeconds } from "@/lib/format-duration";
 import { cn } from "@/lib/utils";
 
-export const ScreenTimeCard = memo(function ScreenTimeCard() {
+export function ScreenTimeCard() {
   const state = useScreenTime();
-  const isClient = useIsClient();
+  const [mounted, setMounted] = useState(false);
 
-  const hasCurrent = isClient && state.isElectron && state.currentApp;
-  const totalMinutes = state.totalMinutes;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
-    <Link href="/activity">
-      <Card className="h-full transition-colors hover:bg-muted/30">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10">
-              <Monitor className="size-4 text-primary" />
-            </div>
-            <h2 className="text-sm font-semibold text-foreground">屏幕时间</h2>
+    <Link href="/activity" className={cn(cardClasses, "h-full")}>
+      <div className="flex flex-col h-full p-4 justify-center text-center relative">
+        <div className="absolute -right-2 -bottom-2 w-16 h-16 rounded-full opacity-[0.04] dark:opacity-[0.07] pointer-events-none group-hover:opacity-[0.08] dark:group-hover:opacity-[0.13] transition-opacity duration-300 bg-primary" />
+        <div className="relative">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <Monitor className="w-4 h-4 text-primary" />
+            <span className="text-[12px] font-semibold text-muted-foreground">屏幕时间</span>
           </div>
-
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-bold tabular-nums text-foreground leading-none">
-              {formatDurationShort(totalMinutes)}
-            </span>
-            {state.idleMinutes > 0 && (
-              <span className="text-xs text-muted-foreground">
-                空闲 {state.idleMinutes}m
-              </span>
-            )}
+          <div className="text-[28px] font-bold tabular-nums transition-transform duration-200 group-hover:scale-105 text-foreground leading-none">
+            {state.totalMinutes}<span className="text-[13px] font-medium text-muted-foreground"> min</span>
           </div>
-
-          {hasCurrent && (
-            <div className="mt-3 flex items-center gap-2">
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full opacity-75 bg-statusSuccess" />
-                <span className="relative inline-flex size-2 rounded-full bg-statusSuccess" />
-              </span>
-              <span className="text-sm font-medium text-foreground truncate">
-                {state.currentApp}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {formatSeconds(state.durationSeconds)}
-              </span>
-            </div>
-          )}
 
           {state.categoryBreakdown.length > 0 && (
-            <div className="mt-3 space-y-1.5">
-              <div className="flex h-1.5 overflow-hidden rounded-full bg-secondary">
-                {state.categoryBreakdown.map((c) => {
-                  const cls = CATEGORY_CLASS[c.category];
-                  const pct = Math.max(
-                    1,
-                    Math.round((c.minutes / Math.max(totalMinutes, 1)) * 100)
-                  );
-                  return (
-                    <div
-                      key={c.category}
-                      className={cn("h-full min-w-[3px]", cls.bar)}
-                      style={{ width: `${pct}%` }}
-                    />
-                  );
-                })}
-              </div>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {state.categoryBreakdown.slice(0, 3).map((c) => {
-                  const cls = CATEGORY_CLASS[c.category];
-                  return (
-                    <Badge
-                      key={c.category}
-                      variant="secondary"
-                      className={cn("h-4 px-1 text-xs gap-1", cls.bg, cls.text)}
-                    >
-                      <span className={cn("size-1.5 rounded-full", cls.bar)} />
-                      {cls.label} {c.minutes}m
-                    </Badge>
-                  );
-                })}
-              </div>
+            <div className="flex items-center justify-center flex-wrap gap-1.5 mt-2.5">
+              {state.categoryBreakdown.slice(0, 3).map(c => (
+                <Badge key={c.category} variant="outline" className="text-[10px] h-4 px-1 gap-1 border-transparent" style={{ backgroundColor: c.color, color: "white" }}>
+                  {c.minutes}分
+                </Badge>
+              ))}
             </div>
           )}
 
-          {isClient && !state.isElectron && (
-            <p className="mt-3 text-xs text-muted-foreground">桌面版可用</p>
+          {mounted && !state.isElectron && state.categoryBreakdown.length === 0 && (
+            <div className="mt-2 text-[11px] text-muted-foreground">
+              桌面版可用
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </Link>
   );
-});
-
-export default ScreenTimeCard;
+}

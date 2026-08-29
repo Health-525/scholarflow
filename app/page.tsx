@@ -1,7 +1,6 @@
 "use client";
 
-import { Clock } from "lucide-react";
-import { lazy, memo, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
 import { AssignmentsCard } from "@/components/dashboard/AssignmentsCard";
 import { ExamCountdownCard } from "@/components/dashboard/ExamCountdownCard";
@@ -13,61 +12,89 @@ import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
 import { ScreenTimeCard } from "@/components/dashboard/ScreenTimeCard";
 import { SummaryBanner } from "@/components/dashboard/SummaryBanner";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
-import { useGreeting } from "@/hooks/useGreeting";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useScheduleQuery } from "@/hooks/useQueries";
 import { useDashboardSummary } from "@/lib/dashboard/use-dashboard-summary";
-import { getWeekNumber } from "@/lib/schedule/schedule";
 
 const MobileHome = lazy(() =>
   import("@/components/ximi/MobileHome").then((m) => ({ default: m.MobileHome }))
 );
 
-const CurrentTime = memo(function CurrentTime() {
-  const [time, setTime] = useState("");
+function useGreeting() {
+  const [greeting, setGreeting] = useState({
+    text: "你好",
+    emoji: "👋",
+    date: "",
+  });
 
   useEffect(() => {
     const update = () => {
-      setTime(
-        new Date().toLocaleTimeString("zh-CN", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        }),
-      );
+      const now = new Date();
+      const hour = now.getHours();
+
+      const text =
+        hour < 6
+          ? "夜深了"
+          : hour < 9
+            ? "早安"
+            : hour < 12
+              ? "上午好"
+              : hour < 14
+                ? "中午好"
+                : hour < 18
+                  ? "下午好"
+                  : hour < 22
+                    ? "晚上好"
+                    : "夜深了";
+
+      const emoji =
+        hour < 6
+          ? "🌙"
+          : hour < 9
+            ? "☀️"
+            : hour < 12
+              ? "🌤️"
+              : hour < 14
+                ? "🍜"
+                : hour < 18
+                  ? "⚡"
+                  : hour < 22
+                    ? "🌃"
+                    : "🌙";
+
+      const date = now.toLocaleDateString("zh-CN", {
+        month: "long",
+        day: "numeric",
+        weekday: "long",
+      });
+
+      setGreeting({ text, emoji, date });
     };
+
     update();
-    const timer = setInterval(update, 1000);
+    const timer = setInterval(update, 60000);
     return () => clearInterval(timer);
   }, []);
 
-  return (
-    <div className="hidden sm:flex items-center gap-2 rounded-xl bg-muted/60 px-3 py-2">
-      <Clock className="size-4 text-primary" />
-      <span className="text-lg font-semibold tabular-nums text-foreground">
-        {time}
-      </span>
-    </div>
-  );
-});
+  return greeting;
+}
 
 export default function DashboardPage() {
   const isMobile = useIsMobile();
-  const { text: greeting, date: dateStr } = useGreeting();
+  const { text: greeting, emoji: greetingEmoji, date: dateStr } = useGreeting();
   const { data: dashboardData, loading: dashboardLoading } =
     useDashboardSummary();
-  const { data: scheduleData } = useScheduleQuery();
 
-  const currentWeek = useMemo(() => {
-    const week1Monday = scheduleData?.schedule?.meta?.week1_monday;
-    if (!week1Monday) return null;
-    return getWeekNumber(new Date(), week1Monday);
-  }, [scheduleData?.schedule?.meta?.week1_monday]);
+  const heroStats = dashboardData?.overview
+    ? {
+        courses: dashboardData.overview.courses ?? 0,
+        assignments: dashboardData.overview.pendingAssignments ?? 0,
+      }
+    : null;
 
   if (isMobile) {
     return (
       <ErrorBoundary>
-        <Suspense fallback={<div className="max-w-md mx-auto py-5"><div className="h-80 rounded-2xl border border-border bg-card skeleton" /></div>}>
+        <Suspense fallback={<div className="max-w-md mx-auto py-5 animate-page"><div className="h-80 rounded-[28px] border border-border bg-card skeleton" /></div>}>
           <MobileHome />
         </Suspense>
       </ErrorBoundary>
@@ -75,51 +102,91 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto py-5 pb-24 md:pb-10 space-y-5">
-      {/* Header */}
-      <header className="rounded-2xl bg-card border border-border p-5">
-        <div className="flex items-center justify-between gap-4">
-          <div suppressHydrationWarning>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+    <div className="max-w-[1280px] mx-auto py-5 pb-24 md:pb-10 space-y-6 animate-page">
+      {/* Hero + Quick Actions — unified header */}
+      <header className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[var(--hero-from)] to-[var(--hero-to)] border border-border shadow-sm animate-fade-up">
+        <div
+          className="pointer-events-none absolute inset-0"
+          aria-hidden="true"
+        >
+          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/8 dark:bg-primary/[0.03] blur-3xl" />
+        </div>
+
+        <div className="relative px-6 pt-4 pb-2">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0" suppressHydrationWarning>
+              <h1 className="text-[26px] font-bold leading-tight font-display text-foreground tracking-tight">
                 {greeting}
               </h1>
-              {currentWeek && (
-                <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                  第{currentWeek}周
-                </span>
+              <p className="text-[13px] text-muted-foreground mt-1">
+                {dateStr} · 新的一天，从计划开始
+              </p>
+              {heroStats && (
+                <p className="text-[12px] text-muted-foreground/60 mt-1.5 flex items-center gap-3">
+                  <span>课程 {heroStats.courses}</span>
+                  <span>作业 {heroStats.assignments}</span>
+                </p>
               )}
             </div>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {dateStr}
-            </p>
-          </div>
 
-          <div className="flex items-center gap-4">
-            <CurrentTime />
-            <RefreshButton />
+            <div
+              className="relative shrink-0 flex items-center gap-3"
+              suppressHydrationWarning
+            >
+              <RefreshButton />
+              <div className="relative flex h-12 w-12 items-center justify-center rounded-[18px] bg-card/80 text-[28px] backdrop-blur-xl shadow-sm dark:bg-secondary/80">
+                {greetingEmoji}
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Quick Actions inside Hero */}
+        <div className="relative px-6 pb-4 animate-fade-up stagger-1">
+          <QuickActions />
         </div>
       </header>
 
-      <QuickActions />
+      {/* Dashboard Sections */}
+      <section className="space-y-4 animate-fade-up stagger-2">
+        <div className="space-y-2.5">
+          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+            快捷统计
+          </span>
+          <SummaryBanner data={dashboardData} loading={dashboardLoading} />
+        </div>
 
-      {/* Academic section */}
-      <section className="space-y-4">
-        <SummaryBanner data={dashboardData} loading={dashboardLoading} />
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="space-y-2.5">
+          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+            今日焦点
+          </span>
           <ScheduleCard />
+        </div>
+
+        <div className="space-y-2.5">
+          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+            任务
+          </span>
           <AssignmentsCard />
         </div>
-      </section>
 
-      {/* Other widgets */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <ExamCountdownCard />
-        <ScreenTimeCard />
-        <RecentDailyCard />
-        <JwcNewsCard />
+        <div className="space-y-2.5">
+          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+            数据追踪
+          </span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <ScreenTimeCard />
+            <ExamCountdownCard />
+            <RecentDailyCard />
+          </div>
+        </div>
+
+        <div className="space-y-2.5">
+          <span className="block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground/60 uppercase px-1">
+            信息浏览
+          </span>
+          <JwcNewsCard />
+        </div>
       </section>
     </div>
   );
