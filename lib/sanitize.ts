@@ -30,6 +30,33 @@ const DOMPURIFY_CONFIG = {
 };
 
 /**
+ * javascript: 协议拦截：a[href] 与 img[src] 都要清。
+ * 服务端与客户端共用同一份规则——此前两边各写一遍，改一边漏一边的风险很实在。
+ */
+function stripJavascriptUrls(node: Element): void {
+  if (node.tagName === "A") {
+    const href = node.getAttribute("href") || "";
+    if (/^javascript:/i.test(href.trim())) node.removeAttribute("href");
+  }
+  if (node.tagName === "IMG") {
+    const src = node.getAttribute("src") || "";
+    if (/^javascript:/i.test(src.trim())) node.removeAttribute("src");
+  }
+}
+
+const HOOK_FLAG = "__scholarflow_hook_added";
+
+/**
+ * 幂等注册 hook。**必须在 sanitize 之前调用。**
+ * 客户端分支原先是先 sanitize 再 addHook，导致首次调用时拦截 hook 尚未挂上。
+ */
+function ensureHooks(instance: typeof DOMPurify): void {
+  if (HOOK_FLAG in instance) return;
+  instance.addHook("afterSanitizeAttributes", stripJavascriptUrls);
+  (instance as unknown as Record<string, unknown>)[HOOK_FLAG] = true;
+}
+
+/**
  * 服务端 DOMPurify 实例（懒加载）
  */
 let serverDOMPurify: typeof DOMPurify | null = null;
@@ -42,21 +69,7 @@ async function getServerDOMPurify(): Promise<typeof DOMPurify | null> {
     const { JSDOM } = await import(/* webpackIgnore: true */ "jsdom");
     const window = new JSDOM("").window;
     serverDOMPurify = DOMPurify(window as unknown as Window & typeof globalThis);
-    // 添加 javascript: URL 拦截 hook
-    serverDOMPurify.addHook("afterSanitizeAttributes", (node: Element) => {
-      if (node.tagName === "A") {
-        const href = node.getAttribute("href") || "";
-        if (/^javascript:/i.test(href.trim())) {
-          node.removeAttribute("href");
-        }
-      }
-      if (node.tagName === "IMG") {
-        const src = node.getAttribute("src") || "";
-        if (/^javascript:/i.test(src.trim())) {
-          node.removeAttribute("src");
-        }
-      }
-    });
+    ensureHooks(serverDOMPurify);
     return serverDOMPurify;
   } catch {
     // jsdom 不可用时回退到正则清理
@@ -71,6 +84,23 @@ function escapeHtmlToText(html: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+/**
+ * 浏览器端同步净化。**只能在客户端调用**（"use client" 组件、事件回调等）。
+ *
+ * sanitizeHtml 之所以是 async，仅因服务端要动态 import jsdom；浏览器分支本身同步。
+ * 客户端组件若在 JSX 里直接调 async 版，会把 Promise 交给 dangerouslySetInnerHTML，
+ * 结果渲染出 "[object Promise]"、净化根本没执行——所以这里给出显式的同步入口。
+ */
+export function sanitizeHtmlSync(html: string): string {
+  if (typeof window === "undefined") {
+    throw new Error(
+      "sanitizeHtmlSync 仅限浏览器端；服务端请用 await sanitizeHtml()",
+    );
+  }
+  ensureHooks(DOMPurify);
+  return DOMPurify.sanitize(html, DOMPURIFY_CONFIG);
 }
 
 /**
@@ -89,27 +119,6 @@ export async function sanitizeHtml(html: string): Promise<string> {
     return escapeHtmlToText(html);
   }
 
-  // Client-side: 使用浏览器原生 DOMPurify
-  const sanitized = DOMPurify.sanitize(html, DOMPURIFY_CONFIG);
-
-  // 添加 javascript: URL 拦截 hook（仅首次）
-  if (!("__scholarflow_hook_added" in DOMPurify)) {
-    DOMPurify.addHook("afterSanitizeAttributes", (node) => {
-      if (node.tagName === "A") {
-        const href = node.getAttribute("href") || "";
-        if (/^javascript:/i.test(href.trim())) {
-          node.removeAttribute("href");
-        }
-      }
-      if (node.tagName === "IMG") {
-        const src = node.getAttribute("src") || "";
-        if (/^javascript:/i.test(src.trim())) {
-          node.removeAttribute("src");
-        }
-      }
-    });
-    (DOMPurify as unknown as Record<string, unknown>).__scholarflow_hook_added = true;
-  }
-
-  return sanitized;
+  // Client-side: 走同一条同步实现，hook 注册与净化的顺序由 sanitizeHtmlSync 保证
+  return sanitizeHtmlSync(html);
 }
