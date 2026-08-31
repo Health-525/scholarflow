@@ -4,6 +4,7 @@
  * 实现 SchoolAdapter 接口，提供教务系统登录和数据抓取能力。
  */
 
+import { currentTerm, resolveTerm } from "../term-dates";
 import type {
   SchoolAdapter,
   SchoolCredentials,
@@ -18,6 +19,21 @@ import { fetchAllGrades } from "./grades";
 import { fetchJwcNews } from "./jwc-news";
 import { loginJwgl, fetchSchedule, fetchExams, NJTECH_PERIOD_TIMES } from "./jwgl";
 import { fetchLibrarySeats } from "./library";
+
+/**
+ * 各学期第 1 周周一（校历实测值）。未列入的学期由 resolveTerm 估算。
+ *
+ * 每条都应有校历依据，不要填估算值——填了就无法与真值区分。
+ */
+const NJTECH_WEEK1_MONDAYS: Readonly<Record<string, string>> = {
+  "2025-1": "2025-09-01",
+  "2025-2": "2026-03-02",
+  // 南工教〔2026〕11 号：报到 8-29～8-30、注册 8-31；2026-2027 学年校历第 1 周
+  // 为 8-31～9-06。此前此处写作 2026-09-07（估算值），会让整个秋冬学期周次偏后一周。
+  "2026-1": "2026-08-31",
+  // 2026-2027 学年校历：春夏学期注册 2027-02-27～02-28，第 1 周自 2027-03-01 起。
+  "2026-2": "2027-03-01",
+};
 
 export const njtechAdapter: SchoolAdapter = {
   id: "njtech",
@@ -87,26 +103,7 @@ export const njtechAdapter: SchoolAdapter = {
   },
 
   getCurrentSemester(): { year: string; semester: string; week1Monday: string } {
-    const now = new Date();
-    const month = now.getMonth() + 1; // 1-12
-    // NJTECH: 第一学期 9-1月, 第二学期 2-6月, 暑假 7-8月
-    const isSecondSemester = month >= 2 && month <= 6;
-    const year = isSecondSemester
-      ? String(now.getFullYear() - 1)  // 2025-2026学年第二学期 → year=2025
-      : String(now.getFullYear());     // 2026-2027学年第一学期 → year=2026
-    const semester = isSecondSemester ? "2" : "1";
-
-    // 开学日期（第 1 周周一）：已知学期记录实际值，未知学期按
-    // 「秋季 9 月 / 春季 3 月第一个周一」估算，校历发布后校准。
-    // 2026-1（2026-09-07）与 2026 选课通知日期交叉吻合：
-    // 9/2 公布停开、9/10-13 第 1 周补退选、9/21-24 第 3 周课程补退选。
-    const week1MondayMap: Record<string, string> = {
-      "2025-2": "2026-03-02",
-      "2025-1": "2025-09-01",
-      "2026-1": "2026-09-07",
-    };
-    const week1Monday = week1MondayMap[`${year}-${semester}`] || "2026-09-07";
-
-    return { year, semester, week1Monday };
+    // 南工大：秋冬学期 9 月～次年 1 月，春夏学期 2～6 月，暑假 7～8 月
+    return resolveTerm(NJTECH_WEEK1_MONDAYS, currentTerm(new Date(), [2, 6]));
   },
 };

@@ -6,14 +6,18 @@ import { forbiddenResponse, INTERNAL_TOKEN_HEADER, isTrustedOrigin } from "@/lib
 import { buildDashboardSummary } from "@/lib/dashboard/summary";
 import { mergeExams } from "@/lib/exams/merge";
 import { getAdapter } from "@/lib/schools/registry";
+import { currentTerm, resolveTerm } from "@/lib/schools/term-dates";
 import { getServerDB } from "@/lib/server-db";
 import type { Exam } from "@/types/exam";
 
-const DEFAULT_SEMESTER_INFO = {
-  year: "2025",
-  semester: "2",
-  week1Monday: "2026-03-02",
-};
+/**
+ * 适配器未实现 getCurrentSemester 时的兜底：按当前月份推学期并估算开学日。
+ * 原先是写死的 2025-2 / 2026-03-02，被时间超过后会持续产出错误周次。
+ * 必须在请求时求值，不能提到模块级常量。
+ */
+function fallbackSemesterInfo() {
+  return resolveTerm({}, currentTerm());
+}
 
 const fetchAllBodySchema = z.object({
   schoolId: z.string().min(1),
@@ -117,7 +121,7 @@ export async function POST(request: Request) {
       const courses = await adapter.fetchSchedule(credentials);
 
       // 从学校适配器获取学期配置
-      const semesterInfo = adapter.getCurrentSemester?.() || DEFAULT_SEMESTER_INFO;
+      const semesterInfo = adapter.getCurrentSemester?.() ?? fallbackSemesterInfo();
       const yearNum = Number.parseInt(semesterInfo.year, 10);
       if (!courses.length) {
         throw new Error("课表为空，已保留本地已有数据");

@@ -6,6 +6,7 @@
 import * as http from "http";
 import * as https from "https";
 
+import { currentTerm, resolveTerm } from "../term-dates";
 import type { SchoolAdapter, SchoolCredentials, CourseData, ExamData, NewsItem } from "../types";
 
 import { parseHebauExamResponse } from "./exams";
@@ -16,7 +17,6 @@ import { HEBAU_PERIOD_TIMES } from "./period-times";
 import { extractHebauRows, parseHebauUrpJsonResponse } from "./urp-response";
 
 const URP_URL = "http://urp.hebau.edu.cn:1009";
-const DEFAULT_WEEK1_MONDAY = "2026-03-02";
 
 // ── HTTP ──────────────────────────────────────────────────────
 
@@ -46,14 +46,18 @@ function urpRequest(path: string, cookie: string, body?: string): Promise<{ stat
 
 // ── 学期 ──────────────────────────────────────────────────────
 
+/** 河北农大各学期第 1 周周一。未列入的学期由 resolveTerm 估算。 */
+const HEBAU_WEEK1_MONDAYS: Readonly<Record<string, string>> = {
+  "2025-1": "2025-09-01",
+  "2025-2": "2026-03-02",
+  "2026-1": "2026-09-01",
+  "2026-2": "2027-03-01",
+};
+
 function getSemester(): { year: string; semester: string; week1Monday: string } {
-  const m = new Date().getMonth() + 1;
-  const y = new Date().getFullYear();
-  const isSecond = m >= 2 && m <= 7;
-  const year = isSecond ? String(y - 1) : String(y);
-  const sem = isSecond ? "2" : "1";
-  const map: Record<string, string> = { "2025-2": "2026-03-02", "2025-1": "2025-09-01", "2026-2": "2027-03-01", "2026-1": "2026-09-01" };
-  return { year, semester: sem, week1Monday: map[`${year}-${sem}`] || DEFAULT_WEEK1_MONDAY };
+  // 河北农大春夏学期覆盖 2～7 月。未知学期由 resolveTerm 估算，
+  // 不再回落到写死的 DEFAULT_WEEK1_MONDAY（该常量过期后会持续产出错误周次）。
+  return resolveTerm(HEBAU_WEEK1_MONDAYS, currentTerm(new Date(), [2, 7]));
 }
 
 // ── 课表 ──────────────────────────────────────────────────────

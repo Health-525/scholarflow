@@ -5,13 +5,17 @@ import { getAuthorizedAccount } from "@/lib/auth/account-access";
 import { forbiddenResponse, isTrustedOrigin } from "@/lib/auth/origin";
 import { schoolUsernameBodySchema } from "@/lib/schemas/fetch";
 import { getAdapter } from "@/lib/schools/registry";
+import { currentTerm, resolveTerm } from "@/lib/schools/term-dates";
 import { getServerDB } from "@/lib/server-db";
 
-const DEFAULT_SEMESTER_INFO = {
-  year: "2025",
-  semester: "2",
-  week1Monday: "2026-03-02",
-};
+/**
+ * 适配器未实现 getCurrentSemester 时的兜底：按当前月份推学期并估算开学日。
+ * 原先是写死的 2025-2 / 2026-03-02，被时间超过后会持续产出错误周次。
+ * 必须在请求时求值，不能提到模块级常量。
+ */
+function fallbackSemesterInfo() {
+  return resolveTerm({}, currentTerm());
+}
 
 /**
  * POST /api/fetch/schedule
@@ -55,7 +59,7 @@ export async function POST(request: Request) {
 
     const courses = await adapter.fetchSchedule(credentials);
     const prefix = `${schoolId}:${userId}`;
-    const semInfo = adapter.getCurrentSemester?.() || DEFAULT_SEMESTER_INFO;
+    const semInfo = adapter.getCurrentSemester?.() ?? fallbackSemesterInfo();
     const y = Number.parseInt(semInfo.year, 10);
     if (!courses.length) {
       return NextResponse.json({ error: "课表为空，已保留本地已有数据" }, { status: 502 });
