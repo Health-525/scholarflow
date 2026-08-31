@@ -3,6 +3,7 @@ import { getServerDB } from "@/lib/server-db";
 
 export interface JwglCourse {
   course: string;
+  courseCode?: string;
   score: string;
   credit: string;
   type: string;
@@ -11,7 +12,8 @@ export interface JwglCourse {
 
 export interface JwglGrades {
   gpa: string;
-  totalCredits: number;
+  /** 计入 GPA 的必修课学分和（GPA 分母），不是已修总学分 */
+  requiredCredits: number;
   requiredCourses: number;
   allCourses: JwglCourse[];
 }
@@ -29,9 +31,18 @@ export async function getGPAServerData(): Promise<GPAServerData> {
   }
 
   const prefix = `${account.schoolId}:${account.userId}`;
-  const data = db.readData(`grades:${prefix}`) as JwglGrades | null;
+  // 老库里该字段名为 totalCredits，读取时归一化到 requiredCredits，不做数据迁移。
+  const raw = db.readData(`grades:${prefix}`) as
+    | (Omit<JwglGrades, "requiredCredits"> & {
+        requiredCredits?: number;
+        /** @deprecated 旧字段名 */
+        totalCredits?: number;
+      })
+    | null;
   return {
-    grades: data,
+    grades: raw
+      ? { ...raw, requiredCredits: raw.requiredCredits ?? raw.totalCredits ?? 0 }
+      : null,
     account,
   };
 }

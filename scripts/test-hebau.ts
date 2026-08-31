@@ -64,7 +64,7 @@ async function main() {
   console.log("\n5️⃣  抓取成绩...");
   try {
     const grades = await hebauAdapter.fetchGrades(credentials);
-    console.log(`   ✅ GPA: ${grades.gpa} | 总学分: ${grades.totalCredits} | 必修课: ${grades.requiredCourses} 门 | 全部课程: ${grades.allCourses.length} 门`);
+    console.log(`   ✅ GPA: ${grades.gpa} | 必修学分(GPA 分母): ${grades.requiredCredits} | 必修课: ${grades.requiredCourses} 门 | 全部课程: ${grades.allCourses.length} 门`);
     for (const c of grades.allCourses.slice(0, 5)) {
       console.log(`      - ${c.course} | ${c.score} | ${c.credit}学分 | ${c.type} | ${c.semester}`);
     }

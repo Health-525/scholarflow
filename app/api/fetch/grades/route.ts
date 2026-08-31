@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     db.writeData(`student:${prefix}`, {
       studentId: username || "",
       gpa: grades.gpa,
-      totalCredits: grades.totalCredits,
+      requiredCredits: grades.requiredCredits,
       courseCount: grades.allCourses.length,
     });
 

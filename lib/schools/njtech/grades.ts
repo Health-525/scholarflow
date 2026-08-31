@@ -5,6 +5,7 @@
 
 import type { GradeResult, GradeCourse } from "../types";
 
+import { gradeToGPA } from "./grade-scale";
 import { createClientWithCookie } from "./jwgl";
 
 const BASE = "https://jwgl.njtech.edu.cn";
@@ -12,37 +13,22 @@ const BASE = "https://jwgl.njtech.edu.cn";
 // ── GPA 计算 ────────────────────────────────────────────────
 
 /**
- * 南工大绩点规则
- */
-function toGP(score: string): number {
-  const s = parseFloat(score);
-  if (!isNaN(s)) {
-    if (s >= 90) return 4.0;
-    if (s >= 86) return 3.7;
-    if (s >= 82) return 3.3;
-    if (s >= 79) return 3.0;
-    if (s >= 75) return 2.7;
-    if (s >= 71) return 2.3;
-    if (s >= 68) return 2.0;
-    if (s >= 64) return 1.7;
-    if (s >= 60) return 1.3;
-    return 0;
-  }
-  // 等级制
-  const t = String(score || "").trim();
-  if (t.includes("优秀")) return 4.0;
-  if (t.includes("良好")) return 3.0;
-  if (t.includes("中等")) return 2.0;
-  if (t.includes("及格")) return 1.0;
-  return 0;
-}
-
-/**
  * 判断是否必修课
  */
 function isRequired(type: string): boolean {
   const t = (type || "").trim();
   return t === "必修" || t.startsWith("必修") || (t.includes("必") && !t.includes("选修"));
+}
+
+/**
+ * 成绩数值化，仅用于重修比较。
+ * 等级制无法与百分制比较大小，统一返回 -1（低于任何有效分数）——
+ * 直接用 parseFloat 比较会得到 NaN，而 NaN 的任何比较都是 false，
+ * 导致「先到的那条永远赢」，重修取最高分失效。
+ */
+function numScore(score: string): number {
+  const n = parseFloat(score);
+  return Number.isNaN(n) ? -1 : n;
 }
 
 // ── 全部成绩抓取 ────────────────────────────────────────────
@@ -78,6 +64,8 @@ export async function fetchAllGrades(
           for (const g of data.items) {
             all.push({
               course: g.kcmc || g.kch || "",
+              // 课程号单独留字段：它是去重的标识符，不能只当课程名的兜底
+              courseCode: g.kch || "",
               score: g.cj || g.bfzcj || "",
               credit: g.xf || "",
               type: g.kcxzmc || "",
@@ -91,24 +79,37 @@ export async function fetchAllGrades(
     }
   }
 
-  // 去重取最高分
-  const best: Record<string, GradeCourse> = {};
+  return summarizeGrades(all);
+}
+
+/**
+ * 原始成绩行 → 去重后的课程列表 + GPA。纯函数，与网络无关，便于回归测试。
+ */
+export function summarizeGrades(all: GradeCourse[]): GradeResult {
+  // 去重取最高分。键 = 课程号 + 课程性质：
+  // 重修同一门课取最高分是本意；但「大学体育 1/2/3」「大学英语 1/2/3」这类
+  // 跨学期同名课的课程号不同，只按课程名去重会把它们合并成一条、学分凭空消失。
+  const best = new Map<string, GradeCourse>();
   for (const g of all) {
-    const k = g.course;
-    if (!best[k] || parseFloat(g.score) > parseFloat(best[k].score)) {
-      best[k] = g;
+    const k = `${g.courseCode || g.course}|${g.type || ""}`;
+    const prev = best.get(k);
+    if (!prev || numScore(g.score) > numScore(prev.score)) {
+      best.set(k, g);
     }
   }
-  const deduped = Object.values(best);
+  const deduped = [...best.values()];
 
-  // GPA 计算（只计必修课）
+  // GPA 计算：只计必修课，且排除通过型/未知型成绩。
+  // gradeToGPA 返回 null 表示「不参与计算」，分子分母都不能计——
+  // 军训、毕业实习这类记「合格」的必修课按 0 绩点计入会把 GPA 拉塌。
   const required = deduped.filter(
     (g) => isRequired(g.type) && parseFloat(g.credit) > 0
   );
   let tg = 0;
   let tc = 0;
   for (const g of required) {
-    const gp = toGP(g.score);
+    const gp = gradeToGPA(g.score);
+    if (gp === null) continue;
     const cr = parseFloat(g.credit) || 0;
     tg += gp * cr;
     tc += cr;
@@ -117,7 +118,7 @@ export async function fetchAllGrades(
 
   return {
     gpa,
-    totalCredits: tc,
+    requiredCredits: tc,
     requiredCourses: required.length,
     allCourses: deduped,
   };

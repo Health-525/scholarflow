@@ -153,15 +153,37 @@ export async function GET(request: Request) {
     }
 
     case "student": {
-      const studentInfo = db.readData(`student:${prefix}`) as { studentId?: string; gpa?: string; totalCredits?: number; courseCount?: number } | null;
+      // totalCredits 已改名为 requiredCredits（语义是「计入 GPA 的必修学分」）。
+      // 已落盘的老记录仍是旧字段名，这里在读取边界统一归一化，不做数据迁移——
+      // 老库继续可读，新写入只产出新字段名。
+      type StoredStudent = {
+        studentId?: string;
+        gpa?: string;
+        requiredCredits?: number;
+        /** @deprecated 旧字段名，仅为读取兼容保留 */
+        totalCredits?: number;
+        courseCount?: number;
+      };
+      const studentInfo = db.readData(`student:${prefix}`) as StoredStudent | null;
       if (studentInfo) {
-        return NextResponse.json(studentInfo);
+        return NextResponse.json({
+          studentId: studentInfo.studentId ?? "",
+          gpa: studentInfo.gpa ?? "0",
+          requiredCredits: studentInfo.requiredCredits ?? studentInfo.totalCredits ?? 0,
+          courseCount: studentInfo.courseCount ?? 0,
+        });
       }
-      const grades = (db.readData(`grades:${prefix}`) as { gpa?: string; totalCredits?: number; allCourses?: unknown[] }) || { allCourses: [] };
+      const grades = (db.readData(`grades:${prefix}`) as {
+        gpa?: string;
+        requiredCredits?: number;
+        /** @deprecated 旧字段名 */
+        totalCredits?: number;
+        allCourses?: unknown[];
+      }) || { allCourses: [] };
       return NextResponse.json({
         studentId: "",
         gpa: grades.gpa || "0",
-        totalCredits: grades.totalCredits || 0,
+        requiredCredits: grades.requiredCredits ?? grades.totalCredits ?? 0,
         courseCount: (grades.allCourses || []).length,
       });
     }

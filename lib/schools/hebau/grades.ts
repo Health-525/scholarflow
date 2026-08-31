@@ -26,6 +26,12 @@ function isRequired(t: string): boolean {
   return value === "001" || value === "必修" || value.includes("必修");
 }
 
+/** 成绩数值化，仅用于重修比较。等级制返回 -1（低于任何有效分数）。 */
+function numScore(score: string): number {
+  const n = Number(score);
+  return Number.isNaN(n) ? -1 : n;
+}
+
 function urpReq(path: string, cookie: string, body: string): Promise<{ statusCode: number; body: string }> {
   return new Promise((resolve, reject) => {
     const u = new URL(path, URP_URL);
@@ -65,6 +71,7 @@ export async function fetchAllGrades(cookie: string, _username: string): Promise
       }
       for (const r of rows) allCourses.push({
         course: (r.KCMC || r.kcmc || r.XSKCM || r.xskcm || r.KCM || r.kcm || "") as string,
+        courseCode: String(r.KCH || r.kch || ""),
         score: String(r.ZCJ || r.zcj || r.CJ || r.cj || "0"),
         credit: String(r.XF || r.xf || "0"),
         type: String(r.KCXZDM || r.kcxzdm || r.KCXZDM_DISPLAY || r.kcxzdm_display || r.KCXZ || r.kcxz || "选修"),
@@ -72,15 +79,18 @@ export async function fetchAllGrades(cookie: string, _username: string): Promise
       });
     }
   }
+  // 去重键 = 课程号 + 课程性质。只按课程名去重会合并跨学期的同名不同课，学分被吞。
+  // 比较用 numScore：等级制经 Number() 得 NaN，而 NaN 的比较恒为 false，
+  // 会导致先到的那条永远保留，重修取最高分失效。
   const best = new Map<string, GradeCourse>();
   for (const c of allCourses) {
-    const k = c.course;
+    const k = `${c.courseCode || c.course}|${c.type || ""}`;
     const e = best.get(k);
-    if (!e || Number(c.score) > Number(e.score)) best.set(k, c);
+    if (!e || numScore(c.score) > numScore(e.score)) best.set(k, c);
   }
   const deduped = [...best.values()];
   const reqCourses = deduped.filter((c) => isRequired(c.type));
-  let totalGp = 0, totalCredits = 0;
-  for (const c of reqCourses) { totalGp += toGP(c.score) * (Number(c.credit) || 0); totalCredits += Number(c.credit) || 0; }
-  return { gpa: totalCredits > 0 ? (totalGp / totalCredits).toFixed(2) : "0.00", totalCredits, requiredCourses: reqCourses.length, allCourses: deduped };
+  let totalGp = 0, requiredCredits = 0;
+  for (const c of reqCourses) { totalGp += toGP(c.score) * (Number(c.credit) || 0); requiredCredits += Number(c.credit) || 0; }
+  return { gpa: requiredCredits > 0 ? (totalGp / requiredCredits).toFixed(2) : "0.00", requiredCredits, requiredCourses: reqCourses.length, allCourses: deduped };
 }

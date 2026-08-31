@@ -86,7 +86,12 @@ export function UserProfileCard({
           {studentInfo ? (
             <>
               <StatChip value={studentInfo.gpa} label="GPA" />
-              <StatChip value={String(studentInfo.totalCredits)} label="学分" />
+              {/* 这个数是 GPA 的分母（计入 GPA 的必修学分），不是已修总学分，
+                  标签必须写明「必修」，否则用户会当成总学分。 */}
+              <StatChip
+                value={String(studentInfo.requiredCredits)}
+                label="必修学分"
+              />
               <StatChip value={String(studentInfo.courseCount)} label="课程" />
             </>
           ) : (

@@ -23,6 +23,7 @@ export const THEME_OPTIONS: {
 export interface StudentInfo {
   studentId: string;
   gpa: string;
-  totalCredits: number;
+  /** 计入 GPA 的必修课学分和（GPA 分母），不是已修总学分 */
+  requiredCredits: number;
   courseCount: number;
 }

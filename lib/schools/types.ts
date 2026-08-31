@@ -73,13 +73,25 @@ export interface ExamData {
 
 export interface GradeResult {
   gpa: string;
-  totalCredits: number;
+  /**
+   * 计入 GPA 的必修课学分和，即 GPA 的分母。**不是**已修总学分。
+   *
+   * 曾命名为 totalCredits，界面据此显示「学分」，用户理解成总修学分——
+   * 通过型必修课（合格/免修）不在其中，数值必然偏小。命名歧义等价于 bug，
+   * 故改名并在此说明口径。
+   */
+  requiredCredits: number;
   requiredCourses: number;
   allCourses: GradeCourse[];
 }
 
 export interface GradeCourse {
   course: string;
+  /**
+   * 课程号。去重键的一部分：重修同号取最高分，跨学期同名不同课靠它区分。
+   * 部分学校的接口不返回，故可选。
+   */
+  courseCode?: string;
   score: string;
   credit: string;
   type: string;

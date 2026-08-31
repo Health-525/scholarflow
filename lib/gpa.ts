@@ -8,6 +8,8 @@
  * - 学期GPA + 累计GPA
  */
 
+import { NJTECH_GPA_TABLE, scoreToGPA } from "@/lib/schools/njtech/grade-scale";
+
 export interface Course {
   id: string;
   name: string;
@@ -41,35 +43,11 @@ export function gpaColorClasses(gpa: number): { colorClass: string; iconBgClass:
   return { colorClass: "text-red-500 dark:text-red-400", iconBgClass: "bg-red-500/[0.07] dark:bg-red-400/10" };
 }
 
-// ── 统一的百分制 → 4.0 GPA 对照表（NJTECH标准） ──
-export interface GPATableEntry {
-  min: number;
-  max: number; // 右开区间
-  gpa: number;
-  range: string;
-}
-
-export const GPA_TABLE: readonly GPATableEntry[] = [
-  { min: 90, max: 101, gpa: 4.0, range: "≥90" },
-  { min: 86, max: 90, gpa: 3.7, range: "86-89" },
-  { min: 82, max: 86, gpa: 3.3, range: "82-85" },
-  { min: 79, max: 82, gpa: 3.0, range: "79-81" },
-  { min: 75, max: 79, gpa: 2.7, range: "75-78" },
-  { min: 71, max: 75, gpa: 2.3, range: "71-74" },
-  { min: 68, max: 71, gpa: 2.0, range: "68-70" },
-  { min: 64, max: 68, gpa: 1.7, range: "64-67" },
-  { min: 60, max: 64, gpa: 1.3, range: "60-63" },
-  { min: 0, max: 60, gpa: 0, range: "<60" },
-];
-
-export function scoreToGPA(score: number): number {
-  for (const entry of GPA_TABLE) {
-    if (score >= entry.min && score < entry.max) {
-      return entry.gpa;
-    }
-  }
-  return 0;
-}
+// ── 百分制 → 4.0 GPA 对照表 ──
+// 真值在 lib/schools/njtech/grade-scale.ts（教务适配层与展示层共用），这里只转出，
+// 不再维护第二份阈值。GPA_TABLE 这个名字保留，避免动到既有调用方。
+export { NJTECH_GPA_TABLE as GPA_TABLE, scoreToGPA };
+export type { GPATableEntry } from "@/lib/schools/njtech/grade-scale";
 
 function gradeToGPA(grade: GradeLevel): number {
   switch (grade) {

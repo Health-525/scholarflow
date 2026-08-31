@@ -73,7 +73,7 @@ describe("POST /api/fetch/all auth guard", () => {
     mockAdapter.fetchExams.mockResolvedValue([]);
     mockAdapter.fetchGrades.mockResolvedValue({
       gpa: "0.00",
-      totalCredits: 0,
+      requiredCredits: 0,
       requiredCourses: 0,
       allCourses: [],
     });
