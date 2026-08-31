@@ -49,6 +49,19 @@ interface ActivitySettings {
   appOverrides: Array<{ pattern: string; app?: string; category: string }>;
 }
 
+/** electron/main.js 的 library:refresh-jwt / library:login 返回值 */
+interface LibraryJWTResult {
+  ok: boolean;
+  message: string;
+}
+
+/** electron/main.js 通过 library:jwt-refreshed 推送的载荷 */
+interface LibraryJWTRefreshedPayload {
+  ok: boolean;
+  /** JWT 过期时间，ISO 8601 */
+  expiry: string;
+}
+
 interface ElectronAPI {
   isElectron: boolean;
   // 注意：内部 API token 不再暴露给 renderer，改由主进程 webRequest 拦截器自动附加。
@@ -62,6 +75,16 @@ interface ElectronAPI {
   onUpdateDownloadProgress: (callback: (progress: DownloadProgress) => void) => () => void;
   onUpdateDownloaded: (callback: (info: { version: string }) => void) => () => void;
   onUpdateError: (callback: (err: { message: string }) => void) => () => void;
+  // 图书馆 JWT：与 electron/preload.js 的 library 契约一一对应。
+  // preload 是无类型的 JS，改动不会被编译器拦住——新增/变更 IPC 通道时必须同步这里。
+  /** 检查现有 JWT，失效则弹登录窗口 */
+  libraryRefreshJWT: () => Promise<LibraryJWTResult>;
+  /** 直接打开图书馆登录窗口 */
+  libraryLogin: () => Promise<LibraryJWTResult>;
+  /** JWT 已过期需重新登录；返回取消订阅函数 */
+  onLibraryJWTExpired: (callback: () => void) => () => void;
+  /** JWT 刷新成功；返回取消订阅函数 */
+  onLibraryJWTRefreshed: (callback: (data: LibraryJWTRefreshedPayload) => void) => () => void;
   setTitleBarOverlay: (options: { color?: string; symbolColor?: string; height?: number }) => Promise<boolean>;
   // Local-first-sync credential APIs：仅暴露写入/清除给 renderer；读取保留在主进程内部。
   storeCredential?: (plaintext: string) => Promise<boolean>;

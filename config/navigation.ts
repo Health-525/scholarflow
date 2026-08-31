@@ -8,6 +8,7 @@ import {
   FileText,
   Flag,
   LayoutDashboard,
+  Library,
   Monitor,
   Newspaper,
   Settings,
@@ -43,6 +44,7 @@ const NAV_REGISTRY = {
   schedule:    { id: "schedule",    href: "/schedule",        label: "课表",    icon: CalendarDays,    keywords: ["课程", "课表"],                                                          description: "本周网格、今日视图与调课管理" },
   assignments: { id: "assignments", href: "/assignments",     label: "作业",    icon: ClipboardList,   keywords: ["作业", "任务", "todo"],                                                  description: "快速录入、完成追踪与截止日期提醒" },
   exams:       { id: "exams",       href: "/exams",           label: "考试",    icon: Clock,           keywords: ["考试", "倒计时"],              searchTitle: "考试倒计时",               description: "考试安排与倒计时" },
+  library:     { id: "library",     href: "/library",         label: "图书馆",  icon: Library,         keywords: ["图书馆", "座位", "选座"],                                                description: "座位查询、选座预约与通知消息" },
   gpa:         { id: "gpa",         href: "/gpa",             label: "绩点",    icon: Calculator,      keywords: ["绩点", "GPA", "成绩"],         searchTitle: "GPA",                      description: "GPA 统计与学期成绩趋势" },
   goals:       { id: "goals",       href: "/goals",           label: "目标",    icon: Target,          keywords: ["目标", "习惯"],                searchTitle: "每日目标",                 description: "每日目标与连续打卡" },
   daily:       { id: "daily",       href: "/reports/daily",   label: "日报",    icon: Newspaper,       keywords: ["日报", "报告"],                                                          description: "每日学习总结与反思" },
@@ -63,7 +65,7 @@ function pick(...ids: (keyof typeof NAV_REGISTRY)[]): NavItemConfig[] {
 export const SIDE_NAV_GROUPS: NavGroupConfig[] = [
   {
     label: "学业",
-    items: pick("dashboard", "schedule", "assignments", "exams", "gpa"),
+    items: pick("dashboard", "schedule", "assignments", "exams", "gpa", "library"),
   },
   {
     label: "成长",
@@ -84,14 +86,14 @@ export const BOTTOM_NAV_CORE: NavItemConfig[] = pick("dashboard", "schedule", "a
 export const GLOBAL_SEARCH_ITEMS: NavItemConfig[] = pick(
   "dashboard", "schedule", "assignments", "exams",
   "goals", "notes", "daily", "weekly",
-  "pomodoro", "activity", "chat", "gpa", "settings",
+  "pomodoro", "activity", "chat", "gpa", "library", "settings",
 );
 
 // More 页面功能分组（单一数据源，替代 app/more/page.tsx 中的本地 FEATURE_GROUPS）
 export const MORE_PAGE_GROUPS: NavGroupConfig[] = [
   {
     label: "学业",
-    items: pick("dashboard", "schedule", "assignments", "exams", "gpa"),
+    items: pick("dashboard", "schedule", "assignments", "exams", "gpa", "library"),
   },
   {
     label: "成长",

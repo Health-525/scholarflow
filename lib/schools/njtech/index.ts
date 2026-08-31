@@ -10,12 +10,15 @@ import type {
   CourseData,
   ExamData,
   GradeResult,
+  LibraryData,
   NewsItem,
 } from "../types";
 
 import { fetchAllGrades } from "./grades";
 import { fetchJwcNews } from "./jwc-news";
 import { loginJwgl, fetchSchedule, fetchExams, NJTECH_PERIOD_TIMES } from "./jwgl";
+import { fetchLibrarySeats } from "./library";
+
 export const njtechAdapter: SchoolAdapter = {
   id: "njtech",
   name: "南京工业大学",
@@ -52,6 +55,7 @@ export const njtechAdapter: SchoolAdapter = {
       data: {
         username,
         cookie: session.cookie,
+        libraryJwt: credentials.libraryJwt || "",
       },
       expiresAt: Date.now() + 30 * 60 * 1000, // 30 分钟过期
     };
@@ -70,6 +74,12 @@ export const njtechAdapter: SchoolAdapter = {
       credentials.data.cookie,
       credentials.data.username
     );
+  },
+
+  async fetchLibrary(credentials): Promise<LibraryData | null> {
+    const jwt = credentials.data.libraryJwt;
+    if (!jwt) return null;
+    return fetchLibrarySeats(jwt);
   },
 
   async fetchJwcNews(): Promise<NewsItem[]> {

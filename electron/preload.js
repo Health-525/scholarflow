@@ -91,6 +91,24 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return () => ipcRenderer.removeListener("update-error", handler);
   },
 
+  // ── 图书馆 JWT ──
+  /** 刷新JWT（先检查是否有效，过期则弹登录窗口） */
+  libraryRefreshJWT: () => ipcRenderer.invoke("library:refresh-jwt"),
+  /** 打开图书馆登录窗口 */
+  libraryLogin: () => ipcRenderer.invoke("library:login"),
+  /** 监听：JWT已过期，需要重新登录 */
+  onLibraryJWTExpired: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on("library:jwt-expired", handler);
+    return () => ipcRenderer.removeListener("library:jwt-expired", handler);
+  },
+  /** 监听：JWT刷新成功 */
+  onLibraryJWTRefreshed: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on("library:jwt-refreshed", handler);
+    return () => ipcRenderer.removeListener("library:jwt-refreshed", handler);
+  },
+
   // ── 窗口标题栏 ──
   /** 动态更新 titleBarOverlay 颜色（跟随主题） */
   setTitleBarOverlay: (options) => ipcRenderer.invoke("window:set-titlebar-overlay", options),
